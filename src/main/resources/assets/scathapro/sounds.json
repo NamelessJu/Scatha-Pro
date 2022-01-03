@@ -1,0 +1,14 @@
+{
+    "meme.alert.worm": {
+        "category": "master",
+        "sounds": [{"name": "meme/alert/worm", "stream": true}]
+    },
+    "meme.alert.scatha": {
+        "category": "master",
+        "sounds": [{"name": "meme/alert/scatha", "stream": true}]
+    },
+    "meme.alert.bedrock_wall": {
+        "category": "master",
+        "sounds": [{"name": "meme/alert/bedrock_wall", "stream": true}]
+    }
+}

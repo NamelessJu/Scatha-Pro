@@ -1,0 +1,16 @@
+[
+{
+  "modid": "scathapro",
+  "name": "Scatha Pro",
+  "description": "A mod for pro scatha farmers",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["NamelessJu (JuCraft)"],
+  "credits": "https://discord.com/invite/hNvg7YrsKq",
+  "logoFile": "icon.png",
+  "screenshots": [],
+  "dependencies": []
+}
+]
