@@ -3,41 +3,111 @@ package com.namelessju.scathapro;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.UUID;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
-@SideOnly(Side.CLIENT)
-public class Util {
+public abstract class Util {
+    
+    public enum Color {
+        DARK_RED(11141120), RED(16733525), GOLD(16755200), YELLOW(16777045), DARK_GREEN(43520), GREEN(5635925), AQUA(5636095), DARK_AQUA(43690), DARK_BLUE(170), BLUE(5592575), LIGHT_PURPLE(16733695), DARK_PURPLE(11141290), WHITE(16777215), GRAY(11184810), DARK_GRAY(5592405), BLACK(0);
+        
+        int value;
+        
+        Color(int value) {
+            this.value = value;
+        }
+        
+        public int getValue() {
+            return value;
+        }
+    }
+    
+    public static void sendModChatMessage(String message) {
+        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+        if (player != null) player.addChatMessage(new ChatComponentText(ScathaPro.CHATPREFIX + message));
+    }
+    
+    public static void sendModErrorMessage(String errorMessage) {
+        sendModChatMessage(EnumChatFormatting.RED + errorMessage);
+    }
+
+    public static void playSoundAtPlayer(String sound) {
+        playSoundAtPlayer(sound, 1f, 1f);
+    }
+    public static void playSoundAtPlayer(String sound, float volume, float pitch) {
+        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+        if (player != null) player.playSound(sound, (float) (Config.getInstance().getDouble(Config.Key.volume) * volume), 1f);
+    }
+
+    public static void playModSoundAtPlayer(String sound) {
+        playModSoundAtPlayer(sound, 1f, 1f);
+    }
+    public static void playModSoundAtPlayer(String sound, float volume, float pitch) {
+        playSoundAtPlayer(ScathaPro.MODID + ":" + sound, volume, pitch);
+    }
+
+    public static boolean playModeSound(String path) {
+        
+        String modeFolder;
+        
+        switch (Config.getInstance().getInt(Config.Key.mode)) {
+            case 1:
+                modeFolder = "meme";
+                break;
+            case 2:
+                modeFolder = "anime";
+                break;
+            default:
+                return false;
+        }
+
+        playModSoundAtPlayer(modeFolder + "." + path);
+        return true;
+    }
 
 	public static long getCurrentTime() {
 		return System.currentTimeMillis();
 	}
 	
+    public static String getPlayerUUIDString() {
+        UUID uuid = Minecraft.getMinecraft().thePlayer.getGameProfile().getId();
+        if (uuid != null) return uuid.toString().replace("-", "").toLowerCase();
+        else return null;
+    }
+	
 	public static boolean inCrystalHollows() {
 		boolean inCrystalHollows = false;
 		
-		Collection<NetworkPlayerInfo> playerInfos = Minecraft.getMinecraft().getNetHandler().getPlayerInfoMap();
-		
-		for (Iterator<NetworkPlayerInfo> iterator = playerInfos.iterator(); iterator.hasNext();) {
-			NetworkPlayerInfo p = iterator.next();
-			IChatComponent displayName = p.getDisplayName();
-			
-			if (displayName != null && displayName.getUnformattedText().contains("Area:") && displayName.getUnformattedText().contains("Crystal Hollows")) {
-				inCrystalHollows = true;
-				break;
-			}
+		NetHandlerPlayClient netHandler = Minecraft.getMinecraft().getNetHandler();
+		if (netHandler != null) {
+    		Collection<NetworkPlayerInfo> playerInfos = netHandler.getPlayerInfoMap();
+    		
+    		for (Iterator<NetworkPlayerInfo> iterator = playerInfos.iterator(); iterator.hasNext();) {
+    			NetworkPlayerInfo p = iterator.next();
+    			IChatComponent displayName = p.getDisplayName();
+    			
+    			if (displayName != null && displayName.getUnformattedText().contains("Area:") && displayName.getUnformattedText().contains("Crystal Hollows")) {
+    				inCrystalHollows = true;
+    				break;
+    			}
+    		}
 		}
 		
 		return inCrystalHollows;
@@ -63,6 +133,18 @@ public class Util {
 		
 		return false;
 	}
+
+    public static String numberToString(int number) {
+        return numberToString(number, 0);
+    }
+	public static String numberToString(double number, int maxDecimalPlaces) {
+	    DecimalFormatSymbols decimalSymbols = new DecimalFormatSymbols();
+	    decimalSymbols.setDecimalSeparator('.');
+        decimalSymbols.setGroupingSeparator(',');
+	    DecimalFormat decimalFormat = new DecimalFormat("#,###.#", decimalSymbols);
+	    decimalFormat.setMaximumFractionDigits(maxDecimalPlaces);
+	    return decimalFormat.format(number);
+	}
 	
 	public static String getUnicodeString(String hexValue) {
 		return Character.toString((char) Integer.parseInt(hexValue, 16));
@@ -76,11 +158,10 @@ public class Util {
 		);
 	}
 	
-	public static String intToAbbreviatedString(int i) {
-		if (i >= 1000000000) return String.format("%.1f", i / 1000000000f) + "B";
-		else if (i >= 1000000) return String.format("%.1f", i / 1000000f) + "M";
-		else if (i >= 1000) return String.format("%.1f", i / 1000f) + "k";
-		return Integer.toString(i);
+	public static int getFacing(EntityPlayer player) {
+        int facing = (int) Math.floor(player.rotationYaw / 90 - 1.5f) % 4;
+        if (facing < 0) facing += 4;
+        return facing;
 	}
 	
 	public static void copyToClipboard(String str) {
@@ -99,4 +180,8 @@ public class Util {
         }
         return null;
     }
+	
+	public static float getChanceWithMF(float initialChance, int magicFind) {
+	    return initialChance * (1 + magicFind/100f);
+	}
 }

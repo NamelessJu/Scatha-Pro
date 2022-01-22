@@ -2,13 +2,13 @@
 {
   "modid": "scathapro",
   "name": "Scatha Pro",
-  "description": "A mod for pro scatha farmers",
+  "description": "A mod for pro scatha farmers\n\nStay up-to-date with info on this mod and learn how to become a pro scatha farmer: https://discord.com/invite/hNvg7YrsKq",
   "version": "${version}",
   "mcversion": "${mcversion}",
-  "url": "",
+  "url": "https://github.com/NamelessJu/Scatha-Pro/releases",
   "updateUrl": "",
   "authorList": ["NamelessJu (JuCraft)"],
-  "credits": "https://discord.com/invite/hNvg7YrsKq",
+  "credits": "",
   "logoFile": "icon.png",
   "screenshots": [],
   "dependencies": []
