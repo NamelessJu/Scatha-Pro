@@ -33,6 +33,7 @@ public class Config {
         
         // Other
         mode("other", "mode", 0),
+        showRotationAngles("other", "showRotationAngles", false),
         chatCopy("other", "chatCopy", false),
         devMode("other", "devMode", false);
         
@@ -53,7 +54,11 @@ public class Config {
     }
     
     private Config() {
-        File configFile = new File(Loader.instance().getConfigDir(), ScathaPro.MODID + ".cfg");
+        File legacyConfigFile = new File(Loader.instance().getConfigDir(), ScathaPro.MODID + ".cfg");
+        File configFile = Util.getModFile("config.cfg");
+        
+        if (legacyConfigFile.exists()) legacyConfigFile.renameTo(configFile);
+        
         config = new Configuration(configFile);
         config.load();
     }

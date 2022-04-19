@@ -21,6 +21,7 @@ public class API {
 
         public APIEvent(String endpoint)
         {
+            super();
             this.endpoint = endpoint;
         }
     }

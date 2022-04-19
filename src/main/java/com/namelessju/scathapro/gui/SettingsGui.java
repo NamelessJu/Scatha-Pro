@@ -11,9 +11,8 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiLabel;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
-import net.minecraftforge.fml.client.config.GuiSlider;
 
-public class SettingsGui extends ScathaProGui implements GuiSlider.ISlider {
+public class SettingsGui extends ScathaProGui {
     
     @Override
     public String getTitle() {
@@ -23,7 +22,9 @@ public class SettingsGui extends ScathaProGui implements GuiSlider.ISlider {
     
     private final Config config = Config.getInstance();
     
+    GuiTextField apiKeyTextField;
     private String apiKeyInitialValue;
+    private boolean editingApiKey = false;
     
     public SettingsGui(GuiScreen parentGui) {
         super(parentGui);
@@ -40,30 +41,28 @@ public class SettingsGui extends ScathaProGui implements GuiSlider.ISlider {
         apiKeyLabel.func_175202_a("API-Key");
         labelList.add(apiKeyLabel);
         
-        GuiTextField apiKeyTextField = new GuiTextField(50470401, fontRendererObj, width / 2 - 155, height / 6 + 10 - 6, 310, 20);
+        apiKeyTextField = new GuiTextField(50470401, fontRendererObj, width / 2 - 155, height / 6 + 10 - 6, 265, 20);
         apiKeyTextField.setMaxStringLength(64);
-        apiKeyTextField.setText(apiKeyInitialValue);
         textFieldList.add(apiKeyTextField);
+        updateApiKeyTextField();
         
-        double volume = config.getDouble(Config.Key.volume);
-        GuiSlider volumeSlider = new GuiSlider(504704002, width / 2 - 155, height / 6 + 48 - 6, 310, 20, "Alert Volume: ", "%", 0, 100, volume * 100, false, true, this);
-        buttonList.add(volumeSlider);
+        buttonList.add(new GuiButton(504704003, width / 2 + 115, height / 6 + 10 - 6, 40, 20, getEditApiKeyString()));
 
-        buttonList.add(new GuiButton(504704003, width / 2 - 155, height / 6 + 72 - 6, 150, 20, "Overlay..."));
-        buttonList.add(new GuiButton(504704004, width / 2 + 5, height / 6 + 72 - 6, 150, 20, getWormPreAlertString()));
-        buttonList.add(new GuiButton(504704005, width / 2 - 155, height / 6 + 96 - 6, 150, 20, getWormAlertString()));
-        buttonList.add(new GuiButton(504704006, width / 2 + 5, height / 6 + 96 - 6, 150, 20, getScathaAlertString()));
-        buttonList.add(new GuiButton(504704007, width / 2 - 155, height / 6 + 120 - 6, 150, 20, getWallAlertString()));
-        buttonList.add(new GuiButton(504704008, width / 2 + 5, height / 6 + 120 - 6, 150, 20, getPetAlertString()));
-        buttonList.add(new GuiButton(504704009, width / 2 - 155, height / 6 + 144 - 6, 150, 20, getModeString()));
-        buttonList.add(new GuiButton(504704010, width / 2 + 5, height / 6 + 144 - 6, 150, 20, getChatCopyString()));
+        buttonList.add(new GuiButton(504704004, width / 2 - 155, height / 6 + 48 - 6, 150, 20, "Overlay..."));
+        buttonList.add(new GuiButton(504704005, width / 2 + 5, height / 6 + 48 - 6, 150, 20, "Alerts..."));
+        buttonList.add(new GuiButton(504704006, width / 2 - 155, height / 6 + 72 - 6, 150, 20, getModeString()));
+        buttonList.add(new GuiButton(504704007, width / 2 + 5, height / 6 + 72 - 6, 150, 20, getShowRotationAnglesString()));
+        buttonList.add(new GuiButton(504704008, width / 2 - 155, height / 6 + 96 - 6, 150, 20, getChatCopyString()));
         
         buttonList.add(new GuiButton(504704099, width / 2 - 100, height / 6 + 168, 200, 20, "Done"));
     }
     
     @Override
     public void onGuiClosed() {
-        if (!config.getString(Config.Key.apiKey).equals(apiKeyInitialValue) && ScathaPro.getInstance().profilesDataRequestNeeded()) API.requestProfilesData();
+        if (!config.getString(Config.Key.apiKey).equals(apiKeyInitialValue)) {
+            ScathaPro.getInstance().repeatProfilesDataRequest = true;
+            if (ScathaPro.getInstance().profilesDataRequestNeeded()) API.requestProfilesData();
+        }
     }
     
     @Override
@@ -74,48 +73,30 @@ public class SettingsGui extends ScathaProGui implements GuiSlider.ISlider {
             switch (button.id) {
             
                 case 504704003:
-                    openGui(new OverlaySettingsGui(this));
+                    if (editingApiKey) {
+                        String apiKey = apiKeyTextField.getText();
+                        apiKey = apiKey.replace(" ", "");
+            
+                        config.set(Config.Key.apiKey, apiKey);
+                        config.save();
+                    }
+                    
+                    editingApiKey = !editingApiKey;
+                    
+                    updateApiKeyTextField();
+                    
+                    button.displayString = getEditApiKeyString();
                     break;
-                    
+            
                 case 504704004:
-                    config.set(Config.Key.wormPreAlert, !config.getBoolean(Config.Key.wormPreAlert));
-                    config.save();
-                    
-                    button.displayString = getWormPreAlertString();
+                    openGui(new OverlaySettingsGui(this));
                     break;
             
                 case 504704005:
-                    config.set(Config.Key.wormAlert, !config.getBoolean(Config.Key.wormAlert));
-                    config.save();
-                    
-                    button.displayString = getWormAlertString();
+                    openGui(new AlertSettingsGui(this));
                     break;
-            
+                    
                 case 504704006:
-                    config.set(Config.Key.scathaAlert, !config.getBoolean(Config.Key.scathaAlert));
-                    config.save();
-                    
-                    button.displayString = getScathaAlertString();
-                    break;
-                    
-                case 504704007:
-                    config.set(Config.Key.wallAlert, !config.getBoolean(Config.Key.wallAlert));
-                    config.save();
-                    
-                    button.displayString = getWallAlertString();
-                    break;
-                    
-                case 504704008:
-                    boolean enabled = !config.getBoolean(Config.Key.petAlert);
-                    config.set(Config.Key.petAlert, enabled);
-                    config.save();
-                    
-                    if (enabled) ScathaPro.getInstance().resetPreviousScathaPets();
-                    
-                    button.displayString = getPetAlertString();
-                    break;
-                    
-                case 504704009:
                     int currentMode = config.getInt(Config.Key.mode);
                     
                     int nextMode = currentMode + 1;
@@ -128,8 +109,15 @@ public class SettingsGui extends ScathaProGui implements GuiSlider.ISlider {
                     
                     button.displayString = getModeString();
                     break;
+                    
+                case 504704007:
+                    config.set(Config.Key.showRotationAngles, !config.getBoolean(Config.Key.showRotationAngles));
+                    config.save();
+                    
+                    button.displayString = getShowRotationAnglesString();
+                    break;
                 
-                case 504704010:
+                case 504704008:
                     config.set(Config.Key.chatCopy, !config.getBoolean(Config.Key.chatCopy));
                     config.save();
                     
@@ -142,62 +130,27 @@ public class SettingsGui extends ScathaProGui implements GuiSlider.ISlider {
             }
         }
     }
-
-    @Override
-    public void onChangeSliderValue(GuiSlider slider) {
-        if (slider.enabled) {
-            switch (slider.id) {
-                case 504704002:
-                    double volume = (double) slider.getValueInt() / 100;
-                    
-                    config.set(Config.Key.volume, volume);
-                    config.save();
-                    break;
-            }
+    
+    private void updateApiKeyTextField() {
+        if (editingApiKey) {
+            apiKeyTextField.setText(config.getString(Config.Key.apiKey));
+            apiKeyTextField.setEnabled(true);
+        }
+        else {
+            String apiKey = config.getString(Config.Key.apiKey);
+            
+            apiKeyTextField.setText(apiKey.replaceAll(".", "*"));
+            apiKeyTextField.setEnabled(false);
         }
     }
     
-    @Override
-    protected void textFieldTyped(GuiTextField textField) {
-        switch (textField.getId()) {
-            case 50470401:
-                String apiKey = textField.getText();
-                apiKey = apiKey.replace(" ", "");
-    
-                config.set(Config.Key.apiKey, apiKey);
-                config.save();
-                
-                ScathaPro.getInstance().repeatProfilesDataRequest = true;
-                
-                if (!textField.getText().equals(apiKey)) textField.setText(apiKey);
-                break;
-        }
+    private String getEditApiKeyString() {
+        return editingApiKey ? "save" : "edit";
     }
     
-    
-    private String getWormAlertString() {
-        boolean enabled = config.getBoolean(Config.Key.wormAlert);
-        return "Worm Spawn Alert: " + getEnabledString(enabled);
-    }
-    
-    private String getScathaAlertString() {
-        boolean enabled = config.getBoolean(Config.Key.scathaAlert);
-        return "Scatha Spawn Alert: " + getEnabledString(enabled);
-    }
-    
-    private String getWormPreAlertString() {
-        boolean enabled = config.getBoolean(Config.Key.wormPreAlert);
-        return "Worm Pre-Spawn Alert: " + getEnabledString(enabled);
-    }
-    
-    private String getWallAlertString() {
-        boolean enabled = config.getBoolean(Config.Key.wallAlert);
-        return "Bedrock Wall Alert: " + getEnabledString(enabled);
-    }
-    
-    private String getPetAlertString() {
-        boolean enabled = config.getBoolean(Config.Key.petAlert);
-        return "Scatha Drop Alert: " + getEnabledString(enabled);
+    private String getShowRotationAnglesString() {
+        boolean enabled = config.getBoolean(Config.Key.showRotationAngles);
+        return "Show Rotation Angles: " + getEnabledString(enabled);
     }
     
     private String getModeString() {

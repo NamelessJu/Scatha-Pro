@@ -6,6 +6,8 @@ import java.util.List;
 import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.Util;
+import com.namelessju.scathapro.gui.AchievementsGui;
+import com.namelessju.scathapro.gui.SettingsGui;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
@@ -40,9 +42,9 @@ public class MainCommand extends CommandBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (args.length > 0) {
-            String cfg = args[0];
+            String subCommand = args[0];
 
-            if (cfg.equalsIgnoreCase("reset")) {
+            if (subCommand.equalsIgnoreCase("reset")) {
                 for (Config.Key key : Config.Key.values()) { 
                     config.reset(key);
                 }
@@ -54,7 +56,7 @@ public class MainCommand extends CommandBase {
                 return;
             }
             
-            else if (cfg.equalsIgnoreCase("devMode")) {
+            else if (subCommand.equalsIgnoreCase("devMode")) {
                 if (args.length > 1) {
                     boolean enabled = CommandBase.parseBoolean(args[1]);
                     
@@ -66,8 +68,13 @@ public class MainCommand extends CommandBase {
                 }
                 else throw new CommandException("Missing values: /scathapro devMode <true/false>");
             }
+            
+            else if (subCommand.equalsIgnoreCase("achievements")) {
+                ScathaPro.getInstance().openGuiNextTick(new AchievementsGui(null));
+                return;
+            }
         }
 
-        ScathaPro.getInstance().openSettingsGui();
+        ScathaPro.getInstance().openGuiNextTick(new SettingsGui(null));
     }
 }

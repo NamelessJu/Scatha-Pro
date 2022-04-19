@@ -3,6 +3,7 @@ package com.namelessju.scathapro;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.io.File;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Collection;
@@ -38,10 +39,17 @@ public abstract class Util {
             return value;
         }
     }
-    
+
     public static void sendModChatMessage(String message) {
+        sendModChatMessage(new ChatComponentText(message));
+    }
+    public static void sendModChatMessage(IChatComponent chatComponent) {
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-        if (player != null) player.addChatMessage(new ChatComponentText(ScathaPro.CHATPREFIX + message));
+        if (player != null) {
+            ChatComponentText chatComponentText = new ChatComponentText(ScathaPro.CHATPREFIX);
+            chatComponentText.appendSibling(chatComponent);
+            player.addChatMessage(chatComponentText);
+        }
     }
     
     public static void sendModErrorMessage(String errorMessage) {
@@ -53,7 +61,7 @@ public abstract class Util {
     }
     public static void playSoundAtPlayer(String sound, float volume, float pitch) {
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-        if (player != null) player.playSound(sound, (float) (Config.getInstance().getDouble(Config.Key.volume) * volume), 1f);
+        if (player != null) player.playSound(sound, (float) (Config.getInstance().getDouble(Config.Key.volume) * volume), pitch);
     }
 
     public static void playModSoundAtPlayer(String sound) {
@@ -93,6 +101,8 @@ public abstract class Util {
     }
 	
 	public static boolean inCrystalHollows() {
+	    if (Config.getInstance().getBoolean(Config.Key.devMode)) return true;
+	    
 		boolean inCrystalHollows = false;
 		
 		NetHandlerPlayClient netHandler = Minecraft.getMinecraft().getNetHandler();
@@ -169,6 +179,13 @@ public abstract class Util {
 		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 		clipboard.setContents(selection, selection);
 	}
+    
+    public static File getModFile(String relativePath) {
+        File modFolder = new File(Minecraft.getMinecraft().mcDataDir, "mods/" + ScathaPro.MODID + "/");
+        if (!modFolder.exists()) modFolder.mkdirs();
+        
+        return new File(modFolder, relativePath);
+    }
 	
 	public static String getSkyblockItemID(ItemStack item) {
         if (item != null && item.hasTagCompound()) {

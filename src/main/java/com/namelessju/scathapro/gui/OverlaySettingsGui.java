@@ -48,7 +48,7 @@ public class OverlaySettingsGui extends ScathaProGui implements GuiSlider.ISlide
         if (overlayY < 0) setSliderDefaultString(overlayYSlider);
         buttonList.add(overlayYSlider);
         
-        buttonList.add(new GuiSlider(504704104, width / 2 - 155, height - 94 - 6, 150, 20, "Overlay Scale: ", "%", 10, 150, config.getDouble(Config.Key.overlayScale) * 100, false, true, this));
+        buttonList.add(new GuiSlider(504704104, width / 2 - 155, height - 94 - 6, 150, 20, "Overlay Scale: ", "%", 50, 150, config.getDouble(Config.Key.overlayScale) * 100, false, true, this));
         
         buttonList.add(new GuiButton(504704199, width / 2 - 100, height - 70, 200, 20, "Done"));
         
