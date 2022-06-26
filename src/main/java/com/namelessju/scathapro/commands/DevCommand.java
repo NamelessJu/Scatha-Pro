@@ -38,7 +38,7 @@ public class DevCommand extends CommandBase {
 		if (args.length > 0) {
 			String subCommand = args[0];
 			
-			if (subCommand.equals("help")) {
+			if (subCommand.equalsIgnoreCase("help")) {
 				sender.addChatMessage(new ChatComponentText(
 						ScathaPro.CHATPREFIX + EnumChatFormatting.RESET + "/scathadev <subcommand> [values...]\n" +
 						"All subcommands:\n" +

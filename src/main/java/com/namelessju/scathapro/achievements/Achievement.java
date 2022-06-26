@@ -1,40 +1,31 @@
 package com.namelessju.scathapro.achievements;
 
 public enum Achievement {
+
+    worm_kills_1("Long boi", "Kill a worm", 1),
+    worm_kills_2("Two digits", "Kill 10 worms", 10),
+    worm_kills_3("Continuing the grind...", "Kill 100 worms", 100),
+    worm_kills_4("k", "Kill 1,000 worms", 1000),
+    worm_kills_5("Over 9000", "Kill 10,000 worms", 10000),
+    worm_kills_6("No life", "Kill 100,000 worms", 100000),
     
-    // Scatha kills
+    scatha_kills_1("Scatha Farmer", "Become a scatha farmer by killing your first scatha", 1),
+    scatha_kills_2("No pet yet?!", "Kill 10 scathas", 10),
+    scatha_kills_3("MORE!!!", "Kill 100 scathas", 100),
+    scatha_kills_4("Scatha Pro", "Kill 1,000 scathas", 1000),
     
-    scathaFarmer("Scatha Farmer", "Become a scatha farmer by killing your first scatha", 1),
-    firstSteps("First Steps", "Kill 5 scathas", 5),
-    scathaHunter("Scatha Hunter", "Kill 100 scathas", 100),
-    leaveNoScathaAlive("Leave no scatha alive", "Kill 500 scathas", 500),
-    scathaPro("Scatha Pro", "Kill 1,000 scathas", 1000),
+    scatha_streak_1("This is getting out of hand", "Get 2 scatha spawns back to back", 2),
+    scatha_streak_2("Oh baby a triple!", "Get 3 scatha spawns back to back", 3),
+    scatha_streak_3("Four scatha clover", "Get 4 scatha spawns back to back", 4),
+    scatha_streak_4("Scatha Magnet", "Get 5 scatha spawns back to back", 5),
     
-    // Worm kills
+    crystal_hollows_time_1("Time flies", "Spend 1 hour in a single Crystal Hollows lobby", 1),
+    crystal_hollows_time_2("New Home", "Spend 3 hours in a single Crystal Hollows lobby", 3),
+    crystal_hollows_time_3("Go touch some grass", "Spend 5 hours in a single Crystal Hollows lobby", 5),
     
-    poorWorms("Poor worms", "Kill 10 worms (regular or scathas)", 10),
-    wormKiller("Worm Killer", "Kill 100 worms (regular or scathas)", 100),
-    wormSlayer("Worm Slayer", "Kill 1,000 worms (regular or scathas)", 1000),
-    wormAnnihilator("Worm Annihilator", "Kill 10,000 worms (regular or scathas)", 10000),
-    
-    // Back to back scathas
-    
-    anotherOne("Another one", "Get 2 scatha spawns back to back", 2),
-    ohBabyATriple("Oh baby a triple!", "Get 3 scatha spawns back to back", 3),
-    justOneMore("Just one more", "Get 4 scatha spawns back to back", 4),
-    scathaMagnet("Scatha Magnet", "Get 5 scatha spawns back to back", 5),
-    
-    // Crystal Hollows time
-    
-    timeFlies("Time flies", "Spend 1 hour in a single Crystal Hollows lobby", 1),
-    newHome("New Home", "Spend 3 hours in a single Crystal Hollows lobby", 3),
-    touchGrass("Go touch some grass", "Spend 5 hours in a single Crystal Hollows lobby", 5),
-    
-    // Scatha Pets
-    
-    betterThanNothing("Better than nothing", "Get a rare scatha pet drop", 1),
-    poggers("Poggers", "Get an epic scatha pet drop", 1),
-    jackpot("Jackpot!", "Get a legendary scatha pet drop", 1);
+    scatha_pet_drop_rare("Better than nothing", "Get a rare scatha pet drop", 1),
+    scatha_pet_drop_epic("Mid", "Get an epic scatha pet drop", 1),
+    scatha_pet_drop_legendary("Jackpot!", "Get a legendary scatha pet drop", 1);
     
     
     public final String name;

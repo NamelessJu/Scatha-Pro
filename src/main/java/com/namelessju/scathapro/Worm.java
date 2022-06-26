@@ -28,6 +28,7 @@ public class Worm {
 	
 	public void attack() {
 		lastAttackTime = Util.getCurrentTime();
+		ScathaPro.getInstance().lastWormAttackTime = lastAttackTime;
 	}
 	
 	public long getLastAttackTime() {

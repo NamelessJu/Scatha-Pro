@@ -83,6 +83,8 @@ public class LoopListeners {
     {
         if (event.phase == TickEvent.Phase.START) {
             
+            long now = Util.getCurrentTime();
+            
             if (scathaPro.openGuiNextTick != null) {
                 mc.displayGuiScreen(scathaPro.openGuiNextTick);
                 scathaPro.openGuiNextTick = null;
@@ -94,7 +96,6 @@ public class LoopListeners {
             if (player != null) {
                 
                 World world = player.worldObj;
-                long now = Util.getCurrentTime();
                 
                 // Worm detection
                 
@@ -110,7 +111,8 @@ public class LoopListeners {
                         
                         if (StringUtils.stripControlCodes(entityName).contains("[Lv5] Worm ")) {
                             scathaPro.registeredWorms.add(new Worm(entityID, false));
-                            
+
+                            scathaPro.backToBackWorms ++;
                             scathaPro.backToBackScathas = 0;
                             scathaPro.updateSpawnAchievements();
 
@@ -124,7 +126,8 @@ public class LoopListeners {
                         }
                         else if (StringUtils.stripControlCodes(entityName).contains("[Lv10] Scatha ")) {
                             scathaPro.registeredWorms.add(new Worm(entityID, true));
-                            
+
+                            scathaPro.backToBackWorms = 0;
                             scathaPro.backToBackScathas ++;
                             scathaPro.updateSpawnAchievements();
                             
@@ -224,91 +227,91 @@ public class LoopListeners {
                 
                 // Scatha pet drop detection
 
-                if (config.getBoolean(Config.Key.petAlert)) {
-                    if (scathaPro.lastWorldJoinTime >= 0 && now - scathaPro.lastWorldJoinTime > 3000) {
-                        
-                        ItemStack[] inventory = player.inventory.mainInventory;
-                        
-                        HashMap<Integer, Integer> currentScathaPets = new HashMap<Integer, Integer>();
-        
-                        for (int i = 0; i < inventory.length; i++) {
-                            if (i == 8) continue;
+                if (config.getBoolean(Config.Key.petAlert) && Util.inCrystalHollows()) {
+                    // if (scathaPro.lastWorldJoinTime >= 0 && now - scathaPro.lastWorldJoinTime > 3000) { }
+                    
+                    ItemStack[] inventory = player.inventory.mainInventory;
+                    
+                    HashMap<Integer, Integer> currentScathaPets = new HashMap<Integer, Integer>();
     
-                            ItemStack item = inventory[i];
+                    for (int i = 0; i < inventory.length; i++) {
+                        if (i == 8) continue;
+
+                        ItemStack item = inventory[i];
+                        
+                        if (item != null) {
+                            NBTTagCompound nbt = item.getTagCompound();
                             
-                            if (item != null) {
-                                NBTTagCompound nbt = item.getTagCompound();
-                                
-                                if (nbt != null) {
-                                    NBTTagCompound displayNbt = nbt.getCompoundTag("display");
-                                    if (displayNbt != null) {
-                                        String displayName = displayNbt.getString("Name");
-                                        NBTTagList displayLoreList = displayNbt.getTagList("Lore", 8);
+                            if (nbt != null) {
+                                NBTTagCompound displayNbt = nbt.getCompoundTag("display");
+                                if (displayNbt != null) {
+                                    String displayName = displayNbt.getString("Name");
+                                    NBTTagList displayLoreList = displayNbt.getTagList("Lore", 8);
+                                    
+                                    StringBuilder displayLoreBuilder = new StringBuilder();
+                                    for (int j = 0; j < displayLoreList.tagCount(); j ++) {
+                                        String loreLine = displayLoreList.getStringTagAt(j);
+                                        if (j > 0) displayLoreBuilder.append("\n");
+                                        displayLoreBuilder.append(loreLine);
+                                    }
+                                    String displayLore = displayLoreBuilder.toString();
+                                    
+                                    String skyblockItemID = Util.getSkyblockItemID(item);
+                                    
+                                    if ((skyblockItemID != null && skyblockItemID.equals("PET") || config.getBoolean(Config.Key.devMode)) && StringUtils.stripControlCodes(displayName).contains("Scatha")) {
+                                        int rarity = 0;
+                                        if (StringUtils.stripControlCodes(displayLore).contains("RARE")) rarity = 1;
+                                        else if (StringUtils.stripControlCodes(displayLore).contains("EPIC")) rarity = 2;
+                                        else if (StringUtils.stripControlCodes(displayLore).contains("LEGENDARY")) rarity = 3;
                                         
-                                        StringBuilder displayLoreBuilder = new StringBuilder();
-                                        for (int j = 0; j < displayLoreList.tagCount(); j ++) {
-                                            String loreLine = displayLoreList.getStringTagAt(j);
-                                            if (j > 0) displayLoreBuilder.append("\n");
-                                            displayLoreBuilder.append(loreLine);
-                                        }
-                                        String displayLore = displayLoreBuilder.toString();
-                                        
-                                        String skyblockItemID = Util.getSkyblockItemID(item);
-                                        
-                                        if ((skyblockItemID != null && skyblockItemID.equals("PET") || config.getBoolean(Config.Key.devMode)) && StringUtils.stripControlCodes(displayName).contains("Scatha")) {
-                                            int rarity = 0;
-                                            if (StringUtils.stripControlCodes(displayLore).contains("RARE")) rarity = 1;
-                                            else if (StringUtils.stripControlCodes(displayLore).contains("EPIC")) rarity = 2;
-                                            else if (StringUtils.stripControlCodes(displayLore).contains("LEGENDARY")) rarity = 3;
-                                            
-                                            Integer currentRarityAmount = currentScathaPets.get(rarity);
-                                            currentScathaPets.put(rarity, (currentRarityAmount != null ? currentRarityAmount : 0) + item.stackSize);
-                                        }
+                                        Integer currentRarityAmount = currentScathaPets.get(rarity);
+                                        currentScathaPets.put(rarity, (currentRarityAmount != null ? currentRarityAmount : 0) + item.stackSize);
                                     }
                                 }
                             }
                         }
-    
-                        if (mc.currentScreen == null && scathaPro.previousScathaPets != null) {
-                            int newScathaPet = -1;
-                            
-                            for (Integer rarityID : currentScathaPets.keySet()) {
-                                int currentRarityCount = currentScathaPets.get(rarityID);
-                                Integer previousRarityCount = scathaPro.previousScathaPets.get(rarityID);
-                                int difference = currentRarityCount - (previousRarityCount != null ? previousRarityCount : 0);
-                                if (difference > 0 && rarityID > newScathaPet) newScathaPet = rarityID;
-                            }
-                            
-                            if (newScathaPet >= 0) {
-                                mc.ingameGUI.displayTitle(null, null, 0, 100, 20);
-                                
-                                switch (newScathaPet) {
-                                    case 1:
-                                        mc.ingameGUI.displayTitle(null, EnumChatFormatting.BLUE + "RARE", 0, 0, 0);
-                                        Achievement.betterThanNothing.setProgress(1);
-                                        break;
-                                    case 2:
-                                        mc.ingameGUI.displayTitle(null, EnumChatFormatting.DARK_PURPLE + "EPIC", 0, 0, 0);
-                                        Achievement.poggers.setProgress(1);
-                                        break;
-                                    case 3:
-                                        mc.ingameGUI.displayTitle(null, EnumChatFormatting.GOLD + "LEGENDARY", 0, 0, 0);
-                                        Achievement.jackpot.setProgress(1);
-                                        break;
-                                    default:
-                                        mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + "unknown rarity", 0, 0, 0);
-                                }
-                                
-                                mc.ingameGUI.displayTitle(EnumChatFormatting.YELLOW + "Scatha Pet!", null, 0, 0, 0);
-
-                                Util.playSoundAtPlayer("random.chestopen", 1.5f, 0.95f);
-                                
-                                if (!Util.playModeSound("alert.pet_drop")) Util.playSoundAtPlayer("mob.wither.death", 0.75f, 0.8f);
-                            }
-                        }
-        
-                        scathaPro.previousScathaPets = currentScathaPets;
                     }
+                    
+                    if (scathaPro.lastWormAttackTime >= 0 && now - scathaPro.lastWormAttackTime < 1000 && scathaPro.previousScathaPets != null) {
+                        
+                        int newScathaPet = -1;
+                        
+                        for (Integer rarityID : currentScathaPets.keySet()) {
+                            int currentRarityCount = currentScathaPets.get(rarityID);
+                            Integer previousRarityCount = scathaPro.previousScathaPets.get(rarityID);
+                            int difference = currentRarityCount - (previousRarityCount != null ? previousRarityCount : 0);
+                            if (difference > 0 && rarityID > newScathaPet) newScathaPet = rarityID;
+                        }
+                        
+                        if (newScathaPet >= 0) {
+                            mc.ingameGUI.displayTitle(null, null, 0, 130, 20);
+                            
+                            switch (newScathaPet) {
+                                case 1:
+                                    mc.ingameGUI.displayTitle(null, EnumChatFormatting.BLUE + "RARE", 0, 0, 0);
+                                    Achievement.scatha_pet_drop_rare.setProgress(1);
+                                    break;
+                                case 2:
+                                    mc.ingameGUI.displayTitle(null, EnumChatFormatting.DARK_PURPLE + "EPIC", 0, 0, 0);
+                                    Achievement.scatha_pet_drop_epic.setProgress(1);
+                                    break;
+                                case 3:
+                                    mc.ingameGUI.displayTitle(null, EnumChatFormatting.GOLD + "LEGENDARY", 0, 0, 0);
+                                    Achievement.scatha_pet_drop_legendary.setProgress(1);
+                                    break;
+                                default:
+                                    mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + "unknown rarity", 0, 0, 0);
+                            }
+                            
+                            mc.ingameGUI.displayTitle(EnumChatFormatting.YELLOW + "Scatha Pet!", null, 0, 0, 0);
+                            
+                            Util.playSoundAtPlayer("random.chestopen", 1.5f, 0.95f);
+                            
+                            if (!Util.playModeSound("alert.pet_drop")) Util.playSoundAtPlayer("mob.wither.death", 0.75f, 0.8f);
+                        }
+                    }
+                    
+                    scathaPro.previousScathaPets = currentScathaPets;
                 }
                 
                 
@@ -333,9 +336,9 @@ public class LoopListeners {
                 
                 if (Util.inCrystalHollows()) {
                     float hours = (now - scathaPro.lastWorldJoinTime) / (1000f*60*60);
-                    Achievement.timeFlies.setProgress(hours);
-                    Achievement.newHome.setProgress(hours);
-                    Achievement.touchGrass.setProgress(hours);
+                    Achievement.crystal_hollows_time_1.setProgress(hours);
+                    Achievement.crystal_hollows_time_2.setProgress(hours);
+                    Achievement.crystal_hollows_time_3.setProgress(hours);
                 }
             }
         }

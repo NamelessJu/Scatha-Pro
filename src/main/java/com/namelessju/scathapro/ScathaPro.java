@@ -84,17 +84,19 @@ public class ScathaPro
     public boolean inBedrockWallRange = false;
     public HashMap<Integer, Integer> previousScathaPets = null;
     
+    public long lastWormAttackTime = -1;
+    
+    public int overallWormKills = -1;
+    public int overallScathaKills = -1;
     
     public int wormKills = 0;
     public int scathaKills = 0;
-    
+
+    public int backToBackWorms = 0;
     public int backToBackScathas = 0;
     
     public long lastProfilesDataRequestTime = -1;
     public boolean repeatProfilesDataRequest = true;
-    
-    public int overallWormKills = -1;
-    public int overallScathaKills = -1;
 
     private long lastPreAlertTime = -1;
     
@@ -148,7 +150,6 @@ public class ScathaPro
         overlayKillsContainer.add(overlayKillsSubContainer);
         uiOverlay.add(overlayKillsContainer);
         
-        
         uiOverlay.add(overlayCoordsText = new OverlayText(null, Util.Color.GRAY.getValue(), 0, 54, 1f));
         
         uiOverlay.add(overlayDayText = new OverlayText(null, Util.Color.WHITE.getValue(), 0, 64, 1f));
@@ -182,6 +183,7 @@ public class ScathaPro
             
             wormKills = 0;
             scathaKills = 0;
+            backToBackWorms = 0;
             backToBackScathas = 0;
             registeredWorms.clear();
             
@@ -202,9 +204,9 @@ public class ScathaPro
             updateKillAchievements();
             updateSpawnAchievements();
             
-            Achievement.timeFlies.setProgress(0);
-            Achievement.newHome.setProgress(0);
-            Achievement.touchGrass.setProgress(0);
+            Achievement.crystal_hollows_time_1.setProgress(0);
+            Achievement.crystal_hollows_time_2.setProgress(0);
+            Achievement.crystal_hollows_time_3.setProgress(0);
         }
     }
     
@@ -223,7 +225,7 @@ public class ScathaPro
                     
                     EntityArmorStand armorStand = nearbyArmorStands.get(i);
 
-                    if (armorStand == entity) continue;
+                    // if (armorStand == entity) continue;
                     
                     int entityID = armorStand.getEntityId();
                     Worm worm = Worm.getByID(registeredWorms, entityID);
@@ -453,25 +455,26 @@ public class ScathaPro
     
     
     public void updateKillAchievements() {
-        int highestScathaKills = Math.max(scathaKills, overallScathaKills);
-        Achievement.scathaFarmer.setProgress(highestScathaKills);
-        Achievement.firstSteps.setProgress(highestScathaKills);
-        Achievement.scathaHunter.setProgress(highestScathaKills);
-        Achievement.leaveNoScathaAlive.setProgress(highestScathaKills);
-        Achievement.scathaPro.setProgress(highestScathaKills);
+        int highestWormKills = Math.max(wormKills + scathaKills, overallWormKills + overallScathaKills);
+        Achievement.worm_kills_1.setProgress(highestWormKills);
+        Achievement.worm_kills_2.setProgress(highestWormKills);
+        Achievement.worm_kills_3.setProgress(highestWormKills);
+        Achievement.worm_kills_4.setProgress(highestWormKills);
+        Achievement.worm_kills_5.setProgress(highestWormKills);
+        Achievement.worm_kills_6.setProgress(highestWormKills);
         
-        int highestTotalKills = Math.max(wormKills + scathaKills, overallWormKills + overallScathaKills);
-        Achievement.poorWorms.setProgress(highestTotalKills);
-        Achievement.wormKiller.setProgress(highestTotalKills);
-        Achievement.wormSlayer.setProgress(highestTotalKills);
-        Achievement.wormAnnihilator.setProgress(highestTotalKills);
+        int highestScathaKills = Math.max(scathaKills, overallScathaKills);
+        Achievement.scatha_kills_1.setProgress(highestScathaKills);
+        Achievement.scatha_kills_2.setProgress(highestScathaKills);
+        Achievement.scatha_kills_3.setProgress(highestScathaKills);
+        Achievement.scatha_kills_4.setProgress(highestScathaKills);
     }
     
     public void updateSpawnAchievements() {
-        Achievement.anotherOne.setProgress(backToBackScathas);
-        Achievement.ohBabyATriple.setProgress(backToBackScathas);
-        Achievement.justOneMore.setProgress(backToBackScathas);
-        Achievement.scathaMagnet.setProgress(backToBackScathas);
+        Achievement.scatha_streak_1.setProgress(backToBackScathas);
+        Achievement.scatha_streak_2.setProgress(backToBackScathas);
+        Achievement.scatha_streak_3.setProgress(backToBackScathas);
+        Achievement.scatha_streak_4.setProgress(backToBackScathas);
     }
     
     

@@ -198,7 +198,7 @@ public abstract class Util {
         return null;
     }
 	
-	public static float getChanceWithMF(float initialChance, int magicFind) {
-	    return initialChance * (1 + magicFind/100f);
+	public static float calculatePetChance(float initialChance, int magicFind, int petLuck) {
+	    return initialChance * (1 + (magicFind + petLuck)/100f);
 	}
 }

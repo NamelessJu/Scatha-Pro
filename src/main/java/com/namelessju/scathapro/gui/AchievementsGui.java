@@ -35,13 +35,9 @@ public class AchievementsGui extends ScathaProGui {
     private float scroll = 0;
     
     private float scrollDragStart = -1;
-    
-    private int[] easterEggKeys = {31, 22, 31}; // = "sus"
-    private int easterEggProgress = 0;
-    private boolean easterEggTriggered = false;
 
     private class AchievementCard {
-        public static final int cardHeight = 40;
+        public static final int cardHeight = 37;
         public static final int cardWidth = 310;
         public static final int cardPadding = 5;
 
@@ -63,7 +59,7 @@ public class AchievementsGui extends ScathaProGui {
                     String unlockedString = EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + new SimpleDateFormat("dd.MM.yyyy HH:mm").format(new Date(AchievementManager.getInstance().getUnlockedAchievement(achievement).unlockedAtTimestamp));
                     fontRendererObj.drawString(unlockedString, x + cardWidth - cardPadding - fontRendererObj.getStringWidth(unlockedString), y + cardPadding, Util.Color.WHITE.getValue(), true);
 
-                    fontRendererObj.drawString(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GOLD + EnumChatFormatting.BOLD + achievement.name, x + cardPadding, y + cardPadding, Util.Color.WHITE.getValue(), true);
+                    fontRendererObj.drawString(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + EnumChatFormatting.BOLD + achievement.name, x + cardPadding, y + cardPadding, Util.Color.WHITE.getValue(), true);
                 }
                 else fontRendererObj.drawString(achievement.name, x + cardPadding, y + cardPadding, Util.Color.WHITE.getValue(), true);
                 fontRendererObj.drawString(EnumChatFormatting.GRAY + achievement.description, x + cardPadding, y + cardPadding + 12, Util.Color.WHITE.getValue(), true);
@@ -72,11 +68,11 @@ public class AchievementsGui extends ScathaProGui {
                 mc.getTextureManager().bindTexture(progressBarResourceLocation);
                 
                 int barWidth = 300;
-                drawModalRectWithCustomSizedTexture(x + cardPadding, y + cardPadding + 25, 0, 0, barWidth, 5, 512, 16);
+                drawModalRectWithCustomSizedTexture(x + cardPadding, y + cardPadding + 24, 0, 0, barWidth, 3, 512, 16);
                 
                 int progress = Math.round(barWidth * Math.min(achievement.getProgress() / achievement.goal, 1));
-                if (progress >= barWidth) drawModalRectWithCustomSizedTexture(x + cardPadding, y + cardPadding + 25, 0, 10, barWidth, 5, 512, 16);
-                else if (progress > 0) drawModalRectWithCustomSizedTexture(x + cardPadding, y + cardPadding + 25, 0, 5, progress, 5, 512, 16);
+                if (progress >= barWidth) drawModalRectWithCustomSizedTexture(x + cardPadding, y + cardPadding + 24, 0, 8, barWidth, 3, 512, 16);
+                else if (progress > 0) drawModalRectWithCustomSizedTexture(x + cardPadding, y + cardPadding + 24, 0, 4, progress, 3, 512, 16);
 
                 String progressString = (AchievementManager.getInstance().isAchievementUnlocked(achievement) ? EnumChatFormatting.GREEN : EnumChatFormatting.YELLOW).toString() + Util.numberToString(Math.min(achievement.getProgress(), achievement.goal), 2) + "/" + Util.numberToString(achievement.goal, 2);
                 GlStateManager.pushMatrix();
@@ -145,23 +141,6 @@ public class AchievementsGui extends ScathaProGui {
     }
     
     @Override
-    protected void keyTyped(char typedChar, int keyCode) throws IOException
-    {
-        super.keyTyped(typedChar, keyCode);
-        
-        if (keyCode == easterEggKeys[easterEggProgress]) {
-            easterEggProgress ++;
-            
-            if (easterEggProgress >= easterEggKeys.length) {
-                easterEggTriggered = !easterEggTriggered;
-                easterEggProgress = 0;
-            }
-        }
-        else if (keyCode == easterEggKeys[0]) easterEggProgress = 1;
-        else easterEggProgress = 0;
-    }
-    
-    @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
         super.drawScreen(mouseX, mouseY, partialTicks);
@@ -175,17 +154,6 @@ public class AchievementsGui extends ScathaProGui {
             card.draw();
         }
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
-        
-        if (easterEggTriggered) {
-            GlStateManager.color(1f, 1f, 1f, 1f);
-            mc.getTextureManager().bindTexture(progressBarResourceLocation);
-            
-            GlStateManager.pushMatrix();
-            GlStateManager.translate(width/2 - 150, height/2 - 21, 0);
-            GlStateManager.scale(6f, 6f, 1f);
-            drawModalRectWithCustomSizedTexture(0, 0, 375, 4, 50, 7, 512, 16);
-            GlStateManager.popMatrix();
-        }
     }
     
     public void setScroll(float scroll) {
