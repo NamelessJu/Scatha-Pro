@@ -1,6 +1,14 @@
 package com.namelessju.scathapro.achievements;
 
 public enum Achievement {
+    
+    /*********************************************************************
+     *                                                                   *
+     *                             BEWARE!                               *
+     *                                                                   *
+     * Below is the list of all the achievements, including secret ones! *
+     *       Don't look at them if you don't want to get spoiled!        *
+     *********************************************************************/
 
     worm_kills_1("Long boi", "Kill a worm", 1),
     worm_kills_2("Two digits", "Kill 10 worms", 10),
@@ -13,6 +21,13 @@ public enum Achievement {
     scatha_kills_2("No pet yet?!", "Kill 10 scathas", 10),
     scatha_kills_3("MORE!!!", "Kill 100 scathas", 100),
     scatha_kills_4("Scatha Pro", "Kill 1,000 scathas", 1000),
+    
+    lobby_kills_1("They keep coming", "Kill 25 worms in a single lobby", 25),
+    lobby_kills_2("Scatha grinding session", "Kill 50 worms in a single lobby", 50),
+    lobby_kills_3("Lobby emptied", "Kill 100 worms in a single lobby", 100),
+
+    worm_kill_time_1("No time to waste", "Kill a worm less than one second after it spawned", 1, true),
+    worm_kill_time_2("Yeah, I've got time!", "Kill a worm more than a minute after it spawned", 60, true),
     
     scatha_streak_1("This is getting out of hand", "Get 2 scatha spawns back to back", 2),
     scatha_streak_2("Oh baby a triple!", "Get 3 scatha spawns back to back", 3),
@@ -41,12 +56,17 @@ public enum Achievement {
     public final String name;
     public final String description;
     public final float goal;
+    public final boolean hidden;
     private float progress = 0f;
     
-    Achievement(String name, String description, float goal) {
+    Achievement(String name, String description, float goal, boolean hidden) {
         this.name = name;
         this.description = description;
         this.goal = goal;
+        this.hidden = hidden;
+    }
+    Achievement(String name, String description, float goal) {
+        this(name, description, goal, false);
     }
     
     public String getID() {

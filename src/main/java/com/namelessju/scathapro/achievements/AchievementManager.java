@@ -34,7 +34,14 @@ public class AchievementManager {
             unlockedAchievements.add(new UnlockedAchievement(achievement, Util.getCurrentTime()));
             saveAchievements();
             
-            ChatComponentText chatMessage = new ChatComponentText(EnumChatFormatting.GREEN + "Achievement unlocked" + EnumChatFormatting.GRAY + " - ");
+            ChatComponentText chatMessage = new ChatComponentText(
+                    (
+                            achievement.hidden
+                            ? EnumChatFormatting.AQUA.toString() + EnumChatFormatting.ITALIC + "Secret" + EnumChatFormatting.RESET + EnumChatFormatting.GREEN + " achievement"
+                            : EnumChatFormatting.GREEN + "Achievement"
+                    )
+                    + " unlocked" + EnumChatFormatting.GRAY + " - "
+            );
             
             ChatComponentText achievementComponent = new ChatComponentText(EnumChatFormatting.GOLD.toString() + EnumChatFormatting.ITALIC + achievement.name);
             ChatStyle achievementStyle = new ChatStyle().setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(achievement.name + "\n" + EnumChatFormatting.GRAY + achievement.description)));

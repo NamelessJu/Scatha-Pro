@@ -7,7 +7,10 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiIngame;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
+@SideOnly(Side.CLIENT)
 public class ImageButton extends GuiButton {
 
     private ResourceLocation resourceLocation;
@@ -15,7 +18,7 @@ public class ImageButton extends GuiButton {
     private float textureScale;
 
     public ImageButton(int buttonId, int x, int y, int widthIn, int heightIn, String texturePath, int textureWidth, int textureHeight, float textureScale) {
-        super(buttonId, x, y, widthIn, heightIn, null);
+        super(buttonId, x, y, widthIn, heightIn, "");
         setImage(texturePath, textureWidth, textureHeight, textureScale);
     }
     

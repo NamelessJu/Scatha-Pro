@@ -6,10 +6,12 @@ public class Worm {
 	private int entityID;
 	private boolean isScatha;
 	private long lastAttackTime = -1;
+	private long spawnTime;
 	
 	public Worm(int entityID, boolean isScatha) {
 		this.entityID = entityID;
 		this.isScatha = isScatha;
+		spawnTime = Util.getCurrentTime();
 	}
 	
 	public static Worm getByID(List<Worm> list, int id) {
@@ -33,6 +35,10 @@ public class Worm {
 	
 	public long getLastAttackTime() {
 		return lastAttackTime;
+	}
+	
+	public long getLifetime() {
+	    return Util.getCurrentTime() - spawnTime;
 	}
 	
 	@Override

@@ -99,10 +99,14 @@ public class LoopListeners {
                 
                 World world = player.worldObj;
                 
+                
+                // Pre-release notice 
+                
                 boolean inCrystalHollows = Util.inCrystalHollows();
                 if (inCrystalHollows && !inCrystalHollowsBefore) 
                     Util.sendModChatMessage(EnumChatFormatting.RED.toString() + EnumChatFormatting.ITALIC + "This is a pre-release version of 1.2! Please report any problems you find on the scatha farming discord!" + EnumChatFormatting.RESET);
                 inCrystalHollowsBefore = inCrystalHollows;
+                
                 
                 // Worm detection
                 
@@ -128,7 +132,7 @@ public class LoopListeners {
                                 mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + "Just a regular worm...", 0, 0, 0);
                                 mc.ingameGUI.displayTitle(EnumChatFormatting.YELLOW + "Worm", null, 0, 0, 0);
         
-                                if (!Util.playModeSound("alert.worm")) Util.playSoundAtPlayer("random.orb", 1f, 0.5f);
+                                if (!Util.playModeSound("alert.worm")) Util.playSoundAtPlayer("random.levelup", 1f, 0.5f);
                             }
                         }
                         else if (StringUtils.stripControlCodes(entityName).contains("[Lv10] Scatha ")) {
@@ -143,7 +147,7 @@ public class LoopListeners {
                                 mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + "Pray to RNGesus!", 0, 0, 0);
                                 mc.ingameGUI.displayTitle(EnumChatFormatting.RED + "Scatha", null, 0, 0, 0);
                                 
-                                if (!Util.playModeSound("alert.scatha")) Util.playSoundAtPlayer("random.orb", 1f, 0.8f);
+                                if (!Util.playModeSound("alert.scatha")) Util.playSoundAtPlayer("random.levelup", 1f, 0.75f);
                             }
                         }
                         
@@ -159,7 +163,7 @@ public class LoopListeners {
                     int entityID = worm.getEntityID();
                     
                     if (world.getEntityByID(entityID) == null) {    
-                        if (now - worm.getLastAttackTime() < 1000 || scathaPro.lastFishingRodCast >= 0 && now - scathaPro.lastFishingRodCast < 1500) {
+                        if (now - worm.getLastAttackTime() < 1000 || scathaPro.lastFishingRodCast >= 0 && now - scathaPro.lastFishingRodCast < 2000) {
                             if (worm.isScatha()) {
                                 scathaPro.scathaKills ++;
                                 if (scathaPro.overallScathaKills >= 0) scathaPro.overallScathaKills ++;
@@ -176,6 +180,10 @@ public class LoopListeners {
                             scathaPro.updateOverlayTotalKills();
 
                             scathaPro.updateKillAchievements();
+                            
+                            long lifetime = worm.getLifetime();
+                            if (lifetime <= 1000) Achievement.worm_kill_time_1.setProgress(1);
+                            else if (lifetime >= 60 * 1000) Achievement.worm_kill_time_2.setProgress(60);
                         }
                         
                         scathaPro.registeredWorms.remove(worm);
@@ -285,7 +293,7 @@ public class LoopListeners {
                             (
                                 scathaPro.lastWormAttackTime >= 0 && now - scathaPro.lastWormAttackTime < 1000
                                 ||
-                                scathaPro.lastFishingRodCast >= 0 && now - scathaPro.lastFishingRodCast < 1500
+                                scathaPro.lastFishingRodCast >= 0 && now - scathaPro.lastFishingRodCast < 2000
                             )
                             && scathaPro.previousScathaPets != null
                         ) {

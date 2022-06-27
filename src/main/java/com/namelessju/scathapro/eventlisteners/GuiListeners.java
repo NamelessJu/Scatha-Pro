@@ -55,8 +55,15 @@ public class GuiListeners {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onGuiAction(GuiScreenEvent.ActionPerformedEvent.Pre event) {
-        if (event.button.id == 504704000) mc.displayGuiScreen(new SettingsGui(event.gui));
-        else if (event.button.id == 504704001) mc.displayGuiScreen(new AchievementsGui(event.gui));
+        switch (event.button.id) {
+            case 504704000:
+                mc.displayGuiScreen(new SettingsGui(event.gui));
+                break;
+                
+            case 504704001:
+                mc.displayGuiScreen(new AchievementsGui(event.gui));
+                break;
+        }
     }
     
     private boolean isButtonOverlapping(GuiButton button, List<GuiButton> buttonList) {

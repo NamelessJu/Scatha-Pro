@@ -62,7 +62,7 @@ public class ScathaPro
 {
     public static final String MODNAME = "Scatha-Pro";
     public static final String MODID = "scathapro";
-    public static final String VERSION = "1.2";
+    public static final String VERSION = "1.2_PreRelease_1";
     
     public static final String CHATPREFIX = EnumChatFormatting.GRAY + MODNAME + ": " + EnumChatFormatting.RESET;
     
@@ -311,7 +311,7 @@ public class ScathaPro
             mc.ingameGUI.displayTitle(null, EnumChatFormatting.YELLOW + "Worm about to spawn...", 0, 0, 0);
             mc.ingameGUI.displayTitle("", null, 0, 0, 0);
             
-            if (!Util.playModeSound("alert.prespawn")) Util.playSoundAtPlayer("note.bass", 1f, 1.5f);
+            if (!Util.playModeSound("alert.prespawn")) Util.playSoundAtPlayer("random.orb", 1f, 0.5f);
             
             lastPreAlertTime = now;
         }
