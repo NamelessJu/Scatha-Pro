@@ -40,6 +40,8 @@ public class LoopListeners {
     ScathaPro scathaPro = ScathaPro.getInstance();
     Config config = Config.getInstance();
     
+    private boolean inCrystalHollowsBefore = false;
+    
     
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onRenderGameOverlayPost(RenderGameOverlayEvent.Post event)
@@ -97,6 +99,11 @@ public class LoopListeners {
                 
                 World world = player.worldObj;
                 
+                boolean inCrystalHollows = Util.inCrystalHollows();
+                if (inCrystalHollows && !inCrystalHollowsBefore) 
+                    Util.sendModChatMessage(EnumChatFormatting.RED.toString() + EnumChatFormatting.ITALIC + "This is a pre-release version of 1.2! Please report any problems you find on the scatha farming discord!" + EnumChatFormatting.RESET);
+                inCrystalHollowsBefore = inCrystalHollows;
+                
                 // Worm detection
                 
                 List<EntityArmorStand> nearbyArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(player.posX, player.posY, player.posZ, player.posX, player.posY, player.posZ).expand(20f, 10f, 20f));
@@ -139,6 +146,8 @@ public class LoopListeners {
                                 if (!Util.playModeSound("alert.scatha")) Util.playSoundAtPlayer("random.orb", 1f, 0.8f);
                             }
                         }
+                        
+                        scathaPro.updateOverlayWormStreak();
                     }
                 }
                 
@@ -150,7 +159,7 @@ public class LoopListeners {
                     int entityID = worm.getEntityID();
                     
                     if (world.getEntityByID(entityID) == null) {    
-                        if (now - worm.getLastAttackTime() < 1000) {
+                        if (now - worm.getLastAttackTime() < 1000 || scathaPro.lastFishingRodCast >= 0 && now - scathaPro.lastFishingRodCast < 1500) {
                             if (worm.isScatha()) {
                                 scathaPro.scathaKills ++;
                                 if (scathaPro.overallScathaKills >= 0) scathaPro.overallScathaKills ++;
@@ -177,7 +186,7 @@ public class LoopListeners {
                 // Bedrock wall detection
 
                 if (config.getBoolean(Config.Key.wallAlert)) {
-                    if (Util.inCrystalHollows()) {
+                    if (inCrystalHollows) {
                         int[] checkDirection = {0, 0};
                         
                         switch (Util.getFacing(player)) {
@@ -227,7 +236,7 @@ public class LoopListeners {
                 
                 // Scatha pet drop detection
 
-                if (config.getBoolean(Config.Key.petAlert) && Util.inCrystalHollows()) {
+                if (config.getBoolean(Config.Key.petAlert) && inCrystalHollows) {
                     // if (scathaPro.lastWorldJoinTime >= 0 && now - scathaPro.lastWorldJoinTime > 3000) { }
                     
                     ItemStack[] inventory = player.inventory.mainInventory;
@@ -272,7 +281,14 @@ public class LoopListeners {
                         }
                     }
                     
-                    if (scathaPro.lastWormAttackTime >= 0 && now - scathaPro.lastWormAttackTime < 1000 && scathaPro.previousScathaPets != null) {
+                    if (
+                            (
+                                scathaPro.lastWormAttackTime >= 0 && now - scathaPro.lastWormAttackTime < 1000
+                                ||
+                                scathaPro.lastFishingRodCast >= 0 && now - scathaPro.lastFishingRodCast < 1500
+                            )
+                            && scathaPro.previousScathaPets != null
+                        ) {
                         
                         int newScathaPet = -1;
                         
@@ -289,15 +305,15 @@ public class LoopListeners {
                             switch (newScathaPet) {
                                 case 1:
                                     mc.ingameGUI.displayTitle(null, EnumChatFormatting.BLUE + "RARE", 0, 0, 0);
-                                    Achievement.scatha_pet_drop_rare.setProgress(1);
+                                    scathaPro.rarePetDrops ++;
                                     break;
                                 case 2:
                                     mc.ingameGUI.displayTitle(null, EnumChatFormatting.DARK_PURPLE + "EPIC", 0, 0, 0);
-                                    Achievement.scatha_pet_drop_epic.setProgress(1);
+                                    scathaPro.epicPetDrops ++;
                                     break;
                                 case 3:
                                     mc.ingameGUI.displayTitle(null, EnumChatFormatting.GOLD + "LEGENDARY", 0, 0, 0);
-                                    Achievement.scatha_pet_drop_legendary.setProgress(1);
+                                    scathaPro.legendaryPetDrops ++;
                                     break;
                                 default:
                                     mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + "unknown rarity", 0, 0, 0);
@@ -308,6 +324,10 @@ public class LoopListeners {
                             Util.playSoundAtPlayer("random.chestopen", 1.5f, 0.95f);
                             
                             if (!Util.playModeSound("alert.pet_drop")) Util.playSoundAtPlayer("mob.wither.death", 0.75f, 0.8f);
+                            
+                            scathaPro.updatePetDropAchievements();
+                            
+                            scathaPro.savePetDrops();
                         }
                     }
                     
@@ -317,7 +337,7 @@ public class LoopListeners {
                 
                 // API request
                 
-                if (scathaPro.repeatProfilesDataRequest && now - scathaPro.lastWorldJoinTime > 3000 && Util.inCrystalHollows() && now - scathaPro.lastProfilesDataRequestTime > 1000 * 60 * 5) {
+                if (scathaPro.repeatProfilesDataRequest && now - scathaPro.lastWorldJoinTime > 3000 && inCrystalHollows && now - scathaPro.lastProfilesDataRequestTime > 1000 * 60 * 5) {
                     scathaPro.lastProfilesDataRequestTime = now;
                     API.requestProfilesData();
                 }
@@ -325,7 +345,7 @@ public class LoopListeners {
                 
                 // Update UI overlay
                 
-                if (config.getBoolean(Config.Key.overlay) && Util.inCrystalHollows() && !Minecraft.getMinecraft().gameSettings.showDebugInfo) {
+                if (config.getBoolean(Config.Key.overlay) && inCrystalHollows && !Minecraft.getMinecraft().gameSettings.showDebugInfo) {
                     scathaPro.updateOverlayCoords();
                     scathaPro.updateOverlayDay();
                     
@@ -334,7 +354,7 @@ public class LoopListeners {
                 
                 // Achievements
                 
-                if (Util.inCrystalHollows()) {
+                if (inCrystalHollows) {
                     float hours = (now - scathaPro.lastWorldJoinTime) / (1000f*60*60);
                     Achievement.crystal_hollows_time_1.setProgress(hours);
                     Achievement.crystal_hollows_time_2.setProgress(hours);

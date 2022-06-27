@@ -19,13 +19,23 @@ public enum Achievement {
     scatha_streak_3("Four scatha clover", "Get 4 scatha spawns back to back", 4),
     scatha_streak_4("Scatha Magnet", "Get 5 scatha spawns back to back", 5),
     
+    worm_streak_1("Still perfectly normal", "Get 7 regular worm spawns in a row", 7),
+    worm_streak_2("Unlucky number", "Get 13 regular worm spawns in a row", 13),
+    worm_streak_3("RNGesus is on vacation", "Get 20 regular worm spawns in a row", 20),
+    
     crystal_hollows_time_1("Time flies", "Spend 1 hour in a single Crystal Hollows lobby", 1),
     crystal_hollows_time_2("New Home", "Spend 3 hours in a single Crystal Hollows lobby", 3),
     crystal_hollows_time_3("Go touch some grass", "Spend 5 hours in a single Crystal Hollows lobby", 5),
     
-    scatha_pet_drop_rare("Better than nothing", "Get a rare scatha pet drop", 1),
-    scatha_pet_drop_epic("Mid", "Get an epic scatha pet drop", 1),
-    scatha_pet_drop_legendary("Jackpot!", "Get a legendary scatha pet drop", 1);
+    scatha_pet_drop_1_rare("Better than nothing", "Get a rare scatha pet drop", 1),
+    scatha_pet_drop_1_epic("Mid", "Get an epic scatha pet drop", 1),
+    scatha_pet_drop_1_legendary("Jackpot!", "Get a legendary scatha pet drop", 1),
+    scatha_pet_drop_2_rare("Pocket money", "Get 3 rare scatha pet drops", 3),
+    scatha_pet_drop_2_epic("3pic", "Get 3 epic scatha pet drops", 3),
+    scatha_pet_drop_2_legendary("Golden trio", "Get 3 legendary scatha pet drops", 3),
+    scatha_pet_drop_3_rare("I'm blue da ba dee da ba di", "Get 10 rare scatha pet drops", 10),
+    scatha_pet_drop_3_epic("Epic scatha gamer", "Get 10 epic scatha pet drops", 10),
+    scatha_pet_drop_3_legendary("Scatha billionaire", "Get 10 legendary scatha pet drops", 10);
     
     
     public final String name;

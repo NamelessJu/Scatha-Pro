@@ -7,3 +7,4 @@ build/
 Scatha Pro_Client.launch
 Scatha Pro_Server.launch
 *.log
+*.lnk

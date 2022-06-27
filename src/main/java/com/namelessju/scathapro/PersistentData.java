@@ -7,6 +7,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 
+import org.apache.logging.log4j.Level;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -47,7 +49,7 @@ public class PersistentData {
                     data = dataJson.getAsJsonObject();
             }
             catch (Exception e) {
-                System.out.println("Error while trying to load persistent data");
+                ScathaPro.getInstance().logger.log(Level.ERROR, "Error while trying to load persistent data");
             }
         }
     }
@@ -61,7 +63,7 @@ public class PersistentData {
             bufferedWriter.close();
         }
         catch (Exception e) {
-            System.out.println("Error while trying to save persistent data");
+            ScathaPro.getInstance().logger.log(Level.ERROR, "Error while trying to save persistent data");
         }
     }
 

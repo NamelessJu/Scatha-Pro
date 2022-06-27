@@ -37,7 +37,19 @@ public class GuiListeners {
             event.buttonList.add(modMenuButton);
         }
         else if (event.gui instanceof GuiIngameMenu) {
-            event.buttonList.add(new ImageButton(504704001, event.gui.width / 2 - 100 - 24, event.gui.height / 4 + 48 - 16, 20, 20, "achievements_icon.png", 64, 64, 0.2f));
+            GuiButton achievementMenuButton = new ImageButton(504704001, event.gui.width / 2 - 100 - 24, event.gui.height / 4 + 48 - 16, 20, 20, "achievements_icon.png", 64, 64, 0.2f);
+            
+            if (isButtonOverlapping(achievementMenuButton, event.buttonList)) {
+                achievementMenuButton.xPosition = 5;
+                achievementMenuButton.yPosition = event.gui.height - 5 - achievementMenuButton.height;
+                
+                if (isButtonOverlapping(achievementMenuButton, event.buttonList)) {
+                    achievementMenuButton.xPosition = event.gui.width - 5 - achievementMenuButton.width;
+                    achievementMenuButton.yPosition = event.gui.height - 5 - achievementMenuButton.height;
+                }
+            }
+            
+            event.buttonList.add(achievementMenuButton);
         }
     }
 

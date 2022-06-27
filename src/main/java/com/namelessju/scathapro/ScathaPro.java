@@ -6,6 +6,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.achievements.AchievementManager;
 import com.namelessju.scathapro.commands.ChancesCommand;
@@ -27,6 +34,7 @@ import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatStyle;
@@ -40,9 +48,11 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.Mod.Instance;
+import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -56,11 +66,14 @@ public class ScathaPro
     
     public static final String CHATPREFIX = EnumChatFormatting.GRAY + MODNAME + ": " + EnumChatFormatting.RESET;
     
+    private static final String persistentDataPetDropsKey = "petDrops";
+    
     @Instance(value = MODID)
     private static ScathaPro instance;
 
     private final Minecraft mc = Minecraft.getMinecraft();
     private final Config config = Config.getInstance();
+    public final Logger logger = LogManager.getLogger(MODID);
     
     
     private final OverlayContainer uiOverlay;
@@ -72,6 +85,7 @@ public class ScathaPro
     private final OverlayText overlayScathaKillsText;
     private final OverlayText overlayOverallTotalKillsText;
     private final OverlayText overlayTotalKillsText;
+    private final OverlayText overlayWormStreakText;
     private final OverlayText overlayCoordsText;
     private final OverlayText overlayDayText;
     private final OverlayText overlayDayWarningText;
@@ -85,6 +99,7 @@ public class ScathaPro
     public HashMap<Integer, Integer> previousScathaPets = null;
     
     public long lastWormAttackTime = -1;
+    public long lastFishingRodCast = -1;
     
     public int overallWormKills = -1;
     public int overallScathaKills = -1;
@@ -94,6 +109,10 @@ public class ScathaPro
 
     public int backToBackWorms = 0;
     public int backToBackScathas = 0;
+    
+    public int rarePetDrops = 0;
+    public int epicPetDrops = 0;
+    public int legendaryPetDrops = 0;
     
     public long lastProfilesDataRequestTime = -1;
     public boolean repeatProfilesDataRequest = true;
@@ -150,10 +169,12 @@ public class ScathaPro
         overlayKillsContainer.add(overlayKillsSubContainer);
         uiOverlay.add(overlayKillsContainer);
         
-        uiOverlay.add(overlayCoordsText = new OverlayText(null, Util.Color.GRAY.getValue(), 0, 54, 1f));
+        uiOverlay.add(overlayWormStreakText = new OverlayText(null, Util.Color.GRAY.getValue(), 0, 51, 1f));
         
-        uiOverlay.add(overlayDayText = new OverlayText(null, Util.Color.WHITE.getValue(), 0, 64, 1f));
-        uiOverlay.add(overlayDayWarningText = new OverlayText(null, Util.Color.GRAY.getValue(), 0, 74, 1f));
+        uiOverlay.add(overlayCoordsText = new OverlayText(null, Util.Color.GRAY.getValue(), 0, 64, 1f));
+        
+        uiOverlay.add(overlayDayText = new OverlayText(null, Util.Color.WHITE.getValue(), 0, 74, 1f));
+        uiOverlay.add(overlayDayWarningText = new OverlayText(null, Util.Color.GRAY.getValue(), 0, 84, 1f));
     }
     
     
@@ -168,8 +189,14 @@ public class ScathaPro
         ClientCommandHandler.instance.registerCommand(new MainCommand());
         ClientCommandHandler.instance.registerCommand(new ChancesCommand());
         ClientCommandHandler.instance.registerCommand(new DevCommand());
-        
+    }
+    
+    
+    @EventHandler
+    public void postInit(FMLPostInitializationEvent event)
+    {
         AchievementManager.getInstance().loadAchievements();
+        loadPetDrops();
     }
     
     
@@ -203,6 +230,7 @@ public class ScathaPro
             
             updateKillAchievements();
             updateSpawnAchievements();
+            updatePetDropAchievements();
             
             Achievement.crystal_hollows_time_1.setProgress(0);
             Achievement.crystal_hollows_time_2.setProgress(0);
@@ -224,8 +252,6 @@ public class ScathaPro
                 for (int i = 0; i < nearbyArmorStands.size(); i ++) {
                     
                     EntityArmorStand armorStand = nearbyArmorStands.get(i);
-
-                    // if (armorStand == entity) continue;
                     
                     int entityID = armorStand.getEntityId();
                     Worm worm = Worm.getByID(registeredWorms, entityID);
@@ -237,6 +263,12 @@ public class ScathaPro
                 }
             }
         }
+    }
+    
+    @SubscribeEvent
+    public void onInteractItem(PlayerInteractEvent e) {
+        ItemStack heldItem = e.entityPlayer.getHeldItem();
+        if (heldItem != null && heldItem.getItem() == Items.fishing_rod) lastFishingRodCast = Util.getCurrentTime();
     }
     
     @SubscribeEvent(priority = EventPriority.LOW)
@@ -313,6 +345,7 @@ public class ScathaPro
         updateOverlayScathaKills();
         updateOverlayTotalKills();
 
+        updateOverlayWormStreak();
         updateOverlayCoords();
         updateOverlayDay();
     }
@@ -398,6 +431,14 @@ public class ScathaPro
         overlayOverallTotalKillsText.setText(overallTotalKills >= 0 ? EnumChatFormatting.RESET + Util.numberToString(overallTotalKills) + (overallPercentage >= 0 ? EnumChatFormatting.GRAY.toString() + EnumChatFormatting.ITALIC + " (" + overallPercentage + "%)" : "") : EnumChatFormatting.OBFUSCATED + "?");
     }
     
+    public void updateOverlayWormStreak() {
+        overlayWormStreakText.setText(
+                backToBackWorms > 0
+                ? "No scatha for " + Util.numberToString(backToBackWorms) + " " + (backToBackWorms == 1 ? "spawn" : "spawns")
+                : "Scatha streak: " + Util.numberToString(backToBackScathas)
+        );
+    }
+    
     public void updateOverlayCoords() {
         EntityPlayer player = mc.thePlayer;
         
@@ -475,8 +516,75 @@ public class ScathaPro
         Achievement.scatha_streak_2.setProgress(backToBackScathas);
         Achievement.scatha_streak_3.setProgress(backToBackScathas);
         Achievement.scatha_streak_4.setProgress(backToBackScathas);
+        
+        Achievement.worm_streak_1.setProgress(backToBackWorms);
+        Achievement.worm_streak_2.setProgress(backToBackWorms);
+        Achievement.worm_streak_3.setProgress(backToBackWorms);
     }
     
+    public void updatePetDropAchievements() {
+        Achievement.scatha_pet_drop_1_rare.setProgress(rarePetDrops);
+        Achievement.scatha_pet_drop_2_rare.setProgress(rarePetDrops);
+        Achievement.scatha_pet_drop_3_rare.setProgress(rarePetDrops);
+        
+        Achievement.scatha_pet_drop_1_epic.setProgress(epicPetDrops);
+        Achievement.scatha_pet_drop_2_epic.setProgress(epicPetDrops);
+        Achievement.scatha_pet_drop_3_epic.setProgress(epicPetDrops);
+        
+        Achievement.scatha_pet_drop_1_legendary.setProgress(legendaryPetDrops);
+        Achievement.scatha_pet_drop_2_legendary.setProgress(legendaryPetDrops);
+        Achievement.scatha_pet_drop_3_legendary.setProgress(legendaryPetDrops);
+    }
+    
+    
+    public void loadPetDrops() {
+        String errorPrefix = "Couldn't load pet drops: ";
+        
+        JsonElement petDropsJson = PersistentData.getInstance().getData().get(persistentDataPetDropsKey);
+        if (petDropsJson instanceof JsonObject) {
+            JsonObject petDropsJsonObject = petDropsJson.getAsJsonObject();
+            
+            JsonElement rareDropsJson = petDropsJsonObject.get("rare");
+            if (rareDropsJson instanceof JsonPrimitive) {
+                JsonPrimitive rareDropsJsonPrimitive = rareDropsJson.getAsJsonPrimitive();
+                if (rareDropsJsonPrimitive.isNumber())
+                    rarePetDrops = rareDropsJsonPrimitive.getAsInt();
+                else logger.log(Level.WARN, errorPrefix + "Rare drops JSON isn't a number");
+            }
+            else logger.log(Level.WARN, errorPrefix + "Rare drops JSON isn't a primitive");
+            
+            JsonElement epicDropsJson = petDropsJsonObject.get("epic");
+            if (epicDropsJson instanceof JsonPrimitive) {
+                JsonPrimitive epicDropsJsonPrimitive = epicDropsJson.getAsJsonPrimitive();
+                if (epicDropsJsonPrimitive.isNumber())
+                    epicPetDrops = epicDropsJsonPrimitive.getAsInt();
+                else logger.log(Level.WARN, errorPrefix + "Epic drops JSON isn't a number");
+            }
+            else logger.log(Level.WARN, errorPrefix + "Epic drops JSON isn't a primitive");
+            
+            JsonElement legendaryDropsJson = petDropsJsonObject.get("legendary");
+            if (legendaryDropsJson instanceof JsonPrimitive) {
+                JsonPrimitive legendaryDropsJsonPrimitive = legendaryDropsJson.getAsJsonPrimitive();
+                if (legendaryDropsJsonPrimitive.isNumber())
+                    legendaryPetDrops = legendaryDropsJsonPrimitive.getAsInt();
+                else logger.log(Level.WARN, errorPrefix + "Legendary drops JSON isn't a number");
+            }
+            else logger.log(Level.WARN, errorPrefix + "Legendary drops JSON isn't a primitive");
+        }
+        else logger.log(Level.WARN, errorPrefix + "Pet drops JSON isn't an object");
+    }
+    
+    public void savePetDrops() {
+        JsonObject petDropsJsonObject = new JsonObject();
+        
+        petDropsJsonObject.add("rare", new JsonPrimitive(rarePetDrops));
+        petDropsJsonObject.add("epic", new JsonPrimitive(epicPetDrops));
+        petDropsJsonObject.add("legendary", new JsonPrimitive(legendaryPetDrops));
+        
+        PersistentData.getInstance().getData().add(persistentDataPetDropsKey, petDropsJsonObject);
+        
+        PersistentData.getInstance().saveData();
+    }
     
     public void resetPreviousScathaPets() {
         previousScathaPets = null;

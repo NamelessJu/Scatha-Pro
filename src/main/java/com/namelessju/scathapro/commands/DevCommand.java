@@ -62,7 +62,7 @@ public class DevCommand extends CommandBase {
 						NBTTagCompound nbt = e.getEntityData();
 						
 						if (i > 0) entityString.append(", ");
-						entityString.append("{name:\""+entityName+"\", nbt:"+(nbt != null ? nbt.toString() : "{}")+"}");
+						entityString.append("{type:\""+e.getClass().getSimpleName()+"\", name:\""+entityName+"\", nbt:"+(nbt != null ? nbt.toString() : "{}")+"}");
 					}
 					entityString.append("]");
 					
