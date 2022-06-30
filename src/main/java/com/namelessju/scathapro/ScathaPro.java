@@ -32,12 +32,8 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.event.ClickEvent;
-import net.minecraft.event.HoverEvent;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StringUtils;
 import net.minecraft.world.World;
@@ -52,7 +48,6 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.Mod.Instance;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -62,7 +57,7 @@ public class ScathaPro
 {
     public static final String MODNAME = "Scatha-Pro";
     public static final String MODID = "scathapro";
-    public static final String VERSION = "1.2_PreRelease_1";
+    public static final String VERSION = "1.2_PreRelease_2_Dev";
     
     public static final String CHATPREFIX = EnumChatFormatting.GRAY + MODNAME + ": " + EnumChatFormatting.RESET;
     
@@ -80,7 +75,7 @@ public class ScathaPro
     private final OverlayImage overlayScathaPetImage;
     private final OverlayContainer overlayKillsContainer;
     private final OverlayText overlayOverallWormKillsText;
-    private final OverlayText overlayWormKillsText;
+    private final OverlayText overlayRegularWormKillsText;
     private final OverlayText overlayOverallScathaKillsText;
     private final OverlayText overlayScathaKillsText;
     private final OverlayText overlayOverallTotalKillsText;
@@ -101,13 +96,13 @@ public class ScathaPro
     public long lastWormAttackTime = -1;
     public long lastFishingRodCast = -1;
     
-    public int overallWormKills = -1;
+    public int overallRegularWormKills = -1;
     public int overallScathaKills = -1;
     
-    public int wormKills = 0;
+    public int regularWormKills = 0;
     public int scathaKills = 0;
 
-    public int backToBackWorms = 0;
+    public int backToBackRegularWorms = 0;
     public int backToBackScathas = 0;
     
     public int rarePetDrops = 0;
@@ -118,6 +113,8 @@ public class ScathaPro
     public boolean repeatProfilesDataRequest = true;
 
     private long lastPreAlertTime = -1;
+    
+    private boolean persistentDataLoaded = false;
     
 
     public static ScathaPro getInstance() {
@@ -147,8 +144,8 @@ public class ScathaPro
         overlayWormKillsTitle.setAlignment(OverlayElement.Alignment.CENTER);
         overlayKillsSubContainer.add(overlayWormKillsTitle);
         overlayKillsSubContainer.add(new OverlayImage("worm.png", 512, 256, 0, 10, 0.08f));
-        overlayKillsSubContainer.add(overlayWormKillsText = new OverlayText(null, Util.Color.GRAY.getValue(), 20, 22, 1f));
-        overlayWormKillsText.setAlignment(OverlayElement.Alignment.CENTER);
+        overlayKillsSubContainer.add(overlayRegularWormKillsText = new OverlayText(null, Util.Color.GRAY.getValue(), 20, 22, 1f));
+        overlayRegularWormKillsText.setAlignment(OverlayElement.Alignment.CENTER);
         overlayKillsSubContainer.add(overlayOverallWormKillsText = new OverlayText(null, Util.Color.WHITE.getValue(), 20, 11, 1f));
         overlayOverallWormKillsText.setAlignment(OverlayElement.Alignment.CENTER);
 
@@ -192,26 +189,26 @@ public class ScathaPro
     }
     
     
-    @EventHandler
-    public void postInit(FMLPostInitializationEvent event)
-    {
-        AchievementManager.getInstance().loadAchievements();
-        loadPetDrops();
-    }
-    
-    
     @SubscribeEvent
     public void onWorldJoin(EntityJoinWorldEvent e) {
         Entity entity = e.entity;
 
         if (entity == mc.thePlayer) {
             
+            // Load data
+            
+            if (!persistentDataLoaded) {
+                PersistentData.getInstance().loadData();
+                AchievementManager.getInstance().loadAchievements();
+                loadPetDrops();
+                
+                persistentDataLoaded = true;
+            }
+            
             // Reset
             
-            wormKills = 0;
+            regularWormKills = 0;
             scathaKills = 0;
-            backToBackWorms = 0;
-            backToBackScathas = 0;
             registeredWorms.clear();
             
             inBedrockWallRange = false;
@@ -257,7 +254,9 @@ public class ScathaPro
                     Worm worm = Worm.getByID(registeredWorms, entityID);
                     
                     if (worm != null) {
-                        worm.attack();
+                        ItemStack weapon = null;
+                        if (mc.thePlayer != null) weapon = mc.thePlayer.getHeldItem();
+                        worm.attack(weapon);
                         break;
                     }
                 }
@@ -291,16 +290,7 @@ public class ScathaPro
         
         // Add copy button
         
-        if (config.getBoolean(Config.Key.chatCopy) && !unformattedText.replace(" ", "").isEmpty()) {
-            ChatComponentText copyText = new ChatComponentText(EnumChatFormatting.DARK_GRAY + Util.getUnicodeString("270D"));
-            ChatStyle style = new ChatStyle()
-                    .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.GRAY + "Copy message")))
-                    .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, unformattedText));
-            copyText.setChatStyle(style);
-            
-            e.message.appendText(EnumChatFormatting.RESET + " ");
-            e.message.appendSibling(copyText);
-        }
+        Util.addChatCopyButton(e.message);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -407,8 +397,8 @@ public class ScathaPro
     public void updateOverlayWormKills() {
         World world = mc.theWorld;
         
-        overlayWormKillsText.setText(Util.numberToString(world != null ? wormKills : 0));
-        overlayOverallWormKillsText.setText(overallWormKills >= 0 ? Util.numberToString(overallWormKills) : EnumChatFormatting.OBFUSCATED + "?");
+        overlayRegularWormKillsText.setText(Util.numberToString(world != null ? regularWormKills : 0));
+        overlayOverallWormKillsText.setText(overallRegularWormKills >= 0 ? Util.numberToString(overallRegularWormKills) : EnumChatFormatting.OBFUSCATED + "?");
     }
     
     public void updateOverlayScathaKills() {
@@ -421,8 +411,8 @@ public class ScathaPro
     public void updateOverlayTotalKills() {
         World world = mc.theWorld;
 
-        int totalKills = world != null ? wormKills + scathaKills : 0;
-        int overallTotalKills = overallWormKills >= 0 && overallScathaKills >= 0 ? overallWormKills + overallScathaKills : -1;
+        int totalKills = world != null ? regularWormKills + scathaKills : 0;
+        int overallTotalKills = overallRegularWormKills >= 0 && overallScathaKills >= 0 ? overallRegularWormKills + overallScathaKills : -1;
         
         int percentage = totalKills > 0 ? (int) Math.round(((float) scathaKills / totalKills) * 100) : -1;
         int overallPercentage = overallTotalKills > 0 ? (int) Math.round(((float) overallScathaKills / overallTotalKills) * 100) : -1;
@@ -433,8 +423,8 @@ public class ScathaPro
     
     public void updateOverlayWormStreak() {
         overlayWormStreakText.setText(
-                backToBackWorms > 0
-                ? "No scatha for " + Util.numberToString(backToBackWorms) + " " + (backToBackWorms == 1 ? "spawn" : "spawns")
+                backToBackRegularWorms > 0
+                ? "No scatha for " + Util.numberToString(backToBackRegularWorms) + " " + (backToBackRegularWorms == 1 ? "spawn" : "spawns")
                 : "Scatha streak: " + Util.numberToString(backToBackScathas)
         );
     }
@@ -496,19 +486,27 @@ public class ScathaPro
     
     
     public void updateKillAchievements() {
-        int highestWormKills = Math.max(wormKills + scathaKills, overallWormKills + overallScathaKills);
-        Achievement.worm_kills_1.setProgress(highestWormKills);
-        Achievement.worm_kills_2.setProgress(highestWormKills);
-        Achievement.worm_kills_3.setProgress(highestWormKills);
-        Achievement.worm_kills_4.setProgress(highestWormKills);
-        Achievement.worm_kills_5.setProgress(highestWormKills);
-        Achievement.worm_kills_6.setProgress(highestWormKills);
+        
+        int lobbyWormKills = regularWormKills + scathaKills;
+        Achievement.lobby_kills_1.setProgress(lobbyWormKills);
+        Achievement.lobby_kills_2.setProgress(lobbyWormKills);
+        Achievement.lobby_kills_3.setProgress(lobbyWormKills);
+        
+        int highestRegularWormKills = Math.max(lobbyWormKills, overallRegularWormKills + overallScathaKills);
+        Achievement.worm_kills_1.setProgress(highestRegularWormKills);
+        Achievement.worm_kills_2.setProgress(highestRegularWormKills);
+        Achievement.worm_kills_3.setProgress(highestRegularWormKills);
+        Achievement.worm_kills_4.setProgress(highestRegularWormKills);
+        Achievement.worm_kills_5.setProgress(highestRegularWormKills);
+        Achievement.worm_kills_6.setProgress(highestRegularWormKills);
         
         int highestScathaKills = Math.max(scathaKills, overallScathaKills);
         Achievement.scatha_kills_1.setProgress(highestScathaKills);
         Achievement.scatha_kills_2.setProgress(highestScathaKills);
         Achievement.scatha_kills_3.setProgress(highestScathaKills);
         Achievement.scatha_kills_4.setProgress(highestScathaKills);
+        Achievement.scatha_kills_5.setProgress(highestScathaKills);
+        Achievement.scatha_kills_6.setProgress(highestScathaKills);
     }
     
     public void updateSpawnAchievements() {
@@ -517,9 +515,9 @@ public class ScathaPro
         Achievement.scatha_streak_3.setProgress(backToBackScathas);
         Achievement.scatha_streak_4.setProgress(backToBackScathas);
         
-        Achievement.worm_streak_1.setProgress(backToBackWorms);
-        Achievement.worm_streak_2.setProgress(backToBackWorms);
-        Achievement.worm_streak_3.setProgress(backToBackWorms);
+        Achievement.regular_worm_streak_1.setProgress(backToBackRegularWorms);
+        Achievement.regular_worm_streak_2.setProgress(backToBackRegularWorms);
+        Achievement.regular_worm_streak_3.setProgress(backToBackRegularWorms);
     }
     
     public void updatePetDropAchievements() {
@@ -534,14 +532,26 @@ public class ScathaPro
         Achievement.scatha_pet_drop_1_legendary.setProgress(legendaryPetDrops);
         Achievement.scatha_pet_drop_2_legendary.setProgress(legendaryPetDrops);
         Achievement.scatha_pet_drop_3_legendary.setProgress(legendaryPetDrops);
+
+        Achievement.scatha_pet_drop_each.setProgress(
+                (rarePetDrops > 0 ? 1 : 0)
+                +
+                (epicPetDrops > 0 ? 1 : 0)
+                +
+                (legendaryPetDrops > 0 ? 1 : 0)
+        );
+        
+        int totalPetDrops = rarePetDrops + epicPetDrops + legendaryPetDrops;
+        Achievement.scatha_pet_drop_any_1.setProgress(totalPetDrops);
+        Achievement.scatha_pet_drop_any_2.setProgress(totalPetDrops);
     }
     
     
     public void loadPetDrops() {
         String errorPrefix = "Couldn't load pet drops: ";
         
-        JsonElement petDropsJson = PersistentData.getInstance().getData().get(persistentDataPetDropsKey);
-        if (petDropsJson instanceof JsonObject) {
+        JsonElement petDropsJson = PersistentData.getInstance().get(persistentDataPetDropsKey);
+        if (petDropsJson != null && petDropsJson instanceof JsonObject) {
             JsonObject petDropsJsonObject = petDropsJson.getAsJsonObject();
             
             JsonElement rareDropsJson = petDropsJsonObject.get("rare");
@@ -581,7 +591,7 @@ public class ScathaPro
         petDropsJsonObject.add("epic", new JsonPrimitive(epicPetDrops));
         petDropsJsonObject.add("legendary", new JsonPrimitive(legendaryPetDrops));
         
-        PersistentData.getInstance().getData().add(persistentDataPetDropsKey, petDropsJsonObject);
+        PersistentData.getInstance().set(persistentDataPetDropsKey, petDropsJsonObject);
         
         PersistentData.getInstance().saveData();
     }
@@ -591,6 +601,6 @@ public class ScathaPro
     }
     
     public boolean profilesDataRequestNeeded() {
-        return Util.inCrystalHollows() && (overallWormKills < 0 || overallScathaKills < 0);
+        return Util.inCrystalHollows() && (overallRegularWormKills < 0 || overallScathaKills < 0);
     }
 }

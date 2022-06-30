@@ -1,6 +1,8 @@
 package com.namelessju.scathapro.eventlisteners;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import com.namelessju.scathapro.API;
@@ -15,6 +17,8 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.network.NetHandlerPlayClient;
+import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayer;
@@ -41,6 +45,13 @@ public class LoopListeners {
     Config config = Config.getInstance();
     
     private boolean inCrystalHollowsBefore = false;
+
+    private long lastKillTime = -1;
+    private long lastPetDropTime = -1;
+    private boolean lastKillIsScatha = false;
+    private boolean droppedPetAtLastScatha = false;
+    
+    private long lastDeveloperCheckTime = -1;
     
     
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -123,7 +134,7 @@ public class LoopListeners {
                         if (StringUtils.stripControlCodes(entityName).contains("[Lv5] Worm ")) {
                             scathaPro.registeredWorms.add(new Worm(entityID, false));
 
-                            scathaPro.backToBackWorms ++;
+                            scathaPro.backToBackRegularWorms ++;
                             scathaPro.backToBackScathas = 0;
                             scathaPro.updateSpawnAchievements();
 
@@ -138,9 +149,12 @@ public class LoopListeners {
                         else if (StringUtils.stripControlCodes(entityName).contains("[Lv10] Scatha ")) {
                             scathaPro.registeredWorms.add(new Worm(entityID, true));
 
-                            scathaPro.backToBackWorms = 0;
+                            scathaPro.backToBackRegularWorms = 0;
                             scathaPro.backToBackScathas ++;
                             scathaPro.updateSpawnAchievements();
+                            
+                            if (now - scathaPro.lastWorldJoinTime <= Achievement.scatha_spawn_time.goal * 60 * 1000) 
+                                Achievement.scatha_spawn_time.setProgress(Achievement.scatha_spawn_time.goal);
                             
                             if (config.getBoolean(Config.Key.scathaAlert)) {
                                 mc.ingameGUI.displayTitle(null, null, 0, 40, 10);
@@ -160,30 +174,45 @@ public class LoopListeners {
                 
                 for (int i = scathaPro.registeredWorms.size() - 1; i >= 0; i --) {
                     Worm worm = scathaPro.registeredWorms.get(i);
-                    int entityID = worm.getEntityID();
+                    int entityID = worm.entityID;
                     
-                    if (world.getEntityByID(entityID) == null) {    
+                    if (world.getEntityByID(entityID) == null) {
+                        long lifetime = worm.getLifetime();
+                        
                         if (now - worm.getLastAttackTime() < 1000 || scathaPro.lastFishingRodCast >= 0 && now - scathaPro.lastFishingRodCast < 2000) {
-                            if (worm.isScatha()) {
+                            
+                            if (worm.isScatha) {
                                 scathaPro.scathaKills ++;
                                 if (scathaPro.overallScathaKills >= 0) scathaPro.overallScathaKills ++;
+                                
+                                if (worm.getHitWeaponsCount() >= Achievement.kill_weapons_scatha.goal) Achievement.kill_weapons_scatha.setProgress(Achievement.kill_weapons_scatha.goal);
+                                
+                                lastKillIsScatha = true;
                                 
                                 scathaPro.updateOverlayScathaKills();
                             }
                             else {
-                                scathaPro.wormKills ++;
-                                if (scathaPro.overallWormKills >= 0) scathaPro.overallWormKills ++;
+                                scathaPro.regularWormKills ++;
+                                if (scathaPro.overallRegularWormKills >= 0) scathaPro.overallRegularWormKills ++;
+                                
+                                if (worm.getHitWeaponsCount() >= Achievement.kill_weapons_regular_worm.goal) Achievement.kill_weapons_regular_worm.setProgress(Achievement.kill_weapons_regular_worm.goal);
+                                
+                                lastKillIsScatha = false;
 
                                 scathaPro.updateOverlayWormKills();
                             }
                             
                             scathaPro.updateOverlayTotalKills();
-
+                            
                             scathaPro.updateKillAchievements();
                             
-                            long lifetime = worm.getLifetime();
-                            if (lifetime <= 1000) Achievement.worm_kill_time_1.setProgress(1);
-                            else if (lifetime >= 60 * 1000) Achievement.worm_kill_time_2.setProgress(60);
+                            if (lifetime <= Achievement.worm_kill_time_1.goal * 1000) Achievement.worm_kill_time_1.setProgress(Achievement.worm_kill_time_1.goal);
+                            else if (lifetime >= Achievement.worm_kill_time_2.goal * 1000) Achievement.worm_kill_time_2.setProgress(Achievement.worm_kill_time_2.goal);
+                            
+                            lastKillTime = now;
+                        }
+                        else {
+                            if (lifetime >= 29) Achievement.worm_despawn.setProgress(Achievement.worm_despawn.goal);
                         }
                         
                         scathaPro.registeredWorms.remove(worm);
@@ -244,8 +273,7 @@ public class LoopListeners {
                 
                 // Scatha pet drop detection
 
-                if (config.getBoolean(Config.Key.petAlert) && inCrystalHollows) {
-                    // if (scathaPro.lastWorldJoinTime >= 0 && now - scathaPro.lastWorldJoinTime > 3000) { }
+                if (inCrystalHollows) {
                     
                     ItemStack[] inventory = player.inventory.mainInventory;
                     
@@ -308,38 +336,47 @@ public class LoopListeners {
                         }
                         
                         if (newScathaPet >= 0) {
-                            mc.ingameGUI.displayTitle(null, null, 0, 130, 20);
-                            
-                            switch (newScathaPet) {
-                                case 1:
-                                    mc.ingameGUI.displayTitle(null, EnumChatFormatting.BLUE + "RARE", 0, 0, 0);
-                                    scathaPro.rarePetDrops ++;
-                                    break;
-                                case 2:
-                                    mc.ingameGUI.displayTitle(null, EnumChatFormatting.DARK_PURPLE + "EPIC", 0, 0, 0);
-                                    scathaPro.epicPetDrops ++;
-                                    break;
-                                case 3:
-                                    mc.ingameGUI.displayTitle(null, EnumChatFormatting.GOLD + "LEGENDARY", 0, 0, 0);
-                                    scathaPro.legendaryPetDrops ++;
-                                    break;
-                                default:
-                                    mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + "unknown rarity", 0, 0, 0);
+                            if (config.getBoolean(Config.Key.petAlert)) {
+                                mc.ingameGUI.displayTitle(null, null, 0, 130, 20);
+                                
+                                switch (newScathaPet) {
+                                    case 1:
+                                        mc.ingameGUI.displayTitle(null, EnumChatFormatting.BLUE + "RARE", 0, 0, 0);
+                                        scathaPro.rarePetDrops ++;
+                                        break;
+                                    case 2:
+                                        mc.ingameGUI.displayTitle(null, EnumChatFormatting.DARK_PURPLE + "EPIC", 0, 0, 0);
+                                        scathaPro.epicPetDrops ++;
+                                        break;
+                                    case 3:
+                                        mc.ingameGUI.displayTitle(null, EnumChatFormatting.GOLD + "LEGENDARY", 0, 0, 0);
+                                        scathaPro.legendaryPetDrops ++;
+                                        break;
+                                    default:
+                                        mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + "unknown rarity", 0, 0, 0);
+                                }
+                                
+                                mc.ingameGUI.displayTitle(EnumChatFormatting.YELLOW + "Scatha Pet!", null, 0, 0, 0);
+                                
+                                Util.playSoundAtPlayer("random.chestopen", 1.5f, 0.95f);
+                                
+                                if (!Util.playModeSound("alert.pet_drop")) Util.playSoundAtPlayer("mob.wither.death", 0.75f, 0.8f);
                             }
                             
-                            mc.ingameGUI.displayTitle(EnumChatFormatting.YELLOW + "Scatha Pet!", null, 0, 0, 0);
-                            
-                            Util.playSoundAtPlayer("random.chestopen", 1.5f, 0.95f);
-                            
-                            if (!Util.playModeSound("alert.pet_drop")) Util.playSoundAtPlayer("mob.wither.death", 0.75f, 0.8f);
-                            
                             scathaPro.updatePetDropAchievements();
+                            
+                            if (droppedPetAtLastScatha) Achievement.scatha_pet_drop_streak.setProgress(2);
+                            droppedPetAtLastScatha = true;
+                            lastPetDropTime = now;
                             
                             scathaPro.savePetDrops();
                         }
                     }
                     
                     scathaPro.previousScathaPets = currentScathaPets;
+                    
+                    
+                    if (droppedPetAtLastScatha && lastKillIsScatha && now - lastKillTime > 1000 && lastPetDropTime < lastKillTime) droppedPetAtLastScatha = false;
                 }
                 
                 
@@ -368,6 +405,22 @@ public class LoopListeners {
                     Achievement.crystal_hollows_time_2.setProgress(hours);
                     Achievement.crystal_hollows_time_3.setProgress(hours);
                 }
+                
+                if (now - lastDeveloperCheckTime >= 1000) {
+                    NetHandlerPlayClient netHandler = Minecraft.getMinecraft().getNetHandler();
+                    if (netHandler != null) {
+                        Collection<NetworkPlayerInfo> playerInfos = netHandler.getPlayerInfoMap();
+                        
+                        for (Iterator<NetworkPlayerInfo> iterator = playerInfos.iterator(); iterator.hasNext();) {
+                            NetworkPlayerInfo p = iterator.next();
+                            
+                            if (Util.isDeveloper(p)) Achievement.meet_developer.setProgress(1);
+                        }
+                    }
+                    
+                    lastDeveloperCheckTime = now;
+                }
+                
             }
         }
     }

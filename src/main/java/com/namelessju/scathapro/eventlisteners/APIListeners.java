@@ -44,7 +44,7 @@ public class APIListeners {
                     JsonElement overallWormKillsJson = stats.get("kills_worm");
                     JsonElement overallScathaKillsJson = stats.get("kills_scatha");
                     
-                    scathaPro.overallWormKills = overallWormKillsJson != null ? overallWormKillsJson.getAsInt() : 0;
+                    scathaPro.overallRegularWormKills = overallWormKillsJson != null ? overallWormKillsJson.getAsInt() : 0;
                     scathaPro.overallScathaKills = overallScathaKillsJson != null ? overallScathaKillsJson.getAsInt() : 0;
 
                     scathaPro.updateOverlayWormKills();

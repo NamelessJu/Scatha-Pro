@@ -10,19 +10,25 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.UUID;
 
+import com.mojang.authlib.GameProfile;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.event.ClickEvent;
+import net.minecraft.event.HoverEvent;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
+import net.minecraft.util.StringUtils;
 
 public abstract class Util {
     
@@ -48,12 +54,28 @@ public abstract class Util {
         if (player != null) {
             ChatComponentText chatComponentText = new ChatComponentText(ScathaPro.CHATPREFIX);
             chatComponentText.appendSibling(chatComponent);
+            Util.addChatCopyButton(chatComponentText);
             player.addChatMessage(chatComponentText);
         }
     }
     
     public static void sendModErrorMessage(String errorMessage) {
         sendModChatMessage(EnumChatFormatting.RED + errorMessage);
+    }
+    
+    public static void addChatCopyButton(IChatComponent message) {
+        String unformattedText = StringUtils.stripControlCodes(message.getUnformattedText());
+        
+        if (Config.getInstance().getBoolean(Config.Key.chatCopy) && !unformattedText.replace(" ", "").isEmpty()) {
+            ChatComponentText copyText = new ChatComponentText(EnumChatFormatting.DARK_GRAY + Util.getUnicodeString("270D"));
+            ChatStyle style = new ChatStyle()
+                    .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.GRAY + "Copy message")))
+                    .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, unformattedText));
+            copyText.setChatStyle(style);
+            
+            message.appendText(EnumChatFormatting.RESET + " ");
+            message.appendSibling(copyText);
+        }
     }
 
     public static void playSoundAtPlayer(String sound) {
@@ -95,9 +117,15 @@ public abstract class Util {
 	}
 	
     public static String getPlayerUUIDString() {
-        UUID uuid = Minecraft.getMinecraft().thePlayer.getGameProfile().getId();
-        if (uuid != null) return uuid.toString().replace("-", "").toLowerCase();
-        else return null;
+        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+        if (player != null) {
+            GameProfile gameProfile = player.getGameProfile();
+            if (gameProfile != null) {
+                UUID uuid = gameProfile.getId();
+                if (uuid != null) return uuid.toString().replace("-", "").toLowerCase();
+            }
+        }
+        return null;
     }
 	
 	public static boolean inCrystalHollows() {
@@ -121,6 +149,16 @@ public abstract class Util {
 		}
 		
 		return inCrystalHollows;
+	}
+	
+	public static boolean isDeveloper(NetworkPlayerInfo playerInfo) {
+	    if (playerInfo != null) {
+	        UUID uuid = playerInfo.getGameProfile().getId();
+	        if (uuid != null)
+	            return uuid.toString().replace("-", "").toLowerCase().equals("e9be3984b09740c98fb4d8aaeb2b4838");
+	    }
+	    
+	    return false;
 	}
 	
 	public static boolean isWormSkull(ItemStack stack) {

@@ -37,7 +37,7 @@ public class AchievementManager {
             ChatComponentText chatMessage = new ChatComponentText(
                     (
                             achievement.hidden
-                            ? EnumChatFormatting.AQUA.toString() + EnumChatFormatting.ITALIC + "Secret" + EnumChatFormatting.RESET + EnumChatFormatting.GREEN + " achievement"
+                            ? EnumChatFormatting.AQUA.toString() + EnumChatFormatting.ITALIC + "SECRET" + EnumChatFormatting.RESET + EnumChatFormatting.GREEN + " achievement"
                             : EnumChatFormatting.GREEN + "Achievement"
                     )
                     + " unlocked" + EnumChatFormatting.GRAY + " - "
@@ -67,8 +67,8 @@ public class AchievementManager {
     }
     
     public void loadAchievements() {
-        JsonElement achievementsJson = persistentData.getData().get(persistentDataKey);
-        if (achievementsJson instanceof JsonArray) {
+        JsonElement achievementsJson = persistentData.get(persistentDataKey);
+        if (achievementsJson != null && achievementsJson instanceof JsonArray) {
             JsonArray achievementsJsonArray = achievementsJson.getAsJsonArray();
             
             unlockedAchievements.clear();
@@ -113,7 +113,7 @@ public class AchievementManager {
             unlockedAchievementsJson.add(achievementObject);
         }
         
-        persistentData.getData().add(persistentDataKey, unlockedAchievementsJson);
+        persistentData.set(persistentDataKey, unlockedAchievementsJson);
         
         persistentData.saveData();
     }

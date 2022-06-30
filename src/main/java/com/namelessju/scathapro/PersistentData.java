@@ -23,9 +23,7 @@ public class PersistentData {
     
     private JsonObject data = new JsonObject();
     
-    private PersistentData() {
-        loadData();
-    }
+    private PersistentData() {}
 
     public static PersistentData getInstance() {
         return instance;
@@ -45,15 +43,23 @@ public class PersistentData {
                 bufferedReader.close();
                 
                 JsonElement dataJson = new JsonParser().parse(jsonBuilder.toString());
-                if (dataJson instanceof JsonObject)
+                if (dataJson.isJsonObject()) {
                     data = dataJson.getAsJsonObject();
+                    
+                    String uuid = Util.getPlayerUUIDString(); 
+                    if (uuid != null && (data.get("unlockedAchievements") != null || data.get("petDrops") != null)) {
+                        JsonObject oldData = data;
+                        data = new JsonObject();
+                        data.add(uuid, oldData);
+                    }
+                }
             }
             catch (Exception e) {
                 ScathaPro.getInstance().logger.log(Level.ERROR, "Error while trying to load persistent data");
             }
         }
     }
-
+    
     public void saveData() {
         try {
             FileOutputStream outputStream = new FileOutputStream(saveFile);
@@ -66,28 +72,60 @@ public class PersistentData {
             ScathaPro.getInstance().logger.log(Level.ERROR, "Error while trying to save persistent data");
         }
     }
-
-    public JsonObject getData() {
-        return data;
-    }
     
-    public JsonElement getJsonElement(String path) {
+    public JsonElement get(String path) {
         String[] pathNodes = path.split("/");
+
+        JsonElement currentElement = data.get(Util.getPlayerUUIDString());
         
-        JsonElement currentElement = getData();
-        for (int i = 0; i < pathNodes.length; i ++) {
-            if (currentElement instanceof JsonObject) {
-                JsonElement nextElement = ((JsonObject) currentElement).get(pathNodes[i]);
-                currentElement = nextElement;
+        if (currentElement != null) {
+            for (int i = 0; i < pathNodes.length; i ++) {
+                if (currentElement != null && currentElement.isJsonObject()) {
+                    JsonElement nextElement = currentElement.getAsJsonObject().get(pathNodes[i]);
+                    currentElement = nextElement;
+                }
+                else return null;
             }
-            else return null;
+            
+            return currentElement;
         }
         
-        return currentElement;
+        return null; 
+    }
+
+    public boolean set(String path, JsonElement value) {
+        String[] pathNodes = path.split("/");
+
+        String uuid = Util.getPlayerUUIDString();
+        if (uuid == null) return false;
+        
+        JsonElement currentElement = data.get(uuid);
+        
+        if (currentElement == null) {
+            currentElement = new JsonObject();
+            data.add(uuid, currentElement);
+        }
+        
+        for (int i = 0; i < pathNodes.length; i ++) {
+            if (i == pathNodes.length - 1) {
+                if (currentElement.isJsonObject()) {
+                    currentElement.getAsJsonObject().add(pathNodes[i], value);
+                    return true;
+                }
+                else break;
+            }
+            else if (currentElement.isJsonObject()) {
+                JsonElement nextElement = currentElement.getAsJsonObject().get(pathNodes[i]);
+                currentElement = nextElement;
+            }
+            else break;
+        }
+        
+        return false;
     }
     
-    public JsonPrimitive getJsonPrimitive(String path) {
-        JsonElement jsonElement = getJsonElement(path);
+    private JsonPrimitive getJsonPrimitive(String path) {
+        JsonElement jsonElement = get(path);
         if (jsonElement instanceof JsonPrimitive)
             return (JsonPrimitive) jsonElement;
         return null;

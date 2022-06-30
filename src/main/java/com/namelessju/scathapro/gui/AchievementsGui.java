@@ -111,21 +111,30 @@ public class AchievementsGui extends ScathaProGui {
         Achievement[] achievementList = AchievementManager.getAllAchievements();
         
         ArrayList<Achievement> visibleAchievements = new ArrayList<Achievement>();
+        int achievementCount = 0;
         int unlockedAchievementCount = 0;
+        int secretAchievementCount = 0;
+        int unlockedSecretAchievementCount = 0;
 
         for (int i = 0; i < achievementList.length; i ++) {
             Achievement achievement = achievementList[i];
+
+            if (achievement.hidden) secretAchievementCount ++;
+            else achievementCount ++;
             
             boolean unlocked = AchievementManager.getInstance().isAchievementUnlocked(achievement);
             
-            if (unlocked) unlockedAchievementCount ++;
+            if (unlocked) {
+                if (achievement.hidden) unlockedSecretAchievementCount ++;
+                else unlockedAchievementCount ++;
+            }
             
             if (!achievement.hidden || unlocked)
                 visibleAchievements.add(achievement);
         }
 
         GuiLabel progressLabel = new GuiLabel(fontRendererObj, 1, width / 2 - 155, 28, 310, 10, Util.Color.WHITE.getValue()).setCentered();
-        progressLabel.func_175202_a("Unlocked: " + unlockedAchievementCount + "/" + achievementList.length);
+        progressLabel.func_175202_a("Unlocked: " + unlockedAchievementCount + "/" + achievementCount + " (+ " + unlockedSecretAchievementCount + "/" + secretAchievementCount + " SECRET)");
         labelList.add(progressLabel);
         
         achievementCards = new AchievementCard[visibleAchievements.size()];
