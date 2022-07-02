@@ -8,6 +8,7 @@ public enum Achievement {
      *                                                                   *
      * Below is the list of all the achievements, including secret ones! *
      *       Don't look at them if you don't want to get spoiled!        *
+     *                                                                   *
      *********************************************************************/
 
     worm_kills_1("Long boi", "Kill a worm", 1),
@@ -39,7 +40,7 @@ public enum Achievement {
     lobby_kills_2("Scatha grinding session", "Kill 50 worms in a single lobby", 50),
     lobby_kills_3("Lobby emptied", "Kill 100 worms in a single lobby", 100),
 
-    scatha_hit_dirt("I'm gonna put some dirt in your eye", "Hit a scatha with a dirt block", 1, true),
+    scatha_hit_dirt("Bully Maguire", "Put some dirt in a scatha's eye", 1, true),
     
     scatha_streak_1("This is getting out of hand", "Get 2 scatha spawns back to back", 2),
     scatha_streak_2("Oh baby a triple!", "Get 3 scatha spawns back to back", 3),
@@ -50,8 +51,8 @@ public enum Achievement {
     regular_worm_streak_2("Unlucky number", "Get 13 regular worm spawns in a row", 13),
     regular_worm_streak_3("RNGesus is on vacation", "Get 20 regular worm spawns in a row", 20),
 
-    kill_weapons_regular_worm("Variety gamer", "Kill a regular worm using 5 different melee weapons", 5, true),
-    kill_weapons_scatha("A fine collection", "Kill a scatha using 10 different melee weapons", 10, true),
+    kill_weapons_regular_worm("Variety gamer", "Kill a regular worm using 5 different weapons", 5, true),
+    kill_weapons_scatha("A fine collection", "Kill a scatha using 10 different weapons", 10, true),
     
     scatha_pet_drop_1_rare("Better than nothing", "Get a rare scatha pet drop", 1),
     scatha_pet_drop_1_epic("Mid", "Get an epic scatha pet drop", 1),

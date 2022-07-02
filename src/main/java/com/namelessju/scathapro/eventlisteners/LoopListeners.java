@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import com.google.common.base.Predicate;
 import com.namelessju.scathapro.API;
 import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.ScathaPro;
@@ -22,6 +23,8 @@ import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.projectile.EntityArrow;
+import net.minecraft.entity.projectile.EntityFishHook;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -129,13 +132,13 @@ public class LoopListeners {
                     int entityID = e.getEntityId();
                     String entityName = e.getName();
                     
-                    if (entityName != null && Worm.getByID(scathaPro.registeredWorms, entityID) == null && entityName.contains(Util.getUnicodeString("2764"))) {
+                    if (entityName != null && Worm.getByID(entityID) == null && entityName.contains(Util.getUnicodeString("2764"))) {
                         
                         if (StringUtils.stripControlCodes(entityName).contains("[Lv5] Worm ")) {
                             scathaPro.registeredWorms.add(new Worm(entityID, false));
 
-                            scathaPro.backToBackRegularWorms ++;
-                            scathaPro.backToBackScathas = 0;
+                            if (scathaPro.wormStreak > 0) scathaPro.wormStreak = 0;
+                            scathaPro.wormStreak --;
                             scathaPro.updateSpawnAchievements();
 
                             if (config.getBoolean(Config.Key.wormAlert)) {
@@ -149,8 +152,8 @@ public class LoopListeners {
                         else if (StringUtils.stripControlCodes(entityName).contains("[Lv10] Scatha ")) {
                             scathaPro.registeredWorms.add(new Worm(entityID, true));
 
-                            scathaPro.backToBackRegularWorms = 0;
-                            scathaPro.backToBackScathas ++;
+                            if (scathaPro.wormStreak < 0) scathaPro.wormStreak = 0;
+                            scathaPro.wormStreak ++;
                             scathaPro.updateSpawnAchievements();
                             
                             if (now - scathaPro.lastWorldJoinTime <= Achievement.scatha_spawn_time.goal * 60 * 1000) 
@@ -161,11 +164,50 @@ public class LoopListeners {
                                 mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + "Pray to RNGesus!", 0, 0, 0);
                                 mc.ingameGUI.displayTitle(EnumChatFormatting.RED + "Scatha", null, 0, 0, 0);
                                 
-                                if (!Util.playModeSound("alert.scatha")) Util.playSoundAtPlayer("random.levelup", 1f, 0.75f);
+                                if (!Util.playModeSound("alert.scatha")) Util.playSoundAtPlayer("random.levelup", 1f, 0.8f);
                             }
                         }
                         
                         scathaPro.updateOverlayWormStreak();
+                    }
+                }
+                
+                
+                // Projectile hit detection
+                
+                List<EntityArrow> arrows = world.getEntities(EntityArrow.class, new Predicate<EntityArrow>() {
+                    @Override
+                    public boolean apply(EntityArrow input) {
+                        Minecraft mc = Minecraft.getMinecraft();
+                        EntityPlayer player = mc != null ? Minecraft.getMinecraft().thePlayer : null;
+                        return player != null ? input.shootingEntity == player : false;
+                    }
+                });
+                for (int i = 0; i < arrows.size(); i ++) {
+                    EntityArrow arrow = arrows.get(i);
+                    List<EntityArmorStand> hitArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(arrow.posX, arrow.posY, arrow.posZ, arrow.posX, arrow.posY, arrow.posZ).expand(3f, 3f, 3f));
+                    for (int j = 0; j < hitArmorStands.size(); j ++) {
+                        EntityArmorStand armorStand = hitArmorStands.get(j);
+                        Worm worm = Worm.getByID(armorStand.getEntityId());
+                        if (worm != null) worm.attack(scathaPro.lastProjectileWeaponUsed);
+                    }
+                }
+                
+                List<EntityFishHook> fishHooks = world.getEntities(EntityFishHook.class, new Predicate<EntityFishHook>() {
+                    @Override
+                    public boolean apply(EntityFishHook input) {
+                        Minecraft mc = Minecraft.getMinecraft();
+                        EntityPlayer player = mc != null ? Minecraft.getMinecraft().thePlayer : null;
+                        return player != null ? input.angler == player : false;
+                    }
+                });
+                for (int i = 0; i < fishHooks.size(); i ++) {
+                    EntityFishHook hook = fishHooks.get(i);
+                    List<EntityArmorStand> hookedArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(hook.posX, hook.posY, hook.posZ, hook.posX, hook.posY, hook.posZ).expand(3f, 3f, 3f));
+                    for (int j = 0; j < hookedArmorStands.size(); j ++) {
+                        EntityArmorStand armorStand = hookedArmorStands.get(j);
+                        Worm worm = Worm.getByID(armorStand.getEntityId());
+                        if (worm != null) worm.attack(scathaPro.lastProjectileWeaponUsed);
                     }
                 }
                 
@@ -179,7 +221,7 @@ public class LoopListeners {
                     if (world.getEntityByID(entityID) == null) {
                         long lifetime = worm.getLifetime();
                         
-                        if (now - worm.getLastAttackTime() < 1000 || scathaPro.lastFishingRodCast >= 0 && now - scathaPro.lastFishingRodCast < 2000) {
+                        if (now - worm.getLastAttackTime() < 1000) {
                             
                             if (worm.isScatha) {
                                 scathaPro.scathaKills ++;
@@ -317,14 +359,7 @@ public class LoopListeners {
                         }
                     }
                     
-                    if (
-                            (
-                                scathaPro.lastWormAttackTime >= 0 && now - scathaPro.lastWormAttackTime < 1000
-                                ||
-                                scathaPro.lastFishingRodCast >= 0 && now - scathaPro.lastFishingRodCast < 2000
-                            )
-                            && scathaPro.previousScathaPets != null
-                        ) {
+                    if (scathaPro.lastWormAttackTime >= 0 && now - scathaPro.lastWormAttackTime < 1000 && scathaPro.previousScathaPets != null) {
                         
                         int newScathaPet = -1;
                         

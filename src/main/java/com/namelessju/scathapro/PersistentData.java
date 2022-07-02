@@ -53,9 +53,10 @@ public class PersistentData {
                         data.add(uuid, oldData);
                     }
                 }
+                else ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't load persistent data (JSON root is not an object)");
             }
             catch (Exception e) {
-                ScathaPro.getInstance().logger.log(Level.ERROR, "Error while trying to load persistent data");
+                ScathaPro.getInstance().logger.log(Level.ERROR, "Error while trying to load persistent data (" + e.getClass().getSimpleName() + ")");
             }
         }
     }

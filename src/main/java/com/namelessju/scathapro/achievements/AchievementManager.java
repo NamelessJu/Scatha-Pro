@@ -51,7 +51,8 @@ public class AchievementManager {
 
             Util.sendModChatMessage(chatMessage);
 
-            Util.playSoundAtPlayer("random.levelup");
+            if (achievement.hidden) Util.playModSoundAtPlayer("other.achievement_hidden");
+            else Util.playModSoundAtPlayer("other.achievement");
         }
     }
     

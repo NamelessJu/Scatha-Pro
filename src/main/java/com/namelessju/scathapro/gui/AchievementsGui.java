@@ -2,7 +2,6 @@ package com.namelessju.scathapro.gui;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 
 import org.lwjgl.input.Mouse;
@@ -56,15 +55,20 @@ public class AchievementsGui extends ScathaProGui {
             int y = Math.round(scrollBoundaryStart + listIndex * cardSpacing - scroll);
             
             if (y + AchievementCard.cardHeight >= scrollBoundaryStart && y < scrollBoundaryStart + scrollBoundaryHeight) {
+                
+                boolean unlocked = AchievementManager.getInstance().isAchievementUnlocked(achievement);
+                
                 Gui.drawRect(x, y, x + cardWidth, y + cardHeight, 0xA0101015);
-                if (AchievementManager.getInstance().isAchievementUnlocked(achievement)) {
+                
+                String hiddenString =  achievement.hidden ? " " + EnumChatFormatting.AQUA + EnumChatFormatting.ITALIC + "[SECRET]" : "";
+                if (unlocked) {
                     String unlockedString = EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + new SimpleDateFormat("dd.MM.yyyy HH:mm").format(new Date(AchievementManager.getInstance().getUnlockedAchievement(achievement).unlockedAtTimestamp));
                     fontRendererObj.drawString(unlockedString, x + cardWidth - cardPadding - fontRendererObj.getStringWidth(unlockedString), y + cardPadding, Util.Color.WHITE.getValue(), true);
 
-                    fontRendererObj.drawString(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + EnumChatFormatting.BOLD + achievement.name + (achievement.hidden ? " " + EnumChatFormatting.AQUA + EnumChatFormatting.ITALIC + "[SECRET]" : ""), x + cardPadding, y + cardPadding, Util.Color.WHITE.getValue(), true);
+                    fontRendererObj.drawString(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + EnumChatFormatting.BOLD + achievement.name + hiddenString, x + cardPadding, y + cardPadding, Util.Color.WHITE.getValue(), true);
                 }
-                else fontRendererObj.drawString(achievement.name, x + cardPadding, y + cardPadding, Util.Color.WHITE.getValue(), true);
-                fontRendererObj.drawString(EnumChatFormatting.GRAY + achievement.description, x + cardPadding, y + cardPadding + 12, Util.Color.WHITE.getValue(), true);
+                else fontRendererObj.drawString(EnumChatFormatting.RESET + achievement.name + hiddenString, x + cardPadding, y + cardPadding, Util.Color.WHITE.getValue(), true);
+                fontRendererObj.drawString(EnumChatFormatting.GRAY + (achievement.hidden && !unlocked ? EnumChatFormatting.OBFUSCATED.toString() : "") + achievement.description, x + cardPadding, y + cardPadding + 12, Util.Color.WHITE.getValue(), true);
 
                 GlStateManager.color(1f, 1f, 1f, 1f);
                 mc.getTextureManager().bindTexture(progressBarResourceLocation);
@@ -76,12 +80,8 @@ public class AchievementsGui extends ScathaProGui {
                 if (progress >= barWidth) drawModalRectWithCustomSizedTexture(x + cardPadding, y + cardPadding + 24, 0, 8, barWidth, 3, 512, 16);
                 else if (progress > 0) drawModalRectWithCustomSizedTexture(x + cardPadding, y + cardPadding + 24, 0, 4, progress, 3, 512, 16);
 
-                String progressString = (AchievementManager.getInstance().isAchievementUnlocked(achievement) ? EnumChatFormatting.GREEN : EnumChatFormatting.YELLOW).toString() + Util.numberToString(Math.min(achievement.getProgress(), achievement.goal), 2) + "/" + Util.numberToString(achievement.goal, 2);
-                GlStateManager.pushMatrix();
-                GlStateManager.translate(x + cardPadding + barWidth - fontRendererObj.getStringWidth(progressString), y + cardPadding + 12, 0);
-                GlStateManager.scale(1f, 1f, 1f);
-                fontRendererObj.drawString(progressString, 0, 0, Util.Color.WHITE.getValue(), true);
-                GlStateManager.popMatrix();
+                String progressString = (AchievementManager.getInstance().isAchievementUnlocked(achievement) ? EnumChatFormatting.GREEN : EnumChatFormatting.YELLOW).toString() + (achievement.hidden && !unlocked ? "?/?" : Util.numberToString(Math.min(achievement.getProgress(), achievement.goal), 2) + "/" + Util.numberToString(achievement.goal, 2));
+                fontRendererObj.drawString(progressString, x + cardPadding + barWidth - fontRendererObj.getStringWidth(progressString), y + cardPadding + 12, Util.Color.WHITE.getValue(), true);
             }
         }
     }
@@ -110,7 +110,6 @@ public class AchievementsGui extends ScathaProGui {
         
         Achievement[] achievementList = AchievementManager.getAllAchievements();
         
-        ArrayList<Achievement> visibleAchievements = new ArrayList<Achievement>();
         int achievementCount = 0;
         int unlockedAchievementCount = 0;
         int secretAchievementCount = 0;
@@ -128,20 +127,16 @@ public class AchievementsGui extends ScathaProGui {
                 if (achievement.hidden) unlockedSecretAchievementCount ++;
                 else unlockedAchievementCount ++;
             }
-            
-            if (!achievement.hidden || unlocked)
-                visibleAchievements.add(achievement);
         }
 
         GuiLabel progressLabel = new GuiLabel(fontRendererObj, 1, width / 2 - 155, 28, 310, 10, Util.Color.WHITE.getValue()).setCentered();
         progressLabel.func_175202_a("Unlocked: " + unlockedAchievementCount + "/" + achievementCount + " (+ " + unlockedSecretAchievementCount + "/" + secretAchievementCount + " SECRET)");
         labelList.add(progressLabel);
         
-        achievementCards = new AchievementCard[visibleAchievements.size()];
+        achievementCards = new AchievementCard[achievementList.length];
         
-        for (int i = 0; i < visibleAchievements.size(); i ++) {
-            achievementCards[i] = new AchievementCard(i, visibleAchievements.get(i));
-        }
+        for (int i = 0; i < achievementList.length; i ++)
+            achievementCards[i] = new AchievementCard(i, achievementList[i]);
         
         setScroll(getScroll()); // clamp scroll on resolution change
     }

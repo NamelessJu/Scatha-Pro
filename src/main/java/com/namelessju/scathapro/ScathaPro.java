@@ -57,7 +57,7 @@ public class ScathaPro
 {
     public static final String MODNAME = "Scatha-Pro";
     public static final String MODID = "scathapro";
-    public static final String VERSION = "1.2_PreRelease_2_Dev";
+    public static final String VERSION = "1.2_PreRelease_2";
     
     public static final String CHATPREFIX = EnumChatFormatting.GRAY + MODNAME + ": " + EnumChatFormatting.RESET;
     
@@ -93,8 +93,8 @@ public class ScathaPro
     public boolean inBedrockWallRange = false;
     public HashMap<Integer, Integer> previousScathaPets = null;
     
+    public ItemStack lastProjectileWeaponUsed = null;
     public long lastWormAttackTime = -1;
-    public long lastFishingRodCast = -1;
     
     public int overallRegularWormKills = -1;
     public int overallScathaKills = -1;
@@ -102,8 +102,7 @@ public class ScathaPro
     public int regularWormKills = 0;
     public int scathaKills = 0;
 
-    public int backToBackRegularWorms = 0;
-    public int backToBackScathas = 0;
+    public int wormStreak = 0;
     
     public int rarePetDrops = 0;
     public int epicPetDrops = 0;
@@ -207,9 +206,12 @@ public class ScathaPro
             
             // Reset
             
+            wormStreak = 0;
+
+            registeredWorms.clear();
+            
             regularWormKills = 0;
             scathaKills = 0;
-            registeredWorms.clear();
             
             inBedrockWallRange = false;
             
@@ -251,7 +253,7 @@ public class ScathaPro
                     EntityArmorStand armorStand = nearbyArmorStands.get(i);
                     
                     int entityID = armorStand.getEntityId();
-                    Worm worm = Worm.getByID(registeredWorms, entityID);
+                    Worm worm = Worm.getByID(entityID);
                     
                     if (worm != null) {
                         ItemStack weapon = null;
@@ -267,7 +269,10 @@ public class ScathaPro
     @SubscribeEvent
     public void onInteractItem(PlayerInteractEvent e) {
         ItemStack heldItem = e.entityPlayer.getHeldItem();
-        if (heldItem != null && heldItem.getItem() == Items.fishing_rod) lastFishingRodCast = Util.getCurrentTime();
+        if (heldItem != null) {
+            if (heldItem.getItem() == Items.fishing_rod || heldItem.getItem() == Items.bow)
+                lastProjectileWeaponUsed = heldItem;
+        }
     }
     
     @SubscribeEvent(priority = EventPriority.LOW)
@@ -423,9 +428,13 @@ public class ScathaPro
     
     public void updateOverlayWormStreak() {
         overlayWormStreakText.setText(
-                backToBackRegularWorms > 0
-                ? "No scatha for " + Util.numberToString(backToBackRegularWorms) + " " + (backToBackRegularWorms == 1 ? "spawn" : "spawns")
-                : "Scatha streak: " + Util.numberToString(backToBackScathas)
+                wormStreak != 0
+                ? (
+                        wormStreak > 0
+                        ? "Scatha streak: " + Util.numberToString(wormStreak)
+                        : "No scatha for " + Util.numberToString(-wormStreak) + " " + (-wormStreak == 1 ? "spawn" : "spawns")
+                )
+                : "No worms killed yet"
         );
     }
     
@@ -510,14 +519,14 @@ public class ScathaPro
     }
     
     public void updateSpawnAchievements() {
-        Achievement.scatha_streak_1.setProgress(backToBackScathas);
-        Achievement.scatha_streak_2.setProgress(backToBackScathas);
-        Achievement.scatha_streak_3.setProgress(backToBackScathas);
-        Achievement.scatha_streak_4.setProgress(backToBackScathas);
+        Achievement.scatha_streak_1.setProgress(wormStreak);
+        Achievement.scatha_streak_2.setProgress(wormStreak);
+        Achievement.scatha_streak_3.setProgress(wormStreak);
+        Achievement.scatha_streak_4.setProgress(wormStreak);
         
-        Achievement.regular_worm_streak_1.setProgress(backToBackRegularWorms);
-        Achievement.regular_worm_streak_2.setProgress(backToBackRegularWorms);
-        Achievement.regular_worm_streak_3.setProgress(backToBackRegularWorms);
+        Achievement.regular_worm_streak_1.setProgress(-wormStreak);
+        Achievement.regular_worm_streak_2.setProgress(-wormStreak);
+        Achievement.regular_worm_streak_3.setProgress(-wormStreak);
     }
     
     public void updatePetDropAchievements() {

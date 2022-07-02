@@ -21,9 +21,10 @@ public class Worm {
 		spawnTime = Util.getCurrentTime();
 	}
 	
-	public static Worm getByID(List<Worm> list, int id) {
-		for (int i = 0; i < list.size(); i ++)
-			if (list.get(i).entityID == id) return list.get(i);
+	public static Worm getByID(int id) {
+	    List<Worm> worms = ScathaPro.getInstance().registeredWorms;
+		for (int i = 0; i < worms.size(); i ++)
+			if (worms.get(i).entityID == id) return worms.get(i);
 		return null;
 	}
 	
@@ -46,6 +47,10 @@ public class Worm {
 	public long getLifetime() {
 	    return Util.getCurrentTime() - spawnTime;
 	}
+    
+    public String[] getHitWeapons() {
+        return hitWeapons.toArray(new String[] {});
+    }
 	
 	public int getHitWeaponsCount() {
 	    return hitWeapons.size();
