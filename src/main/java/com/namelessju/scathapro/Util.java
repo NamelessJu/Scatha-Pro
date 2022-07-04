@@ -35,7 +35,7 @@ public abstract class Util {
     public enum Color {
         DARK_RED(11141120), RED(16733525), GOLD(16755200), YELLOW(16777045), DARK_GREEN(43520), GREEN(5635925), AQUA(5636095), DARK_AQUA(43690), DARK_BLUE(170), BLUE(5592575), LIGHT_PURPLE(16733695), DARK_PURPLE(11141290), WHITE(16777215), GRAY(11184810), DARK_GRAY(5592405), BLACK(0);
         
-        int value;
+        private final int value;
         
         Color(int value) {
             this.value = value;
@@ -70,7 +70,7 @@ public abstract class Util {
             ChatComponentText copyText = new ChatComponentText(EnumChatFormatting.DARK_GRAY + Util.getUnicodeString("270D"));
             ChatStyle style = new ChatStyle()
                     .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.GRAY + "Copy message")))
-                    .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, unformattedText));
+                    .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, unformattedText.replace("\n", " ")));
             copyText.setChatStyle(style);
             
             message.appendText(EnumChatFormatting.RESET + " ");
@@ -116,14 +116,17 @@ public abstract class Util {
 		return System.currentTimeMillis();
 	}
 	
+	public static String getUUIDString(UUID uuid) {
+        if (uuid != null) return uuid.toString().replace("-", "").toLowerCase();
+        return null;
+	}
+	
     public static String getPlayerUUIDString() {
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
         if (player != null) {
             GameProfile gameProfile = player.getGameProfile();
-            if (gameProfile != null) {
-                UUID uuid = gameProfile.getId();
-                if (uuid != null) return uuid.toString().replace("-", "").toLowerCase();
-            }
+            if (gameProfile != null)
+                return getUUIDString(gameProfile.getId());
         }
         return null;
     }
@@ -224,19 +227,60 @@ public abstract class Util {
         
         return new File(modFolder, relativePath);
     }
+
+    public static NBTTagCompound getSkyblockTagCompound(ItemStack item) {
+        return getSkyblockTagCompound(item, null);
+    }
+    public static NBTTagCompound getSkyblockTagCompound(ItemStack item, String path) {
+        if (item != null && item.hasTagCompound()) {
+            NBTTagCompound currentCompound = item.getSubCompound("ExtraAttributes", false);
+            if (currentCompound == null) return null;
+            
+            if (path != null) {
+                String[] pathSegments = path.split("/");
+                for (int i = 0; i < pathSegments.length; i ++) {
+                    currentCompound = currentCompound.hasKey(pathSegments[i]) ? currentCompound.getCompoundTag(pathSegments[i]) : null;
+                    if (i == pathSegments.length - 1) break;
+                    else if (currentCompound == null) return null;
+                }
+            }
+            
+            return currentCompound;
+        }
+        
+        return null;
+    }
 	
 	public static String getSkyblockItemID(ItemStack item) {
-        if (item != null && item.hasTagCompound()) {
-	        NBTTagCompound skyblockData = item.getSubCompound("ExtraAttributes", false);
-	        if (skyblockData != null) {
-	            String id = skyblockData.getString("id");
-	            if (!id.equals("")) return id;
-	        }
+        NBTTagCompound skyblockData = getSkyblockTagCompound(item);
+        if (skyblockData != null) {
+            String id = skyblockData.getString("id");
+            if (!id.equals("")) return id;
         }
         return null;
     }
 	
-	public static float calculatePetChance(float initialChance, int magicFind, int petLuck) {
-	    return initialChance * (1 + (magicFind + petLuck)/100f);
+	public static float calculatePetChance(float initialChance, int magicFind, int petLuck, int looting) {
+        
+        float lootingMultiplier = 1f;
+        switch (looting) {
+            case 1:
+                lootingMultiplier = 1.15f;
+                break;
+            case 2:
+                lootingMultiplier = 1.3f;
+                break;
+            case 3:
+                lootingMultiplier = 1.45f;
+                break;
+            case 4:
+                lootingMultiplier = 1.6f;
+                break;
+            case 5:
+                lootingMultiplier = 1.75f;
+                break;
+        }
+        
+	    return initialChance * (1 + (magicFind + petLuck)/100f) * lootingMultiplier;
 	}
 }

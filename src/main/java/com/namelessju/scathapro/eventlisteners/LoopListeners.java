@@ -112,160 +112,173 @@ public class LoopListeners {
             if (player != null) {
                 
                 World world = player.worldObj;
-                
-                
-                // Pre-release notice 
-                
+
                 boolean inCrystalHollows = Util.inCrystalHollows();
-                if (inCrystalHollows && !inCrystalHollowsBefore) 
-                    Util.sendModChatMessage(EnumChatFormatting.RED.toString() + EnumChatFormatting.ITALIC + "This is a pre-release version of 1.2! Please report any problems you find on the scatha farming discord!" + EnumChatFormatting.RESET);
-                inCrystalHollowsBefore = inCrystalHollows;
+
                 
-                
-                // Worm detection
-                
-                List<EntityArmorStand> nearbyArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(player.posX, player.posY, player.posZ, player.posX, player.posY, player.posZ).expand(20f, 10f, 20f));
-                
-                for (int i = 0; i < nearbyArmorStands.size(); i ++) {
+                if (inCrystalHollows) {
                     
-                    EntityArmorStand e = nearbyArmorStands.get(i);
-                    int entityID = e.getEntityId();
-                    String entityName = e.getName();
+                    // Pre-release notice 
                     
-                    if (entityName != null && Worm.getByID(entityID) == null && entityName.contains(Util.getUnicodeString("2764"))) {
+                    if (!inCrystalHollowsBefore) 
+                        Util.sendModChatMessage(EnumChatFormatting.RED.toString() + EnumChatFormatting.ITALIC + "This is a pre-release version of 1.2! Please report any problems you find on the scatha farming discord!" + EnumChatFormatting.RESET);
+                    
+                    
+                    // Worm detection
+                    
+                    List<EntityArmorStand> nearbyArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(player.posX, player.posY, player.posZ, player.posX, player.posY, player.posZ).expand(20f, 10f, 20f));
+                    
+                    for (int i = 0; i < nearbyArmorStands.size(); i ++) {
                         
-                        if (StringUtils.stripControlCodes(entityName).contains("[Lv5] Worm ")) {
-                            scathaPro.registeredWorms.add(new Worm(entityID, false));
-
-                            if (scathaPro.wormStreak > 0) scathaPro.wormStreak = 0;
-                            scathaPro.wormStreak --;
-                            scathaPro.updateSpawnAchievements();
-
-                            if (config.getBoolean(Config.Key.wormAlert)) {
-                                mc.ingameGUI.displayTitle(null, null, 5, 20, 5);
-                                mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + "Just a regular worm...", 0, 0, 0);
-                                mc.ingameGUI.displayTitle(EnumChatFormatting.YELLOW + "Worm", null, 0, 0, 0);
-        
-                                if (!Util.playModeSound("alert.worm")) Util.playSoundAtPlayer("random.levelup", 1f, 0.5f);
-                            }
-                        }
-                        else if (StringUtils.stripControlCodes(entityName).contains("[Lv10] Scatha ")) {
-                            scathaPro.registeredWorms.add(new Worm(entityID, true));
-
-                            if (scathaPro.wormStreak < 0) scathaPro.wormStreak = 0;
-                            scathaPro.wormStreak ++;
-                            scathaPro.updateSpawnAchievements();
+                        EntityArmorStand e = nearbyArmorStands.get(i);
+                        int entityID = e.getEntityId();
+                        String entityName = e.getName();
+                        
+                        if (entityName != null && Worm.getByID(entityID) == null && entityName.contains(Util.getUnicodeString("2764"))) {
+                            boolean isRegisteredWorm = scathaPro.registeredWorms.contains(entityID);
                             
-                            if (now - scathaPro.lastWorldJoinTime <= Achievement.scatha_spawn_time.goal * 60 * 1000) 
-                                Achievement.scatha_spawn_time.setProgress(Achievement.scatha_spawn_time.goal);
+                            Worm newWorm = null;
                             
-                            if (config.getBoolean(Config.Key.scathaAlert)) {
-                                mc.ingameGUI.displayTitle(null, null, 0, 40, 10);
-                                mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + "Pray to RNGesus!", 0, 0, 0);
-                                mc.ingameGUI.displayTitle(EnumChatFormatting.RED + "Scatha", null, 0, 0, 0);
+                            if (StringUtils.stripControlCodes(entityName).contains("[Lv5] Worm "))
+                                newWorm = new Worm(entityID, false);
+                            else if (StringUtils.stripControlCodes(entityName).contains("[Lv10] Scatha "))
+                                newWorm = new Worm(entityID, true);
+                            
+                            if (newWorm != null) {
+                                scathaPro.activeWorms.add(newWorm);
                                 
-                                if (!Util.playModeSound("alert.scatha")) Util.playSoundAtPlayer("random.levelup", 1f, 0.8f);
-                            }
-                        }
-                        
-                        scathaPro.updateOverlayWormStreak();
-                    }
-                }
-                
-                
-                // Projectile hit detection
-                
-                List<EntityArrow> arrows = world.getEntities(EntityArrow.class, new Predicate<EntityArrow>() {
-                    @Override
-                    public boolean apply(EntityArrow input) {
-                        Minecraft mc = Minecraft.getMinecraft();
-                        EntityPlayer player = mc != null ? Minecraft.getMinecraft().thePlayer : null;
-                        return player != null ? input.shootingEntity == player : false;
-                    }
-                });
-                for (int i = 0; i < arrows.size(); i ++) {
-                    EntityArrow arrow = arrows.get(i);
-                    List<EntityArmorStand> hitArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(arrow.posX, arrow.posY, arrow.posZ, arrow.posX, arrow.posY, arrow.posZ).expand(3f, 3f, 3f));
-                    for (int j = 0; j < hitArmorStands.size(); j ++) {
-                        EntityArmorStand armorStand = hitArmorStands.get(j);
-                        Worm worm = Worm.getByID(armorStand.getEntityId());
-                        if (worm != null) worm.attack(scathaPro.lastProjectileWeaponUsed);
-                    }
-                }
-                
-                List<EntityFishHook> fishHooks = world.getEntities(EntityFishHook.class, new Predicate<EntityFishHook>() {
-                    @Override
-                    public boolean apply(EntityFishHook input) {
-                        Minecraft mc = Minecraft.getMinecraft();
-                        EntityPlayer player = mc != null ? Minecraft.getMinecraft().thePlayer : null;
-                        return player != null ? input.angler == player : false;
-                    }
-                });
-                for (int i = 0; i < fishHooks.size(); i ++) {
-                    EntityFishHook hook = fishHooks.get(i);
-                    List<EntityArmorStand> hookedArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(hook.posX, hook.posY, hook.posZ, hook.posX, hook.posY, hook.posZ).expand(3f, 3f, 3f));
-                    for (int j = 0; j < hookedArmorStands.size(); j ++) {
-                        EntityArmorStand armorStand = hookedArmorStands.get(j);
-                        Worm worm = Worm.getByID(armorStand.getEntityId());
-                        if (worm != null) worm.attack(scathaPro.lastProjectileWeaponUsed);
-                    }
-                }
-                
+                                if (!isRegisteredWorm) {
+                                    scathaPro.registeredWorms.add(newWorm.entityID);
+                                    
+                                    if (newWorm.isScatha) {
+                                        if (scathaPro.wormStreak < 0) scathaPro.wormStreak = 0;
+                                        scathaPro.wormStreak ++;
+                                        
+                                        if (now - scathaPro.lastWorldJoinTime <= Achievement.scatha_spawn_time.goal * 60 * 1000) 
+                                            Achievement.scatha_spawn_time.setProgress(Achievement.scatha_spawn_time.goal);
+                                        
+                                        if (config.getBoolean(Config.Key.scathaAlert)) {
+                                            mc.ingameGUI.displayTitle(null, null, 0, 40, 10);
+                                            mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + "Pray to RNGesus!", 0, 0, 0);
+                                            mc.ingameGUI.displayTitle(EnumChatFormatting.RED + "Scatha", null, 0, 0, 0);
+                                            
+                                            if (!Util.playModeSound("alert.scatha")) Util.playSoundAtPlayer("random.levelup", 1f, 0.8f);
+                                        }
+                                    }
+                                    else {
+                                        if (scathaPro.wormStreak > 0) scathaPro.wormStreak = 0;
+                                        scathaPro.wormStreak --;
     
-                // Worm kill detection
-                
-                for (int i = scathaPro.registeredWorms.size() - 1; i >= 0; i --) {
-                    Worm worm = scathaPro.registeredWorms.get(i);
-                    int entityID = worm.entityID;
+                                        if (config.getBoolean(Config.Key.wormAlert)) {
+                                            mc.ingameGUI.displayTitle(null, null, 5, 20, 5);
+                                            mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + "Just a regular worm...", 0, 0, 0);
+                                            mc.ingameGUI.displayTitle(EnumChatFormatting.YELLOW + "Worm", null, 0, 0, 0);
                     
-                    if (world.getEntityByID(entityID) == null) {
-                        long lifetime = worm.getLifetime();
+                                            if (!Util.playModeSound("alert.worm")) Util.playSoundAtPlayer("random.levelup", 1f, 0.5f);
+                                        }
+                                    }
+    
+                                    scathaPro.updateSpawnAchievements();
+                                    
+                                    scathaPro.updateOverlayWormStreak();
+                                }
+                            }
+                        }
+                    }
+                    
+                    
+                    // Projectile worm hit detection
+                    
+                    List<EntityArrow> arrows = world.getEntities(EntityArrow.class, new Predicate<EntityArrow>() {
+                        @Override
+                        public boolean apply(EntityArrow input) {
+                            Minecraft mc = Minecraft.getMinecraft();
+                            EntityPlayer player = mc != null ? Minecraft.getMinecraft().thePlayer : null;
+                            return player != null ? input.shootingEntity == player : false;
+                        }
+                    });
+                    for (int i = 0; i < arrows.size(); i ++) {
+                        EntityArrow arrow = arrows.get(i);
+                        List<EntityArmorStand> hitArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(arrow.posX, arrow.posY, arrow.posZ, arrow.posX, arrow.posY, arrow.posZ).expand(3f, 3f, 3f));
+                        for (int j = 0; j < hitArmorStands.size(); j ++) {
+                            EntityArmorStand armorStand = hitArmorStands.get(j);
+                            Worm worm = Worm.getByID(armorStand.getEntityId());
+                            if (worm != null) worm.attack(scathaPro.lastProjectileWeaponUsed);
+                        }
+                    }
+                    
+                    List<EntityFishHook> fishHooks = world.getEntities(EntityFishHook.class, new Predicate<EntityFishHook>() {
+                        @Override
+                        public boolean apply(EntityFishHook input) {
+                            Minecraft mc = Minecraft.getMinecraft();
+                            EntityPlayer player = mc != null ? Minecraft.getMinecraft().thePlayer : null;
+                            return player != null ? input.angler == player : false;
+                        }
+                    });
+                    for (int i = 0; i < fishHooks.size(); i ++) {
+                        EntityFishHook hook = fishHooks.get(i);
+                        List<EntityArmorStand> hookedArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(hook.posX, hook.posY, hook.posZ, hook.posX, hook.posY, hook.posZ).expand(3f, 3f, 3f));
+                        for (int j = 0; j < hookedArmorStands.size(); j ++) {
+                            EntityArmorStand armorStand = hookedArmorStands.get(j);
+                            Worm worm = Worm.getByID(armorStand.getEntityId());
+                            if (worm != null) worm.attack(scathaPro.lastProjectileWeaponUsed);
+                        }
+                    }
+                    
+        
+                    // Worm kill/despawn detection
+                    
+                    for (int i = scathaPro.activeWorms.size() - 1; i >= 0; i --) {
+                        Worm worm = scathaPro.activeWorms.get(i);
+                        int entityID = worm.entityID;
                         
-                        if (now - worm.getLastAttackTime() < 1000) {
+                        if (world.getEntityByID(entityID) == null) {
+                            long lifetime = worm.getLifetime();
                             
-                            if (worm.isScatha) {
-                                scathaPro.scathaKills ++;
-                                if (scathaPro.overallScathaKills >= 0) scathaPro.overallScathaKills ++;
+                            if (now - worm.getLastAttackTime() < 1000) {
                                 
-                                if (worm.getHitWeaponsCount() >= Achievement.kill_weapons_scatha.goal) Achievement.kill_weapons_scatha.setProgress(Achievement.kill_weapons_scatha.goal);
+                                if (worm.isScatha) {
+                                    scathaPro.scathaKills ++;
+                                    if (scathaPro.overallScathaKills >= 0) scathaPro.overallScathaKills ++;
+                                    
+                                    if (worm.getHitWeaponsCount() >= Achievement.kill_weapons_scatha.goal) Achievement.kill_weapons_scatha.setProgress(Achievement.kill_weapons_scatha.goal);
+                                    
+                                    lastKillIsScatha = true;
+                                    
+                                    scathaPro.updateOverlayScathaKills();
+                                }
+                                else {
+                                    scathaPro.regularWormKills ++;
+                                    if (scathaPro.overallRegularWormKills >= 0) scathaPro.overallRegularWormKills ++;
+                                    
+                                    if (worm.getHitWeaponsCount() >= Achievement.kill_weapons_regular_worm.goal) Achievement.kill_weapons_regular_worm.setProgress(Achievement.kill_weapons_regular_worm.goal);
+                                    
+                                    lastKillIsScatha = false;
+    
+                                    scathaPro.updateOverlayWormKills();
+                                }
                                 
-                                lastKillIsScatha = true;
+                                scathaPro.updateOverlayTotalKills();
                                 
-                                scathaPro.updateOverlayScathaKills();
+                                scathaPro.updateKillAchievements();
+                                
+                                if (lifetime <= Achievement.worm_kill_time_1.goal * 1000) Achievement.worm_kill_time_1.setProgress(Achievement.worm_kill_time_1.goal);
+                                else if (lifetime >= Achievement.worm_kill_time_2.goal * 1000) Achievement.worm_kill_time_2.setProgress(Achievement.worm_kill_time_2.goal);
+                                
+                                lastKillTime = now;
                             }
                             else {
-                                scathaPro.regularWormKills ++;
-                                if (scathaPro.overallRegularWormKills >= 0) scathaPro.overallRegularWormKills ++;
-                                
-                                if (worm.getHitWeaponsCount() >= Achievement.kill_weapons_regular_worm.goal) Achievement.kill_weapons_regular_worm.setProgress(Achievement.kill_weapons_regular_worm.goal);
-                                
-                                lastKillIsScatha = false;
-
-                                scathaPro.updateOverlayWormKills();
+                                if (lifetime >= 29) Achievement.worm_despawn.setProgress(Achievement.worm_despawn.goal);
                             }
                             
-                            scathaPro.updateOverlayTotalKills();
-                            
-                            scathaPro.updateKillAchievements();
-                            
-                            if (lifetime <= Achievement.worm_kill_time_1.goal * 1000) Achievement.worm_kill_time_1.setProgress(Achievement.worm_kill_time_1.goal);
-                            else if (lifetime >= Achievement.worm_kill_time_2.goal * 1000) Achievement.worm_kill_time_2.setProgress(Achievement.worm_kill_time_2.goal);
-                            
-                            lastKillTime = now;
+                            scathaPro.activeWorms.remove(worm);
                         }
-                        else {
-                            if (lifetime >= 29) Achievement.worm_despawn.setProgress(Achievement.worm_despawn.goal);
-                        }
-                        
-                        scathaPro.registeredWorms.remove(worm);
                     }
-                }
-                
-                
-                // Bedrock wall detection
-
-                if (config.getBoolean(Config.Key.wallAlert)) {
-                    if (inCrystalHollows) {
+                    
+                    
+                    // Bedrock wall detection
+    
+                    if (config.getBoolean(Config.Key.wallAlert)) {
                         int[] checkDirection = {0, 0};
                         
                         switch (Util.getFacing(player)) {
@@ -310,12 +323,9 @@ public class LoopListeners {
                             }
                         }
                     }
-                }
-                
-                
-                // Scatha pet drop detection
-
-                if (inCrystalHollows) {
+                    
+                    
+                    // Scatha pet drop detection
                     
                     ItemStack[] inventory = player.inventory.mainInventory;
                     
@@ -412,34 +422,37 @@ public class LoopListeners {
                     
                     
                     if (droppedPetAtLastScatha && lastKillIsScatha && now - lastKillTime > 1000 && lastPetDropTime < lastKillTime) droppedPetAtLastScatha = false;
-                }
-                
-                
-                // API request
-                
-                if (scathaPro.repeatProfilesDataRequest && now - scathaPro.lastWorldJoinTime > 3000 && inCrystalHollows && now - scathaPro.lastProfilesDataRequestTime > 1000 * 60 * 5) {
-                    scathaPro.lastProfilesDataRequestTime = now;
-                    API.requestProfilesData();
-                }
-                
-                
-                // Update UI overlay
-                
-                if (config.getBoolean(Config.Key.overlay) && inCrystalHollows && !Minecraft.getMinecraft().gameSettings.showDebugInfo) {
-                    scathaPro.updateOverlayCoords();
-                    scathaPro.updateOverlayDay();
                     
-                    scathaPro.updateOverlayPosition();
-                }
-                
-                // Achievements
-                
-                if (inCrystalHollows) {
+                    
+                    // API request
+                    
+                    if (scathaPro.repeatProfilesDataRequest && now - scathaPro.lastWorldJoinTime > 3000 && now - scathaPro.lastProfilesDataRequestTime > 1000 * 60 * 5) {
+                        scathaPro.lastProfilesDataRequestTime = now;
+                        API.requestProfilesData();
+                    }
+                    
+                    
+                    // Update UI overlay
+                    
+                    if (config.getBoolean(Config.Key.overlay) && !Minecraft.getMinecraft().gameSettings.showDebugInfo) {
+                        scathaPro.updateOverlayCoords();
+                        scathaPro.updateOverlayDay();
+                        
+                        scathaPro.updateOverlayPosition();
+                    }
+                    
+                    
+                    // Achievements
+                    
                     float hours = (now - scathaPro.lastWorldJoinTime) / (1000f*60*60);
                     Achievement.crystal_hollows_time_1.setProgress(hours);
                     Achievement.crystal_hollows_time_2.setProgress(hours);
                     Achievement.crystal_hollows_time_3.setProgress(hours);
+                    
                 }
+
+                inCrystalHollowsBefore = inCrystalHollows;
+                
                 
                 if (now - lastDeveloperCheckTime >= 1000) {
                     NetHandlerPlayClient netHandler = Minecraft.getMinecraft().getNetHandler();
@@ -449,7 +462,7 @@ public class LoopListeners {
                         for (Iterator<NetworkPlayerInfo> iterator = playerInfos.iterator(); iterator.hasNext();) {
                             NetworkPlayerInfo p = iterator.next();
                             
-                            if (Util.isDeveloper(p)) Achievement.meet_developer.setProgress(1);
+                            if (Util.isDeveloper(p)) Achievement.meet_developer.setProgress(Achievement.meet_developer.goal);
                         }
                     }
                     

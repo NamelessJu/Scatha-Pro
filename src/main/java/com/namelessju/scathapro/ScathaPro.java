@@ -57,7 +57,7 @@ public class ScathaPro
 {
     public static final String MODNAME = "Scatha-Pro";
     public static final String MODID = "scathapro";
-    public static final String VERSION = "1.2_PreRelease_2";
+    public static final String VERSION = "1.2_PreRelease_3_DEV";
     
     public static final String CHATPREFIX = EnumChatFormatting.GRAY + MODNAME + ": " + EnumChatFormatting.RESET;
     
@@ -89,7 +89,8 @@ public class ScathaPro
     public GuiScreen openGuiNextTick = null;
     
     public long lastWorldJoinTime = -1;
-    public List<Worm> registeredWorms = new ArrayList<Worm>();
+    public List<Integer> registeredWorms = new ArrayList<Integer>();
+    public List<Worm> activeWorms = new ArrayList<Worm>();
     public boolean inBedrockWallRange = false;
     public HashMap<Integer, Integer> previousScathaPets = null;
     
@@ -102,7 +103,7 @@ public class ScathaPro
     public int regularWormKills = 0;
     public int scathaKills = 0;
 
-    public int wormStreak = 0;
+    public int wormStreak = 0; // positive -> scatha streak; negative -> regular worm streak
     
     public int rarePetDrops = 0;
     public int epicPetDrops = 0;
@@ -142,7 +143,7 @@ public class ScathaPro
         OverlayText overlayWormKillsTitle = new OverlayText("Worms", Util.Color.YELLOW.getValue(), 20, 0, 1f);
         overlayWormKillsTitle.setAlignment(OverlayElement.Alignment.CENTER);
         overlayKillsSubContainer.add(overlayWormKillsTitle);
-        overlayKillsSubContainer.add(new OverlayImage("worm.png", 512, 256, 0, 10, 0.08f));
+        overlayKillsSubContainer.add(new OverlayImage("overlay/worm.png", 512, 256, 0, 10, 0.08f));
         overlayKillsSubContainer.add(overlayRegularWormKillsText = new OverlayText(null, Util.Color.GRAY.getValue(), 20, 22, 1f));
         overlayRegularWormKillsText.setAlignment(OverlayElement.Alignment.CENTER);
         overlayKillsSubContainer.add(overlayOverallWormKillsText = new OverlayText(null, Util.Color.WHITE.getValue(), 20, 11, 1f));
@@ -151,7 +152,7 @@ public class ScathaPro
         OverlayText overlayScathaKillsTitle = new OverlayText("Scathas", Util.Color.YELLOW.getValue(), 66, 0, 1f);
         overlayScathaKillsTitle.setAlignment(OverlayElement.Alignment.CENTER);
         overlayKillsSubContainer.add(overlayScathaKillsTitle);
-        overlayKillsSubContainer.add(new OverlayImage("scatha.png", 512, 256, 46, 10, 0.08f));
+        overlayKillsSubContainer.add(new OverlayImage("overlay/scatha.png", 512, 256, 46, 10, 0.08f));
         overlayKillsSubContainer.add(overlayScathaKillsText = new OverlayText(null, Util.Color.GRAY.getValue(), 66, 22, 1f));
         overlayScathaKillsText.setAlignment(OverlayElement.Alignment.CENTER);
         overlayKillsSubContainer.add(overlayOverallScathaKillsText = new OverlayText(null, Util.Color.WHITE.getValue(), 66, 11, 1f));
@@ -209,6 +210,7 @@ public class ScathaPro
             wormStreak = 0;
 
             registeredWorms.clear();
+            activeWorms.clear();
             
             regularWormKills = 0;
             scathaKills = 0;
@@ -382,17 +384,17 @@ public class ScathaPro
     }
     
     public void updateOverlayScathaPetImage() {
-        String petImage;
+        String petImage = "overlay/mode_icons/";
         
         switch (config.getInt(Config.Key.mode)) {
             case 1:
-                petImage = "scathapet_meme.png";
+                petImage += "meme.png";
                 break;
             case 2:
-                petImage = "scathapet_anime.png";
+                petImage += "anime.png";
                 break;
             default:
-                petImage = "scathapet.png";
+                petImage += "default.png";
                 break;
         }
 
@@ -519,14 +521,16 @@ public class ScathaPro
     }
     
     public void updateSpawnAchievements() {
-        Achievement.scatha_streak_1.setProgress(wormStreak);
-        Achievement.scatha_streak_2.setProgress(wormStreak);
-        Achievement.scatha_streak_3.setProgress(wormStreak);
-        Achievement.scatha_streak_4.setProgress(wormStreak);
+        int scathaStreak = Math.max(0, wormStreak);
+        Achievement.scatha_streak_1.setProgress(scathaStreak);
+        Achievement.scatha_streak_2.setProgress(scathaStreak);
+        Achievement.scatha_streak_3.setProgress(scathaStreak);
+        Achievement.scatha_streak_4.setProgress(scathaStreak);
         
-        Achievement.regular_worm_streak_1.setProgress(-wormStreak);
-        Achievement.regular_worm_streak_2.setProgress(-wormStreak);
-        Achievement.regular_worm_streak_3.setProgress(-wormStreak);
+        int regularWormStreak = Math.max(0, -wormStreak);
+        Achievement.regular_worm_streak_1.setProgress(regularWormStreak);
+        Achievement.regular_worm_streak_2.setProgress(regularWormStreak);
+        Achievement.regular_worm_streak_3.setProgress(regularWormStreak);
     }
     
     public void updatePetDropAchievements() {

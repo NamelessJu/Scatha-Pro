@@ -23,7 +23,7 @@ import net.minecraft.util.ResourceLocation;
 
 public class AchievementsGui extends ScathaProGui {
     
-    private static final ResourceLocation progressBarResourceLocation = new ResourceLocation(ScathaPro.MODID, "textures/achievements_progress_bar.png");
+    private static final ResourceLocation progressBarResourceLocation = new ResourceLocation(ScathaPro.MODID, "textures/gui/achievements/progress_bar.png");
     
     private static final int scrollDistance = 20;
     private static final int cardSpacing = AchievementCard.cardHeight + 5;

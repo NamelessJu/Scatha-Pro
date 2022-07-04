@@ -37,7 +37,7 @@ public class GuiListeners {
             event.buttonList.add(modMenuButton);
         }
         else if (event.gui instanceof GuiIngameMenu) {
-            GuiButton achievementMenuButton = new ImageButton(504704001, event.gui.width / 2 - 100 - 24, event.gui.height / 4 + 48 - 16, 20, 20, "achievements_icon.png", 64, 64, 0.2f);
+            GuiButton achievementMenuButton = new ImageButton(504704001, event.gui.width / 2 - 100 - 24, event.gui.height / 4 + 48 - 16, 20, 20, "gui/achievements/button_icon.png", 64, 64, 0.2f);
             
             if (isButtonOverlapping(achievementMenuButton, event.buttonList)) {
                 achievementMenuButton.xPosition = 5;

@@ -22,7 +22,7 @@ public class Worm {
 	}
 	
 	public static Worm getByID(int id) {
-	    List<Worm> worms = ScathaPro.getInstance().registeredWorms;
+	    List<Worm> worms = ScathaPro.getInstance().activeWorms;
 		for (int i = 0; i < worms.size(); i ++)
 			if (worms.get(i).entityID == id) return worms.get(i);
 		return null;

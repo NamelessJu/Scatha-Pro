@@ -22,8 +22,8 @@ public enum Achievement {
     scatha_kills_2("No pet yet?!", "Kill 10 scathas", 10),
     scatha_kills_3("Continuing the grind...", "Kill 100 scathas", 100),
     scatha_kills_4("k", "Kill 1,000 scathas", 1000),
-    scatha_kills_5("Over 9000", "Kill 10,000 scathas", 10000),
-    scatha_kills_6("Scatha Pro", "Kill 100,000 scathas", 100000),
+    scatha_kills_5("Over 9000", "Kill over 9,000 scathas", 9001),
+    scatha_kills_6("Scatha Pro", "Kill 20,000 scathas", 20000),
 
     worm_kill_time_1("No time to waste", "Kill a worm less than one second after it spawned", 1, true),
     worm_kill_time_2("Yeah, I've got time!", "Kill a worm less than a second before it despawns", 29, true),
@@ -73,7 +73,7 @@ public enum Achievement {
 
     scatha_pet_drop_streak("Sold your soul to RNGesus", "Drop two scatha pets back to back", 2, true),
     
-    meet_developer("The Creator", "Be in a lobby with Scatha Pro's developer", 1, true);
+    meet_developer("The Creator", "Be in a lobby with Scatha-Pro's developer", 1, true);
     
     
     public final String name;
