@@ -26,7 +26,7 @@ public class AchievementManager {
             long now = Util.getCurrentTime();
             
             unlockedAchievements.add(new UnlockedAchievement(achievement, Util.getCurrentTime()));
-            lastAchievementUnlockTime = now;
+            
             PersistentData.instance.saveAchievements();
             
             ChatComponentText chatMessage = new ChatComponentText(
@@ -49,13 +49,21 @@ public class AchievementManager {
             if (now >= lastAchievementUnlockTime + 1000) {
                 switch (achievement.type) {
                     case SECRET:
-                        Util.playModSoundAtPlayer("other.achievement_secret");
+                        Util.playSoundAtPlayer("fireworks.twinkle", 1f, 0.75f);
+                        Util.playSoundAtPlayer("random.successful_hit", 0.75f, 0f);
+                        break;
+                    case HIDDEN:
+                        Util.playSoundAtPlayer("fireworks.twinkle", 1f, 0.9f);
+                        Util.playSoundAtPlayer("random.levelup", 1f, 1.25f);
                         break;
                     default:
-                        Util.playModSoundAtPlayer("other.achievement");
+                        Util.playSoundAtPlayer("fireworks.twinkle", 1f, 1f);
+                        Util.playSoundAtPlayer("note.pling", 0.5f, 2f);
                         break;
                 }
             }
+            
+            lastAchievementUnlockTime = now;
         }
     }
     

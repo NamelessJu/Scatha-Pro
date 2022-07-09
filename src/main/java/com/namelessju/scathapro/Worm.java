@@ -10,8 +10,8 @@ import net.minecraft.item.ItemStack;
 public class Worm {
 	public final int entityID;
 	public final boolean isScatha;
+    public final long spawnTime;
 	private long lastAttackTime = -1;
-	private long spawnTime;
 	
 	private ArrayList<String> hitWeapons = new ArrayList<String>();
 	

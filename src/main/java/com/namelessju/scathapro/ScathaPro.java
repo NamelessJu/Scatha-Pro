@@ -31,7 +31,7 @@ public class ScathaPro
 {
     public static final String MODNAME = "Scatha-Pro";
     public static final String MODID = "scathapro";
-    public static final String VERSION = "1.2_PreRelease_3_DEV";
+    public static final String VERSION = "1.2_PreRelease_3";
     
     public static final String CHATPREFIX = EnumChatFormatting.GRAY + MODNAME + ": " + EnumChatFormatting.RESET;
     

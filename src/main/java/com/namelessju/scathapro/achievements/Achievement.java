@@ -44,6 +44,8 @@ public enum Achievement {
     lobby_kills_1("They keep coming", "Kill 25 worms in a single lobby", 25),
     lobby_kills_2("Scatha grinding session", "Kill 50 worms in a single lobby", 50),
     lobby_kills_3("Lobby emptied", "Kill 100 worms in a single lobby", 100),
+    
+    scatha_kill_sneak("Sneak 100", "Kill a scatha while sneaking the whole time", 1, Type.SECRET),
 
     scatha_hit_dirt("Bully Maguire", "Put some dirt in a scatha's eye", 1, Type.SECRET),
     scatha_kill_terminator("I'll be back!", "Kill a scatha with a Terminator", 1, Type.HIDDEN),

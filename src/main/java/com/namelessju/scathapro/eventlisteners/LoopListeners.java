@@ -55,6 +55,8 @@ public class LoopListeners {
     private boolean lastKillIsScatha = false;
     private boolean droppedPetAtLastScatha = false;
     
+    private boolean sneakingBefore = false;
+    private long lastSneakStartTime = -1;
     private long lastDeveloperCheckTime = -1;
     
     
@@ -118,6 +120,13 @@ public class LoopListeners {
 
                 
                 if (inCrystalHollows) {
+                    
+                    boolean sneaking = player.isSneaking();
+                    if (!sneakingBefore && sneaking) {
+                        lastSneakStartTime = now;
+                    }
+                    sneakingBefore = sneaking;
+                    
                     
                     // Pre-release notice 
                     
@@ -246,6 +255,7 @@ public class LoopListeners {
                                     
                                     if (worm.getHitWeaponsCount() >= Achievement.kill_weapons_scatha.goal) Achievement.kill_weapons_scatha.setProgress(Achievement.kill_weapons_scatha.goal);
                                     if (worm.getHitWeaponsCount() > 0 && worm.getHitWeapons()[worm.getHitWeaponsCount() - 1].equals("TERMINATOR")) Achievement.scatha_kill_terminator.setProgress(Achievement.scatha_kill_terminator.goal);
+                                    if (sneaking && lastSneakStartTime >= 0 && worm.spawnTime >= lastSneakStartTime) Achievement.scatha_kill_sneak.setProgress(Achievement.scatha_kill_sneak.goal);
                                     
                                     lastKillIsScatha = true;
                                     
@@ -385,27 +395,29 @@ public class LoopListeners {
                         }
                         
                         if (newScathaPet >= 0) {
+                            String rarityTitle = null;
+                            
+                            switch (newScathaPet) {
+                                case 1:
+                                    scathaPro.rarePetDrops ++;
+                                    rarityTitle = EnumChatFormatting.BLUE + "RARE";
+                                    break;
+                                case 2:
+                                    scathaPro.epicPetDrops ++;
+                                    rarityTitle = EnumChatFormatting.DARK_PURPLE + "EPIC";
+                                    break;
+                                case 3:
+                                    scathaPro.legendaryPetDrops ++;
+                                    rarityTitle = EnumChatFormatting.GOLD + "LEGENDARY";
+                                    break;
+                                default:
+                                    rarityTitle = EnumChatFormatting.GRAY + "unknown rarity";
+                            }
+                            
                             if (Config.instance.getBoolean(Config.Key.petAlert)) {
                                 
                                 mc.ingameGUI.displayTitle(null, null, 0, 130, 20);
-                                
-                                switch (newScathaPet) {
-                                    case 1:
-                                        mc.ingameGUI.displayTitle(null, EnumChatFormatting.BLUE + "RARE", 0, 0, 0);
-                                        scathaPro.rarePetDrops ++;
-                                        break;
-                                    case 2:
-                                        mc.ingameGUI.displayTitle(null, EnumChatFormatting.DARK_PURPLE + "EPIC", 0, 0, 0);
-                                        scathaPro.epicPetDrops ++;
-                                        break;
-                                    case 3:
-                                        mc.ingameGUI.displayTitle(null, EnumChatFormatting.GOLD + "LEGENDARY", 0, 0, 0);
-                                        scathaPro.legendaryPetDrops ++;
-                                        break;
-                                    default:
-                                        mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + "unknown rarity", 0, 0, 0);
-                                }
-                                
+                                mc.ingameGUI.displayTitle(null, rarityTitle, 0, 0, 0);
                                 mc.ingameGUI.displayTitle(EnumChatFormatting.YELLOW + "Scatha Pet!", null, 0, 0, 0);
                                 
                                 Util.playSoundAtPlayer("random.chestopen", 1.5f, 0.95f);
@@ -461,6 +473,8 @@ public class LoopListeners {
 
                 inCrystalHollowsBefore = inCrystalHollows;
                 
+                
+                // Dev check
                 
                 if (now - lastDeveloperCheckTime >= 1000) {
                     NetHandlerPlayClient netHandler = Minecraft.getMinecraft().getNetHandler();
