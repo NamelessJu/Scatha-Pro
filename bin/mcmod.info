@@ -1,7 +1,7 @@
 [
     {
       "modid": "scathapro",
-      "name": "Scatha Pro",
+      "name": "Scatha-Pro",
       "description": "A mod for pro scatha farmers",
       "version": "${version}",
       "mcversion": "${mcversion}",

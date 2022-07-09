@@ -12,7 +12,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraftforge.fml.client.config.GuiSlider;
 
-public class ScathaProGui extends GuiScreen {
+public abstract class ScathaProGui extends GuiScreen {
     
     public String getTitle() {
         return "Unnamed GUI";

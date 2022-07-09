@@ -32,7 +32,7 @@ public class DevCommand extends CommandBase {
 
     @Override
     public int getRequiredPermissionLevel() {
-        return Config.getInstance().getBoolean(Config.Key.devMode) ? 0 : 9;
+        return Config.instance.getBoolean(Config.Key.devMode) ? 0 : 9;
     }
 
 	@Override

@@ -16,8 +16,6 @@ public class AlertSettingsGui extends ScathaProGui implements GuiSlider.ISlider 
         return "Alert Settings";
     }
     
-    
-    private final Config config = Config.getInstance();
 
     public AlertSettingsGui(GuiScreen parentGui) {
         super(parentGui);
@@ -28,7 +26,7 @@ public class AlertSettingsGui extends ScathaProGui implements GuiSlider.ISlider 
     {
         super.initGui();
         
-        double volume = config.getDouble(Config.Key.volume);
+        double volume = Config.instance.getDouble(Config.Key.volume);
         buttonList.add(new GuiSlider(504704401, width / 2 - 155, height / 6 - 6, 310, 20, "Alert Volume: ", "%", 0, 100, volume * 100, false, true, this));
 
         buttonList.add(new GuiButton(504704402, width / 2 + 5, height / 6 + 24 - 6, 150, 20, getWormAlertString()));
@@ -48,37 +46,37 @@ public class AlertSettingsGui extends ScathaProGui implements GuiSlider.ISlider 
             switch (button.id) {
             
                 case 504704402:
-                    config.set(Config.Key.wormAlert, !config.getBoolean(Config.Key.wormAlert));
-                    config.save();
+                    Config.instance.set(Config.Key.wormAlert, !Config.instance.getBoolean(Config.Key.wormAlert));
+                    Config.instance.save();
                     
                     button.displayString = getWormAlertString();
                     break;
             
                 case 504704403:
-                    config.set(Config.Key.scathaAlert, !config.getBoolean(Config.Key.scathaAlert));
-                    config.save();
+                    Config.instance.set(Config.Key.scathaAlert, !Config.instance.getBoolean(Config.Key.scathaAlert));
+                    Config.instance.save();
                     
                     button.displayString = getScathaAlertString();
                     break;
                     
                 case 504704404:
-                    config.set(Config.Key.wormPreAlert, !config.getBoolean(Config.Key.wormPreAlert));
-                    config.save();
+                    Config.instance.set(Config.Key.wormPreAlert, !Config.instance.getBoolean(Config.Key.wormPreAlert));
+                    Config.instance.save();
                     
                     button.displayString = getWormPreAlertString();
                     break;
                     
                 case 504704405:
-                    config.set(Config.Key.wallAlert, !config.getBoolean(Config.Key.wallAlert));
-                    config.save();
+                    Config.instance.set(Config.Key.wallAlert, !Config.instance.getBoolean(Config.Key.wallAlert));
+                    Config.instance.save();
                     
                     button.displayString = getWallAlertString();
                     break;
                     
                 case 504704406:
-                    boolean enabled = !config.getBoolean(Config.Key.petAlert);
-                    config.set(Config.Key.petAlert, enabled);
-                    config.save();
+                    boolean enabled = !Config.instance.getBoolean(Config.Key.petAlert);
+                    Config.instance.set(Config.Key.petAlert, enabled);
+                    Config.instance.save();
                     
                     if (enabled) ScathaPro.getInstance().resetPreviousScathaPets();
                     
@@ -99,8 +97,8 @@ public class AlertSettingsGui extends ScathaProGui implements GuiSlider.ISlider 
                 case 504704401:
                     double volume = (double) slider.getValueInt() / 100;
                     
-                    config.set(Config.Key.volume, volume);
-                    config.save();
+                    Config.instance.set(Config.Key.volume, volume);
+                    Config.instance.save();
                     break;
             }
         }
@@ -108,27 +106,27 @@ public class AlertSettingsGui extends ScathaProGui implements GuiSlider.ISlider 
     
     
     private String getWormAlertString() {
-        boolean enabled = config.getBoolean(Config.Key.wormAlert);
+        boolean enabled = Config.instance.getBoolean(Config.Key.wormAlert);
         return "Worm Spawn Alert: " + getEnabledString(enabled);
     }
     
     private String getScathaAlertString() {
-        boolean enabled = config.getBoolean(Config.Key.scathaAlert);
+        boolean enabled = Config.instance.getBoolean(Config.Key.scathaAlert);
         return "Scatha Spawn Alert: " + getEnabledString(enabled);
     }
     
     private String getWormPreAlertString() {
-        boolean enabled = config.getBoolean(Config.Key.wormPreAlert);
+        boolean enabled = Config.instance.getBoolean(Config.Key.wormPreAlert);
         return "Worm Pre-Spawn Alert: " + getEnabledString(enabled);
     }
     
     private String getWallAlertString() {
-        boolean enabled = config.getBoolean(Config.Key.wallAlert);
+        boolean enabled = Config.instance.getBoolean(Config.Key.wallAlert);
         return "Bedrock Wall Alert: " + getEnabledString(enabled);
     }
     
     private String getPetAlertString() {
-        boolean enabled = config.getBoolean(Config.Key.petAlert);
+        boolean enabled = Config.instance.getBoolean(Config.Key.petAlert);
         return "Scatha Drop Alert: " + getEnabledString(enabled);
     }
     

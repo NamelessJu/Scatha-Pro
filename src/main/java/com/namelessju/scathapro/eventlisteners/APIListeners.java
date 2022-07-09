@@ -3,6 +3,7 @@ package com.namelessju.scathapro.eventlisteners;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.namelessju.scathapro.OverlayManager;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.Util;
 import com.namelessju.scathapro.API.APIErrorEvent;
@@ -47,9 +48,9 @@ public class APIListeners {
                     scathaPro.overallRegularWormKills = overallWormKillsJson != null ? overallWormKillsJson.getAsInt() : 0;
                     scathaPro.overallScathaKills = overallScathaKillsJson != null ? overallScathaKillsJson.getAsInt() : 0;
 
-                    scathaPro.updateOverlayWormKills();
-                    scathaPro.updateOverlayScathaKills();
-                    scathaPro.updateOverlayTotalKills();
+                    OverlayManager.instance.updateWormKills();
+                    OverlayManager.instance.updateScathaKills();
+                    OverlayManager.instance.updateTotalKills();
 
                     scathaPro.updateKillAchievements();
                     return;

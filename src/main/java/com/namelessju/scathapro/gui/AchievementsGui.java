@@ -2,7 +2,9 @@ package com.namelessju.scathapro.gui;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Hashtable;
 
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
@@ -10,6 +12,7 @@ import org.lwjgl.opengl.GL11;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.Util;
 import com.namelessju.scathapro.achievements.Achievement;
+import com.namelessju.scathapro.achievements.Achievement.Type;
 import com.namelessju.scathapro.achievements.AchievementManager;
 
 import net.minecraft.client.gui.Gui;
@@ -25,7 +28,7 @@ public class AchievementsGui extends ScathaProGui {
     
     private static final ResourceLocation progressBarResourceLocation = new ResourceLocation(ScathaPro.MODID, "textures/gui/achievements/progress_bar.png");
     
-    private static final int scrollDistance = 20;
+    private static final int scrollDistance = 30;
     private static final int cardSpacing = AchievementCard.cardHeight + 5;
     
     private ScaledResolution scaledResolution;
@@ -56,19 +59,18 @@ public class AchievementsGui extends ScathaProGui {
             
             if (y + AchievementCard.cardHeight >= scrollBoundaryStart && y < scrollBoundaryStart + scrollBoundaryHeight) {
                 
-                boolean unlocked = AchievementManager.getInstance().isAchievementUnlocked(achievement);
+                boolean unlocked = AchievementManager.instance.isAchievementUnlocked(achievement);
                 
-                Gui.drawRect(x, y, x + cardWidth, y + cardHeight, 0xA0101015);
+                Gui.drawRect(x, y, x + cardWidth, y + cardHeight, 0xA0101012);
                 
-                String hiddenString =  achievement.hidden ? " " + EnumChatFormatting.AQUA + EnumChatFormatting.ITALIC + "[SECRET]" : "";
                 if (unlocked) {
-                    String unlockedString = EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + new SimpleDateFormat("dd.MM.yyyy HH:mm").format(new Date(AchievementManager.getInstance().getUnlockedAchievement(achievement).unlockedAtTimestamp));
-                    fontRendererObj.drawString(unlockedString, x + cardWidth - cardPadding - fontRendererObj.getStringWidth(unlockedString), y + cardPadding, Util.Color.WHITE.getValue(), true);
+                    fontRendererObj.drawString(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + EnumChatFormatting.BOLD + achievement.name + (achievement.type.string != null ? EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + " [" + achievement.type.string + EnumChatFormatting.RESET + EnumChatFormatting.GREEN + "]" : ""), x + cardPadding, y + cardPadding, Util.Color.WHITE.getValue(), true);
 
-                    fontRendererObj.drawString(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + EnumChatFormatting.BOLD + achievement.name + hiddenString, x + cardPadding, y + cardPadding, Util.Color.WHITE.getValue(), true);
+                    String unlockedString = EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + new SimpleDateFormat("dd.MM.yyyy HH:mm").format(new Date(AchievementManager.instance.getUnlockedAchievement(achievement).unlockedAtTimestamp));
+                    fontRendererObj.drawString(unlockedString, x + cardWidth - cardPadding - fontRendererObj.getStringWidth(unlockedString), y + cardPadding, Util.Color.WHITE.getValue(), true);
                 }
-                else fontRendererObj.drawString(EnumChatFormatting.RESET + achievement.name + hiddenString, x + cardPadding, y + cardPadding, Util.Color.WHITE.getValue(), true);
-                fontRendererObj.drawString(EnumChatFormatting.GRAY + (achievement.hidden && !unlocked ? EnumChatFormatting.OBFUSCATED.toString() : "") + achievement.description, x + cardPadding, y + cardPadding + 12, Util.Color.WHITE.getValue(), true);
+                else fontRendererObj.drawString(EnumChatFormatting.RESET + achievement.name + (achievement.type.string != null ? " [" + achievement.type.string + EnumChatFormatting.RESET + "]" : ""), x + cardPadding, y + cardPadding, Util.Color.WHITE.getValue(), true);
+                fontRendererObj.drawString(EnumChatFormatting.GRAY + (achievement.type == Achievement.Type.SECRET && !unlocked ? EnumChatFormatting.OBFUSCATED.toString() : "") + achievement.description, x + cardPadding, y + cardPadding + 12, Util.Color.WHITE.getValue(), true);
 
                 GlStateManager.color(1f, 1f, 1f, 1f);
                 mc.getTextureManager().bindTexture(progressBarResourceLocation);
@@ -80,7 +82,7 @@ public class AchievementsGui extends ScathaProGui {
                 if (progress >= barWidth) drawModalRectWithCustomSizedTexture(x + cardPadding, y + cardPadding + 24, 0, 8, barWidth, 3, 512, 16);
                 else if (progress > 0) drawModalRectWithCustomSizedTexture(x + cardPadding, y + cardPadding + 24, 0, 4, progress, 3, 512, 16);
 
-                String progressString = (AchievementManager.getInstance().isAchievementUnlocked(achievement) ? EnumChatFormatting.GREEN : EnumChatFormatting.YELLOW).toString() + (achievement.hidden && !unlocked ? "?/?" : Util.numberToString(Math.min(achievement.getProgress(), achievement.goal), 2) + "/" + Util.numberToString(achievement.goal, 2));
+                String progressString = (AchievementManager.instance.isAchievementUnlocked(achievement) ? EnumChatFormatting.GREEN : EnumChatFormatting.YELLOW).toString() + (achievement.type == Achievement.Type.SECRET && !unlocked ? "?/?" : Util.numberToString(Math.min(achievement.getProgress(), achievement.goal), 2) + "/" + Util.numberToString(achievement.goal, 2));
                 fontRendererObj.drawString(progressString, x + cardPadding + barWidth - fontRendererObj.getStringWidth(progressString), y + cardPadding + 12, Util.Color.WHITE.getValue(), true);
             }
         }
@@ -109,36 +111,43 @@ public class AchievementsGui extends ScathaProGui {
         scrollBoundaryHeight = Math.round(height - scrollBoundaryStart - 20 - 50 * heightFactor - 10);
         
         Achievement[] achievementList = AchievementManager.getAllAchievements();
+        ArrayList<Achievement> visibleAchievements = new ArrayList<Achievement>();
         
-        int achievementCount = 0;
-        int unlockedAchievementCount = 0;
-        int secretAchievementCount = 0;
-        int unlockedSecretAchievementCount = 0;
+        Hashtable<Achievement.Type, Integer> achievementCount = new Hashtable<Type, Integer>();
+        Hashtable<Achievement.Type, Integer> unlockedAchievementCount = new Hashtable<Type, Integer>();
 
         for (int i = 0; i < achievementList.length; i ++) {
             Achievement achievement = achievementList[i];
-
-            if (achievement.hidden) secretAchievementCount ++;
-            else achievementCount ++;
             
-            boolean unlocked = AchievementManager.getInstance().isAchievementUnlocked(achievement);
+            boolean unlocked = AchievementManager.instance.isAchievementUnlocked(achievement);
+            
+            if (achievement.type != Achievement.Type.HIDDEN || unlocked) visibleAchievements.add(achievement);
+
+            Integer currentTypeCount = achievementCount.get(achievement.type);
+            achievementCount.put(achievement.type, getNullableInteger(currentTypeCount) + 1);
             
             if (unlocked) {
-                if (achievement.hidden) unlockedSecretAchievementCount ++;
-                else unlockedAchievementCount ++;
+                Integer currentTypeUnlockedCount = unlockedAchievementCount.get(achievement.type);
+                unlockedAchievementCount.put(achievement.type, (currentTypeUnlockedCount != null ? currentTypeUnlockedCount : 0) + 1);
             }
         }
-
+        
+        int unlockedHiddenAchievements = getNullableInteger(unlockedAchievementCount.get(Achievement.Type.HIDDEN));
+        
         GuiLabel progressLabel = new GuiLabel(fontRendererObj, 1, width / 2 - 155, 28, 310, 10, Util.Color.WHITE.getValue()).setCentered();
-        progressLabel.func_175202_a("Unlocked: " + unlockedAchievementCount + "/" + achievementCount + " (+ " + unlockedSecretAchievementCount + "/" + secretAchievementCount + " SECRET)");
+        progressLabel.func_175202_a("Unlocked: " + getNullableInteger(unlockedAchievementCount.get(Achievement.Type.NORMAL)) + "/" + getNullableInteger(achievementCount.get(Achievement.Type.NORMAL)) + " (+ " + getNullableInteger(unlockedAchievementCount.get(Achievement.Type.SECRET)) + "/" + getNullableInteger(achievementCount.get(Achievement.Type.SECRET)) + " Secret" + (unlockedHiddenAchievements > 0 ? " & " + unlockedHiddenAchievements + " HIDDEN" : "") + ")");
         labelList.add(progressLabel);
         
-        achievementCards = new AchievementCard[achievementList.length];
+        achievementCards = new AchievementCard[visibleAchievements.size()];
         
-        for (int i = 0; i < achievementList.length; i ++)
-            achievementCards[i] = new AchievementCard(i, achievementList[i]);
+        for (int i = 0; i < visibleAchievements.size(); i ++)
+            achievementCards[i] = new AchievementCard(i, visibleAchievements.get(i));
         
         setScroll(getScroll()); // clamp scroll on resolution change
+    }
+    
+    private int getNullableInteger(Integer integer) {
+        return integer != null ? integer.intValue() : 0;
     }
     
     @Override
@@ -178,6 +187,11 @@ public class AchievementsGui extends ScathaProGui {
             card.draw();
         }
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        
+        int scrollHeight = (achievementCards.length - 1) * cardSpacing - scrollBoundaryHeight + AchievementCard.cardHeight;
+        int scrollBarHeight = Math.round((scrollBoundaryHeight / (float) scrollHeight) * scrollBoundaryHeight);
+        int scrollBarOffset = Math.round((scrollBoundaryHeight - scrollBarHeight) * (scroll / scrollHeight));
+        Gui.drawRect(width / 2 + AchievementCard.cardWidth / 2 + 2, scrollBoundaryStart + scrollBarOffset, width / 2 + AchievementCard.cardWidth / 2 + 4, scrollBoundaryStart + scrollBarOffset + scrollBarHeight, 0xB0000002);
     }
     
     public void setScroll(float scroll) {

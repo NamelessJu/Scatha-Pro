@@ -8,7 +8,7 @@ import net.minecraftforge.fml.common.Loader;
 
 public class Config {
     
-    private static Config instance = new Config();
+    public static final Config instance = new Config();
     
     private Configuration config;
     
@@ -61,10 +61,6 @@ public class Config {
         
         config = new Configuration(configFile);
         config.load();
-    }
-    
-    public static Config getInstance() {
-        return instance;
     }
     
     

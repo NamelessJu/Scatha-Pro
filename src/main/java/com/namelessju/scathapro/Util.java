@@ -66,7 +66,7 @@ public abstract class Util {
     public static void addChatCopyButton(IChatComponent message) {
         String unformattedText = StringUtils.stripControlCodes(message.getUnformattedText());
         
-        if (Config.getInstance().getBoolean(Config.Key.chatCopy) && !unformattedText.replace(" ", "").isEmpty()) {
+        if (Config.instance.getBoolean(Config.Key.chatCopy) && !unformattedText.replace(" ", "").isEmpty()) {
             ChatComponentText copyText = new ChatComponentText(EnumChatFormatting.DARK_GRAY + Util.getUnicodeString("270D"));
             ChatStyle style = new ChatStyle()
                     .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.GRAY + "Copy message")))
@@ -83,7 +83,7 @@ public abstract class Util {
     }
     public static void playSoundAtPlayer(String sound, float volume, float pitch) {
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-        if (player != null) player.playSound(sound, (float) (Config.getInstance().getDouble(Config.Key.volume) * volume), pitch);
+        if (player != null) player.playSound(sound, (float) (Config.instance.getDouble(Config.Key.volume) * volume), pitch);
     }
 
     public static void playModSoundAtPlayer(String sound) {
@@ -97,7 +97,7 @@ public abstract class Util {
         
         String modeFolder;
         
-        switch (Config.getInstance().getInt(Config.Key.mode)) {
+        switch (Config.instance.getInt(Config.Key.mode)) {
             case 1:
                 modeFolder = "meme";
                 break;
@@ -132,7 +132,7 @@ public abstract class Util {
     }
 	
 	public static boolean inCrystalHollows() {
-	    if (Config.getInstance().getBoolean(Config.Key.devMode)) return true;
+	    if (Config.instance.getBoolean(Config.Key.devMode)) return true;
 	    
 		boolean inCrystalHollows = false;
 		

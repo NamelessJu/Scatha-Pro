@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import com.namelessju.scathapro.API;
 import com.namelessju.scathapro.Config;
+import com.namelessju.scathapro.OverlayManager;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.Util;
 
@@ -20,8 +21,6 @@ public class SettingsGui extends ScathaProGui {
     }
     
     
-    private final Config config = Config.getInstance();
-    
     GuiTextField apiKeyTextField;
     private String apiKeyInitialValue;
     private boolean editingApiKey = false;
@@ -35,7 +34,7 @@ public class SettingsGui extends ScathaProGui {
     {
         super.initGui();
         
-        apiKeyInitialValue = config.getString(Config.Key.apiKey);
+        apiKeyInitialValue = Config.instance.getString(Config.Key.apiKey);
         
         GuiLabel apiKeyLabel = new GuiLabel(fontRendererObj, 1, width / 2 - 155, height / 6 - 1 - 6, 310, 10, Util.Color.GRAY.getValue());
         apiKeyLabel.func_175202_a("API-Key");
@@ -59,7 +58,7 @@ public class SettingsGui extends ScathaProGui {
     
     @Override
     public void onGuiClosed() {
-        if (!config.getString(Config.Key.apiKey).equals(apiKeyInitialValue)) {
+        if (!Config.instance.getString(Config.Key.apiKey).equals(apiKeyInitialValue)) {
             ScathaPro.getInstance().repeatProfilesDataRequest = true;
             if (ScathaPro.getInstance().profilesDataRequestNeeded()) API.requestProfilesData();
         }
@@ -77,8 +76,8 @@ public class SettingsGui extends ScathaProGui {
                         String apiKey = apiKeyTextField.getText();
                         apiKey = apiKey.replace(" ", "");
             
-                        config.set(Config.Key.apiKey, apiKey);
-                        config.save();
+                        Config.instance.set(Config.Key.apiKey, apiKey);
+                        Config.instance.save();
                     }
                     
                     editingApiKey = !editingApiKey;
@@ -97,29 +96,29 @@ public class SettingsGui extends ScathaProGui {
                     break;
                     
                 case 504704006:
-                    int currentMode = config.getInt(Config.Key.mode);
+                    int currentMode = Config.instance.getInt(Config.Key.mode);
                     
                     int nextMode = currentMode + 1;
                     if (nextMode > 2) nextMode = 0;
                     
-                    config.set(Config.Key.mode, nextMode);
-                    config.save();
+                    Config.instance.set(Config.Key.mode, nextMode);
+                    Config.instance.save();
                     
-                    ScathaPro.getInstance().updateOverlayScathaPetImage();
+                    OverlayManager.instance.updateScathaPetImage();
                     
                     button.displayString = getModeString();
                     break;
                     
                 case 504704007:
-                    config.set(Config.Key.showRotationAngles, !config.getBoolean(Config.Key.showRotationAngles));
-                    config.save();
+                    Config.instance.set(Config.Key.showRotationAngles, !Config.instance.getBoolean(Config.Key.showRotationAngles));
+                    Config.instance.save();
                     
                     button.displayString = getShowRotationAnglesString();
                     break;
                 
                 case 504704008:
-                    config.set(Config.Key.chatCopy, !config.getBoolean(Config.Key.chatCopy));
-                    config.save();
+                    Config.instance.set(Config.Key.chatCopy, !Config.instance.getBoolean(Config.Key.chatCopy));
+                    Config.instance.save();
                     
                     button.displayString = getChatCopyString();
                     break;
@@ -133,11 +132,11 @@ public class SettingsGui extends ScathaProGui {
     
     private void updateApiKeyTextField() {
         if (editingApiKey) {
-            apiKeyTextField.setText(config.getString(Config.Key.apiKey));
+            apiKeyTextField.setText(Config.instance.getString(Config.Key.apiKey));
             apiKeyTextField.setEnabled(true);
         }
         else {
-            String apiKey = config.getString(Config.Key.apiKey);
+            String apiKey = Config.instance.getString(Config.Key.apiKey);
             
             apiKeyTextField.setText(apiKey.replaceAll(".", "*"));
             apiKeyTextField.setEnabled(false);
@@ -149,12 +148,12 @@ public class SettingsGui extends ScathaProGui {
     }
     
     private String getShowRotationAnglesString() {
-        boolean enabled = config.getBoolean(Config.Key.showRotationAngles);
+        boolean enabled = Config.instance.getBoolean(Config.Key.showRotationAngles);
         return "Show Rotation Angles: " + getEnabledString(enabled);
     }
     
     private String getModeString() {
-        int mode = config.getInt(Config.Key.mode);
+        int mode = Config.instance.getInt(Config.Key.mode);
 
         String modeName;
         
@@ -176,7 +175,7 @@ public class SettingsGui extends ScathaProGui {
     }
     
     private String getChatCopyString() {
-        boolean enabled = config.getBoolean(Config.Key.chatCopy);
+        boolean enabled = Config.instance.getBoolean(Config.Key.chatCopy);
         return "Chat Copy Button: " + getEnabledString(enabled);
     }
 }

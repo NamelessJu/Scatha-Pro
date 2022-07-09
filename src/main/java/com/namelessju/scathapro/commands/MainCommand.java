@@ -15,8 +15,6 @@ import net.minecraft.command.ICommandSender;
 
 public class MainCommand extends CommandBase {
     
-    private Config config = Config.getInstance();
-    
     @Override
     public String getCommandName() {
         return "scathapro";
@@ -43,14 +41,13 @@ public class MainCommand extends CommandBase {
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (args.length > 0) {
             String subCommand = args[0];
-
-            if (subCommand.equalsIgnoreCase("reset")) {
-                for (Config.Key key : Config.Key.values()) { 
-                    config.reset(key);
-                }
-                config.save();
+            
+            if (subCommand.equalsIgnoreCase("resetConfig")) {
+                for (Config.Key key : Config.Key.values())
+                    Config.instance.reset(key);
+                Config.instance.save();
                 
-                if (config.getBoolean(Config.Key.petAlert)) ScathaPro.getInstance().resetPreviousScathaPets();
+                if (Config.instance.getBoolean(Config.Key.petAlert)) ScathaPro.getInstance().resetPreviousScathaPets();
 
                 Util.sendModChatMessage("All settings reset");
                 return;
@@ -60,8 +57,8 @@ public class MainCommand extends CommandBase {
                 if (args.length > 1) {
                     boolean enabled = CommandBase.parseBoolean(args[1]);
                     
-                    config.set(Config.Key.devMode, enabled);
-                    config.save();
+                    Config.instance.set(Config.Key.devMode, enabled);
+                    Config.instance.save();
                     
                     Util.sendModChatMessage("Developer mode " + (enabled ? "enabled" : "disabled"));
                     return;
@@ -70,11 +67,11 @@ public class MainCommand extends CommandBase {
             }
             
             else if (subCommand.equalsIgnoreCase("achievements")) {
-                ScathaPro.getInstance().openGuiNextTick(new AchievementsGui(null));
+                ScathaPro.getInstance().openGuiNextTick = new AchievementsGui(null);
                 return;
             }
         }
 
-        ScathaPro.getInstance().openGuiNextTick(new SettingsGui(null));
+        ScathaPro.getInstance().openGuiNextTick = new SettingsGui(null);
     }
 }
