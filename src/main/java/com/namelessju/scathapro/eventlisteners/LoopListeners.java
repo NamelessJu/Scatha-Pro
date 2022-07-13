@@ -1,5 +1,6 @@
 package com.namelessju.scathapro.eventlisteners;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -10,6 +11,7 @@ import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.OverlayManager;
 import com.namelessju.scathapro.PersistentData;
 import com.namelessju.scathapro.ScathaPro;
+import com.namelessju.scathapro.UpdateChecker;
 import com.namelessju.scathapro.Util;
 import com.namelessju.scathapro.Worm;
 import com.namelessju.scathapro.achievements.Achievement;
@@ -48,7 +50,7 @@ public class LoopListeners {
     Minecraft mc = Minecraft.getMinecraft();
     ScathaPro scathaPro = ScathaPro.getInstance();
     
-    private boolean inCrystalHollowsBefore = false;
+    private boolean firstIngameFrame = true;
 
     private long lastKillTime = -1;
     private long lastPetDropTime = -1;
@@ -58,6 +60,8 @@ public class LoopListeners {
     private boolean sneakingBefore = false;
     private long lastSneakStartTime = -1;
     private long lastDeveloperCheckTime = -1;
+    
+    private HashMap<Integer, String> arrowOwners = new HashMap<Integer, String>();
     
     
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -113,12 +117,17 @@ public class LoopListeners {
             EntityPlayer player = mc.thePlayer;
             
             if (player != null) {
-                
                 World world = player.worldObj;
+                
+                
+                if (firstIngameFrame) {
+                    UpdateChecker.checkForUpdate();
+                    
+                    firstIngameFrame = false;
+                }
+                
 
                 boolean inCrystalHollows = Util.inCrystalHollows();
-
-                
                 if (inCrystalHollows) {
                     
                     boolean sneaking = player.isSneaking();
@@ -126,12 +135,6 @@ public class LoopListeners {
                         lastSneakStartTime = now;
                     }
                     sneakingBefore = sneaking;
-                    
-                    
-                    // Pre-release notice 
-                    
-                    if (!inCrystalHollowsBefore) 
-                        Util.sendModChatMessage(EnumChatFormatting.RED.toString() + EnumChatFormatting.ITALIC + "This is a pre-release version of 1.2! Please report any problems you find on the scatha farming discord!" + EnumChatFormatting.RESET);
                     
                     
                     // Worm detection
@@ -204,19 +207,30 @@ public class LoopListeners {
                     List<EntityArrow> arrows = world.getEntities(EntityArrow.class, new Predicate<EntityArrow>() {
                         @Override
                         public boolean apply(EntityArrow input) {
-                            Minecraft mc = Minecraft.getMinecraft();
-                            EntityPlayer player = mc != null ? Minecraft.getMinecraft().thePlayer : null;
-                            return player != null ? input.shootingEntity == player : false;
+                            return !input.onGround;
                         }
                     });
                     for (int i = 0; i < arrows.size(); i ++) {
                         EntityArrow arrow = arrows.get(i);
-                        List<EntityArmorStand> hitArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(arrow.posX, arrow.posY, arrow.posZ, arrow.posX, arrow.posY, arrow.posZ).expand(3f, 3f, 3f));
-                        for (int j = 0; j < hitArmorStands.size(); j ++) {
-                            EntityArmorStand armorStand = hitArmorStands.get(j);
-                            Worm worm = Worm.getByID(armorStand.getEntityId());
-                            if (worm != null) worm.attack(scathaPro.lastProjectileWeaponUsed);
+                        int id = arrow.getEntityId();
+                        
+                        if (!arrowOwners.containsKey(id)) {
+                            EntityPlayer owner = world.getClosestPlayerToEntity(arrow, -1);
+                            arrowOwners.put(id, Util.getUUIDString(owner.getUniqueID()));
                         }
+                        
+                        if (arrowOwners.get(id).equals(Util.getPlayerUUIDString())) {
+                            List<EntityArmorStand> hitArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(arrow.posX, arrow.posY, arrow.posZ, arrow.posX, arrow.posY, arrow.posZ).expand(3f, 3f, 3f));
+                            for (int j = 0; j < hitArmorStands.size(); j ++) {
+                                EntityArmorStand armorStand = hitArmorStands.get(j);
+                                Worm worm = Worm.getByID(armorStand.getEntityId());
+                                if (worm != null) worm.attack(scathaPro.lastProjectileWeaponUsed);
+                            }
+                        }
+                    }
+                    for (int i = 0; i < arrowOwners.size(); i ++) {
+                        int arrowID = new ArrayList<Integer>(arrowOwners.keySet()).get(i);
+                        if (world.getEntityByID(arrowID) == null) arrowOwners.remove(arrowID);
                     }
                     
                     List<EntityFishHook> fishHooks = world.getEntities(EntityFishHook.class, new Predicate<EntityFishHook>() {
@@ -427,6 +441,18 @@ public class LoopListeners {
                             
                             scathaPro.updatePetDropAchievements();
                             
+                            switch (Config.instance.getInt(Config.Key.mode)) {
+                                case 0:
+                                    Achievement.scatha_pet_drop_mode_normal.setProgress(Achievement.scatha_pet_drop_mode_normal.goal);
+                                    break;
+                                case 1:
+                                    Achievement.scatha_pet_drop_mode_meme.setProgress(Achievement.scatha_pet_drop_mode_meme.goal);
+                                    break;
+                                case 2:
+                                    Achievement.scatha_pet_drop_mode_anime.setProgress(Achievement.scatha_pet_drop_mode_anime.goal);
+                                    break;
+                            }
+                            
                             if (droppedPetAtLastScatha) Achievement.scatha_pet_drop_b2b.setProgress(Achievement.scatha_pet_drop_b2b.goal);
                             droppedPetAtLastScatha = true;
                             lastPetDropTime = now;
@@ -460,18 +486,7 @@ public class LoopListeners {
                     Achievement.crystal_hollows_time_2.setProgress(hours);
                     Achievement.crystal_hollows_time_3.setProgress(hours);
                     
-                    
-                    // Open fake ban screen
-                    
-                    if (mc.currentScreen == null && scathaPro.showFakeBan) {
-                        scathaPro.openGuiNextTick = new FakeBanGui();
-                        
-                        scathaPro.showFakeBan = false;
-                    }
-                    
                 }
-
-                inCrystalHollowsBefore = inCrystalHollows;
                 
                 
                 // Dev check
@@ -491,6 +506,14 @@ public class LoopListeners {
                     lastDeveloperCheckTime = now;
                 }
                 
+                
+                // Open fake ban screen
+                
+                if (mc.currentScreen == null && scathaPro.showFakeBan) {
+                    scathaPro.openGuiNextTick = new FakeBanGui();
+                    
+                    scathaPro.showFakeBan = false;
+                }
             }
         }
     }

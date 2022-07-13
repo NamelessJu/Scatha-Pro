@@ -120,7 +120,7 @@ public abstract class Util {
         if (uuid != null) return uuid.toString().replace("-", "").toLowerCase();
         return null;
 	}
-	
+
     public static String getPlayerUUIDString() {
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
         if (player != null) {
@@ -158,7 +158,7 @@ public abstract class Util {
 	    if (playerInfo != null) {
 	        UUID uuid = playerInfo.getGameProfile().getId();
 	        if (uuid != null)
-	            return uuid.toString().replace("-", "").toLowerCase().equals("e9be3984b09740c98fb4d8aaeb2b4838");
+	            return getUUIDString(uuid).equals("e9be3984b09740c98fb4d8aaeb2b4838");
 	    }
 	    
 	    return false;

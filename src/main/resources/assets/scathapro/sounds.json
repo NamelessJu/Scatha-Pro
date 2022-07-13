@@ -41,16 +41,12 @@
         "sounds": [{"name": "anime/alert/pet_drop", "stream": true}]
     },
     
-    "achievements.normal": {
+    "achievements.unlock": {
         "category": "master",
-        "sounds": [{"name": "achievements/normal", "stream": true}]
+        "sounds": [{"name": "achievements/unlock", "stream": true}]
     },
-    "achievements.secret": {
+    "achievements.unlock_hidden": {
         "category": "master",
-        "sounds": [{"name": "achievements/secret", "stream": true}]
-    },
-    "achievements.hidden": {
-        "category": "master",
-        "sounds": [{"name": "achievements/hidden", "stream": true}]
+        "sounds": [{"name": "achievements/unlock_hidden", "stream": true}]
     }
 }

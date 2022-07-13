@@ -47,48 +47,50 @@ public class OverlayManager {
         
         
         OverlayContainer countersContainer = new OverlayContainer(0, 16, 1f);
-        
-        countersContainer.add(scathaPetImage = new OverlayImage(null, 256, 256, 0, 0, 0.118f));
-        countersContainer.add(rarePetDropsText = new OverlayText(null, Util.Color.BLUE.getValue(), 15, 2, 1f));
+
+        OverlayText petDropsTitle = new OverlayText("Pets", Util.Color.GREEN.getValue(), 15, 0, 1f);
+        petDropsTitle.setAlignment(OverlayElement.Alignment.CENTER);
+        countersContainer.add(petDropsTitle);
+        countersContainer.add(scathaPetImage = new OverlayImage(null, 256, 256, 0, 11, 0.118f));
+        countersContainer.add(rarePetDropsText = new OverlayText(null, Util.Color.BLUE.getValue(), 15, 13, 1f));
         rarePetDropsText.setAlignment(Alignment.CENTER);
-        countersContainer.add(epicPetDropsText = new OverlayText(null, Util.Color.DARK_PURPLE.getValue(), 15, 11, 1f));
+        countersContainer.add(epicPetDropsText = new OverlayText(null, Util.Color.DARK_PURPLE.getValue(), 15, 22, 1f));
         epicPetDropsText.setAlignment(Alignment.CENTER);
-        countersContainer.add(legendaryPetDropsText = new OverlayText(null, Util.Color.GOLD.getValue(), 15, 20, 1f));
+        countersContainer.add(legendaryPetDropsText = new OverlayText(null, Util.Color.GOLD.getValue(), 15, 31, 1f));
         legendaryPetDropsText.setAlignment(Alignment.CENTER);
         
         
-        killsContainer = new OverlayContainer(33, 0, 1f);
+        killsContainer = new OverlayContainer(38, 0, 1f);
         
-        OverlayText wormKillsTitle = new OverlayText("Worms", Util.Color.YELLOW.getValue(), 23, 0, 1f);
+        OverlayText wormKillsTitle = new OverlayText("Worms", Util.Color.YELLOW.getValue(), 18, 0, 1f);
         wormKillsTitle.setAlignment(OverlayElement.Alignment.CENTER);
         killsContainer.add(wormKillsTitle);
-        killsContainer.add(new OverlayImage("overlay/worm.png", 512, 256, 3, 10, 0.08f));
-        killsContainer.add(overallWormKillsText = new OverlayText(null, Util.Color.WHITE.getValue(), 23, 11, 1f));
+        killsContainer.add(new OverlayImage("overlay/worm.png", 512, 256, -2, 10, 0.08f));
+        killsContainer.add(overallWormKillsText = new OverlayText(null, Util.Color.WHITE.getValue(), 18, 11, 1f));
         overallWormKillsText.setAlignment(OverlayElement.Alignment.CENTER);
-        killsContainer.add(regularWormKillsText = new OverlayText(null, Util.Color.GRAY.getValue(), 23, 22, 1f));
+        killsContainer.add(regularWormKillsText = new OverlayText(null, Util.Color.GRAY.getValue(), 18, 22, 1f));
         regularWormKillsText.setAlignment(OverlayElement.Alignment.CENTER);
         
-        OverlayText overlayScathaKillsTitle = new OverlayText("Scathas", Util.Color.YELLOW.getValue(), 66, 0, 1f);
+        OverlayText overlayScathaKillsTitle = new OverlayText("Scathas", Util.Color.YELLOW.getValue(), 61, 0, 1f);
         overlayScathaKillsTitle.setAlignment(OverlayElement.Alignment.CENTER);
         killsContainer.add(overlayScathaKillsTitle);
-        killsContainer.add(new OverlayImage("overlay/scatha.png", 512, 256, 46, 10, 0.08f));
-        killsContainer.add(overallScathaKillsText = new OverlayText(null, Util.Color.WHITE.getValue(), 66, 11, 1f));
+        killsContainer.add(new OverlayImage("overlay/scatha.png", 512, 256, 41, 10, 0.08f));
+        killsContainer.add(overallScathaKillsText = new OverlayText(null, Util.Color.WHITE.getValue(), 61, 11, 1f));
         overallScathaKillsText.setAlignment(OverlayElement.Alignment.CENTER);
-        killsContainer.add(scathaKillsText = new OverlayText(null, Util.Color.GRAY.getValue(), 66, 22, 1f));
+        killsContainer.add(scathaKillsText = new OverlayText(null, Util.Color.GRAY.getValue(), 61, 22, 1f));
         scathaKillsText.setAlignment(OverlayElement.Alignment.CENTER);
 
-        killsContainer.add(new OverlayText("Total", Util.Color.WHITE.getValue(), 93, 0, 1f));
+        killsContainer.add(new OverlayText("Total", Util.Color.WHITE.getValue(), 89, 0, 1f));
         
-        killsContainer.add(overallTotalKillsText = new OverlayText(null, Util.Color.WHITE.getValue(), 94, 11, 1f));
-        killsContainer.add(totalKillsText = new OverlayText(null, Util.Color.GRAY.getValue(), 94, 22, 1f));
+        killsContainer.add(overallTotalKillsText = new OverlayText(null, Util.Color.WHITE.getValue(), 89, 11, 1f));
+        killsContainer.add(totalKillsText = new OverlayText(null, Util.Color.GRAY.getValue(), 89, 22, 1f));
+        
+        killsContainer.add(wormStreakText = new OverlayText(null, Util.Color.GRAY.getValue(), 3, 34, 1f));
         
         countersContainer.add(killsContainer);
         
         
         overlay.add(countersContainer);
-        
-        
-        overlay.add(wormStreakText = new OverlayText(null, Util.Color.GRAY.getValue(), 0, 50, 1f));
 
         overlay.add(dayText = new OverlayText(null, Util.Color.WHITE.getValue(), 0, 63, 1f));
         overlay.add(coordsText = new OverlayText(null, Util.Color.GRAY.getValue(), 0, 73, 1f));
@@ -208,17 +210,23 @@ public class OverlayManager {
     public void updateDay() {
         World world = mc.theWorld;
         
-        int worldDay = world != null ? (int) Math.floor(world.getWorldTime() / 24000f) : 0;
+        long worldTime = world.getWorldTime();
+        int worldDay = world != null ? (int) Math.floor(worldTime / 24000f) : 0;
         long lobbyTime = world != null && Util.inCrystalHollows() ? Util.getCurrentTime() - scathaPro.lastWorldJoinTime : 0L;
         SimpleDateFormat timerFormat = new SimpleDateFormat("HH:mm:ss");
         timerFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-        dayText.setText(EnumChatFormatting.RESET + "Day " + worldDay + " " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "(" + timerFormat.format(lobbyTime) + ")");
         
+        int worldTimeDay = (int) ((worldTime % 24000f) % 24000f);
+        int worldTimeHours = (int) Math.floor(worldTimeDay / 1000f);
+        int worldTimeMinutes = (int) Math.floor((worldTimeDay - worldTimeHours * 1000f) / 1000f * 60f);
+        
+        EnumChatFormatting dayColor = EnumChatFormatting.WHITE;
         if (worldDay >= 14 && Util.inCrystalHollows()) {
-            if (worldDay >= 15) dayText.setColor(Util.Color.DARK_RED.getValue());
-            else dayText.setColor(Util.Color.RED.getValue());
+            if (worldDay >= 15) dayColor = EnumChatFormatting.DARK_RED;
+            else dayColor = EnumChatFormatting.RED;
         }
-        else dayText.setColor(Util.Color.WHITE.getValue());
+        
+        dayText.setText(EnumChatFormatting.RESET.toString() + dayColor + "Day " + worldDay + " " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "(" + String.format("%02d:%02d", worldTimeHours, worldTimeMinutes) + ")" + EnumChatFormatting.RESET + EnumChatFormatting.GRAY + " / " + timerFormat.format(lobbyTime));
     }
     
     public void updateCoords() {

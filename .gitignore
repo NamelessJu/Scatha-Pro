@@ -2,6 +2,7 @@ logs/
 run/
 build/
 .settings/
+.gradle/
 .classpath
 .project
 Scatha Pro_Client.launch

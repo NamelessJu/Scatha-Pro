@@ -49,16 +49,13 @@ public class AchievementManager {
             if (now >= lastAchievementUnlockTime + 1000) {
                 switch (achievement.type) {
                     case SECRET:
-                        Util.playSoundAtPlayer("fireworks.twinkle", 1f, 0.75f);
-                        Util.playSoundAtPlayer("random.successful_hit", 0.75f, 0f);
+                        Util.playModSoundAtPlayer("achievements.unlock", 1f, 0.75f);
                         break;
                     case HIDDEN:
-                        Util.playSoundAtPlayer("fireworks.twinkle", 1f, 0.9f);
-                        Util.playSoundAtPlayer("random.levelup", 1f, 1.25f);
+                        Util.playModSoundAtPlayer("achievements.unlock_hidden", 0.75f, 0.75f);
                         break;
                     default:
-                        Util.playSoundAtPlayer("fireworks.twinkle", 1f, 1f);
-                        Util.playSoundAtPlayer("note.pling", 0.5f, 2f);
+                        Util.playModSoundAtPlayer("achievements.unlock", 1f, 1f);
                         break;
                 }
             }
