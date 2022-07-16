@@ -39,5 +39,14 @@
     "anime.alert.pet_drop": {
         "category": "master",
         "sounds": [{"name": "anime/alert/pet_drop", "stream": true}]
+    },
+    
+    "achievements.unlock": {
+        "category": "master",
+        "sounds": [{"name": "achievements/unlock", "stream": true}]
+    },
+    "achievements.unlock_hidden": {
+        "category": "master",
+        "sounds": [{"name": "achievements/unlock_hidden", "stream": true}]
     }
 }

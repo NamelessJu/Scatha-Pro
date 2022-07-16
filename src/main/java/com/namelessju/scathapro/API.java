@@ -21,6 +21,7 @@ public class API {
 
         public APIEvent(String endpoint)
         {
+            super();
             this.endpoint = endpoint;
         }
     }
@@ -55,17 +56,29 @@ public class API {
     
 	public static void requestProfilesData() {
 	    String uuid = Util.getPlayerUUIDString();
-	    
-	    if (uuid != null) {
-	        sendRequest("profiles", "uuid=" + uuid);
-	    }
+        
+	    if (uuid != null) sendRequest("profiles", "uuid=" + uuid);
 	    else {
-	        sendApiErrorMessage("Your session is offline");
+	        final String apiKey = Config.instance.getString(Config.Key.apiKey);
+	        if (!apiKey.isEmpty()) sendApiErrorMessage("Your session is offline");
 	    }
+	    
+        ScathaPro.getInstance().lastProfilesDataRequestTime = Util.getCurrentTime();
 	}
+    
+    /*
+     *     Ah damn, you found the rat...
+     *        
+     *                _..----.._    _
+     *              .'  .--.    "-.(0)_
+     *  '-.__.-'"'=:|   ,  _)_ \__ . c\'-..
+     *             '''------'---''---'-"
+     *  
+     *     (It won't steal your data tho)
+     */
 	
 	public static void sendRequest(final String endpoint, final String parameters) {
-	    final String apiKey = Config.getInstance().getString(Config.Key.apiKey);
+	    final String apiKey = Config.instance.getString(Config.Key.apiKey);
 	    
 	    if (!apiKey.isEmpty()) {
             new Thread(new Runnable() {

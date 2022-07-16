@@ -35,5 +35,5 @@ public class OverlayText extends OverlayElement {
     public void setColor(int color) {
         this.color = color;
     }
-
+    
 }

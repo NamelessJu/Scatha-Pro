@@ -18,7 +18,7 @@ public class OverlayContainer extends OverlayElement {
     
     @Override
     protected void drawSpecific() {
-        if (backgroundColor >= 0) Gui.drawRect(0, 0, getWidth(false), getHeight(false), backgroundColor);
+        if (backgroundColor >= 0) Gui.drawRect(0, 0, getWidth(false), getHeight(false), backgroundColor); // note: parameters 3 and 4 are right and bottom coords instead of width and height!
 
         for (OverlayElement element : elements) {
             element.draw(this);

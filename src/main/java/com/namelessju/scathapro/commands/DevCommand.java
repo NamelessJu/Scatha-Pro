@@ -5,6 +5,8 @@ import java.util.List;
 import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.Util;
+import com.namelessju.scathapro.achievements.Achievement;
+import com.namelessju.scathapro.achievements.AchievementManager;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
@@ -30,7 +32,7 @@ public class DevCommand extends CommandBase {
 
     @Override
     public int getRequiredPermissionLevel() {
-        return Config.getInstance().getBoolean(Config.Key.devMode) ? 0 : 9;
+        return Config.instance.getBoolean(Config.Key.devMode) ? 0 : 9;
     }
 
 	@Override
@@ -38,12 +40,13 @@ public class DevCommand extends CommandBase {
 		if (args.length > 0) {
 			String subCommand = args[0];
 			
-			if (subCommand.equals("help")) {
+			if (subCommand.equalsIgnoreCase("help")) {
 				sender.addChatMessage(new ChatComponentText(
 						ScathaPro.CHATPREFIX + EnumChatFormatting.RESET + "/scathadev <subcommand> [values...]\n" +
 						"All subcommands:\n" +
-						"- getEntities\n" +
-						"- getItem"
+						"- getEntities (copies info for all entities around you into the clipboard)\n" +
+						"- getItem (copies info for the held item into the clipboard)\n" +
+                        "- achievementsUA (unlock all achievements)"
 				));
 			}
 			
@@ -62,7 +65,7 @@ public class DevCommand extends CommandBase {
 						NBTTagCompound nbt = e.getEntityData();
 						
 						if (i > 0) entityString.append(", ");
-						entityString.append("{name:\""+entityName+"\", nbt:"+(nbt != null ? nbt.toString() : "{}")+"}");
+						entityString.append("{type:\""+e.getClass().getSimpleName()+"\", name:\""+entityName+"\", nbt:"+(nbt != null ? nbt.toString() : "{}")+"}");
 					}
 					entityString.append("]");
 					
@@ -93,6 +96,13 @@ public class DevCommand extends CommandBase {
 					else throw new CommandException("You are not holding an item");
 				}
 				else throw new CommandException("You are not a player");
+			}
+			
+			else if (subCommand.equalsIgnoreCase("achievementsUA")) {
+                Achievement[] achievements = AchievementManager.getAllAchievements();
+                for (int i = 0; i < achievements.length; i ++) {
+                    achievements[i].setProgress(achievements[i].goal);
+                }
 			}
 			
 			else throw new CommandException("Invalid subcommand");

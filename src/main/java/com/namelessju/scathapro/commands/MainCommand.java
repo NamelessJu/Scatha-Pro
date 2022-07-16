@@ -6,14 +6,14 @@ import java.util.List;
 import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.Util;
+import com.namelessju.scathapro.gui.AchievementsGui;
+import com.namelessju.scathapro.gui.SettingsGui;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 
 public class MainCommand extends CommandBase {
-    
-    private Config config = Config.getInstance();
     
     @Override
     public String getCommandName() {
@@ -40,34 +40,38 @@ public class MainCommand extends CommandBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (args.length > 0) {
-            String cfg = args[0];
-
-            if (cfg.equalsIgnoreCase("reset")) {
-                for (Config.Key key : Config.Key.values()) { 
-                    config.reset(key);
-                }
-                config.save();
+            String subCommand = args[0];
+            
+            if (subCommand.equalsIgnoreCase("resetConfig")) {
+                for (Config.Key key : Config.Key.values())
+                    Config.instance.reset(key);
+                Config.instance.save();
                 
-                if (config.getBoolean(Config.Key.petAlert)) ScathaPro.getInstance().resetPreviousScathaPets();
+                if (Config.instance.getBoolean(Config.Key.petAlert)) ScathaPro.getInstance().resetPreviousScathaPets();
 
                 Util.sendModChatMessage("All settings reset");
                 return;
             }
             
-            else if (cfg.equalsIgnoreCase("devMode")) {
+            else if (subCommand.equalsIgnoreCase("devMode")) {
                 if (args.length > 1) {
                     boolean enabled = CommandBase.parseBoolean(args[1]);
                     
-                    config.set(Config.Key.devMode, enabled);
-                    config.save();
+                    Config.instance.set(Config.Key.devMode, enabled);
+                    Config.instance.save();
                     
                     Util.sendModChatMessage("Developer mode " + (enabled ? "enabled" : "disabled"));
                     return;
                 }
                 else throw new CommandException("Missing values: /scathapro devMode <true/false>");
             }
+            
+            else if (subCommand.equalsIgnoreCase("achievements")) {
+                ScathaPro.getInstance().openGuiNextTick = new AchievementsGui(null);
+                return;
+            }
         }
 
-        ScathaPro.getInstance().openSettingsGui();
+        ScathaPro.getInstance().openGuiNextTick = new SettingsGui(null);
     }
 }

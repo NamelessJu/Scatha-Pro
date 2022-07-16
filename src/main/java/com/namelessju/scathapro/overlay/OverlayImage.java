@@ -14,9 +14,7 @@ public class OverlayImage extends OverlayElement {
     
     public OverlayImage(String texturePath, int textureWidth, int textureHeight, int x, int y, float scale) {
         super(x, y, scale);
-        this.textureWidth = textureWidth;
-        this.textureHeight = textureHeight;
-        setImage(texturePath);
+        setImage(texturePath, textureWidth, textureHeight);
     }
     
     @Override
@@ -38,7 +36,9 @@ public class OverlayImage extends OverlayElement {
         return (int) Math.round(textureHeight * (scaled ? scale : 1));
     }
     
-    public void setImage(String texturePath) {
+    public void setImage(String texturePath, int textureWidth, int textureHeight) {
+        this.textureWidth = textureWidth;
+        this.textureHeight = textureHeight;
         resourceLocation = (texturePath != null && !texturePath.isEmpty()) ? new ResourceLocation(ScathaPro.MODID, "textures/" + texturePath) : null;
     }
     
