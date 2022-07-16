@@ -3,6 +3,7 @@ package com.namelessju.scathapro.achievements;
 import java.util.ArrayList;
 
 import com.namelessju.scathapro.PersistentData;
+import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.Util;
 
 import net.minecraft.event.HoverEvent;
@@ -46,7 +47,7 @@ public class AchievementManager {
             
             Util.sendModChatMessage(chatMessage);
             
-            if (now >= lastAchievementUnlockTime + 1000) {
+            if (now >= ScathaPro.getInstance().lastWorldJoinTime + 1000 && now >= lastAchievementUnlockTime + 1000) {
                 switch (achievement.type) {
                     case SECRET:
                         Util.playModSoundAtPlayer("achievements.unlock", 1f, 0.75f);

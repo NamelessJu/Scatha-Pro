@@ -124,6 +124,7 @@ public class UpdateChecker {
         String[] toParts = to.split("\\.");
         
         for (int i = 0; (i < fromParts.length || i < toParts.length); i ++) {
+            
             int fromInt = -1;
             int toInt = -1;
             String fromString = null;
@@ -154,12 +155,15 @@ public class UpdateChecker {
                 }
             }
             
+            // from or to empty
             if (fromInt < 0 && fromString == null) return 1;
             else if (toInt < 0 && toString == null) return -1;
             
+            // both ints or both strings
             else if (fromInt >= 0 && toInt >= 0 && fromInt != toInt) return (int) Math.signum(toInt - fromInt);
-            else if (fromString != null && toString != null && !fromString.equalsIgnoreCase(toString)) return fromString.compareTo(toString);
+            else if (fromString != null && toString != null && !fromString.equals(toString)) return (int) Math.signum(toString.compareTo(fromString));
             
+            // string and int mixed
             else if (fromInt >= 0 && toString != null) return -1;
             else if (fromString != null && toInt >= 0) return 1;
         }
@@ -171,14 +175,22 @@ public class UpdateChecker {
         version = version.replaceAll("[,_\\-\\+]", ".");
         
         boolean previousCharacterIsNumerical = false;
+        boolean previousCharacterIsDot = false;
         for (int i = 0; i < version.length(); i ++) {
             char c = version.charAt(i);
-            boolean isNumerical = '0' <= c && c <= '9';
             
-            if (i > 0 && previousCharacterIsNumerical != isNumerical)
-                version = version.substring(0, i) + "." + version.substring(i);
-            
-            previousCharacterIsNumerical = isNumerical;
+            if (c != '.') {
+                boolean isNumerical = '0' <= c && c <= '9';
+                
+                if (i > 0 && !previousCharacterIsDot && previousCharacterIsNumerical != isNumerical) {
+                    version = version.substring(0, i) + "." + version.substring(i);
+                    i ++;
+                }
+                
+                previousCharacterIsNumerical = isNumerical;
+                previousCharacterIsDot = false;
+            }
+            else previousCharacterIsDot = true;
         }
         
         return version;

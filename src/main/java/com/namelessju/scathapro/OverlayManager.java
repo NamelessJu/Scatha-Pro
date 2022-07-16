@@ -43,57 +43,60 @@ public class OverlayManager {
         overlay.padding = 5;
         overlay.backgroundColor = 0x50000000;
         
-        overlay.add(new OverlayText("Scatha Farming:", Util.Color.GOLD.getValue(), 0, 0, 1.3f));
+        
+        OverlayContainer titleContainer = new OverlayContainer(0, 0, 1f);
+        titleContainer.add(scathaPetImage = new OverlayImage(null, 256, 256, 0, 0, 0.043f));
+        titleContainer.add(new OverlayText("Scatha Farming:", Util.Color.GOLD.getValue(), 16, 0, 1.3f));
+        overlay.add(titleContainer);
         
         
         OverlayContainer countersContainer = new OverlayContainer(0, 16, 1f);
-
-        OverlayText petDropsTitle = new OverlayText("Pets", Util.Color.GREEN.getValue(), 15, 0, 1f);
-        petDropsTitle.setAlignment(OverlayElement.Alignment.CENTER);
-        countersContainer.add(petDropsTitle);
-        countersContainer.add(scathaPetImage = new OverlayImage(null, 256, 256, 0, 11, 0.118f));
-        countersContainer.add(rarePetDropsText = new OverlayText(null, Util.Color.BLUE.getValue(), 15, 13, 1f));
-        rarePetDropsText.setAlignment(Alignment.CENTER);
-        countersContainer.add(epicPetDropsText = new OverlayText(null, Util.Color.DARK_PURPLE.getValue(), 15, 22, 1f));
-        epicPetDropsText.setAlignment(Alignment.CENTER);
-        countersContainer.add(legendaryPetDropsText = new OverlayText(null, Util.Color.GOLD.getValue(), 15, 31, 1f));
-        legendaryPetDropsText.setAlignment(Alignment.CENTER);
+        
+        OverlayContainer petDropsContainer = new OverlayContainer(0, 0, 1f);
+        petDropsContainer.add(new OverlayText("Pets", Util.Color.GREEN.getValue(), 0, 0, 1f));
+        petDropsContainer.add(new OverlayImage("overlay/scatha_pet.png", 256, 256, 0, 11, 0.033f));
+        petDropsContainer.add(rarePetDropsText = new OverlayText(null, Util.Color.BLUE.getValue(), 12, 11, 1f));
+        petDropsContainer.add(new OverlayImage("overlay/scatha_pet.png", 256, 256, 0, 22, 0.033f));
+        petDropsContainer.add(epicPetDropsText = new OverlayText(null, Util.Color.DARK_PURPLE.getValue(), 12, 22, 1f));
+        petDropsContainer.add(new OverlayImage("overlay/scatha_pet.png", 256, 256, 0, 33, 0.033f));
+        petDropsContainer.add(legendaryPetDropsText = new OverlayText(null, Util.Color.GOLD.getValue(), 12, 33, 1f));
+        countersContainer.add(petDropsContainer);
         
         
-        killsContainer = new OverlayContainer(38, 0, 1f);
+        killsContainer = new OverlayContainer(28, 0, 1f);
         
         OverlayText wormKillsTitle = new OverlayText("Worms", Util.Color.YELLOW.getValue(), 18, 0, 1f);
-        wormKillsTitle.setAlignment(OverlayElement.Alignment.CENTER);
+        wormKillsTitle.setAlignment(Alignment.CENTER);
         killsContainer.add(wormKillsTitle);
         killsContainer.add(new OverlayImage("overlay/worm.png", 512, 256, -2, 10, 0.08f));
         killsContainer.add(overallWormKillsText = new OverlayText(null, Util.Color.WHITE.getValue(), 18, 11, 1f));
-        overallWormKillsText.setAlignment(OverlayElement.Alignment.CENTER);
+        overallWormKillsText.setAlignment(Alignment.CENTER);
         killsContainer.add(regularWormKillsText = new OverlayText(null, Util.Color.GRAY.getValue(), 18, 22, 1f));
-        regularWormKillsText.setAlignment(OverlayElement.Alignment.CENTER);
+        regularWormKillsText.setAlignment(Alignment.CENTER);
         
         OverlayText overlayScathaKillsTitle = new OverlayText("Scathas", Util.Color.YELLOW.getValue(), 61, 0, 1f);
-        overlayScathaKillsTitle.setAlignment(OverlayElement.Alignment.CENTER);
+        overlayScathaKillsTitle.setAlignment(Alignment.CENTER);
         killsContainer.add(overlayScathaKillsTitle);
         killsContainer.add(new OverlayImage("overlay/scatha.png", 512, 256, 41, 10, 0.08f));
         killsContainer.add(overallScathaKillsText = new OverlayText(null, Util.Color.WHITE.getValue(), 61, 11, 1f));
-        overallScathaKillsText.setAlignment(OverlayElement.Alignment.CENTER);
+        overallScathaKillsText.setAlignment(Alignment.CENTER);
         killsContainer.add(scathaKillsText = new OverlayText(null, Util.Color.GRAY.getValue(), 61, 22, 1f));
-        scathaKillsText.setAlignment(OverlayElement.Alignment.CENTER);
+        scathaKillsText.setAlignment(Alignment.CENTER);
 
         killsContainer.add(new OverlayText("Total", Util.Color.WHITE.getValue(), 89, 0, 1f));
         
         killsContainer.add(overallTotalKillsText = new OverlayText(null, Util.Color.WHITE.getValue(), 89, 11, 1f));
         killsContainer.add(totalKillsText = new OverlayText(null, Util.Color.GRAY.getValue(), 89, 22, 1f));
         
-        killsContainer.add(wormStreakText = new OverlayText(null, Util.Color.GRAY.getValue(), 3, 34, 1f));
+        killsContainer.add(wormStreakText = new OverlayText(null, Util.Color.GRAY.getValue(), 3, 33, 1f));
         
         countersContainer.add(killsContainer);
         
         
         overlay.add(countersContainer);
 
-        overlay.add(dayText = new OverlayText(null, Util.Color.WHITE.getValue(), 0, 63, 1f));
-        overlay.add(coordsText = new OverlayText(null, Util.Color.GRAY.getValue(), 0, 73, 1f));
+        overlay.add(dayText = new OverlayText(null, Util.Color.WHITE.getValue(), 0, 62, 1f));
+        overlay.add(coordsText = new OverlayText(null, Util.Color.GRAY.getValue(), 0, 72, 1f));
     }
     public void drawOverlay() {
         overlay.draw();
