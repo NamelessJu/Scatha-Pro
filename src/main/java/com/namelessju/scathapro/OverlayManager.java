@@ -8,6 +8,7 @@ import com.namelessju.scathapro.overlay.OverlayElement;
 import com.namelessju.scathapro.overlay.OverlayImage;
 import com.namelessju.scathapro.overlay.OverlayText;
 import com.namelessju.scathapro.overlay.OverlayElement.Alignment;
+import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
@@ -36,6 +37,9 @@ public class OverlayManager {
     private final OverlayText rarePetDropsText;
     private final OverlayText epicPetDropsText;
     private final OverlayText legendaryPetDropsText;
+    
+    private final OverlayText scathaKillsAtLastDropText;
+    
     
     private OverlayManager() {
         
@@ -97,6 +101,9 @@ public class OverlayManager {
 
         overlay.add(dayText = new OverlayText(null, Util.Color.WHITE.getValue(), 0, 62, 1f));
         overlay.add(coordsText = new OverlayText(null, Util.Color.GRAY.getValue(), 0, 72, 1f));
+        
+        overlay.add(scathaKillsAtLastDropText = new OverlayText(null, Util.Color.WHITE.getValue(), 0, 82, 1f));
+        
     }
     public void drawOverlay() {
         overlay.draw();
@@ -118,6 +125,8 @@ public class OverlayManager {
         updateDay();
         
         updatePetDrops();
+        
+        updateScathaKillsAtLastDrop();
     }
 
     public void updatePosition() {
@@ -148,21 +157,11 @@ public class OverlayManager {
     }
     
     public void updateScathaPetImage() {
-        String petImage = "overlay/mode_icons/";
+        String alertModeID = AlertMode.getCurrentMode().id;
         
-        switch (Config.instance.getInt(Config.Key.mode)) {
-            case 1:
-                petImage += "meme.png";
-                break;
-            case 2:
-                petImage += "anime.png";
-                break;
-            default:
-                petImage = "overlay/scatha_pet.png";
-                break;
-        }
+        String petImagePath = "overlay/" + (alertModeID != null ? "mode_icons/" + alertModeID : "scatha_pet") + ".png";
 
-        scathaPetImage.setImage(petImage, 256, 256);
+        scathaPetImage.setImage(petImagePath, 256, 256);
     }
     
     public void updatePetDrops() {
@@ -204,7 +203,7 @@ public class OverlayManager {
                 ? (
                         scathaPro.wormStreak > 0
                         ? "Scatha streak: " + Util.numberToString(scathaPro.wormStreak)
-                        : "No scatha for " + Util.numberToString(-scathaPro.wormStreak) + " " + (-scathaPro.wormStreak == 1 ? "spawn" : "spawns")
+                        : "No Scatha for " + Util.numberToString(-scathaPro.wormStreak) + " " + (-scathaPro.wormStreak == 1 ? "spawn" : "spawns")
                 )
                 : "No worms spawned yet"
         );
@@ -213,7 +212,7 @@ public class OverlayManager {
     public void updateDay() {
         World world = mc.theWorld;
         
-        long worldTime = world.getWorldTime();
+        long worldTime = world != null ? world.getWorldTime() : 0;
         int worldDay = world != null ? (int) Math.floor(worldTime / 24000f) : 0;
         long lobbyTime = world != null && Util.inCrystalHollows() ? Util.getCurrentTime() - scathaPro.lastWorldJoinTime : 0L;
         SimpleDateFormat timerFormat = new SimpleDateFormat("HH:mm:ss");
@@ -257,6 +256,14 @@ public class OverlayManager {
         String coordinatesString = player != null ? (int) Math.floor(player.posX) + " "  + (int) Math.floor(player.posY) + " "  + (int) Math.floor(player.posZ) : "0 0 0";
         
         coordsText.setText(EnumChatFormatting.RESET + coordinatesString + " " + EnumChatFormatting.ITALIC + facingAxis);
+    }
+    
+    
+    public void updateScathaKillsAtLastDrop() {
+        if (scathaPro.overallScathaKills >= 0)
+            scathaKillsAtLastDropText.setText(scathaPro.scathaKillsAtLastDrop >= 0 ? "Scathas since last drop: " + (scathaPro.overallScathaKills - scathaPro.scathaKillsAtLastDrop) : "No scatha dropped yet");
+        else
+            scathaKillsAtLastDropText.setText("Overall kills not loaded");
     }
 
 }

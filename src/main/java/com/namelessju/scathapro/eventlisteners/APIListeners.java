@@ -5,9 +5,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.namelessju.scathapro.OverlayManager;
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.Util;
 import com.namelessju.scathapro.API.APIErrorEvent;
 import com.namelessju.scathapro.API.APIResponseEvent;
+import com.namelessju.scathapro.util.ChatUtil;
+import com.namelessju.scathapro.util.Util;
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -40,10 +41,10 @@ public class APIListeners {
                 }
                 
                 if (profilePlayerData != null) {
-                    JsonObject stats = profilePlayerData.get("stats").getAsJsonObject();
+                    JsonObject stats = profilePlayerData.get("bestiary").getAsJsonObject();
                     
-                    JsonElement overallWormKillsJson = stats.get("kills_worm");
-                    JsonElement overallScathaKillsJson = stats.get("kills_scatha");
+                    JsonElement overallWormKillsJson = stats.get("kills_worm_5"); // why the HP in the variable name tho
+                    JsonElement overallScathaKillsJson = stats.get("kills_scatha_10");
                     
                     scathaPro.overallRegularWormKills = overallWormKillsJson != null ? overallWormKillsJson.getAsInt() : 0;
                     scathaPro.overallScathaKills = overallScathaKillsJson != null ? overallScathaKillsJson.getAsInt() : 0;
@@ -57,7 +58,7 @@ public class APIListeners {
                 }
             }
             
-            Util.sendModErrorMessage("Couldn't load worm kills from Hypixel API: No skyblock profiles found");
+            ChatUtil.sendModErrorMessage("Couldn't load worm kills from Hypixel API: No skyblock profiles found");
             scathaPro.repeatProfilesDataRequest = false;
         }
     }

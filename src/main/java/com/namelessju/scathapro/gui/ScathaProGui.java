@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.namelessju.scathapro.Util;
+import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiLabel;
@@ -60,7 +60,7 @@ public abstract class ScathaProGui extends GuiScreen {
         String title = getTitle();
         if (title != null && !title.replace(" ", "").isEmpty()) {
             GuiLabel titleLabel = new GuiLabel(fontRendererObj, 1, width / 2 - 155, 15, 310, 10, Util.Color.WHITE.getValue()).setCentered();
-            titleLabel.func_175202_a("Scatha-Pro " + title); // Cool method name, thanks forge ._.
+            titleLabel.func_175202_a("Scatha-Pro " + title);
             labelList.add(titleLabel);
         }
     }

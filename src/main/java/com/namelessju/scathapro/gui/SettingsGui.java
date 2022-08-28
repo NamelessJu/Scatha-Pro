@@ -3,10 +3,11 @@ package com.namelessju.scathapro.gui;
 import java.io.IOException;
 
 import com.namelessju.scathapro.API;
+import com.namelessju.scathapro.AlertMode;
 import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.OverlayManager;
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.Util;
+import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiLabel;
@@ -99,7 +100,7 @@ public class SettingsGui extends ScathaProGui {
                     int currentMode = Config.instance.getInt(Config.Key.mode);
                     
                     int nextMode = currentMode + 1;
-                    if (nextMode > 2) nextMode = 0;
+                    if (nextMode >= AlertMode.values().length) nextMode = 0;
                     
                     Config.instance.set(Config.Key.mode, nextMode);
                     Config.instance.save();
@@ -153,25 +154,7 @@ public class SettingsGui extends ScathaProGui {
     }
     
     private String getModeString() {
-        int mode = Config.instance.getInt(Config.Key.mode);
-
-        String modeName;
-        
-        switch (mode) {
-            case 0:
-                modeName = "Normal";
-                break;
-            case 1:
-                modeName = "Meme";
-                break;
-            case 2:
-                modeName = "Anime";
-                break;
-            default:
-                modeName = "unknown";
-        }
-        
-        return "Mode: " + modeName;
+        return "Mode: " + AlertMode.getCurrentMode().name;
     }
     
     private String getChatCopyString() {

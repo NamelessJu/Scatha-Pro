@@ -8,6 +8,8 @@ import java.net.MalformedURLException;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.namelessju.scathapro.util.ChatUtil;
+import com.namelessju.scathapro.util.Util;
 
 import java.net.URL;
 
@@ -154,6 +156,6 @@ public class API {
 	}
 	
 	public static void sendApiErrorMessage(String details) {
-	    Util.sendModErrorMessage("Hypixel API request failed (" + details + ")");
+	    ChatUtil.sendModErrorMessage("Hypixel API request failed (" + details + ")");
 	}
 }

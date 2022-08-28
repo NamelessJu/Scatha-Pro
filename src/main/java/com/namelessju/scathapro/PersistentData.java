@@ -17,6 +17,9 @@ import com.google.gson.JsonPrimitive;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.achievements.AchievementManager;
 import com.namelessju.scathapro.achievements.UnlockedAchievement;
+import com.namelessju.scathapro.util.ChatUtil;
+import com.namelessju.scathapro.util.JsonUtil;
+import com.namelessju.scathapro.util.Util;
 
 import net.minecraftforge.common.config.Configuration.UnicodeInputStreamReader;
 
@@ -82,25 +85,14 @@ public class PersistentData {
                 ScathaPro.getInstance().logger.log(Level.ERROR, "Error while trying to save persistent data");
             }
         }
-        else Util.sendModErrorMessage("Your session is offline, so data won't be saved!");
+        else ChatUtil.sendModErrorMessage("Your session is offline, so data won't be saved!");
     }
     
-    public JsonElement get(String path) {
-        String[] pathNodes = path.split("/");
-
-        JsonElement currentElement = data.get(Util.getPlayerUUIDString());
+    public JsonObject getCurrentPlayerObject() {
+        JsonElement playerElement = data.get(Util.getPlayerUUIDString());
         
-        if (currentElement != null) {
-            for (int i = 0; i < pathNodes.length; i ++) {
-                if (currentElement != null && currentElement.isJsonObject()) {
-                    JsonElement nextElement = currentElement.getAsJsonObject().get(pathNodes[i]);
-                    currentElement = nextElement;
-                }
-                else return null;
-            }
-            
-            return currentElement;
-        }
+        if (playerElement != null && playerElement.isJsonObject())
+            return playerElement.getAsJsonObject();
         
         return null; 
     }
@@ -136,83 +128,33 @@ public class PersistentData {
         return false;
     }
     
-    private JsonPrimitive getJsonPrimitive(String path) {
-        JsonElement jsonElement = get(path);
-        if (jsonElement instanceof JsonPrimitive)
-            return (JsonPrimitive) jsonElement;
-        return null;
-    }
-    
-    public String getString(String path, String defaultValue) {
-        JsonPrimitive jsonPrimitive = getJsonPrimitive(path);
-        if (jsonPrimitive != null)
-            return jsonPrimitive.getAsString();
-        return defaultValue;
-    }
-    
-    public int getInt(String path, int defaultValue) {
-        JsonPrimitive jsonPrimitive = getJsonPrimitive(path);
-        if (jsonPrimitive != null)
-            return jsonPrimitive.getAsInt();
-        return defaultValue;
-    }
-    
-    public double getDouble(String path, double defaultValue) {
-        JsonPrimitive jsonPrimitive = getJsonPrimitive(path);
-        if (jsonPrimitive != null)
-            return jsonPrimitive.getAsDouble();
-        return defaultValue;
-    }
-    
-    public boolean getBoolean(String path, boolean defaultValue) {
-        JsonPrimitive jsonPrimitive = getJsonPrimitive(path);
-        if (jsonPrimitive != null)
-            return jsonPrimitive.getAsBoolean();
-        return defaultValue;
-    }
-    
-    
     
     public void loadAchievements() {
-        JsonElement achievementsJson = PersistentData.instance.get(unlockedAchievementsKey);
-        if (achievementsJson != null) {
-            if (achievementsJson instanceof JsonArray) {
-                JsonArray achievementsJsonArray = achievementsJson.getAsJsonArray();
+        JsonArray achievementsJsonArray = JsonUtil.getJsonArray(PersistentData.instance.getCurrentPlayerObject(), unlockedAchievementsKey);
+        
+        if (achievementsJsonArray != null) {
+        
+            AchievementManager.instance.unlockedAchievements.clear();
+            
+            for (JsonElement achievementJsonElement : achievementsJsonArray) {
                 
-                AchievementManager.instance.unlockedAchievements.clear();
+                String achievementID = JsonUtil.getString(achievementJsonElement, "achievementID");
+                Long unlockedAtTimestamp = (Long) JsonUtil.getNumber(achievementJsonElement, "unlockedAt");
                 
-                for (JsonElement achievementObjectJson : achievementsJsonArray) {
-                    if (achievementObjectJson instanceof JsonObject) {
-                        JsonObject achievementObject = achievementObjectJson.getAsJsonObject();
+                if (achievementID != null && unlockedAtTimestamp != null) {
+                    
+                    Achievement achievement = Achievement.getByID(achievementID);
+
+                    if (achievement != null && AchievementManager.instance.isAchievementUnlocked(achievement)) {
                         
-                        JsonElement achievementJson = achievementObject.get("achievementID");
-                        if (achievementJson instanceof JsonPrimitive) {
-                            JsonPrimitive achievementJsonPrimitive = achievementJson.getAsJsonPrimitive();
-                            if (achievementJsonPrimitive.isString()) {
-                                Achievement achievement = Achievement.getByID(achievementJsonPrimitive.getAsString());
-                                
-                                if (AchievementManager.instance.isAchievementUnlocked(achievement)) return;
-                                
-                                long unlockedAtTimestamp = -1; 
-                                JsonElement unlockedAtJson = achievementObject.get("unlockedAt");
-                                if (unlockedAtJson instanceof JsonPrimitive) {
-                                    JsonPrimitive unlockedAtJsonPrimitive = unlockedAtJson.getAsJsonPrimitive();
-                                    if (unlockedAtJsonPrimitive.isNumber()) unlockedAtTimestamp = unlockedAtJsonPrimitive.getAsLong();
-                                }
-    
-                                if (achievement != null && unlockedAtTimestamp >= 0) {
-                                    if (unlockedAtTimestamp > Util.getCurrentTime() || unlockedAtTimestamp < 1640991600000L)
-                                        scathaPro.showFakeBan = true;
-                                    
-                                    AchievementManager.instance.unlockedAchievements.add(new UnlockedAchievement(achievement, unlockedAtTimestamp));
-                                    achievement.setProgress(achievement.goal);
-                                }
-                            }
-                        }
+                        if (unlockedAtTimestamp > Util.getCurrentTime() || unlockedAtTimestamp < 1640991600000L)
+                            scathaPro.showFakeBan = true;
+                        
+                        AchievementManager.instance.unlockedAchievements.add(new UnlockedAchievement(achievement, unlockedAtTimestamp));
+                        achievement.setProgress(achievement.goal);
                     }
                 }
             }
-            else scathaPro.logger.log(Level.WARN, "Couldn't load achievements: Achievements JSON isn't an array");
         }
     }
     
@@ -233,47 +175,25 @@ public class PersistentData {
     
     
     public void loadPetDrops() {
-        String errorPrefix = "Couldn't load pet drops: ";
+        JsonObject petDropsJson = JsonUtil.getJsonObject(PersistentData.instance.getCurrentPlayerObject(), petDropsKey);
         
-        JsonElement petDropsJson = PersistentData.instance.get(petDropsKey);
         if (petDropsJson != null) {
-            if (petDropsJson instanceof JsonObject) {
-                JsonObject petDropsJsonObject = petDropsJson.getAsJsonObject();
-                
-                JsonElement rareDropsJson = petDropsJsonObject.get("rare");
-                if (rareDropsJson instanceof JsonPrimitive) {
-                    JsonPrimitive rareDropsJsonPrimitive = rareDropsJson.getAsJsonPrimitive();
-                    if (rareDropsJsonPrimitive.isNumber()) {
-                        scathaPro.rarePetDrops = rareDropsJsonPrimitive.getAsInt();
-                        if (scathaPro.rarePetDrops > 9999) scathaPro.showFakeBan = true;
-                    }
-                    else scathaPro.logger.log(Level.WARN, errorPrefix + "Rare drops JSON isn't a number");
-                }
-                else scathaPro.logger.log(Level.WARN, errorPrefix + "Rare drops JSON isn't a primitive");
-                
-                JsonElement epicDropsJson = petDropsJsonObject.get("epic");
-                if (epicDropsJson instanceof JsonPrimitive) {
-                    JsonPrimitive epicDropsJsonPrimitive = epicDropsJson.getAsJsonPrimitive();
-                    if (epicDropsJsonPrimitive.isNumber()) {
-                        scathaPro.epicPetDrops = epicDropsJsonPrimitive.getAsInt();
-                        if (scathaPro.epicPetDrops > 9999) scathaPro.showFakeBan = true;
-                    }
-                    else scathaPro.logger.log(Level.WARN, errorPrefix + "Epic drops JSON isn't a number");
-                }
-                else scathaPro.logger.log(Level.WARN, errorPrefix + "Epic drops JSON isn't a primitive");
-                
-                JsonElement legendaryDropsJson = petDropsJsonObject.get("legendary");
-                if (legendaryDropsJson instanceof JsonPrimitive) {
-                    JsonPrimitive legendaryDropsJsonPrimitive = legendaryDropsJson.getAsJsonPrimitive();
-                    if (legendaryDropsJsonPrimitive.isNumber()) {
-                        scathaPro.legendaryPetDrops = legendaryDropsJsonPrimitive.getAsInt();
-                        if (scathaPro.legendaryPetDrops > 9999) scathaPro.showFakeBan = true;
-                    }
-                    else scathaPro.logger.log(Level.WARN, errorPrefix + "Legendary drops JSON isn't a number");
-                }
-                else scathaPro.logger.log(Level.WARN, errorPrefix + "Legendary drops JSON isn't a primitive");
-            }
-            else scathaPro.logger.log(Level.WARN, errorPrefix + "Pet drops JSON isn't an object");
+            
+            Integer rareDrops = (Integer) JsonUtil.getNumber(petDropsJson, "rare");
+            scathaPro.rarePetDrops = rareDrops;
+            
+            Integer epicDrops = (Integer) JsonUtil.getNumber(petDropsJson, "epic");
+            scathaPro.epicPetDrops = epicDrops;
+            
+            Integer legendaryDrops = (Integer) JsonUtil.getNumber(petDropsJson, "legendary");
+            scathaPro.legendaryPetDrops = legendaryDrops;
+            
+            
+            if (scathaPro.rarePetDrops > 9999 || scathaPro.rarePetDrops < 0) scathaPro.showFakeBan = true;
+            
+            
+            Integer scathaKillsAtLastDrop = (Integer) JsonUtil.getNumber(petDropsJson, "scathaKillsAtLastDrop");
+            scathaPro.scathaKillsAtLastDrop = scathaKillsAtLastDrop;
         }
     }
     
@@ -283,6 +203,8 @@ public class PersistentData {
         petDropsJsonObject.add("rare", new JsonPrimitive(scathaPro.rarePetDrops));
         petDropsJsonObject.add("epic", new JsonPrimitive(scathaPro.epicPetDrops));
         petDropsJsonObject.add("legendary", new JsonPrimitive(scathaPro.legendaryPetDrops));
+        
+        petDropsJsonObject.add("scathaKillsAtLastDrop", new JsonPrimitive(scathaPro.scathaKillsAtLastDrop));
         
         PersistentData.instance.set(petDropsKey, petDropsJsonObject);
         

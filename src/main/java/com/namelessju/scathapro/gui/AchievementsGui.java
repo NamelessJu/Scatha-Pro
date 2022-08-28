@@ -10,9 +10,9 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.Util;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.achievements.Achievement.Type;
+import com.namelessju.scathapro.util.Util;
 import com.namelessju.scathapro.achievements.AchievementManager;
 
 import net.minecraft.client.gui.Gui;

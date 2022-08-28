@@ -14,6 +14,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import com.namelessju.scathapro.util.ChatUtil;
 
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
@@ -22,6 +23,7 @@ import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 
 public class UpdateChecker {
+    
     private final static String releasesApiUrl = "https://api.github.com/repos/NamelessJu/Scatha-Pro/releases";
     
     public static void checkForUpdate() {
@@ -91,11 +93,15 @@ public class UpdateChecker {
                                                         .setChatClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, updateUrl));
                                                 downloadLink.setChatStyle(style);
                                             }
+                                            else {
+                                                ChatStyle style = new ChatStyle().setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.RED + "No download found")));
+                                                downloadLink.setChatStyle(style);
+                                            }
                                             updateNotice.appendSibling(downloadLink);
                                             
                                             updateNotice.appendText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GOLD + EnumChatFormatting.ITALIC + ".");
                                             
-                                            Util.sendModChatMessage(updateNotice);
+                                            ChatUtil.sendModChatMessage(updateNotice);
                                         }
                                         else break;
                                     }

@@ -4,9 +4,9 @@ import java.util.List;
 
 import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.Util;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.achievements.AchievementManager;
+import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;

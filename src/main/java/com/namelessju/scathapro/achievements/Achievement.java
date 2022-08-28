@@ -4,15 +4,15 @@ import net.minecraft.util.EnumChatFormatting;
 
 public enum Achievement {
     
-    /*********************************************************************
-     *                                                                   *
-     *                             BEWARE!                               *
-     *                                                                   *
-     * Below is the list of all the achievements, including secret ones! *
-     *       Don't look at them if you don't want to get spoiled!        *
-     *                                                                   *
-     *********************************************************************/
-
+    /**********************
+     *                    *
+     *   SPOILER ALERT!   *
+     *                    *
+     **********************/
+    
+    achievements_unlocked_half("Halfway there...", "Unlock 50% of all non-hidden achievements", 50, Type.HIDDEN),
+    achievements_unlocked_all("Completionist", "Unlock all non-hidden achievements", 100, Type.HIDDEN),
+    
     worm_kills_1("Long boi", "Kill a worm", 1),
     worm_kills_2("Two digits", "Kill 10 worms", 10),
     worm_kills_3("Scatha farming byproduct", "Kill 100 worms", 100),
@@ -59,6 +59,7 @@ public enum Achievement {
     scatha_streak_3("Four scatha clover", "Get 4 scatha spawns back to back", 4),
     scatha_streak_4("Scatha Magnet", "Get 5 scatha spawns back to back", 5),
 
+    scatha_spawn_chbottom("Hot scatha farming place", "Spawn a scatha at the bottom of the Crystal Hollows", 1),
     scatha_spawn_chtop("Reach for the sky", "Spawn a scatha at the top of the Crystal Hollows", 1, Type.SECRET),
     
     scatha_pet_drop_1_rare("Better than nothing", "Get a rare scatha pet drop", 1),
@@ -90,7 +91,10 @@ public enum Achievement {
     
     
     public enum Type {
-        NORMAL(null), SECRET(EnumChatFormatting.AQUA + "Secret"), HIDDEN(EnumChatFormatting.RED.toString() + EnumChatFormatting.ITALIC + "HIDDEN");
+        NORMAL(null),
+        SECRET(EnumChatFormatting.AQUA + "Secret"),
+        HIDDEN(EnumChatFormatting.RED.toString() + EnumChatFormatting.ITALIC + "HIDDEN"),
+        LEGACY(EnumChatFormatting.DARK_PURPLE.toString() + EnumChatFormatting.BOLD + "LEGACY");
         
         public final String string;
         

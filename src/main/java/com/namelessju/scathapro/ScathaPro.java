@@ -14,6 +14,8 @@ import com.namelessju.scathapro.eventlisteners.APIListeners;
 import com.namelessju.scathapro.eventlisteners.GuiListeners;
 import com.namelessju.scathapro.eventlisteners.LoopListeners;
 import com.namelessju.scathapro.eventlisteners.MiscListeners;
+import com.namelessju.scathapro.eventlisteners.ScathaProListeners;
+import com.namelessju.scathapro.util.Util;
 import com.namelessju.scathapro.commands.DevCommand;
 
 import net.minecraft.client.gui.GuiScreen;
@@ -31,7 +33,7 @@ public class ScathaPro
 {
     public static final String MODNAME = "Scatha-Pro";
     public static final String MODID = "scathapro";
-    public static final String VERSION = "1.2";
+    public static final String VERSION = "1.2.1";
     
     public static final String CHATPREFIX = EnumChatFormatting.GRAY + MODNAME + ": " + EnumChatFormatting.RESET;
     
@@ -55,6 +57,9 @@ public class ScathaPro
 
     public boolean showFakeBan = false;
     
+    public long lastProfilesDataRequestTime = -1;
+    public boolean repeatProfilesDataRequest = true;
+    
     public int overallRegularWormKills = -1;
     public int overallScathaKills = -1;
     
@@ -67,8 +72,9 @@ public class ScathaPro
     public int epicPetDrops = 0;
     public int legendaryPetDrops = 0;
     
-    public long lastProfilesDataRequestTime = -1;
-    public boolean repeatProfilesDataRequest = true;
+    public int scathaKillsAtLastDrop = -1;
+    
+    public int hardstoneMined = 0;
     
 
     public static ScathaPro getInstance() {
@@ -83,6 +89,8 @@ public class ScathaPro
         MinecraftForge.EVENT_BUS.register(new APIListeners());
         MinecraftForge.EVENT_BUS.register(new GuiListeners());
         MinecraftForge.EVENT_BUS.register(new MiscListeners());
+        
+        MinecraftForge.EVENT_BUS.register(new ScathaProListeners());
         
         ClientCommandHandler.instance.registerCommand(new MainCommand());
         ClientCommandHandler.instance.registerCommand(new ChancesCommand());
