@@ -14,17 +14,25 @@ import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StringUtils;
 
 public abstract class ChatUtil {
-
-    public static void sendModChatMessage(String message) {
-        sendModChatMessage(new ChatComponentText(message));
-    }
+    
     public static void sendModChatMessage(IChatComponent chatComponent) {
+        sendModChatMessage(chatComponent, true);
+    }
+    public static void sendModChatMessage(IChatComponent chatComponent, boolean prefix) {
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
         if (player != null) {
-            ChatComponentText chatComponentText = new ChatComponentText(ScathaPro.CHATPREFIX);
+            ChatComponentText chatComponentText = new ChatComponentText(prefix ? ScathaPro.CHATPREFIX : "");
             chatComponentText.appendSibling(chatComponent);
             addChatCopyButton(chatComponentText);
             player.addChatMessage(chatComponentText);
+        }
+    }
+
+    public static void sendModChatMessage(String message) {
+        String[] lines = message.split("\n");
+        for (int i = 0; i < lines.length; i ++) {
+            String line = lines[i];
+            sendModChatMessage(new ChatComponentText(EnumChatFormatting.RESET + line), i == 0);   
         }
     }
     

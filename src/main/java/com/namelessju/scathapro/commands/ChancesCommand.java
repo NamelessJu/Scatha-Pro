@@ -34,7 +34,7 @@ public class ChancesCommand extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/scathachances [magic find] [pet luck] [kills]";
+        return "/scathachances [magic find] [pet luck] [Scatha kills]";
     }
     
     @Override

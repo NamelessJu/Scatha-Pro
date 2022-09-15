@@ -65,8 +65,8 @@ public class LoopListeners {
     
     private long lastDeveloperCheckTime = -1;
     private boolean developerFoundBefore = false;
+    private long lastScathaKillTime = -1;
 
-    private List<Worm> killedWorms = new ArrayList<Worm>();
     private List<PetDrop> receivedPets = new ArrayList<PetDrop>();
     private HashMap<Integer, String> arrowOwners = new HashMap<Integer, String>();
     
@@ -235,9 +235,7 @@ public class LoopListeners {
                         
                         if (world.getEntityByID(entityID) == null) {
                             if (worm.getLastAttackTime() >= 0 && now - worm.getLastAttackTime() < ScathaPro.pingTreshold || worm.isFireAspectActive()) {
-                                worm.kill();
-                                killedWorms.add(worm);
-                                
+                                if (worm.isScatha) lastScathaKillTime = now;
                                 MinecraftForge.EVENT_BUS.post(new WormKillEvent(worm));
                             }
                             else MinecraftForge.EVENT_BUS.post(new WormDespawnEvent(worm));
@@ -351,7 +349,7 @@ public class LoopListeners {
                         }
                     }
                     
-                    if ((scathaPro.lastWormAttackTime >= 0 && now - scathaPro.lastWormAttackTime < ScathaPro.pingTreshold /* || worm.isFireAspectActive() */) && scathaPro.previousScathaPets != null) {
+                    if (scathaPro.previousScathaPets != null) {
                         
                         int newScathaPet = -1;
                         
@@ -376,29 +374,23 @@ public class LoopListeners {
                                     rarity = PetDrop.Rarity.LEGENDARY;
                                     break;
                             }
-                            
+
                             receivedPets.add(new PetDrop(rarity, now));
                         }
                     }
                     
                     scathaPro.previousScathaPets = currentScathaPets;
                     
-                    for (Worm worm : killedWorms) {
-                        if (now - worm.getKillTime() >= ScathaPro.pingTreshold) {
-                            killedWorms.remove(worm);
-                            break;
-                        }
-                    }
-                    
-                    for (PetDrop pet : receivedPets) {
+                    for (int i = receivedPets.size() - 1; i >= 0; i --) {
+                        PetDrop pet = receivedPets.get(i);
                         if (now - pet.dropTime >= ScathaPro.pingTreshold) {
-                            receivedPets.remove(pet);
-                            break;
+                            receivedPets.remove(i);
+                            continue;
                         }
                         
-                        if (killedWorms.size() > 1) {
+                        if (lastScathaKillTime >= 0 && now - lastScathaKillTime < ScathaPro.pingTreshold) {
                             MinecraftForge.EVENT_BUS.post(new ScathaPetDropEvent(pet));
-                            receivedPets.remove(pet);
+                            receivedPets.remove(i);
                         }
                     }
                     

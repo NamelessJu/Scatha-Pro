@@ -19,7 +19,6 @@ public class Worm {
 	public final boolean isScatha;
     public final long spawnTime;
 	private long lastAttackTime = -1;
-    private long killTime = -1;
 	private long lastFireAspectAttackTime = -1;
 	private int lastFireAspectLevel = 0;
 	
@@ -61,14 +60,6 @@ public class Worm {
 		return lastAttackTime;
 	}
 	
-	public void kill() {
-	    if (killTime < 0) killTime = Util.getCurrentTime();
-	}
-	
-	public long getKillTime() {
-	    return killTime;
-	}
-	
 	public long getLifetime() {
 	    return Util.getCurrentTime() - spawnTime;
 	}
@@ -95,7 +86,7 @@ public class Worm {
                     break;
     	    }
     	    
-    	    return Util.getCurrentTime() - lastFireAspectAttackTime <= (fireAspectDuration + 2f) * 1000f;
+    	    return Util.getCurrentTime() - lastFireAspectAttackTime <= fireAspectDuration * 1000f + ScathaPro.pingTreshold;
 	    }
 	    return false;
 	}

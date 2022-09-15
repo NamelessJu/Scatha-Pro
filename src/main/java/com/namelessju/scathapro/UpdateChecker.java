@@ -15,6 +15,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.namelessju.scathapro.util.ChatUtil;
+import com.namelessju.scathapro.util.JsonUtil;
 
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
@@ -58,27 +59,12 @@ public class UpdateChecker {
                                     JsonObject versionObject = versionJson.getAsJsonObject();
                                     
                                     // Skip pre-releases
-                                    JsonElement prereleaseJson = versionObject.get("prerelease");
-                                    if (prereleaseJson.isJsonPrimitive()) {
-                                        JsonPrimitive prereleaseJsonPrimitive = prereleaseJson.getAsJsonPrimitive();
-                                        if (prereleaseJsonPrimitive.isBoolean() && prereleaseJsonPrimitive.getAsBoolean() == true) continue;
-                                    }
+                                    JsonPrimitive prereleaseJsonPrimitive = JsonUtil.getJsonPrimitive(versionObject, "prerelease");
+                                    if (prereleaseJsonPrimitive != null && prereleaseJsonPrimitive.isBoolean() && prereleaseJsonPrimitive.getAsBoolean() == true)
+                                        continue;
                                     
-                                    String versionTag = null;
-                                    JsonElement tagNameJson = versionObject.get("tag_name");
-                                    if (tagNameJson.isJsonPrimitive()) {
-                                        JsonPrimitive tagNameJsonPrimitive = tagNameJson.getAsJsonPrimitive();
-                                        if (tagNameJsonPrimitive.isString())
-                                            versionTag = tagNameJsonPrimitive.getAsString();
-                                    }
-                                    
-                                    String updateUrl = null;
-                                    JsonElement downloadJson = versionObject.get("html_url");
-                                    if (downloadJson.isJsonPrimitive()) {
-                                        JsonPrimitive downloadJsonPrimitive = downloadJson.getAsJsonPrimitive();
-                                        if (downloadJsonPrimitive.isString())
-                                            updateUrl = downloadJsonPrimitive.getAsString();
-                                    }
+                                    String versionTag = JsonUtil.getString(versionObject, "tag_name");
+                                    String updateUrl = JsonUtil.getString(versionObject, "html_url");
                                     
                                     if (versionTag != null) {
                                         if (compareVersions(ScathaPro.VERSION, versionTag) > 0) {
@@ -120,6 +106,7 @@ public class UpdateChecker {
         }).start();
     }
     
+    @SuppressWarnings("unused")
     public static int compareVersions(String from, String to) {
         from = getComparableVersion(from);
         to = getComparableVersion(to);
@@ -158,6 +145,13 @@ public class UpdateChecker {
                     }
                 }
             }
+            
+            // Pre-releases
+            boolean fromIsPreRelease = fromString != null && (fromString.equalsIgnoreCase("pre") || fromString.equalsIgnoreCase("prerelease"));
+            boolean toIsPreRelease = toString != null && (toString.equalsIgnoreCase("pre") || toString.equalsIgnoreCase("prerelease"));
+            if (fromIsPreRelease && !toIsPreRelease) return 1;
+            else if (!fromIsPreRelease && toIsPreRelease) return -1;
+            else if (fromIsPreRelease && toIsPreRelease) continue;
             
             // from or to empty
             if (fromInt < 0 && fromString == null) return 1;
