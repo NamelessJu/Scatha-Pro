@@ -15,6 +15,7 @@ import com.namelessju.scathapro.eventlisteners.GuiListeners;
 import com.namelessju.scathapro.eventlisteners.LoopListeners;
 import com.namelessju.scathapro.eventlisteners.MiscListeners;
 import com.namelessju.scathapro.eventlisteners.ScathaProListeners;
+import com.namelessju.scathapro.objects.Worm;
 import com.namelessju.scathapro.util.Util;
 import com.namelessju.scathapro.commands.DevCommand;
 
@@ -36,6 +37,7 @@ public class ScathaPro
     public static final String VERSION = "1.2.1";
     
     public static final String CHATPREFIX = EnumChatFormatting.GRAY + MODNAME + ": " + EnumChatFormatting.RESET;
+    public static final int pingTreshold = 2000;
     
     
     @Instance(value = MODID)
@@ -54,7 +56,7 @@ public class ScathaPro
     
     public ItemStack lastProjectileWeaponUsed = null;
     public long lastWormAttackTime = -1;
-
+    
     public boolean showFakeBan = false;
     
     public long lastProfilesDataRequestTime = -1;

@@ -13,7 +13,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StringUtils;
 
-public class ChatUtil {
+public abstract class ChatUtil {
 
     public static void sendModChatMessage(String message) {
         sendModChatMessage(new ChatComponentText(message));

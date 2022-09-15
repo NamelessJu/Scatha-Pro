@@ -1,6 +1,6 @@
 package com.namelessju.scathapro.events;
 
-import com.namelessju.scathapro.Worm;
+import com.namelessju.scathapro.objects.Worm;
 
 import net.minecraftforge.fml.common.eventhandler.Event;
 

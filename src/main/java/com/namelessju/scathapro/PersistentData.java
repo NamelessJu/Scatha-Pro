@@ -130,31 +130,37 @@ public class PersistentData {
     
     
     public void loadAchievements() {
-        JsonArray achievementsJsonArray = JsonUtil.getJsonArray(PersistentData.instance.getCurrentPlayerObject(), unlockedAchievementsKey);
-        
-        if (achievementsJsonArray != null) {
-        
-            AchievementManager.instance.unlockedAchievements.clear();
+        try {
+            JsonArray achievementsJsonArray = JsonUtil.getJsonArray(PersistentData.instance.getCurrentPlayerObject(), unlockedAchievementsKey);
             
-            for (JsonElement achievementJsonElement : achievementsJsonArray) {
+            if (achievementsJsonArray != null) {
+            
+                AchievementManager.instance.unlockedAchievements.clear();
                 
-                String achievementID = JsonUtil.getString(achievementJsonElement, "achievementID");
-                Long unlockedAtTimestamp = (Long) JsonUtil.getNumber(achievementJsonElement, "unlockedAt");
-                
-                if (achievementID != null && unlockedAtTimestamp != null) {
+                for (JsonElement achievementJsonElement : achievementsJsonArray) {
                     
-                    Achievement achievement = Achievement.getByID(achievementID);
-
-                    if (achievement != null && AchievementManager.instance.isAchievementUnlocked(achievement)) {
+                    String achievementID = JsonUtil.getString(achievementJsonElement, "achievementID");
+                    Long unlockedAtTimestamp = JsonUtil.getLong(achievementJsonElement, "unlockedAt");
+                    
+                    if (achievementID != null && unlockedAtTimestamp != null) {
                         
-                        if (unlockedAtTimestamp > Util.getCurrentTime() || unlockedAtTimestamp < 1640991600000L)
-                            scathaPro.showFakeBan = true;
-                        
-                        AchievementManager.instance.unlockedAchievements.add(new UnlockedAchievement(achievement, unlockedAtTimestamp));
-                        achievement.setProgress(achievement.goal);
+                        Achievement achievement = Achievement.getByID(achievementID);
+    
+                        if (achievement != null && !AchievementManager.instance.isAchievementUnlocked(achievement)) {
+                            
+                            if (unlockedAtTimestamp > Util.getCurrentTime() || unlockedAtTimestamp < 1640991600000L)
+                                scathaPro.showFakeBan = true;
+                            
+                            AchievementManager.instance.unlockedAchievements.add(new UnlockedAchievement(achievement, unlockedAtTimestamp));
+                            achievement.setProgress(achievement.goal);
+                        }
                     }
                 }
             }
+        }
+        catch (Exception e) {
+            ScathaPro.getInstance().logger.log(Level.ERROR, "Error while trying to load achievements data:");
+            e.printStackTrace();
         }
     }
     
@@ -175,25 +181,42 @@ public class PersistentData {
     
     
     public void loadPetDrops() {
-        JsonObject petDropsJson = JsonUtil.getJsonObject(PersistentData.instance.getCurrentPlayerObject(), petDropsKey);
-        
-        if (petDropsJson != null) {
+        try {
+            JsonObject petDropsJson = JsonUtil.getJsonObject(PersistentData.instance.getCurrentPlayerObject(), petDropsKey);
             
-            Integer rareDrops = (Integer) JsonUtil.getNumber(petDropsJson, "rare");
-            scathaPro.rarePetDrops = rareDrops;
-            
-            Integer epicDrops = (Integer) JsonUtil.getNumber(petDropsJson, "epic");
-            scathaPro.epicPetDrops = epicDrops;
-            
-            Integer legendaryDrops = (Integer) JsonUtil.getNumber(petDropsJson, "legendary");
-            scathaPro.legendaryPetDrops = legendaryDrops;
-            
-            
-            if (scathaPro.rarePetDrops > 9999 || scathaPro.rarePetDrops < 0) scathaPro.showFakeBan = true;
-            
-            
-            Integer scathaKillsAtLastDrop = (Integer) JsonUtil.getNumber(petDropsJson, "scathaKillsAtLastDrop");
-            scathaPro.scathaKillsAtLastDrop = scathaKillsAtLastDrop;
+            if (petDropsJson != null) {
+                
+                Integer rarePetDrops = JsonUtil.getInt(petDropsJson, "rare");
+                Integer epicPetDrops = JsonUtil.getInt(petDropsJson, "epic");
+                Integer legendaryPetDrops = JsonUtil.getInt(petDropsJson, "legendary");
+                
+                if (rarePetDrops != null) scathaPro.rarePetDrops = rarePetDrops;
+                if (epicPetDrops != null) scathaPro.epicPetDrops = epicPetDrops;
+                if (legendaryPetDrops != null) scathaPro.legendaryPetDrops = legendaryPetDrops;
+                
+                
+                if (
+                        scathaPro.rarePetDrops > 9999 || scathaPro.rarePetDrops < 0
+                        || scathaPro.epicPetDrops > 9999 || scathaPro.epicPetDrops < 0
+                        || scathaPro.legendaryPetDrops > 9999 || scathaPro.legendaryPetDrops < 0
+                    )
+                    scathaPro.showFakeBan = true;
+                
+                
+                Integer scathaKillsAtLastDrop = JsonUtil.getInt(petDropsJson, "scathaKillsAtLastDrop");
+                if (scathaKillsAtLastDrop != null) {
+                    scathaPro.scathaKillsAtLastDrop = scathaKillsAtLastDrop;
+                    
+                    if (scathaPro.scathaKillsAtLastDrop < 0)
+                        scathaPro.showFakeBan = true;
+                }
+                
+                OverlayManager.instance.updateScathaKillsAtLastDrop();
+            }
+        }
+        catch (Exception e) {
+            ScathaPro.getInstance().logger.log(Level.ERROR, "Error while trying to load pet drops data:");
+            e.printStackTrace();
         }
     }
     

@@ -5,7 +5,6 @@ import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.OverlayManager;
 import com.namelessju.scathapro.PersistentData;
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.Worm;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.achievements.AchievementManager;
 import com.namelessju.scathapro.events.AchievementUnlockedEvent;
@@ -18,8 +17,10 @@ import com.namelessju.scathapro.events.WormHitEvent;
 import com.namelessju.scathapro.events.WormKillEvent;
 import com.namelessju.scathapro.events.WormPreSpawnEvent;
 import com.namelessju.scathapro.events.WormSpawnEvent;
+import com.namelessju.scathapro.objects.Worm;
 import com.namelessju.scathapro.util.ChatUtil;
 import com.namelessju.scathapro.util.NBTUtil;
+import com.namelessju.scathapro.util.SoundUtil;
 import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.client.Minecraft;
@@ -65,7 +66,7 @@ public class ScathaProListeners {
         
         // Reset b2b scatha pet drop
         
-        if (droppedPetAtLastScatha && lastKillIsScatha && now - lastKillTime > 2000 && lastPetDropTime < lastKillTime) droppedPetAtLastScatha = false;
+        if (droppedPetAtLastScatha && lastKillIsScatha && now - lastKillTime > ScathaPro.pingTreshold && lastPetDropTime < lastKillTime) droppedPetAtLastScatha = false;
         
         
         // Update UI overlay
@@ -95,7 +96,7 @@ public class ScathaProListeners {
                 mc.ingameGUI.displayTitle(null, EnumChatFormatting.YELLOW + "Worm about to spawn...", 0, 0, 0);
                 mc.ingameGUI.displayTitle("", null, 0, 0, 0);
                 
-                if (!AlertMode.playModeSound("prespawn")) Util.playSoundAtPlayer("random.orb", 1f, 0.5f);
+                if (!AlertMode.playModeSound("prespawn")) SoundUtil.playSound("random.orb", 1f, 0.5f);
                 
                 lastPreAlertTime = now;
             }
@@ -120,7 +121,7 @@ public class ScathaProListeners {
                 mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + "Pray to RNGesus!", 0, 0, 0);
                 mc.ingameGUI.displayTitle(EnumChatFormatting.RED + "Scatha", null, 0, 0, 0);
                 
-                if (!AlertMode.playModeSound("scatha")) Util.playSoundAtPlayer("random.levelup", 1f, 0.8f);
+                if (!AlertMode.playModeSound("scatha")) SoundUtil.playSound("random.levelup", 1f, 0.8f);
             }
         }
         else {
@@ -132,7 +133,7 @@ public class ScathaProListeners {
                 mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + "Just a regular worm...", 0, 0, 0);
                 mc.ingameGUI.displayTitle(EnumChatFormatting.YELLOW + "Worm", null, 0, 0, 0);
 
-                if (!AlertMode.playModeSound("worm")) Util.playSoundAtPlayer("random.levelup", 1f, 0.5f);
+                if (!AlertMode.playModeSound("worm")) SoundUtil.playSound("random.levelup", 1f, 0.5f);
             }
         }
 
@@ -161,6 +162,7 @@ public class ScathaProListeners {
             lastKillIsScatha = true;
             
             OverlayManager.instance.updateScathaKills();
+            OverlayManager.instance.updateScathaKillsAtLastDrop();
         }
         else {
             scathaPro.regularWormKills ++;
@@ -171,7 +173,6 @@ public class ScathaProListeners {
             lastKillIsScatha = false;
 
             OverlayManager.instance.updateWormKills();
-            OverlayManager.instance.updateScathaKillsAtLastDrop();
         }
         
         OverlayManager.instance.updateTotalKills();
@@ -193,7 +194,7 @@ public class ScathaProListeners {
     public void onScathaPetDrop(ScathaPetDropEvent e) {
         String rarityTitle = null;
         
-        switch (e.rarity) {
+        switch (e.petDrop.rarity) {
             case RARE:
                 scathaPro.rarePetDrops ++;
                 rarityTitle = EnumChatFormatting.BLUE + "RARE";
@@ -216,9 +217,9 @@ public class ScathaProListeners {
             mc.ingameGUI.displayTitle(null, rarityTitle, 0, 0, 0);
             mc.ingameGUI.displayTitle(EnumChatFormatting.YELLOW + "Scatha Pet!", null, 0, 0, 0);
             
-            Util.playSoundAtPlayer("random.chestopen", 1.5f, 0.95f);
+            SoundUtil.playSound("random.chestopen", 1.5f, 0.95f);
             
-            if (!AlertMode.playModeSound("pet_drop")) Util.playSoundAtPlayer("mob.wither.death", 0.75f, 0.8f);
+            if (!AlertMode.playModeSound("pet_drop")) SoundUtil.playSound("mob.wither.death", 0.75f, 0.8f);
         }
         
         scathaPro.updatePetDropAchievements();
@@ -235,9 +236,13 @@ public class ScathaProListeners {
                 break;
         }
         
-        if (droppedPetAtLastScatha) Achievement.scatha_pet_drop_b2b.setProgress(Achievement.scatha_pet_drop_b2b.goal);
+        if ((scathaPro.scathaKillsAtLastDrop >= 0 && scathaPro.overallScathaKills >= 0 && scathaPro.overallScathaKills == scathaPro.scathaKillsAtLastDrop + 1) || droppedPetAtLastScatha) Achievement.scatha_pet_drop_b2b.setProgress(Achievement.scatha_pet_drop_b2b.goal);
+        if (scathaPro.overallScathaKills >= 0) {
+            scathaPro.scathaKillsAtLastDrop = scathaPro.overallScathaKills;
+            OverlayManager.instance.updateScathaKillsAtLastDrop();
+        }
         droppedPetAtLastScatha = true;
-        lastPetDropTime = Util.getCurrentTime();
+        lastPetDropTime = Util.getCurrentTime(); 
         
         PersistentData.instance.savePetDrops();
         
@@ -251,7 +256,7 @@ public class ScathaProListeners {
             mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + "Close to bedrock wall", 0, 0, 0);
             mc.ingameGUI.displayTitle("", null, 0, 0, 0);
             
-            if (!AlertMode.playModeSound("bedrock_wall")) Util.playSoundAtPlayer("note.pling", 1f, 0.5f);
+            if (!AlertMode.playModeSound("bedrock_wall")) SoundUtil.playSound("note.pling", 1f, 0.5f);
         }
     }
     
@@ -281,13 +286,13 @@ public class ScathaProListeners {
         if (now >= ScathaPro.getInstance().lastWorldJoinTime + 1000 && now >= lastAchievementUnlockTime + 1000) {
             switch (achievement.type) {
                 case SECRET:
-                    Util.playModSoundAtPlayer("achievements.unlock", 1f, 0.75f);
+                    SoundUtil.playModSound("achievements.unlock", 1f, 0.75f);
                     break;
                 case HIDDEN:
-                    Util.playModSoundAtPlayer("achievements.unlock_hidden", 0.75f, 0.75f);
+                    SoundUtil.playModSound("achievements.unlock_hidden", 0.75f, 0.75f);
                     break;
                 default:
-                    Util.playModSoundAtPlayer("achievements.unlock", 1f, 1f);
+                    SoundUtil.playModSound("achievements.unlock", 1f, 1f);
                     break;
             }
         }

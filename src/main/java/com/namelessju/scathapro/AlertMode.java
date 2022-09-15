@@ -1,13 +1,13 @@
 package com.namelessju.scathapro;
 
-import com.namelessju.scathapro.util.Util;
+import com.namelessju.scathapro.util.SoundUtil;
 
 public enum AlertMode { 
     
     NORMAL(null, "Normal"),
     MEME("meme", "Meme"),
-    ANIME("anime", "Anime"),
-    STAR_WARS("star_wars", "Star Wars");
+    ANIME("anime", "Anime");
+    // STAR_WARS("star_wars", "Star Wars"); // Coming in v1.3... ;)
     
     public final String id;
     public final String name;
@@ -35,7 +35,7 @@ public enum AlertMode {
         
         if (mode == AlertMode.NORMAL) return false;
         
-        Util.playModSoundAtPlayer("alert_modes." + mode.id + "." + path);
+        SoundUtil.playModSound("alert_modes." + mode.id + "." + path, (float) Config.instance.getDouble(Config.Key.volume), 1f);
         return true;
     }
 }

@@ -3,6 +3,7 @@ package com.namelessju.scathapro;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 
+import com.namelessju.scathapro.events.OverlayInitEvent;
 import com.namelessju.scathapro.overlay.OverlayContainer;
 import com.namelessju.scathapro.overlay.OverlayElement;
 import com.namelessju.scathapro.overlay.OverlayImage;
@@ -15,6 +16,7 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
 
 public class OverlayManager {
     public static final OverlayManager instance = new OverlayManager();
@@ -37,7 +39,6 @@ public class OverlayManager {
     private final OverlayText rarePetDropsText;
     private final OverlayText epicPetDropsText;
     private final OverlayText legendaryPetDropsText;
-    
     private final OverlayText scathaKillsAtLastDropText;
     
     
@@ -48,6 +49,9 @@ public class OverlayManager {
         overlay.backgroundColor = 0x50000000;
         
         
+        MinecraftForge.EVENT_BUS.post(new OverlayInitEvent.Pre(overlay));
+        
+        
         OverlayContainer titleContainer = new OverlayContainer(0, 0, 1f);
         titleContainer.add(scathaPetImage = new OverlayImage(null, 256, 256, 0, 0, 0.043f));
         titleContainer.add(new OverlayText("Scatha Farming:", Util.Color.GOLD.getValue(), 16, 0, 1.3f));
@@ -56,7 +60,9 @@ public class OverlayManager {
         
         OverlayContainer countersContainer = new OverlayContainer(0, 16, 1f);
         
+        
         OverlayContainer petDropsContainer = new OverlayContainer(0, 0, 1f);
+        
         petDropsContainer.add(new OverlayText("Pets", Util.Color.GREEN.getValue(), 0, 0, 1f));
         petDropsContainer.add(new OverlayImage("overlay/scatha_pet.png", 256, 256, 0, 11, 0.033f));
         petDropsContainer.add(rarePetDropsText = new OverlayText(null, Util.Color.BLUE.getValue(), 12, 11, 1f));
@@ -64,6 +70,7 @@ public class OverlayManager {
         petDropsContainer.add(epicPetDropsText = new OverlayText(null, Util.Color.DARK_PURPLE.getValue(), 12, 22, 1f));
         petDropsContainer.add(new OverlayImage("overlay/scatha_pet.png", 256, 256, 0, 33, 0.033f));
         petDropsContainer.add(legendaryPetDropsText = new OverlayText(null, Util.Color.GOLD.getValue(), 12, 33, 1f));
+        
         countersContainer.add(petDropsContainer);
         
         
@@ -99,11 +106,14 @@ public class OverlayManager {
         
         overlay.add(countersContainer);
 
-        overlay.add(dayText = new OverlayText(null, Util.Color.WHITE.getValue(), 0, 62, 1f));
-        overlay.add(coordsText = new OverlayText(null, Util.Color.GRAY.getValue(), 0, 72, 1f));
         
-        overlay.add(scathaKillsAtLastDropText = new OverlayText(null, Util.Color.WHITE.getValue(), 0, 82, 1f));
+        overlay.add(scathaKillsAtLastDropText = new OverlayText(null, Util.Color.WHITE.getValue(), 0, 60, 1f));
+
+        overlay.add(dayText = new OverlayText(null, Util.Color.WHITE.getValue(), 0, 71, 1f));
+        overlay.add(coordsText = new OverlayText(null, Util.Color.WHITE.getValue(), 0, 81, 1f));
         
+
+        MinecraftForge.EVENT_BUS.post(new OverlayInitEvent.Post(overlay));
     }
     public void drawOverlay() {
         overlay.draw();
@@ -232,38 +242,46 @@ public class OverlayManager {
     }
     
     public void updateCoords() {
+        double wallMin = 203D;
+        double wallMax = 823D;
+        double wallLength = wallMax - wallMin;
+        
         EntityPlayer player = mc.thePlayer;
         
         String facingAxis = "";
+        double wallDistance = 0D;
         
         int facing = player != null ? Util.getFacing(player) : 1;
-        
         switch (facing) {
             case 0:
                 facingAxis = "-Z";
+                wallDistance = wallMax - player.posZ;
                 break;
             case 1:
                 facingAxis = "+X";
+                wallDistance = player.posX - wallMin;
                 break;
             case 2:
                 facingAxis = "+Z";
+                wallDistance = player.posZ - wallMin;
                 break;
             case 3:
                 facingAxis = "-X";
+                wallDistance = wallMax - player.posX;
                 break;
         }
         
+        double wallProgress = 0D;
+        if (wallDistance > 0D && wallDistance < wallLength) wallProgress = wallDistance / wallLength * 0.98D  + 0.01D;
+        else if (wallDistance >= wallLength) wallProgress = 1D;
+        
         String coordinatesString = player != null ? (int) Math.floor(player.posX) + " "  + (int) Math.floor(player.posY) + " "  + (int) Math.floor(player.posZ) : "0 0 0";
         
-        coordsText.setText(EnumChatFormatting.RESET + coordinatesString + " " + EnumChatFormatting.ITALIC + facingAxis);
+        coordsText.setText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.WHITE + coordinatesString + " " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + facingAxis + " (" + Util.numberToString(wallProgress * 100f, 0) + "% to wall)");
     }
     
-    
     public void updateScathaKillsAtLastDrop() {
-        if (scathaPro.overallScathaKills >= 0)
-            scathaKillsAtLastDropText.setText(scathaPro.scathaKillsAtLastDrop >= 0 ? "Scathas since last drop: " + (scathaPro.overallScathaKills - scathaPro.scathaKillsAtLastDrop) : "No scatha dropped yet");
-        else
-            scathaKillsAtLastDropText.setText("Overall kills not loaded");
+        scathaKillsAtLastDropText.setText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + "Scathas since last pet drop: " + (scathaPro.overallScathaKills >= 0 && scathaPro.scathaKillsAtLastDrop >= 0 ? scathaPro.overallScathaKills - scathaPro.scathaKillsAtLastDrop : EnumChatFormatting.OBFUSCATED + "?"));
     }
 
 }

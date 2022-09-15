@@ -7,8 +7,8 @@ import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.OverlayManager;
 import com.namelessju.scathapro.PersistentData;
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.gui.AchievementsGui;
-import com.namelessju.scathapro.gui.SettingsGui;
+import com.namelessju.scathapro.gui.menus.AchievementsGui;
+import com.namelessju.scathapro.gui.menus.SettingsGui;
 import com.namelessju.scathapro.util.ChatUtil;
 
 import net.minecraft.command.CommandBase;
@@ -42,19 +42,24 @@ public class MainCommand extends CommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
-        if (args.length > 0) {
+            
+        if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
+            ChatUtil.sendModChatMessage(
+                    "All commands:\n"
+                    + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/scathapro " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "(alias /sp)" + EnumChatFormatting.WHITE + " (help):" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Shows this help message\n"
+                    + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/scathachances " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "(alias /scacha)" + EnumChatFormatting.WHITE + ":" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Check/calculate Scatha pet drop chances\n"
+                    + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/scathapro settings:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Opens the settings menu\n"
+                    + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/scathapro achievements:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Opens the achievements menu\n"
+                    + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/scathapro setPetDrops <rare> <epic> <legendary>:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Add pets you dropped previously to your counter\n"
+                    + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/scathapro resetConfig:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Reset all settings"
+            );
+        }
+        
+        else {
             String subCommand = args[0];
             
-            if (subCommand.equalsIgnoreCase("help")) {
-                ChatUtil.sendModChatMessage(
-                        "All commands:\n"
-                        + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.GRAY + "/scathapro (alias /sp):" + EnumChatFormatting.ITALIC + " Opens the settings menu\n"
-                        + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.GRAY + "/scathapro achievements:" + EnumChatFormatting.ITALIC + " Opens the achievements menu\n"
-                        + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.GRAY + "/scathachances (alias /scacha):" + EnumChatFormatting.ITALIC + " Check/calculate scatha pet drop chances\n"
-                        + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.GRAY + "/scathapro checkUpdate:" + EnumChatFormatting.ITALIC + " Manually check for an update\n"
-                        + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.GRAY + "/scathapro setPetDrops <rare> <epic> <legendary>:" + EnumChatFormatting.ITALIC + " Add pets you dropped previously to your counters\n"
-                        + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.GRAY + "/scathapro resetConfig:" + EnumChatFormatting.ITALIC + " Reset all settings"
-                );
+            if (subCommand.equalsIgnoreCase("settings") || subCommand.equalsIgnoreCase("config")) {
+                ScathaPro.getInstance().openGuiNextTick = new SettingsGui(null);
             }
             
             else if (subCommand.equalsIgnoreCase("achievements")) {
@@ -90,7 +95,7 @@ public class MainCommand extends CommandBase {
                 Config.instance.save();
                 
                 if (Config.instance.getBoolean(Config.Key.petAlert)) ScathaPro.getInstance().resetPreviousScathaPets();
-
+    
                 ChatUtil.sendModChatMessage("All settings reset");
             }
             
@@ -108,6 +113,5 @@ public class MainCommand extends CommandBase {
             
             else throw new CommandException("Invalid subcommand - Get a list of all subcommands using /scathapro help");
         }
-        else ScathaPro.getInstance().openGuiNextTick = new SettingsGui(null);
     }
 }

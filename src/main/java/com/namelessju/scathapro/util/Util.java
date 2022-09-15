@@ -38,21 +38,6 @@ public abstract class Util {
         }
     }
 
-    public static void playSoundAtPlayer(String sound) {
-        playSoundAtPlayer(sound, 1f, 1f);
-    }
-    public static void playSoundAtPlayer(String sound, float volume, float pitch) {
-        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-        if (player != null) player.playSound(sound, (float) (Config.instance.getDouble(Config.Key.volume) * volume), pitch);
-    }
-
-    public static void playModSoundAtPlayer(String sound) {
-        playModSoundAtPlayer(sound, 1f, 1f);
-    }
-    public static void playModSoundAtPlayer(String sound, float volume, float pitch) {
-        playSoundAtPlayer(ScathaPro.MODID + ":" + sound, volume, pitch);
-    }
-
 	public static long getCurrentTime() {
 		return System.currentTimeMillis();
 	}

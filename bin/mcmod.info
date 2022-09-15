@@ -2,7 +2,7 @@
     {
       "modid": "scathapro",
       "name": "Scatha-Pro",
-      "description": "A mod for pro scatha farmers",
+      "description": "A mod for pro Scatha farmers\n/scathapro",
       "version": "${version}",
       "mcversion": "${mcversion}",
       "url": "https://github.com/NamelessJu/Scatha-Pro/releases",

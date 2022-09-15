@@ -7,9 +7,9 @@ import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.OverlayManager;
 import com.namelessju.scathapro.PersistentData;
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.Worm;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.events.WormPreSpawnEvent;
+import com.namelessju.scathapro.objects.Worm;
 import com.namelessju.scathapro.util.ChatUtil;
 import com.namelessju.scathapro.util.NBTUtil;
 import com.namelessju.scathapro.util.Util;
@@ -19,6 +19,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StringUtils;
 import net.minecraft.world.World;
@@ -101,7 +102,7 @@ public class MiscListeners {
             ItemStack helmetItem = entity.getEquipmentInSlot(4);
             if (helmetItem != null && NBTUtil.isWormSkull(helmetItem) || Config.instance.getBoolean(Config.Key.devMode)) {
                 
-                List<EntityArmorStand> nearbyArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, entity.getEntityBoundingBox().expand(8f, 8f, 8f));
+                List<EntityArmorStand> nearbyArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(entity.posX, entity.posY, entity.posZ, entity.posX, entity.posY, entity.posZ).expand(8f, 2f, 8f));
                 
                 for (int i = 0; i < nearbyArmorStands.size(); i ++) {
                     

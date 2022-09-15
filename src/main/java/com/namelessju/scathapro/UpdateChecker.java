@@ -80,8 +80,6 @@ public class UpdateChecker {
                                             updateUrl = downloadJsonPrimitive.getAsString();
                                     }
                                     
-                                    System.out.println(versionTag);
-                                    
                                     if (versionTag != null) {
                                         if (compareVersions(ScathaPro.VERSION, versionTag) > 0) {
                                             ChatComponentText updateNotice = new ChatComponentText(EnumChatFormatting.GOLD.toString() + EnumChatFormatting.ITALIC + "A new version (" + versionTag + ") is available. You can download it ");
@@ -108,15 +106,15 @@ public class UpdateChecker {
                                 }
                             }
                         }
-                        else ScathaPro.getInstance().logger.log(Level.WARN, "Couldn't check for update (response is no array)");
+                        else ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't check for update (response is no array)");
                     }
-                    else ScathaPro.getInstance().logger.log(Level.WARN, "Couldn't check for update (response code " + code + ")");
+                    else ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't check for update (response code " + code + ")");
                 }
                 catch (MalformedURLException e) {
-                    ScathaPro.getInstance().logger.log(Level.INFO, "Update checker URL is malformed");
+                    ScathaPro.getInstance().logger.log(Level.ERROR, "Update checker URL is malformed");
                 }
                 catch (IOException e) {
-                    ScathaPro.getInstance().logger.log(Level.INFO, "Couldn't read API response while checking for update");
+                    ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't read API response while checking for update");
                 }
             }
         }).start();

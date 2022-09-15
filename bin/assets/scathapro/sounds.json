@@ -49,26 +49,5 @@
     "alert_modes.anime.pet_drop": {
         "category": "master",
         "sounds": [{"name": "alert_modes/anime/pet_drop", "stream": true}]
-    },
-
-    "alert_modes.star_wars.prespawn": {
-        "category": "master",
-        "sounds": [{"name": "alert_modes/star_wars/prespawn", "stream": true}]
-    },
-    "alert_modes.star_wars.worm": {
-        "category": "master",
-        "sounds": [{"name": "alert_modes/star_wars/worm", "stream": true}]
-    },
-    "alert_modes.star_wars.scatha": {
-        "category": "master",
-        "sounds": [{"name": "alert_modes/star_wars/scatha", "stream": true}]
-    },
-    "alert_modes.star_wars.bedrock_wall": {
-        "category": "master",
-        "sounds": [{"name": "alert_modes/star_wars/bedrock_wall", "stream": true}]
-    },
-    "alert_modes.star_wars.pet_drop": {
-        "category": "master",
-        "sounds": [{"name": "alert_modes/star_wars/pet_drop", "stream": true}]
     }
 }

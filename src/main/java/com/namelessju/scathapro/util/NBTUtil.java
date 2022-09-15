@@ -5,7 +5,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 
-public class NBTUtil {
+public abstract class NBTUtil {
 
     public static NBTTagCompound getSkyblockTagCompound(ItemStack item) {
         return getSkyblockTagCompound(item, null);
