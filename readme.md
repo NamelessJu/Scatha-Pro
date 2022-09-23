@@ -7,10 +7,14 @@
    - kills in current lobby
    - total kills *(requires API key)*
 - worm/scatha spawn streak
+- Scatha kills since last pet drop counter
 - time display
    - ingame time
    - time spent in lobby
 - coordinates + view axis
+- progress to bedrock wall
+
+You can use `/scathapro setPetDrops <rare> <epic> <legendary>` to add pets you dropped before installing the mod to the counter
 
 ## Alerts
 
@@ -38,6 +42,10 @@ Accessible through a button next to the vanilla Minecraft achievements menu butt
    Completely hidden from the list and achievement counters unless unlocked
 
 - ...
+
+## Main command
+
+Use `/scathapro (help)` for a list of commands, e.g. `/scathapro settings` to open the settings
 
 ## Scatha pet chances command
 

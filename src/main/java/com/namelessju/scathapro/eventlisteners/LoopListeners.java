@@ -13,6 +13,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.OverlayManager;
+import com.namelessju.scathapro.PersistentData;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.UpdateChecker;
 import com.namelessju.scathapro.events.BedrockWallEvent;
@@ -131,6 +132,8 @@ public class LoopListeners {
                 
                 
                 if (firstIngameFrame) {
+      				PersistentData.instance.backup("Update-v" + ScathaPro.VERSION, false);
+                	
                     UpdateChecker.checkForUpdate();
                     
                     firstIngameFrame = false;

@@ -81,6 +81,7 @@ public class MiscListeners {
             scathaPro.updateKillAchievements();
             scathaPro.updateSpawnAchievements();
             scathaPro.updatePetDropAchievements();
+            scathaPro.updateProgressAchievements();
             
             Achievement.crystal_hollows_time_1.setProgress(0);
             Achievement.crystal_hollows_time_2.setProgress(0);

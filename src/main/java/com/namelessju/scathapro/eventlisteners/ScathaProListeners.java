@@ -6,7 +6,6 @@ import com.namelessju.scathapro.OverlayManager;
 import com.namelessju.scathapro.PersistentData;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.achievements.Achievement;
-import com.namelessju.scathapro.achievements.AchievementManager;
 import com.namelessju.scathapro.events.AchievementUnlockedEvent;
 import com.namelessju.scathapro.events.BedrockWallEvent;
 import com.namelessju.scathapro.events.CrystalHollowsTickEvent;
@@ -298,23 +297,8 @@ public class ScathaProListeners {
         }
         
         
-        int nonHiddenAchievements = 0;
-        int unlockedNonHiddenAchievements = 0;
-        
-        Achievement[] achievements = AchievementManager.getAllAchievements();
-        
-        for (int i = 0; i < achievements.length; i ++) {
-            Achievement a = achievements[i];
-            if (a.type != Achievement.Type.HIDDEN) {
-                nonHiddenAchievements ++;
-                if (AchievementManager.instance.isAchievementUnlocked(a)) unlockedNonHiddenAchievements ++;
-            }
-        }
-        
-        float unlockedNonHiddenAchievementsPercentage = (float) unlockedNonHiddenAchievements / nonHiddenAchievements;
-        if (unlockedNonHiddenAchievementsPercentage >= 1f) Achievement.achievements_unlocked_all.setProgress(Achievement.achievements_unlocked_all.goal);
-        else if (unlockedNonHiddenAchievementsPercentage >= 0.5f) Achievement.achievements_unlocked_half.setProgress(Achievement.achievements_unlocked_half.goal);
-        
+        scathaPro.updateProgressAchievements();
+
         
         lastAchievementUnlockTime = now;
     }

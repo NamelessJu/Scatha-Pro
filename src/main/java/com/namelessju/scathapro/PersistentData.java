@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.file.Files;
 
 import org.apache.logging.log4j.Level;
 
@@ -21,6 +22,11 @@ import com.namelessju.scathapro.util.ChatUtil;
 import com.namelessju.scathapro.util.JsonUtil;
 import com.namelessju.scathapro.util.Util;
 
+import net.minecraft.event.ClickEvent;
+import net.minecraft.event.HoverEvent;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatStyle;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.common.config.Configuration.UnicodeInputStreamReader;
 
 public class PersistentData {
@@ -86,6 +92,41 @@ public class PersistentData {
             }
         }
         else ChatUtil.sendModErrorMessage("Your session is offline, so data won't be saved!");
+    }
+
+    public void backup(String name) {
+		backup(name, true);
+    }
+    public void backup(String name, boolean showExistingFileError) {
+    	File backupFile = Util.getModFile("backups/persistentData-" + name + ".json");
+
+    	File backupFolder = backupFile.getParentFile();
+        if (!backupFolder.exists()) backupFolder.mkdirs();
+    	
+    	if (backupFile.exists()) {
+			if (showExistingFileError) ChatUtil.sendModErrorMessage("Couldn't backup persistent data: File already exists");
+    		return;
+    	}
+    	
+    	try {
+    		saveData();
+			Files.copy(saveFile.toPath(), backupFile.toPath());
+
+            ChatComponentText message = new ChatComponentText("Created persistent data backup as ");
+
+            ChatComponentText path = new ChatComponentText(EnumChatFormatting.UNDERLINE + "persistentData-" + name + ".json");
+            ChatStyle pathStyle = new ChatStyle()
+                    .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.GRAY + "Open backup folder")))
+                    .setChatClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, backupFolder.getCanonicalPath()));
+            path.setChatStyle(pathStyle);
+            message.appendSibling(path);
+            
+            ChatUtil.sendModChatMessage(message);
+		}
+    	catch (Exception e) {
+			e.printStackTrace();
+			ChatUtil.sendModErrorMessage("Couldn't backup persistent data: Failed to write file");
+		}
     }
     
     public JsonObject getCurrentPlayerObject() {

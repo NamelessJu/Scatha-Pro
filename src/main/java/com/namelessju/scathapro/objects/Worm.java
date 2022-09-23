@@ -40,7 +40,6 @@ public class Worm {
 	public void attack(ItemStack weapon) {
 	    long now = Util.getCurrentTime();
 		lastAttackTime = now;
-		ScathaPro.getInstance().lastWormAttackTime = lastAttackTime;
 
         String skyblockItemID = NBTUtil.getSkyblockItemID(weapon);
         if (skyblockItemID != null && !hitWeapons.contains(skyblockItemID))

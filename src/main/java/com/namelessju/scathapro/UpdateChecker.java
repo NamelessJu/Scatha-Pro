@@ -106,7 +106,6 @@ public class UpdateChecker {
         }).start();
     }
     
-    @SuppressWarnings("unused")
     public static int compareVersions(String from, String to) {
         from = getComparableVersion(from);
         to = getComparableVersion(to);

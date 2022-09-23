@@ -1,5 +1,7 @@
 package com.namelessju.scathapro.commands;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,6 +53,7 @@ public class MainCommand extends CommandBase {
                     + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/scathapro settings:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Opens the settings menu\n"
                     + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/scathapro achievements:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Opens the achievements menu\n"
                     + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/scathapro setPetDrops <rare> <epic> <legendary>:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Add pets you dropped previously to your counter\n"
+                    + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/scathapro backup:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Creates a backup of your persistent data\n"
                     + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/scathapro resetConfig:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Reset all settings"
             );
         }
@@ -87,6 +90,14 @@ public class MainCommand extends CommandBase {
                     scathaPro.updatePetDropAchievements();
                 }
                 else throw new CommandException("Missing values: /scathapro setPetDrops <rare> <epic> <legendary>");
+            }
+            
+            else if (subCommand.equalsIgnoreCase("backup")) {
+				LocalDateTime date = LocalDateTime.now();
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-kk-mm-ss-SSS");
+				String timeString = date.format(formatter);
+				
+  				PersistentData.instance.backup(timeString);
             }
             
             else if (subCommand.equalsIgnoreCase("resetConfig")) {
