@@ -45,7 +45,7 @@ Accessible through a button next to the vanilla Minecraft achievements menu butt
 
 ## Main command
 
-Use `/scathapro (help)` for a list of commands, e.g. `/scathapro settings` to open the settings
+Use `/scathapro (help)` (shortcut: `/sp`) for a list of commands
 
 ## Scatha pet chances command
 
@@ -55,7 +55,7 @@ When a kills value is entered, calculates the chances for dropping at least 1 pe
 
 ## Settings GUI
 
-Accessible either via a button in the "Options" menu, or using `/scathapro` *(shortcut: `/sp`)*  
+Accessible either via a button in the "Options" menu, or using `/scathapro settings`  
   
 ### All settings:
 - API key
