@@ -52,6 +52,8 @@ public class MiscListeners {
                 PersistentData.instance.loadData();
                 
                 persistentDataLoaded = true;
+                
+  				PersistentData.instance.backup("Update-v" + ScathaPro.VERSION, false);
             }
             
             // Reset
