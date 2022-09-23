@@ -41,8 +41,6 @@ Accessible through a button next to the vanilla Minecraft achievements menu butt
 - HIDDEN  
    Completely hidden from the list and achievement counters unless unlocked
 
-- ...
-
 ## Main command
 
 Use `/scathapro (help)` (shortcut: `/sp`) for a list of commands
