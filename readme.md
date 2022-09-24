@@ -45,6 +45,11 @@ Accessible through a button next to the vanilla Minecraft achievements menu butt
 
 Use `/scathapro (help)` (shortcut: `/sp`) for a list of commands
 
+### Backups
+
+The mod automatically creates a backup for the persistent data file *(= everything except settings)* when you install a new mod version.   
+You can also manually create backups using `/scathapro backup`.
+
 ## Scatha pet chances command
 
 `/scathachances [magic find] [pet luck] [scatha kills]` *(shortcut: `/scacha ...`)*  

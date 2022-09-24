@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 import org.apache.logging.log4j.Level;
 
@@ -95,22 +96,22 @@ public class PersistentData {
     }
 
     public void backup(String name) {
-		backup(name, true);
+		backup(name, false);
     }
-    public void backup(String name, boolean showExistingFileError) {
+    public void backup(String name, boolean overwrite) {
     	File backupFile = Util.getModFile("backups/persistentData-" + name + ".json");
 
     	File backupFolder = backupFile.getParentFile();
         if (!backupFolder.exists()) backupFolder.mkdirs();
     	
-    	if (backupFile.exists()) {
-			if (showExistingFileError) ChatUtil.sendModErrorMessage("Couldn't backup persistent data: File already exists");
+    	if (backupFile.exists() && !overwrite) {
+			ChatUtil.sendModErrorMessage("Couldn't backup persistent data: File already exists");
     		return;
     	}
     	
     	try {
     		saveData();
-			Files.copy(saveFile.toPath(), backupFile.toPath());
+			Files.copy(saveFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
             ChatComponentText message = new ChatComponentText("Created persistent data backup as ");
 
@@ -137,36 +138,23 @@ public class PersistentData {
         
         return null; 
     }
+    
+    public JsonObject getData() {
+    	return data;
+    }
 
     public boolean set(String path, JsonElement value) {
-        String[] pathNodes = path.split("/");
-
         String uuid = Util.getPlayerUUIDString();
         if (uuid == null) return false;
         
-        JsonElement currentElement = data.get(uuid);
-        
-        if (currentElement == null) {
-            currentElement = new JsonObject();
-            data.add(uuid, currentElement);
+        JsonElement playerData = data.get(uuid);
+        if (playerData == null || !playerData.isJsonObject()) {
+        	playerData = new JsonObject();
+        	data.add(uuid, playerData);
         }
         
-        for (int i = 0; i < pathNodes.length; i ++) {
-            if (i == pathNodes.length - 1) {
-                if (currentElement.isJsonObject()) {
-                    currentElement.getAsJsonObject().add(pathNodes[i], value);
-                    return true;
-                }
-                else break;
-            }
-            else if (currentElement.isJsonObject()) {
-                JsonElement nextElement = currentElement.getAsJsonObject().get(pathNodes[i]);
-                currentElement = nextElement;
-            }
-            else break;
-        }
-        
-        return false;
+    	JsonUtil.set(playerData.getAsJsonObject(), path, value);
+    	return true;
     }
     
     

@@ -2,15 +2,18 @@ package com.namelessju.scathapro.eventlisteners;
 
 import java.util.List;
 
+import com.google.gson.JsonPrimitive;
 import com.namelessju.scathapro.API;
 import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.OverlayManager;
 import com.namelessju.scathapro.PersistentData;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.achievements.Achievement;
+import com.namelessju.scathapro.events.UpdateEvent;
 import com.namelessju.scathapro.events.WormPreSpawnEvent;
 import com.namelessju.scathapro.objects.Worm;
 import com.namelessju.scathapro.util.ChatUtil;
+import com.namelessju.scathapro.util.JsonUtil;
 import com.namelessju.scathapro.util.NBTUtil;
 import com.namelessju.scathapro.util.Util;
 
@@ -51,9 +54,15 @@ public class MiscListeners {
             if (!persistentDataLoaded) {
                 PersistentData.instance.loadData();
                 
-                persistentDataLoaded = true;
+                String lastUsedVersion = JsonUtil.getString(PersistentData.instance.getData(), "global/lastUsedVersion");
+                if (lastUsedVersion == null || !lastUsedVersion.equals(ScathaPro.VERSION)) {
+                	MinecraftForge.EVENT_BUS.post(new UpdateEvent(lastUsedVersion, ScathaPro.VERSION));
+      				
+      				JsonUtil.set(PersistentData.instance.getData(), "global/lastUsedVersion", new JsonPrimitive(ScathaPro.VERSION));
+      				PersistentData.instance.saveData();
+                }
                 
-  				PersistentData.instance.backup("Update-v" + ScathaPro.VERSION, false);
+                persistentDataLoaded = true;
             }
             
             // Reset

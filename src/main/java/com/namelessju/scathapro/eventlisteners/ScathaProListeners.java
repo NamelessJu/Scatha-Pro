@@ -11,6 +11,7 @@ import com.namelessju.scathapro.events.BedrockWallEvent;
 import com.namelessju.scathapro.events.CrystalHollowsTickEvent;
 import com.namelessju.scathapro.events.MeetDeveloperEvent;
 import com.namelessju.scathapro.events.ScathaPetDropEvent;
+import com.namelessju.scathapro.events.UpdateEvent;
 import com.namelessju.scathapro.events.WormDespawnEvent;
 import com.namelessju.scathapro.events.WormHitEvent;
 import com.namelessju.scathapro.events.WormKillEvent;
@@ -48,6 +49,11 @@ public class ScathaProListeners {
     
     private long lastAchievementUnlockTime = -1;
 
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onUpdate(UpdateEvent e) {
+    	PersistentData.instance.backup("Update-" + (e.previousVersion != null ? "v" + e.previousVersion : "unknown") + "_to_v" + e.newVersion, true);
+    }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onCrystalHollowsTick(CrystalHollowsTickEvent e) {
