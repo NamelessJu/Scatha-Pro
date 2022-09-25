@@ -2,6 +2,8 @@ package com.namelessju.scathapro;
 
 import java.io.File;
 
+import com.namelessju.scathapro.util.Util;
+
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 import net.minecraftforge.fml.common.Loader;
@@ -35,6 +37,7 @@ public class Config {
         mode("other", "mode", 0),
         showRotationAngles("other", "showRotationAngles", false),
         chatCopy("other", "chatCopy", false),
+        automaticBackups("other", "automaticBackups", true),
         devMode("other", "devMode", false);
         
         

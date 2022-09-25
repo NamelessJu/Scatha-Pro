@@ -5,9 +5,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.namelessju.scathapro.OverlayManager;
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.Util;
+import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.API.APIErrorEvent;
 import com.namelessju.scathapro.API.APIResponseEvent;
+import com.namelessju.scathapro.util.ChatUtil;
+import com.namelessju.scathapro.util.JsonUtil;
+import com.namelessju.scathapro.util.Util;
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -21,43 +24,65 @@ public class APIListeners {
         JsonObject json = e.json;
         
         if (endpoint.equals("profiles")) {
-            JsonElement profiles = json.get("profiles");
+            JsonArray profiles = JsonUtil.getJsonArray(json, "profiles");
             
-            if (profiles instanceof JsonArray) {
+            if (profiles != null) {
                 JsonObject profilePlayerData = null;
                 long latestSave = -1;
-                for (JsonElement profile : profiles.getAsJsonArray()) {
-                    JsonObject playerData = profile.getAsJsonObject().get("members").getAsJsonObject().get(Util.getPlayerUUIDString()).getAsJsonObject();
-                    JsonElement lastSaveJson = playerData.get("last_save");
+                for (JsonElement profile : profiles) {
+                    if (profile == null || !profile.isJsonObject()) break;
                     
-                    if (lastSaveJson != null) {
-                        long lastSave = lastSaveJson.getAsLong();
-                        if (lastSave > latestSave) {
-                            latestSave = lastSave;
-                            profilePlayerData = playerData;
-                        }
+                    JsonObject playerData = JsonUtil.getJsonObject(JsonUtil.getJsonObject(profile, "members"), Util.getPlayerUUIDString());
+                    Long lastSave = JsonUtil.getLong(playerData, "last_save");
+                    
+                    if (lastSave != null && lastSave > latestSave) {
+                        latestSave = lastSave;
+                        profilePlayerData = playerData;
                     }
                 }
                 
                 if (profilePlayerData != null) {
-                    JsonObject stats = profilePlayerData.get("stats").getAsJsonObject();
                     
-                    JsonElement overallWormKillsJson = stats.get("kills_worm");
-                    JsonElement overallScathaKillsJson = stats.get("kills_scatha");
+                    JsonObject bestiaryJson = JsonUtil.getJsonObject(profilePlayerData, "bestiary");
+                    if (bestiaryJson != null) {
+                        
+                        Integer overallWormKills = JsonUtil.getInt(bestiaryJson, "kills_worm_5"); // why the HP in the variable name tho
+                        if (overallWormKills != null)
+                            scathaPro.overallRegularWormKills = overallWormKills;
+                        
+                        Integer overallScathaKills = JsonUtil.getInt(bestiaryJson, "kills_scatha_10");
+                        if (overallScathaKills != null)
+                            scathaPro.overallScathaKills = overallScathaKills;
+
+                        
+                        OverlayManager.instance.updateWormKills();
+                        OverlayManager.instance.updateScathaKills();
+                        OverlayManager.instance.updateTotalKills();
+                        OverlayManager.instance.updateScathaKillsAtLastDrop();
+
+                        scathaPro.updateKillAchievements();
+                        
+                    }
                     
-                    scathaPro.overallRegularWormKills = overallWormKillsJson != null ? overallWormKillsJson.getAsInt() : 0;
-                    scathaPro.overallScathaKills = overallScathaKillsJson != null ? overallScathaKillsJson.getAsInt() : 0;
-
-                    OverlayManager.instance.updateWormKills();
-                    OverlayManager.instance.updateScathaKills();
-                    OverlayManager.instance.updateTotalKills();
-
-                    scathaPro.updateKillAchievements();
+                    JsonObject collectionJson = JsonUtil.getJsonObject(profilePlayerData, "collection");
+                    if (collectionJson != null) {
+                        
+                        Integer hardStoneMined = JsonUtil.getInt(collectionJson, "HARD_STONE");
+                        if (hardStoneMined != null) {
+                            scathaPro.hardstoneMined = hardStoneMined;
+                            
+                            Achievement.hard_stone_mined_1.setProgress(scathaPro.hardstoneMined);
+                            Achievement.hard_stone_mined_2.setProgress(scathaPro.hardstoneMined);
+                            Achievement.hard_stone_mined_3.setProgress(scathaPro.hardstoneMined);
+                        }
+                        
+                    }
+                    
                     return;
                 }
             }
-            
-            Util.sendModErrorMessage("Couldn't load worm kills from Hypixel API: No skyblock profiles found");
+
+            ChatUtil.sendModErrorMessage("Couldn't load data from Hypixel API: No skyblock profiles found");
             scathaPro.repeatProfilesDataRequest = false;
         }
     }

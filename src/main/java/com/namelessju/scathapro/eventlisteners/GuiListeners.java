@@ -3,9 +3,9 @@ package com.namelessju.scathapro.eventlisteners;
 import java.util.List;
 
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.gui.AchievementsGui;
-import com.namelessju.scathapro.gui.ImageButton;
-import com.namelessju.scathapro.gui.SettingsGui;
+import com.namelessju.scathapro.gui.elements.ImageButton;
+import com.namelessju.scathapro.gui.menus.AchievementsGui;
+import com.namelessju.scathapro.gui.menus.SettingsGui;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;

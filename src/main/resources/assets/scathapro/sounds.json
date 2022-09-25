@@ -1,52 +1,53 @@
 {
-    "meme.alert.prespawn": {
-        "category": "master",
-        "sounds": [{"name": "meme/alert/prespawn", "stream": true}]
-    },
-    "meme.alert.worm": {
-        "category": "master",
-        "sounds": [{"name": "meme/alert/worm", "stream": true}]
-    },
-    "meme.alert.scatha": {
-        "category": "master",
-        "sounds": [{"name": "meme/alert/scatha", "stream": true}]
-    },
-    "meme.alert.bedrock_wall": {
-        "category": "master",
-        "sounds": [{"name": "meme/alert/bedrock_wall", "stream": true}]
-    },
-    "meme.alert.pet_drop": {
-        "category": "master",
-        "sounds": [{"name": "meme/alert/pet_drop", "stream": true}]
-    },
-
-    "anime.alert.prespawn": {
-        "category": "master",
-        "sounds": [{"name": "anime/alert/prespawn", "stream": true}]
-    },
-    "anime.alert.worm": {
-        "category": "master",
-        "sounds": [{"name": "anime/alert/worm", "stream": true}]
-    },
-    "anime.alert.scatha": {
-        "category": "master",
-        "sounds": [{"name": "anime/alert/scatha", "stream": true}]
-    },
-    "anime.alert.bedrock_wall": {
-        "category": "master",
-        "sounds": [{"name": "anime/alert/bedrock_wall", "stream": true}]
-    },
-    "anime.alert.pet_drop": {
-        "category": "master",
-        "sounds": [{"name": "anime/alert/pet_drop", "stream": true}]
-    },
-    
     "achievements.unlock": {
-        "category": "master",
+        "category": "player",
         "sounds": [{"name": "achievements/unlock", "stream": true}]
     },
     "achievements.unlock_hidden": {
-        "category": "master",
+        "category": "player",
         "sounds": [{"name": "achievements/unlock_hidden", "stream": true}]
+    },
+    
+    
+    "alert_modes.meme.prespawn": {
+        "category": "master",
+        "sounds": [{"name": "alert_modes/meme/prespawn", "stream": true}]
+    },
+    "alert_modes.meme.worm": {
+        "category": "master",
+        "sounds": [{"name": "alert_modes/meme/worm", "stream": true}]
+    },
+    "alert_modes.meme.scatha": {
+        "category": "master",
+        "sounds": [{"name": "alert_modes/meme/scatha", "stream": true}]
+    },
+    "alert_modes.meme.bedrock_wall": {
+        "category": "master",
+        "sounds": [{"name": "alert_modes/meme/bedrock_wall", "stream": true}]
+    },
+    "alert_modes.meme.pet_drop": {
+        "category": "master",
+        "sounds": [{"name": "alert_modes/meme/pet_drop", "stream": true}]
+    },
+
+    "alert_modes.anime.prespawn": {
+        "category": "master",
+        "sounds": [{"name": "alert_modes/anime/prespawn", "stream": true}]
+    },
+    "alert_modes.anime.worm": {
+        "category": "master",
+        "sounds": [{"name": "alert_modes/anime/worm", "stream": true}]
+    },
+    "alert_modes.anime.scatha": {
+        "category": "master",
+        "sounds": [{"name": "alert_modes/anime/scatha", "stream": true}]
+    },
+    "alert_modes.anime.bedrock_wall": {
+        "category": "master",
+        "sounds": [{"name": "alert_modes/anime/bedrock_wall", "stream": true}]
+    },
+    "alert_modes.anime.pet_drop": {
+        "category": "master",
+        "sounds": [{"name": "alert_modes/anime/pet_drop", "stream": true}]
     }
 }

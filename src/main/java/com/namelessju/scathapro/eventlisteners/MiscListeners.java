@@ -2,25 +2,33 @@ package com.namelessju.scathapro.eventlisteners;
 
 import java.util.List;
 
+import com.google.gson.JsonPrimitive;
 import com.namelessju.scathapro.API;
 import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.OverlayManager;
 import com.namelessju.scathapro.PersistentData;
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.Util;
-import com.namelessju.scathapro.Worm;
 import com.namelessju.scathapro.achievements.Achievement;
+import com.namelessju.scathapro.events.UpdateEvent;
+import com.namelessju.scathapro.events.WormPreSpawnEvent;
+import com.namelessju.scathapro.objects.Worm;
+import com.namelessju.scathapro.util.ChatUtil;
+import com.namelessju.scathapro.util.JsonUtil;
+import com.namelessju.scathapro.util.NBTUtil;
+import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StringUtils;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.sound.PlaySoundEvent;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
@@ -34,7 +42,6 @@ public class MiscListeners {
     private final ScathaPro scathaPro = ScathaPro.getInstance();
 
     private boolean persistentDataLoaded = false;
-    private long lastPreAlertTime = -1;
     
     @SubscribeEvent
     public void onWorldJoin(EntityJoinWorldEvent e) {
@@ -46,6 +53,14 @@ public class MiscListeners {
             
             if (!persistentDataLoaded) {
                 PersistentData.instance.loadData();
+                
+                String lastUsedVersion = JsonUtil.getString(PersistentData.instance.getData(), "global/lastUsedVersion");
+                if (lastUsedVersion == null || !lastUsedVersion.equals(ScathaPro.VERSION)) {
+                    MinecraftForge.EVENT_BUS.post(new UpdateEvent(lastUsedVersion, ScathaPro.VERSION));
+                      
+                    JsonUtil.set(PersistentData.instance.getData(), "global/lastUsedVersion", new JsonPrimitive(ScathaPro.VERSION));
+                    PersistentData.instance.saveData();
+                }
                 
                 persistentDataLoaded = true;
             }
@@ -77,6 +92,7 @@ public class MiscListeners {
             scathaPro.updateKillAchievements();
             scathaPro.updateSpawnAchievements();
             scathaPro.updatePetDropAchievements();
+            scathaPro.updateProgressAchievements();
             
             Achievement.crystal_hollows_time_1.setProgress(0);
             Achievement.crystal_hollows_time_2.setProgress(0);
@@ -96,9 +112,9 @@ public class MiscListeners {
             World world = entity.worldObj;
             
             ItemStack helmetItem = entity.getEquipmentInSlot(4);
-            if (helmetItem != null && Util.isWormSkull(helmetItem) || Config.instance.getBoolean(Config.Key.devMode)) {
+            if (helmetItem != null && NBTUtil.isWormSkull(helmetItem) || Config.instance.getBoolean(Config.Key.devMode)) {
                 
-                List<EntityArmorStand> nearbyArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, entity.getEntityBoundingBox().expand(8f, 8f, 8f));
+                List<EntityArmorStand> nearbyArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(entity.posX, entity.posY, entity.posZ, entity.posX, entity.posY, entity.posZ).expand(8f, 2f, 8f));
                 
                 for (int i = 0; i < nearbyArmorStands.size(); i ++) {
                     
@@ -140,28 +156,21 @@ public class MiscListeners {
             Config.instance.set(Config.Key.apiKey, apiKey);
             Config.instance.save();
             
-            Util.sendModChatMessage("Automatically updated API key to " + apiKey);
-            
+            ChatUtil.sendModChatMessage("Automatically updated API key to " + apiKey);
+
+            ScathaPro.getInstance().repeatProfilesDataRequest = true;
             if (scathaPro.profilesDataRequestNeeded()) API.requestProfilesData();
         }
         
         // Add copy button
         
-        Util.addChatCopyButton(e.message);
+        ChatUtil.addChatCopyButton(e.message);
     }
-
+    
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onSound(PlaySoundEvent e) {
-        long now = Util.getCurrentTime();
-        if (Config.instance.getBoolean(Config.Key.wormPreAlert) && (Util.inCrystalHollows() && e.sound.getPitch() == 2.0952382f || Config.instance.getBoolean(Config.Key.devMode) && e.sound.getPitch() >= 2f) && e.name.equals("mob.spider.step") && now - lastPreAlertTime > 2500) {
-            mc.ingameGUI.displayTitle(null, null, 0, 20, 5);
-            mc.ingameGUI.displayTitle(null, EnumChatFormatting.YELLOW + "Worm about to spawn...", 0, 0, 0);
-            mc.ingameGUI.displayTitle("", null, 0, 0, 0);
-            
-            if (!Util.playModeSound("alert.prespawn")) Util.playSoundAtPlayer("random.orb", 1f, 0.5f);
-            
-            lastPreAlertTime = now;
-        }
+        if ((Util.inCrystalHollows() && e.sound.getPitch() == 2.0952382f || Config.instance.getBoolean(Config.Key.devMode) && e.sound.getPitch() >= 2f) && e.name.equals("mob.spider.step"))
+            MinecraftForge.EVENT_BUS.post(new WormPreSpawnEvent());
     }
     
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -170,7 +179,7 @@ public class MiscListeners {
             ItemStack item = e.itemStack;
     
             if (item != null) {
-                String skyblockItemID = Util.getSkyblockItemID(item);
+                String skyblockItemID = NBTUtil.getSkyblockItemID(item);
                 if (skyblockItemID != null) e.toolTip.add(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + skyblockItemID + EnumChatFormatting.RESET);
             }
         }

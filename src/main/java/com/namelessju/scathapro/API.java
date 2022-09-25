@@ -8,6 +8,8 @@ import java.net.MalformedURLException;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.namelessju.scathapro.util.ChatUtil;
+import com.namelessju.scathapro.util.Util;
 
 import java.net.URL;
 
@@ -52,19 +54,19 @@ public class API {
     
     
     private final static String URL = "https://api.hypixel.net/skyblock/";
-	
     
-	public static void requestProfilesData() {
-	    String uuid = Util.getPlayerUUIDString();
+    
+    public static void requestProfilesData() {
+        String uuid = Util.getPlayerUUIDString();
         
-	    if (uuid != null) sendRequest("profiles", "uuid=" + uuid);
-	    else {
-	        final String apiKey = Config.instance.getString(Config.Key.apiKey);
-	        if (!apiKey.isEmpty()) sendApiErrorMessage("Your session is offline");
-	    }
-	    
+        if (uuid != null) sendRequest("profiles", "uuid=" + uuid);
+        else {
+            final String apiKey = Config.instance.getString(Config.Key.apiKey);
+            if (!apiKey.isEmpty()) sendApiErrorMessage("Your session is offline");
+        }
+        
         ScathaPro.getInstance().lastProfilesDataRequestTime = Util.getCurrentTime();
-	}
+    }
     
     /*
      *     Ah damn, you found the rat...
@@ -76,11 +78,11 @@ public class API {
      *  
      *     (It won't steal your data tho)
      */
-	
-	public static void sendRequest(final String endpoint, final String parameters) {
-	    final String apiKey = Config.instance.getString(Config.Key.apiKey);
-	    
-	    if (!apiKey.isEmpty()) {
+    
+    public static void sendRequest(final String endpoint, final String parameters) {
+        final String apiKey = Config.instance.getString(Config.Key.apiKey);
+        
+        if (!apiKey.isEmpty()) {
             new Thread(new Runnable() {
                 public void run() {
                     try {
@@ -150,10 +152,10 @@ public class API {
                     }
                 }
             }).start();
-	    }
-	}
-	
-	public static void sendApiErrorMessage(String details) {
-	    Util.sendModErrorMessage("Hypixel API request failed (" + details + ")");
-	}
+        }
+    }
+    
+    public static void sendApiErrorMessage(String details) {
+        ChatUtil.sendModErrorMessage("Hypixel API request failed (" + details + ")");
+    }
 }
