@@ -56,10 +56,10 @@ public class MiscListeners {
                 
                 String lastUsedVersion = JsonUtil.getString(PersistentData.instance.getData(), "global/lastUsedVersion");
                 if (lastUsedVersion == null || !lastUsedVersion.equals(ScathaPro.VERSION)) {
-                	MinecraftForge.EVENT_BUS.post(new UpdateEvent(lastUsedVersion, ScathaPro.VERSION));
-      				
-      				JsonUtil.set(PersistentData.instance.getData(), "global/lastUsedVersion", new JsonPrimitive(ScathaPro.VERSION));
-      				PersistentData.instance.saveData();
+                    MinecraftForge.EVENT_BUS.post(new UpdateEvent(lastUsedVersion, ScathaPro.VERSION));
+                      
+                    JsonUtil.set(PersistentData.instance.getData(), "global/lastUsedVersion", new JsonPrimitive(ScathaPro.VERSION));
+                    PersistentData.instance.saveData();
                 }
                 
                 persistentDataLoaded = true;

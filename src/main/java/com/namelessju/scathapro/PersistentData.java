@@ -96,22 +96,22 @@ public class PersistentData {
     }
 
     public void backup(String name) {
-		backup(name, false);
+        backup(name, false);
     }
     public void backup(String name, boolean overwrite) {
-    	File backupFile = Util.getModFile("backups/persistentData-" + name + ".json");
+        File backupFile = Util.getModFile("backups/persistentData-" + name + ".json");
 
-    	File backupFolder = backupFile.getParentFile();
+        File backupFolder = backupFile.getParentFile();
         if (!backupFolder.exists()) backupFolder.mkdirs();
-    	
-    	if (backupFile.exists() && !overwrite) {
-			ChatUtil.sendModErrorMessage("Couldn't backup persistent data: File already exists");
-    		return;
-    	}
-    	
-    	try {
-    		saveData();
-			Files.copy(saveFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        
+        if (backupFile.exists() && !overwrite) {
+            ChatUtil.sendModErrorMessage("Couldn't backup persistent data: File already exists");
+            return;
+        }
+        
+        try {
+            saveData();
+            Files.copy(saveFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
             ChatComponentText message = new ChatComponentText("Created persistent data backup as ");
 
@@ -123,11 +123,11 @@ public class PersistentData {
             message.appendSibling(path);
             
             ChatUtil.sendModChatMessage(message);
-		}
-    	catch (Exception e) {
-			e.printStackTrace();
-			ChatUtil.sendModErrorMessage("Couldn't backup persistent data: Failed to write file");
-		}
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            ChatUtil.sendModErrorMessage("Couldn't backup persistent data: Failed to write file");
+        }
     }
     
     public JsonObject getCurrentPlayerObject() {
@@ -140,7 +140,7 @@ public class PersistentData {
     }
     
     public JsonObject getData() {
-    	return data;
+        return data;
     }
 
     public boolean set(String path, JsonElement value) {
@@ -149,12 +149,12 @@ public class PersistentData {
         
         JsonElement playerData = data.get(uuid);
         if (playerData == null || !playerData.isJsonObject()) {
-        	playerData = new JsonObject();
-        	data.add(uuid, playerData);
+            playerData = new JsonObject();
+            data.add(uuid, playerData);
         }
         
-    	JsonUtil.set(playerData.getAsJsonObject(), path, value);
-    	return true;
+        JsonUtil.set(playerData.getAsJsonObject(), path, value);
+        return true;
     }
     
     

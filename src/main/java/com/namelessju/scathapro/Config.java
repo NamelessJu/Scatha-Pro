@@ -37,6 +37,7 @@ public class Config {
         mode("other", "mode", 0),
         showRotationAngles("other", "showRotationAngles", false),
         chatCopy("other", "chatCopy", false),
+        automaticBackups("other", "automaticBackups", true),
         devMode("other", "devMode", false);
         
         

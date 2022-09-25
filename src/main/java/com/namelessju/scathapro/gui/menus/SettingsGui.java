@@ -53,6 +53,7 @@ public class SettingsGui extends ScathaProGui {
         buttonList.add(new GuiButton(504704006, width / 2 - 155, height / 6 + 72 - 6, 150, 20, getModeString()));
         buttonList.add(new GuiButton(504704007, width / 2 + 5, height / 6 + 72 - 6, 150, 20, getShowRotationAnglesString()));
         buttonList.add(new GuiButton(504704008, width / 2 - 155, height / 6 + 96 - 6, 150, 20, getChatCopyString()));
+        buttonList.add(new GuiButton(504704009, width / 2 + 5, height / 6 + 96 - 6, 150, 20, getAutomaticBackupsString()));
         
         buttonList.add(new GuiButton(504704099, width / 2 - 100, height / 6 + 168, 200, 20, "Done"));
     }
@@ -124,6 +125,13 @@ public class SettingsGui extends ScathaProGui {
                     button.displayString = getChatCopyString();
                     break;
                 
+                case 504704009:
+                    Config.instance.set(Config.Key.automaticBackups, !Config.instance.getBoolean(Config.Key.automaticBackups));
+                    Config.instance.save();
+                    
+                    button.displayString = getAutomaticBackupsString();
+                    break;
+                
                 case 504704099:
                     openParentGui();
                     break;
@@ -160,5 +168,10 @@ public class SettingsGui extends ScathaProGui {
     private String getChatCopyString() {
         boolean enabled = Config.instance.getBoolean(Config.Key.chatCopy);
         return "Chat Copy Button: " + getEnabledString(enabled);
+    }
+    
+    private String getAutomaticBackupsString() {
+        boolean enabled = Config.instance.getBoolean(Config.Key.automaticBackups);
+        return "Automatic Backups: " + getEnabledString(enabled);
     }
 }

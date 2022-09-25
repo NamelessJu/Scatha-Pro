@@ -38,14 +38,14 @@ public abstract class Util {
         }
     }
 
-	public static long getCurrentTime() {
-		return System.currentTimeMillis();
-	}
-	
-	public static String getUUIDString(UUID uuid) {
+    public static long getCurrentTime() {
+        return System.currentTimeMillis();
+    }
+    
+    public static String getUUIDString(UUID uuid) {
         if (uuid != null) return uuid.toString().replace("-", "").toLowerCase();
         return null;
-	}
+    }
 
     public static String getPlayerUUIDString() {
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
@@ -56,75 +56,75 @@ public abstract class Util {
         }
         return null;
     }
-	
-	public static boolean inCrystalHollows() {
-	    if (Config.instance.getBoolean(Config.Key.devMode)) return true;
-	    
-		boolean inCrystalHollows = false;
-		
-		NetHandlerPlayClient netHandler = Minecraft.getMinecraft().getNetHandler();
-		if (netHandler != null) {
-    		Collection<NetworkPlayerInfo> playerInfos = netHandler.getPlayerInfoMap();
-    		
-    		for (Iterator<NetworkPlayerInfo> iterator = playerInfos.iterator(); iterator.hasNext();) {
-    			NetworkPlayerInfo p = iterator.next();
-    			IChatComponent displayName = p.getDisplayName();
-    			
-    			if (displayName != null && displayName.getUnformattedText().contains("Area:") && displayName.getUnformattedText().contains("Crystal Hollows")) {
-    				inCrystalHollows = true;
-    				break;
-    			}
-    		}
-		}
-		
-		return inCrystalHollows;
-	}
-	
-	public static boolean isDeveloper(NetworkPlayerInfo playerInfo) {
-	    if (playerInfo != null) {
-	        UUID uuid = playerInfo.getGameProfile().getId();
-	        if (uuid != null)
-	            return getUUIDString(uuid).equals("e9be3984b09740c98fb4d8aaeb2b4838");
-	    }
-	    
-	    return false;
-	}
+    
+    public static boolean inCrystalHollows() {
+        if (Config.instance.getBoolean(Config.Key.devMode)) return true;
+        
+        boolean inCrystalHollows = false;
+        
+        NetHandlerPlayClient netHandler = Minecraft.getMinecraft().getNetHandler();
+        if (netHandler != null) {
+            Collection<NetworkPlayerInfo> playerInfos = netHandler.getPlayerInfoMap();
+            
+            for (Iterator<NetworkPlayerInfo> iterator = playerInfos.iterator(); iterator.hasNext();) {
+                NetworkPlayerInfo p = iterator.next();
+                IChatComponent displayName = p.getDisplayName();
+                
+                if (displayName != null && displayName.getUnformattedText().contains("Area:") && displayName.getUnformattedText().contains("Crystal Hollows")) {
+                    inCrystalHollows = true;
+                    break;
+                }
+            }
+        }
+        
+        return inCrystalHollows;
+    }
+    
+    public static boolean isDeveloper(NetworkPlayerInfo playerInfo) {
+        if (playerInfo != null) {
+            UUID uuid = playerInfo.getGameProfile().getId();
+            if (uuid != null)
+                return getUUIDString(uuid).equals("e9be3984b09740c98fb4d8aaeb2b4838");
+        }
+        
+        return false;
+    }
 
     public static String numberToString(int number) {
         return numberToString(number, 0);
     }
-	public static String numberToString(double number, int maxDecimalPlaces) {
-	    DecimalFormatSymbols decimalSymbols = new DecimalFormatSymbols();
-	    decimalSymbols.setDecimalSeparator('.');
+    public static String numberToString(double number, int maxDecimalPlaces) {
+        DecimalFormatSymbols decimalSymbols = new DecimalFormatSymbols();
+        decimalSymbols.setDecimalSeparator('.');
         decimalSymbols.setGroupingSeparator(',');
-	    DecimalFormat decimalFormat = new DecimalFormat("#,###.#", decimalSymbols);
-	    decimalFormat.setMaximumFractionDigits(maxDecimalPlaces);
-	    return decimalFormat.format(number);
-	}
-	
-	public static String getUnicodeString(String hexValue) {
-		return Character.toString((char) Integer.parseInt(hexValue, 16));
-	}
-	
-	public static BlockPos entityBlockPos(Entity entity) {
-		return new BlockPos(
-			(int) Math.floor(entity.posX),
-			(int) Math.floor(entity.posY),
-			(int) Math.floor(entity.posZ)
-		);
-	}
-	
-	public static int getFacing(EntityPlayer player) {
+        DecimalFormat decimalFormat = new DecimalFormat("#,###.#", decimalSymbols);
+        decimalFormat.setMaximumFractionDigits(maxDecimalPlaces);
+        return decimalFormat.format(number);
+    }
+    
+    public static String getUnicodeString(String hexValue) {
+        return Character.toString((char) Integer.parseInt(hexValue, 16));
+    }
+    
+    public static BlockPos entityBlockPos(Entity entity) {
+        return new BlockPos(
+            (int) Math.floor(entity.posX),
+            (int) Math.floor(entity.posY),
+            (int) Math.floor(entity.posZ)
+        );
+    }
+    
+    public static int getFacing(EntityPlayer player) {
         int facing = (int) Math.floor(player.rotationYaw / 90 - 1.5f) % 4;
         if (facing < 0) facing += 4;
         return facing;
-	}
-	
-	public static void copyToClipboard(String str) {
-		StringSelection selection = new StringSelection(str);
-		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-		clipboard.setContents(selection, selection);
-	}
+    }
+    
+    public static void copyToClipboard(String str) {
+        StringSelection selection = new StringSelection(str);
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(selection, selection);
+    }
     
     public static File getModFile(String relativePath) {
         File modFolder = new File(Minecraft.getMinecraft().mcDataDir, "mods/" + ScathaPro.MODID + "/");
@@ -132,8 +132,8 @@ public abstract class Util {
         
         return new File(modFolder, relativePath);
     }
-	
-	public static float calculatePetChance(float initialChance, int magicFind, int petLuck, int looting) {
+    
+    public static float calculatePetChance(float initialChance, int magicFind, int petLuck, int looting) {
         
         float lootingMultiplier = 1f;
         switch (looting) {
@@ -154,6 +154,6 @@ public abstract class Util {
                 break;
         }
         
-	    return initialChance * (1 + (magicFind + petLuck)/100f) * lootingMultiplier;
-	}
+        return initialChance * (1 + (magicFind + petLuck)/100f) * lootingMultiplier;
+    }
 }

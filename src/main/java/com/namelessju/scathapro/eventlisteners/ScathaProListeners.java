@@ -52,7 +52,8 @@ public class ScathaProListeners {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onUpdate(UpdateEvent e) {
-    	PersistentData.instance.backup("Update-" + (e.previousVersion != null ? "v" + e.previousVersion : "unknown") + "_to_v" + e.newVersion, true);
+    	if (Config.instance.getBoolean(Config.Key.automaticBackups) && PersistentData.instance.getData().entrySet().size() > 0)
+    		PersistentData.instance.backup("Update-" + (e.previousVersion != null ? "v" + e.previousVersion : "unknown") + "_to_v" + e.newVersion, true);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)

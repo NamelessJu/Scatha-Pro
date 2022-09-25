@@ -93,11 +93,11 @@ public class MainCommand extends CommandBase {
             }
             
             else if (subCommand.equalsIgnoreCase("backup")) {
-				LocalDateTime date = LocalDateTime.now();
-				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-kk-mm-ss-SSS");
-				String timeString = date.format(formatter);
-				
-  				PersistentData.instance.backup(timeString);
+                LocalDateTime date = LocalDateTime.now();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd-kk-mm-ss-SSS");
+                String timeString = date.format(formatter);
+                
+                PersistentData.instance.backup(timeString);
             }
             
             else if (subCommand.equalsIgnoreCase("resetConfig")) {

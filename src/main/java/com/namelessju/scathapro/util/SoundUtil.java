@@ -11,11 +11,6 @@ public abstract class SoundUtil {
         playSound(sound, 1f, 1f);
     }
     public static void playSound(String sound, float volume, float pitch) {
-        /*
-        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-        if (player != null) player.playSound(sound, (float) (Config.instance.getDouble(Config.Key.volume) * volume), pitch);
-        */
-
         Minecraft.getMinecraft().getSoundHandler().playSound(new ScathaProSound(sound, volume, pitch));
     }
 

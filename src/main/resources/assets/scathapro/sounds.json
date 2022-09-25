@@ -1,10 +1,10 @@
 {
     "achievements.unlock": {
-        "category": "master",
+        "category": "player",
         "sounds": [{"name": "achievements/unlock", "stream": true}]
     },
     "achievements.unlock_hidden": {
-        "category": "master",
+        "category": "player",
         "sounds": [{"name": "achievements/unlock_hidden", "stream": true}]
     },
     

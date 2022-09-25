@@ -78,14 +78,14 @@ public abstract class JsonUtil {
         
         for (int i = 0; i < pathNodes.length; i ++) {
             if (i == pathNodes.length - 1)
-            	currentObject.getAsJsonObject().add(pathNodes[i], value);
+                currentObject.getAsJsonObject().add(pathNodes[i], value);
             else {
                 JsonElement nextElement = currentObject.get(pathNodes[i]);
                 JsonObject nextObject = nextElement != null && nextElement.isJsonObject() ? nextElement.getAsJsonObject() : null;
                 
                 if (nextObject == null) {
-                	nextObject = new JsonObject();
-                	currentObject.add(pathNodes[i], nextObject);
+                    nextObject = new JsonObject();
+                    currentObject.add(pathNodes[i], nextObject);
                 }
                 
                 currentObject = nextObject;
