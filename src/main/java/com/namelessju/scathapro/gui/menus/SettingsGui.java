@@ -54,6 +54,7 @@ public class SettingsGui extends ScathaProGui {
         buttonList.add(new GuiButton(504704007, width / 2 + 5, height / 6 + 72 - 6, 150, 20, getShowRotationAnglesString()));
         buttonList.add(new GuiButton(504704008, width / 2 - 155, height / 6 + 96 - 6, 150, 20, getChatCopyString()));
         buttonList.add(new GuiButton(504704009, width / 2 + 5, height / 6 + 96 - 6, 150, 20, getAutomaticBackupsString()));
+        buttonList.add(new GuiButton(504704010, width / 2 - 155, height / 6 + 120 - 6, 150, 20, getAutomaticUpdateChecksString()));
         
         buttonList.add(new GuiButton(504704099, width / 2 - 100, height / 6 + 168, 200, 20, "Done"));
     }
@@ -131,6 +132,13 @@ public class SettingsGui extends ScathaProGui {
                     
                     button.displayString = getAutomaticBackupsString();
                     break;
+                    
+                case 504704010:
+                    Config.instance.set(Config.Key.automaticUpdateChecks, !Config.instance.getBoolean(Config.Key.automaticUpdateChecks));
+                    Config.instance.save();
+                    
+                    button.displayString = getAutomaticUpdateChecksString();
+                    break;
                 
                 case 504704099:
                     openParentGui();
@@ -172,6 +180,12 @@ public class SettingsGui extends ScathaProGui {
     
     private String getAutomaticBackupsString() {
         boolean enabled = Config.instance.getBoolean(Config.Key.automaticBackups);
-        return "Automatic Backups: " + getEnabledString(enabled);
+        return "Auto Backups: " + getEnabledString(enabled);
     }
+
+    private String getAutomaticUpdateChecksString() {
+        boolean enabled = Config.instance.getBoolean(Config.Key.automaticUpdateChecks);
+        return "Auto Update Checks: " + getEnabledString(enabled);
+    }
+    
 }

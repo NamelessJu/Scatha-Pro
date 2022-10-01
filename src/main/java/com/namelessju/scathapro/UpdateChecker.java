@@ -26,8 +26,8 @@ import net.minecraft.util.EnumChatFormatting;
 public class UpdateChecker {
     
     private final static String releasesApiUrl = "https://api.github.com/repos/NamelessJu/Scatha-Pro/releases";
-    
-    public static void checkForUpdate() {
+
+    public static void checkForUpdate(final boolean showAllResults) {
         new Thread(new Runnable() {
             public void run() {
                 try {
@@ -67,7 +67,9 @@ public class UpdateChecker {
                                     String updateUrl = JsonUtil.getString(versionObject, "html_url");
                                     
                                     if (versionTag != null) {
-                                        if (compareVersions(ScathaPro.VERSION, versionTag) > 0) {
+                                    	int comparison = compareVersions(ScathaPro.VERSION, versionTag);
+                                    	
+                                        if (comparison > 0) {
                                             ChatComponentText updateNotice = new ChatComponentText(EnumChatFormatting.GOLD.toString() + EnumChatFormatting.ITALIC + "A new version (" + versionTag + ") is available. You can download it ");
                                             
                                             ChatComponentText downloadLink = new ChatComponentText(EnumChatFormatting.BLUE.toString() + EnumChatFormatting.ITALIC + EnumChatFormatting.UNDERLINE + "here");
@@ -86,11 +88,19 @@ public class UpdateChecker {
                                             updateNotice.appendText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GOLD + EnumChatFormatting.ITALIC + ".");
                                             
                                             ChatUtil.sendModChatMessage(updateNotice);
+                                            return;
                                         }
-                                        else break;
+                                        else {
+                                        	if (showAllResults) {
+	                                        	if (comparison < 0) ChatUtil.sendModChatMessage("Your version is newer than the latest public release");
+	                                        	else ChatUtil.sendModChatMessage(EnumChatFormatting.GREEN + "You're using the newest version!");
+                                        	}
+                                        	break;
+                                        }
                                     }
                                 }
                             }
+                            return; // Prevent bubbling down to errors when there's no error
                         }
                         else ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't check for update (response is no array)");
                     }
@@ -102,6 +112,8 @@ public class UpdateChecker {
                 catch (IOException e) {
                     ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't read API response while checking for update");
                 }
+                
+                ChatUtil.sendModErrorMessage("Error while checking for update!");
             }
         }).start();
     }
