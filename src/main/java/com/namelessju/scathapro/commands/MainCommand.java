@@ -9,6 +9,7 @@ import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.OverlayManager;
 import com.namelessju.scathapro.PersistentData;
 import com.namelessju.scathapro.ScathaPro;
+import com.namelessju.scathapro.UpdateChecker;
 import com.namelessju.scathapro.gui.menus.AchievementsGui;
 import com.namelessju.scathapro.gui.menus.SettingsGui;
 import com.namelessju.scathapro.util.ChatUtil;
@@ -54,6 +55,7 @@ public class MainCommand extends CommandBase {
                     + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/scathapro achievements:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Opens the achievements menu\n"
                     + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/scathapro setPetDrops <rare> <epic> <legendary>:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Add pets you dropped previously to your counter\n"
                     + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/scathapro backup:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Creates a backup of your persistent data\n"
+                    + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/scathapro checkUpdate:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Check for an update\n"
                     + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/scathapro resetConfig:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Reset all settings"
             );
         }
@@ -98,6 +100,11 @@ public class MainCommand extends CommandBase {
                 String timeString = date.format(formatter);
                 
                 PersistentData.instance.backup(timeString);
+            }
+            
+            else if (subCommand.equalsIgnoreCase("checkUpdate")) {
+                ChatUtil.sendModChatMessage(EnumChatFormatting.GRAY + "Checking for update...");
+            	UpdateChecker.checkForUpdate(true);
             }
             
             else if (subCommand.equalsIgnoreCase("resetConfig")) {

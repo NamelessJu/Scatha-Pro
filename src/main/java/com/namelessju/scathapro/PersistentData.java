@@ -256,7 +256,8 @@ public class PersistentData {
         petDropsJsonObject.add("epic", new JsonPrimitive(scathaPro.epicPetDrops));
         petDropsJsonObject.add("legendary", new JsonPrimitive(scathaPro.legendaryPetDrops));
         
-        petDropsJsonObject.add("scathaKillsAtLastDrop", new JsonPrimitive(scathaPro.scathaKillsAtLastDrop));
+        if (scathaPro.scathaKillsAtLastDrop >= 0)
+        	petDropsJsonObject.add("scathaKillsAtLastDrop", new JsonPrimitive(scathaPro.scathaKillsAtLastDrop));
         
         PersistentData.instance.set(petDropsKey, petDropsJsonObject);
         

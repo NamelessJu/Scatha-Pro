@@ -242,8 +242,8 @@ public class OverlayManager {
     }
     
     public void updateCoords() {
-        double wallMin = 203D;
-        double wallMax = 823D;
+        double wallMin = 202D;
+        double wallMax = 824D;
         double wallLength = wallMax - wallMin;
         
         EntityPlayer player = mc.thePlayer;
@@ -271,13 +271,11 @@ public class OverlayManager {
                 break;
         }
         
-        double wallProgress = 0D;
-        if (wallDistance > 0D && wallDistance < wallLength) wallProgress = wallDistance / wallLength * 0.98D  + 0.01D;
-        else if (wallDistance >= wallLength) wallProgress = 1D;
+        double wallProgress = Math.min(Math.max((wallDistance - 1D) / (wallLength - 2D), 0D), 1D);
         
-        String coordinatesString = player != null ? (int) Math.floor(player.posX) + " "  + (int) Math.floor(player.posY) + " "  + (int) Math.floor(player.posZ) : "0 0 0";
+        String coordinatesString = player != null ? (int) Math.floor(player.posX) + " "  + (int) Math.floor(player.posY) + " "  + (int) Math.floor(player.posZ) : EnumChatFormatting.OBFUSCATED + "0 0 0";
         
-        coordsText.setText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.WHITE + coordinatesString + " " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + facingAxis + " (" + Util.numberToString(wallProgress * 100f, 0) + "% to wall)");
+        coordsText.setText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.WHITE + coordinatesString + " " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + facingAxis + " (" + Util.numberToString(Math.floor(wallProgress * 1000D) / 10D, 1) + "% to wall)");
     }
     
     public void updateScathaKillsAtLastDrop() {

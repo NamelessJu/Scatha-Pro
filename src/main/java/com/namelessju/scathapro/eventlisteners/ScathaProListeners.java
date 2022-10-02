@@ -72,17 +72,8 @@ public class ScathaProListeners {
         
         // Reset b2b scatha pet drop
         
-        if (droppedPetAtLastScatha && lastKillIsScatha && now - lastKillTime > ScathaPro.pingTreshold && lastPetDropTime < lastKillTime) droppedPetAtLastScatha = false;
-        
-        
-        // Update UI overlay
-        
-        if (Config.instance.getBoolean(Config.Key.overlay) && !Minecraft.getMinecraft().gameSettings.showDebugInfo) {
-            OverlayManager.instance.updateCoords();
-            OverlayManager.instance.updateDay();
-            
-            OverlayManager.instance.updatePosition();
-        }
+        if (droppedPetAtLastScatha && lastKillIsScatha && now - lastKillTime > ScathaPro.pingTreshold && lastPetDropTime < lastKillTime)
+        	droppedPetAtLastScatha = false;
         
         
         // Achievements

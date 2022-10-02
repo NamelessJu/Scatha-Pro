@@ -32,11 +32,11 @@ public class APIListeners {
                 for (JsonElement profile : profiles) {
                     if (profile == null || !profile.isJsonObject()) break;
                     
-                    JsonObject playerData = JsonUtil.getJsonObject(JsonUtil.getJsonObject(profile, "members"), Util.getPlayerUUIDString());
-                    Long lastSave = JsonUtil.getLong(playerData, "last_save");
+                    Long lastSave = JsonUtil.getLong(profile, "last_save");
                     
                     if (lastSave != null && lastSave > latestSave) {
                         latestSave = lastSave;
+                        JsonObject playerData = JsonUtil.getJsonObject(JsonUtil.getJsonObject(profile, "members"), Util.getPlayerUUIDString());
                         profilePlayerData = playerData;
                     }
                 }

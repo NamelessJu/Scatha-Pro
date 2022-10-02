@@ -131,7 +131,8 @@ public class LoopListeners {
                 
                 
                 if (firstIngameFrame) {
-                    UpdateChecker.checkForUpdate();
+                    if (Config.instance.getBoolean(Config.Key.automaticUpdateChecks))
+                    	UpdateChecker.checkForUpdate(false);
                     
                     firstIngameFrame = false;
                 }
@@ -392,6 +393,16 @@ public class LoopListeners {
                             MinecraftForge.EVENT_BUS.post(new ScathaPetDropEvent(pet));
                             receivedPets.remove(i);
                         }
+                    }
+                    
+                    
+                    // Update UI overlay
+                    
+                    if (Config.instance.getBoolean(Config.Key.overlay) && !Minecraft.getMinecraft().gameSettings.showDebugInfo) {
+                        OverlayManager.instance.updateCoords();
+                        OverlayManager.instance.updateDay();
+                        
+                        OverlayManager.instance.updatePosition();
                     }
                     
                 }

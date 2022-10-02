@@ -38,6 +38,8 @@ public class Config {
         showRotationAngles("other", "showRotationAngles", false),
         chatCopy("other", "chatCopy", false),
         automaticBackups("other", "automaticBackups", true),
+        automaticUpdateChecks("other", "automaticUpdateChecks", true),
+        
         devMode("other", "devMode", false);
         
         
