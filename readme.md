@@ -1,3 +1,10 @@
+# Download
+
+You can get all versions from the [Releases](https://github.com/NamelessJu/Scatha-Pro/releases) page.   
+_Make sure you download the .jar-file, not the source code!_
+
+**Friendly reminder to only download mods you trust and only from the original source, make sure you don't get ratted!**
+
 # Features
 
 ## UI overlay in the Crystal Hollows
