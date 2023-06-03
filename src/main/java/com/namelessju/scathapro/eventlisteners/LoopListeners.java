@@ -403,6 +403,8 @@ public class LoopListeners {
                         OverlayManager.instance.updateDay();
                         
                         OverlayManager.instance.updatePosition();
+
+                        OverlayManager.instance.updateCooldownProgressBar();
                     }
                     
                 }

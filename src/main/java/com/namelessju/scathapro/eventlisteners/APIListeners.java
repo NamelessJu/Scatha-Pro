@@ -61,7 +61,6 @@ public class APIListeners {
                         OverlayManager.instance.updateScathaKillsAtLastDrop();
 
                         scathaPro.updateKillAchievements();
-                        
                     }
                     
                     JsonObject collectionJson = JsonUtil.getJsonObject(profilePlayerData, "collection");
@@ -81,7 +80,7 @@ public class APIListeners {
                     return;
                 }
             }
-
+            
             ChatUtil.sendModErrorMessage("Couldn't load data from Hypixel API: No skyblock profiles found");
             scathaPro.repeatProfilesDataRequest = false;
         }

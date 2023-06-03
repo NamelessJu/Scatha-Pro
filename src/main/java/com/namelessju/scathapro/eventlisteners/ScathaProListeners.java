@@ -133,6 +133,8 @@ public class ScathaProListeners {
                 if (!AlertMode.playModeSound("worm")) SoundUtil.playSound("random.levelup", 1f, 0.5f);
             }
         }
+        
+        scathaPro.lastWormSpawnTime = Util.getCurrentTime();
 
         scathaPro.updateSpawnAchievements();
         
