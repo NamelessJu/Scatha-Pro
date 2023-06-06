@@ -34,7 +34,7 @@ public class PersistentData {
 
     public static final PersistentData instance = new PersistentData();
     
-    private static final File saveFile = Util.getModFile("persistentData.json");
+    private static final File saveFile = FileManager.getModFile("persistentData.json");
     private static final String unlockedAchievementsKey = "unlockedAchievements";
     private static final String petDropsKey = "petDrops";
 
@@ -99,7 +99,7 @@ public class PersistentData {
         backup(name, false);
     }
     public void backup(String name, boolean overwrite) {
-        File backupFile = Util.getModFile("backups/persistentData-" + name + ".json");
+        File backupFile = FileManager.getModFile("backups/persistentData-" + name + ".json");
 
         File backupFolder = backupFile.getParentFile();
         if (!backupFolder.exists()) backupFolder.mkdirs();

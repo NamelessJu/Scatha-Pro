@@ -2,8 +2,6 @@ package com.namelessju.scathapro;
 
 import java.io.File;
 
-import com.namelessju.scathapro.util.Util;
-
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 import net.minecraftforge.fml.common.Loader;
@@ -59,13 +57,19 @@ public class Config {
     }
     
     private Config() {
-        File legacyConfigFile = new File(Loader.instance().getConfigDir(), ScathaPro.MODID + ".cfg");
-        File configFile = Util.getModFile("config.cfg");
+        File legacyConfigFile = new File(Loader.instance().getConfigDir(), "scathapro.cfg");
+        if (legacyConfigFile.exists()) legacyConfigFile.renameTo(getFile());
         
-        if (legacyConfigFile.exists()) legacyConfigFile.renameTo(configFile);
-        
-        config = new Configuration(configFile);
+        updateFile();
+    }
+    
+    public void updateFile() {
+        config = new Configuration(getFile());
         config.load();
+    }
+    
+    private File getFile() {
+    	return FileManager.getModFile("config.cfg");
     }
     
     

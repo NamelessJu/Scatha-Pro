@@ -77,22 +77,23 @@ public class OverlayManager {
         
         
         killsContainer = new OverlayContainer(28, 0, 1f);
-
-        killsContainer.add(spawnCooldownProgressBar = new OverlayProgressBar(1, 10, 81, 21, 1f, 0x50FFFFFF, -1));
         
         OverlayText wormKillsTitle = new OverlayText("Worms", Util.Color.YELLOW.getValue(), 18, 0, 1f);
         wormKillsTitle.setAlignment(Alignment.CENTER);
         killsContainer.add(wormKillsTitle);
+        OverlayText overlayScathaKillsTitle = new OverlayText("Scathas", Util.Color.YELLOW.getValue(), 61, 0, 1f);
+        overlayScathaKillsTitle.setAlignment(Alignment.CENTER);
+        killsContainer.add(overlayScathaKillsTitle);
+        
         killsContainer.add(new OverlayImage("overlay/worm.png", 512, 256, -2, 10, 0.08f));
+        killsContainer.add(new OverlayImage("overlay/scatha.png", 512, 256, 41, 10, 0.08f));
+
+        killsContainer.add(spawnCooldownProgressBar = new OverlayProgressBar(2, 10, 79, 21, 1f, 0x50FFFFFF, -1));
+        
         killsContainer.add(overallWormKillsText = new OverlayText(null, Util.Color.WHITE.getValue(), 18, 11, 1f));
         overallWormKillsText.setAlignment(Alignment.CENTER);
         killsContainer.add(regularWormKillsText = new OverlayText(null, Util.Color.GRAY.getValue(), 18, 22, 1f));
         regularWormKillsText.setAlignment(Alignment.CENTER);
-        
-        OverlayText overlayScathaKillsTitle = new OverlayText("Scathas", Util.Color.YELLOW.getValue(), 61, 0, 1f);
-        overlayScathaKillsTitle.setAlignment(Alignment.CENTER);
-        killsContainer.add(overlayScathaKillsTitle);
-        killsContainer.add(new OverlayImage("overlay/scatha.png", 512, 256, 41, 10, 0.08f));
         killsContainer.add(overallScathaKillsText = new OverlayText(null, Util.Color.WHITE.getValue(), 61, 11, 1f));
         overallScathaKillsText.setAlignment(Alignment.CENTER);
         killsContainer.add(scathaKillsText = new OverlayText(null, Util.Color.GRAY.getValue(), 61, 22, 1f));
@@ -290,7 +291,7 @@ public class OverlayManager {
     
     public void updateCooldownProgressBar() {
     	if (scathaPro.lastWormSpawnTime >= 0f) {
-        	spawnCooldownProgressBar.setProgress((Util.getCurrentTime() - scathaPro.lastWormSpawnTime) / 30000f);    		
+        	spawnCooldownProgressBar.setProgress(1f - ((Util.getCurrentTime() - scathaPro.lastWormSpawnTime) / 30000f));
     	}
     	else {
         	spawnCooldownProgressBar.setProgress(0f);

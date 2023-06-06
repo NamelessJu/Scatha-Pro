@@ -141,6 +141,10 @@ public enum Achievement {
     public float getProgress() {
         return progress;
     }
+    
+    public void unlock() {
+    	setProgress(goal);
+    }
 
     public static Achievement getByID(String id) {
         Achievement achievement = null;
