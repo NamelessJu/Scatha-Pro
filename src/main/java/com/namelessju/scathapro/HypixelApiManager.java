@@ -16,36 +16,36 @@ import java.net.URL;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.Event;
 
-public class API {
+public class HypixelApiManager {
 
-    public abstract static class APIEvent extends Event {
+    public abstract static class HypixelApiEvent extends Event {
         public final String endpoint;
 
-        public APIEvent(String endpoint)
+        public HypixelApiEvent(String endpoint)
         {
             super();
             this.endpoint = endpoint;
         }
     }
     
-    public static class APIResponseEvent extends APIEvent {
+    public static class HypixelApiResponseEvent extends HypixelApiEvent {
         public final JsonObject json;
 
-        public APIResponseEvent(String endpoint, JsonObject json)
+        public HypixelApiResponseEvent(String endpoint, JsonObject json)
         {
             super(endpoint);
             this.json = json;
         }
     }
     
-    public static class APIErrorEvent extends APIEvent {
+    public static class HypixelApiErrorEvent extends HypixelApiEvent {
         public final ErrorType errorType;
         
         public enum ErrorType {
             MALFORMED_URL, IO, MISSING_PARAMS, ACCESS_DENIED, DATA_UNAVAILABLE, INVALID_PARAMS, REQUEST_LIMIT_REACHED, DATA_NOT_AVAILABLE_YET, UNKNOWN; 
         }
 
-        public APIErrorEvent(String endpoint, ErrorType errorType)
+        public HypixelApiErrorEvent(String endpoint, ErrorType errorType)
         {
             super(endpoint);
             this.errorType = errorType;
@@ -107,48 +107,48 @@ public class API {
         
                                 JsonObject json = new JsonParser().parse(response.toString()).getAsJsonObject();
                                 
-                                MinecraftForge.EVENT_BUS.post(new APIResponseEvent(endpoint, json));
+                                MinecraftForge.EVENT_BUS.post(new HypixelApiResponseEvent(endpoint, json));
                                 break;
                                 
                             case 400:
                                 sendApiErrorMessage("Missing parameters");
-                                MinecraftForge.EVENT_BUS.post(new APIErrorEvent(endpoint, APIErrorEvent.ErrorType.MISSING_PARAMS));
+                                MinecraftForge.EVENT_BUS.post(new HypixelApiErrorEvent(endpoint, HypixelApiErrorEvent.ErrorType.MISSING_PARAMS));
                                 break;
                             case 403:
                                 sendApiErrorMessage("Access denied, make sure the API key is correct");
-                                MinecraftForge.EVENT_BUS.post(new APIErrorEvent(endpoint, APIErrorEvent.ErrorType.ACCESS_DENIED));
+                                MinecraftForge.EVENT_BUS.post(new HypixelApiErrorEvent(endpoint, HypixelApiErrorEvent.ErrorType.ACCESS_DENIED));
                                 break;
                             case 404:
                                 sendApiErrorMessage("Data does not exist");
-                                MinecraftForge.EVENT_BUS.post(new APIErrorEvent(endpoint, APIErrorEvent.ErrorType.DATA_UNAVAILABLE));
+                                MinecraftForge.EVENT_BUS.post(new HypixelApiErrorEvent(endpoint, HypixelApiErrorEvent.ErrorType.DATA_UNAVAILABLE));
                                 break;
                             case 422:
                                 sendApiErrorMessage("Invalid parameters");
-                                MinecraftForge.EVENT_BUS.post(new APIErrorEvent(endpoint, APIErrorEvent.ErrorType.INVALID_PARAMS));
+                                MinecraftForge.EVENT_BUS.post(new HypixelApiErrorEvent(endpoint, HypixelApiErrorEvent.ErrorType.INVALID_PARAMS));
                                 break;
                             case 429:
                                 sendApiErrorMessage("Request limit reached");
-                                MinecraftForge.EVENT_BUS.post(new APIErrorEvent(endpoint, APIErrorEvent.ErrorType.REQUEST_LIMIT_REACHED));
+                                MinecraftForge.EVENT_BUS.post(new HypixelApiErrorEvent(endpoint, HypixelApiErrorEvent.ErrorType.REQUEST_LIMIT_REACHED));
                                 break;
                             case 503:
                                 sendApiErrorMessage("Data not available yet");
-                                MinecraftForge.EVENT_BUS.post(new APIErrorEvent(endpoint, APIErrorEvent.ErrorType.DATA_NOT_AVAILABLE_YET));
+                                MinecraftForge.EVENT_BUS.post(new HypixelApiErrorEvent(endpoint, HypixelApiErrorEvent.ErrorType.DATA_NOT_AVAILABLE_YET));
                                 break;
                                 
                             default:
                                 sendApiErrorMessage("Unknown error");
-                                MinecraftForge.EVENT_BUS.post(new APIErrorEvent(endpoint, APIErrorEvent.ErrorType.UNKNOWN));
+                                MinecraftForge.EVENT_BUS.post(new HypixelApiErrorEvent(endpoint, HypixelApiErrorEvent.ErrorType.UNKNOWN));
                         }
                     }
                     catch (MalformedURLException e) {
                         e.printStackTrace();
                         sendApiErrorMessage("Invalid request URL");
-                        MinecraftForge.EVENT_BUS.post(new APIErrorEvent(endpoint, APIErrorEvent.ErrorType.MALFORMED_URL));
+                        MinecraftForge.EVENT_BUS.post(new HypixelApiErrorEvent(endpoint, HypixelApiErrorEvent.ErrorType.MALFORMED_URL));
                     }
                     catch (IOException e) {
                         e.printStackTrace();
                         sendApiErrorMessage("Data couldn't be read");
-                        MinecraftForge.EVENT_BUS.post(new APIErrorEvent(endpoint, APIErrorEvent.ErrorType.IO));
+                        MinecraftForge.EVENT_BUS.post(new HypixelApiErrorEvent(endpoint, HypixelApiErrorEvent.ErrorType.IO));
                     }
                 }
             }).start();

@@ -7,6 +7,7 @@ import com.namelessju.scathapro.events.OverlayInitEvent;
 import com.namelessju.scathapro.overlay.OverlayContainer;
 import com.namelessju.scathapro.overlay.OverlayElement;
 import com.namelessju.scathapro.overlay.OverlayImage;
+import com.namelessju.scathapro.overlay.OverlayProgressBar;
 import com.namelessju.scathapro.overlay.OverlayText;
 import com.namelessju.scathapro.overlay.OverlayElement.Alignment;
 import com.namelessju.scathapro.util.Util;
@@ -31,6 +32,7 @@ public class OverlayManager {
     private final OverlayText regularWormKillsText;
     private final OverlayText overallScathaKillsText;
     private final OverlayText scathaKillsText;
+    private final OverlayProgressBar spawnCooldownProgressBar;
     private final OverlayText overallTotalKillsText;
     private final OverlayText totalKillsText;
     private final OverlayText wormStreakText;
@@ -79,16 +81,19 @@ public class OverlayManager {
         OverlayText wormKillsTitle = new OverlayText("Worms", Util.Color.YELLOW.getValue(), 18, 0, 1f);
         wormKillsTitle.setAlignment(Alignment.CENTER);
         killsContainer.add(wormKillsTitle);
+        OverlayText overlayScathaKillsTitle = new OverlayText("Scathas", Util.Color.YELLOW.getValue(), 61, 0, 1f);
+        overlayScathaKillsTitle.setAlignment(Alignment.CENTER);
+        killsContainer.add(overlayScathaKillsTitle);
+        
         killsContainer.add(new OverlayImage("overlay/worm.png", 512, 256, -2, 10, 0.08f));
+        killsContainer.add(new OverlayImage("overlay/scatha.png", 512, 256, 41, 10, 0.08f));
+
+        killsContainer.add(spawnCooldownProgressBar = new OverlayProgressBar(2, 10, 79, 21, 1f, 0x50FFFFFF, -1));
+        
         killsContainer.add(overallWormKillsText = new OverlayText(null, Util.Color.WHITE.getValue(), 18, 11, 1f));
         overallWormKillsText.setAlignment(Alignment.CENTER);
         killsContainer.add(regularWormKillsText = new OverlayText(null, Util.Color.GRAY.getValue(), 18, 22, 1f));
         regularWormKillsText.setAlignment(Alignment.CENTER);
-        
-        OverlayText overlayScathaKillsTitle = new OverlayText("Scathas", Util.Color.YELLOW.getValue(), 61, 0, 1f);
-        overlayScathaKillsTitle.setAlignment(Alignment.CENTER);
-        killsContainer.add(overlayScathaKillsTitle);
-        killsContainer.add(new OverlayImage("overlay/scatha.png", 512, 256, 41, 10, 0.08f));
         killsContainer.add(overallScathaKillsText = new OverlayText(null, Util.Color.WHITE.getValue(), 61, 11, 1f));
         overallScathaKillsText.setAlignment(Alignment.CENTER);
         killsContainer.add(scathaKillsText = new OverlayText(null, Util.Color.GRAY.getValue(), 61, 22, 1f));
@@ -129,6 +134,8 @@ public class OverlayManager {
         updateWormKills();
         updateScathaKills();
         updateTotalKills();
+
+        updateCooldownProgressBar();
 
         updateWormStreak();
         updateCoords();
@@ -233,8 +240,8 @@ public class OverlayManager {
         int worldTimeMinutes = (int) Math.floor((worldTimeDay - worldTimeHours * 1000f) / 1000f * 60f);
         
         EnumChatFormatting dayColor = EnumChatFormatting.WHITE;
-        if (worldDay >= 14 && Util.inCrystalHollows()) {
-            if (worldDay >= 15) dayColor = EnumChatFormatting.DARK_RED;
+        if (worldDay >= 29 && Util.inCrystalHollows()) {
+            if (worldDay >= 30) dayColor = EnumChatFormatting.DARK_RED;
             else dayColor = EnumChatFormatting.RED;
         }
         
@@ -280,6 +287,15 @@ public class OverlayManager {
     
     public void updateScathaKillsAtLastDrop() {
         scathaKillsAtLastDropText.setText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + "Scathas since last pet drop: " + (scathaPro.overallScathaKills >= 0 && scathaPro.scathaKillsAtLastDrop >= 0 ? scathaPro.overallScathaKills - scathaPro.scathaKillsAtLastDrop : EnumChatFormatting.OBFUSCATED + "?"));
+    }
+    
+    public void updateCooldownProgressBar() {
+    	if (scathaPro.lastWormSpawnTime >= 0f) {
+        	spawnCooldownProgressBar.setProgress(1f - ((Util.getCurrentTime() - scathaPro.lastWormSpawnTime) / 30000f));
+    	}
+    	else {
+        	spawnCooldownProgressBar.setProgress(0f);
+    	}
     }
 
 }

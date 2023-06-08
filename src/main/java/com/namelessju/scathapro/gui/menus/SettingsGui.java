@@ -2,7 +2,7 @@ package com.namelessju.scathapro.gui.menus;
 
 import java.io.IOException;
 
-import com.namelessju.scathapro.API;
+import com.namelessju.scathapro.HypixelApiManager;
 import com.namelessju.scathapro.AlertMode;
 import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.OverlayManager;
@@ -63,7 +63,7 @@ public class SettingsGui extends ScathaProGui {
     public void onGuiClosed() {
         if (!Config.instance.getString(Config.Key.apiKey).equals(apiKeyInitialValue)) {
             ScathaPro.getInstance().repeatProfilesDataRequest = true;
-            if (ScathaPro.getInstance().profilesDataRequestNeeded()) API.requestProfilesData();
+            if (ScathaPro.getInstance().profilesDataRequestNeeded()) HypixelApiManager.requestProfilesData();
         }
     }
     

@@ -17,7 +17,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.EnumChatFormatting;
 
 public class DevCommand extends CommandBase {
 
@@ -41,17 +40,7 @@ public class DevCommand extends CommandBase {
         if (args.length > 0) {
             String subCommand = args[0];
             
-            if (subCommand.equalsIgnoreCase("help")) {
-                sender.addChatMessage(new ChatComponentText(
-                        ScathaPro.CHATPREFIX + EnumChatFormatting.RESET + "/scathadev <subcommand> [values...]\n" +
-                        "All subcommands:\n" +
-                        "- getEntities (copies info for all entities around you into the clipboard)\n" +
-                        "- getItem (copies info for the held item into the clipboard)\n" +
-                        "- achievementsUA (unlock all achievements)"
-                ));
-            }
-            
-            else if (subCommand.equalsIgnoreCase("getEntities")) {
+            if (subCommand.equalsIgnoreCase("getEntities")) {
                 Entity senderEntity = sender.getCommandSenderEntity();
                 if (senderEntity != null && senderEntity instanceof EntityPlayer) {
                     
@@ -111,11 +100,15 @@ public class DevCommand extends CommandBase {
                     sender.addChatMessage(new ChatComponentText(args[1] + " and " + args[2] + " are the same"));
             }
             
-            else if (subCommand.equalsIgnoreCase("achievementsUA")) {
+            else if (subCommand.equalsIgnoreCase("achievementsUnlockAll")) {
                 Achievement[] achievements = AchievementManager.getAllAchievements();
                 for (int i = 0; i < achievements.length; i ++) {
-                    achievements[i].setProgress(achievements[i].goal);
+                    achievements[i].unlock();
                 }
+            }
+            
+            else if (subCommand.equalsIgnoreCase("triggerWormSpawnCooldown")) {
+            	ScathaPro.getInstance().lastWormSpawnTime = Util.getCurrentTime();
             }
             
             else throw new CommandException("Invalid subcommand");

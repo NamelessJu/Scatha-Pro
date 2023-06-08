@@ -3,7 +3,7 @@ package com.namelessju.scathapro.eventlisteners;
 import java.util.List;
 
 import com.google.gson.JsonPrimitive;
-import com.namelessju.scathapro.API;
+import com.namelessju.scathapro.HypixelApiManager;
 import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.OverlayManager;
 import com.namelessju.scathapro.PersistentData;
@@ -101,7 +101,7 @@ public class MiscListeners {
             // API request
             
             if (scathaPro.repeatProfilesDataRequest && Util.getCurrentTime() - scathaPro.lastProfilesDataRequestTime > 1000 * 60 * 5)
-                API.requestProfilesData();
+                HypixelApiManager.requestProfilesData();
         }
     }
     
@@ -159,7 +159,7 @@ public class MiscListeners {
             ChatUtil.sendModChatMessage("Automatically updated API key to " + apiKey);
 
             ScathaPro.getInstance().repeatProfilesDataRequest = true;
-            if (scathaPro.profilesDataRequestNeeded()) API.requestProfilesData();
+            if (scathaPro.profilesDataRequestNeeded()) HypixelApiManager.requestProfilesData();
         }
         
         // Add copy button

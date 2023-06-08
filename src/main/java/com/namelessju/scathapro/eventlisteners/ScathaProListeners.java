@@ -107,11 +107,11 @@ public class ScathaProListeners {
             scathaPro.wormStreak ++;
             
             if (Util.getCurrentTime() - scathaPro.lastWorldJoinTime <= Achievement.scatha_spawn_time.goal * 60 * 1000) 
-                Achievement.scatha_spawn_time.setProgress(Achievement.scatha_spawn_time.goal);
+                Achievement.scatha_spawn_time.unlock();
             if (e.worm.armorStand.posY > 186)
-                Achievement.scatha_spawn_chtop.setProgress(Achievement.scatha_spawn_chtop.goal);
+                Achievement.scatha_spawn_chtop.unlock();
             else if (e.worm.armorStand.posY < 32.5)
-                Achievement.scatha_spawn_chbottom.setProgress(Achievement.scatha_spawn_chbottom.goal);
+                Achievement.scatha_spawn_chbottom.unlock();
             
             if (Config.instance.getBoolean(Config.Key.scathaAlert)) {
                 mc.ingameGUI.displayTitle(null, null, 0, 40, 10);
@@ -133,6 +133,8 @@ public class ScathaProListeners {
                 if (!AlertMode.playModeSound("worm")) SoundUtil.playSound("random.levelup", 1f, 0.5f);
             }
         }
+        
+        scathaPro.lastWormSpawnTime = Util.getCurrentTime();
 
         scathaPro.updateSpawnAchievements();
         
@@ -142,7 +144,7 @@ public class ScathaProListeners {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onWormHit(WormHitEvent e) {
         String skyblockItemID = NBTUtil.getSkyblockItemID(e.weapon);
-        if (skyblockItemID != null && skyblockItemID.equals("DIRT") && e.worm.isScatha) Achievement.scatha_hit_dirt.setProgress(Achievement.scatha_hit_dirt.goal);
+        if (skyblockItemID != null && skyblockItemID.equals("DIRT") && e.worm.isScatha) Achievement.scatha_hit_dirt.unlock();
     }
     
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -152,9 +154,9 @@ public class ScathaProListeners {
             scathaPro.scathaKills ++;
             if (scathaPro.overallScathaKills >= 0) scathaPro.overallScathaKills ++;
             
-            if (worm.getHitWeaponsCount() >= Achievement.kill_weapons_scatha.goal) Achievement.kill_weapons_scatha.setProgress(Achievement.kill_weapons_scatha.goal);
-            if (worm.getHitWeaponsCount() > 0 && worm.getHitWeapons()[worm.getHitWeaponsCount() - 1].equals("TERMINATOR")) Achievement.scatha_kill_terminator.setProgress(Achievement.scatha_kill_terminator.goal);
-            if (mc.thePlayer.isSneaking() && lastSneakStartTime >= 0 && worm.spawnTime >= lastSneakStartTime) Achievement.scatha_kill_sneak.setProgress(Achievement.scatha_kill_sneak.goal);
+            if (worm.getHitWeaponsCount() >= Achievement.kill_weapons_scatha.goal) Achievement.kill_weapons_scatha.unlock();
+            if (worm.getHitWeaponsCount() > 0 && worm.getHitWeapons()[worm.getHitWeaponsCount() - 1].equals("TERMINATOR")) Achievement.scatha_kill_terminator.unlock();
+            if (mc.thePlayer.isSneaking() && lastSneakStartTime >= 0 && worm.spawnTime >= lastSneakStartTime) Achievement.scatha_kill_sneak.unlock();
             
             lastKillIsScatha = true;
             
@@ -165,7 +167,7 @@ public class ScathaProListeners {
             scathaPro.regularWormKills ++;
             if (scathaPro.overallRegularWormKills >= 0) scathaPro.overallRegularWormKills ++;
             
-            if (worm.getHitWeaponsCount() >= Achievement.kill_weapons_regular_worm.goal) Achievement.kill_weapons_regular_worm.setProgress(Achievement.kill_weapons_regular_worm.goal);
+            if (worm.getHitWeaponsCount() >= Achievement.kill_weapons_regular_worm.goal) Achievement.kill_weapons_regular_worm.unlock();
             
             lastKillIsScatha = false;
 
@@ -176,15 +178,15 @@ public class ScathaProListeners {
         
         scathaPro.updateKillAchievements();
         
-        if (worm.getLifetime() <= Achievement.worm_kill_time_1.goal * 1000) Achievement.worm_kill_time_1.setProgress(Achievement.worm_kill_time_1.goal);
-        else if (worm.getLifetime() >= Achievement.worm_kill_time_2.goal * 1000) Achievement.worm_kill_time_2.setProgress(Achievement.worm_kill_time_2.goal);
+        if (worm.getLifetime() <= Achievement.worm_kill_time_1.goal * 1000) Achievement.worm_kill_time_1.unlock();
+        else if (worm.getLifetime() >= Achievement.worm_kill_time_2.goal * 1000) Achievement.worm_kill_time_2.unlock();
         
         lastKillTime = Util.getCurrentTime();
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onWormDespawn(WormDespawnEvent e) {
-        if (e.worm.getLifetime() >= 29 * 1000) Achievement.worm_despawn.setProgress(Achievement.worm_despawn.goal);
+        if (e.worm.getLifetime() >= 29 * 1000) Achievement.worm_despawn.unlock();
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -223,17 +225,17 @@ public class ScathaProListeners {
         
         switch (Config.instance.getInt(Config.Key.mode)) {
             case 0:
-                Achievement.scatha_pet_drop_mode_normal.setProgress(Achievement.scatha_pet_drop_mode_normal.goal);
+                Achievement.scatha_pet_drop_mode_normal.unlock();
                 break;
             case 1:
-                Achievement.scatha_pet_drop_mode_meme.setProgress(Achievement.scatha_pet_drop_mode_meme.goal);
+                Achievement.scatha_pet_drop_mode_meme.unlock();
                 break;
             case 2:
-                Achievement.scatha_pet_drop_mode_anime.setProgress(Achievement.scatha_pet_drop_mode_anime.goal);
+                Achievement.scatha_pet_drop_mode_anime.unlock();
                 break;
         }
         
-        if ((scathaPro.scathaKillsAtLastDrop >= 0 && scathaPro.overallScathaKills >= 0 && scathaPro.overallScathaKills == scathaPro.scathaKillsAtLastDrop + 1) || droppedPetAtLastScatha) Achievement.scatha_pet_drop_b2b.setProgress(Achievement.scatha_pet_drop_b2b.goal);
+        if ((scathaPro.scathaKillsAtLastDrop >= 0 && scathaPro.overallScathaKills >= 0 && scathaPro.overallScathaKills == scathaPro.scathaKillsAtLastDrop + 1) || droppedPetAtLastScatha) Achievement.scatha_pet_drop_b2b.unlock();
         if (scathaPro.overallScathaKills >= 0) {
             scathaPro.scathaKillsAtLastDrop = scathaPro.overallScathaKills;
             OverlayManager.instance.updateScathaKillsAtLastDrop();
@@ -303,7 +305,7 @@ public class ScathaProListeners {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onMeetDeveloper(MeetDeveloperEvent e) {
-        Achievement.meet_developer.setProgress(Achievement.meet_developer.goal);
+        Achievement.meet_developer.unlock();
     }
     
 }

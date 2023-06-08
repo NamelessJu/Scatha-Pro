@@ -3,7 +3,6 @@ package com.namelessju.scathapro.util;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.io.File;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Collection;
@@ -12,7 +11,6 @@ import java.util.UUID;
 
 import com.mojang.authlib.GameProfile;
 import com.namelessju.scathapro.Config;
-import com.namelessju.scathapro.ScathaPro;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.NetHandlerPlayClient;
@@ -25,7 +23,7 @@ import net.minecraft.util.IChatComponent;
 public abstract class Util {
     
     public enum Color {
-        DARK_RED(11141120), RED(16733525), GOLD(16755200), YELLOW(16777045), DARK_GREEN(43520), GREEN(5635925), AQUA(5636095), DARK_AQUA(43690), DARK_BLUE(170), BLUE(5592575), LIGHT_PURPLE(16733695), DARK_PURPLE(11141290), WHITE(16777215), GRAY(11184810), DARK_GRAY(5592405), BLACK(0);
+        DARK_RED(0xAA0000), RED(0xFF5555), GOLD(0xFFAA00), YELLOW(16777045), DARK_GREEN(0x00AA00), GREEN(0x55FF55), AQUA(0x55FFFF), DARK_AQUA(0x00AAAA), DARK_BLUE(0x0000AA), BLUE(0x5555FF), LIGHT_PURPLE(0xFF55FF), DARK_PURPLE(0xAA00AA), WHITE(0xFFFFFF), GRAY(0xAAAAAA), DARK_GRAY(0x555555), BLACK(0x000000);
         
         private final int value;
         
@@ -124,13 +122,6 @@ public abstract class Util {
         StringSelection selection = new StringSelection(str);
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         clipboard.setContents(selection, selection);
-    }
-    
-    public static File getModFile(String relativePath) {
-        File modFolder = new File(Minecraft.getMinecraft().mcDataDir, "mods/" + ScathaPro.MODID + "/");
-        if (!modFolder.exists()) modFolder.mkdirs();
-        
-        return new File(modFolder, relativePath);
     }
     
     public static float calculatePetChance(float initialChance, int magicFind, int petLuck, int looting) {

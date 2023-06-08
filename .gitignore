@@ -5,7 +5,8 @@ build/
 .gradle/
 .classpath
 .project
-Scatha Pro_Client.launch
-Scatha Pro_Server.launch
+*.launch
 *.log
 *.lnk
+/*.txt
+eclipse/

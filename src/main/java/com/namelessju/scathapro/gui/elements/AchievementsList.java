@@ -1,9 +1,10 @@
 package com.namelessju.scathapro.gui.elements;
 
-import java.text.SimpleDateFormat;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.Locale;
 
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
@@ -74,7 +75,12 @@ public class AchievementsList extends Gui {
                 if (unlocked) {
                     fontRenderer.drawString(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + EnumChatFormatting.BOLD + achievement.name + (achievement.type.string != null ? EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + " [" + achievement.type.string + EnumChatFormatting.RESET + EnumChatFormatting.GREEN + "]" : ""), cardX + cardPadding, cardY + cardPadding, Util.Color.WHITE.getValue(), true);
 
-                    String unlockedString = EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + new SimpleDateFormat("dd.MM.yyyy HH:mm").format(new Date(AchievementManager.instance.getUnlockedAchievement(achievement).unlockedAtTimestamp));
+                    Date unlockedDate = new Date(AchievementManager.instance.getUnlockedAchievement(achievement).unlockedAtTimestamp);
+                    Locale locale = Locale.getDefault();
+                    String formattedDate = DateFormat.getDateInstance(DateFormat.MEDIUM, locale).format(unlockedDate);
+                    String formattedTime = DateFormat.getTimeInstance(DateFormat.SHORT, locale).format(unlockedDate);
+                    
+                    String unlockedString = EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + formattedDate + " " + formattedTime;
                     fontRenderer.drawString(unlockedString, cardX + width - cardPadding - fontRenderer.getStringWidth(unlockedString), cardY + cardPadding, Util.Color.WHITE.getValue(), true);
                 }
                 else fontRenderer.drawString(EnumChatFormatting.RESET + achievement.name + (achievement.type.string != null ? " [" + achievement.type.string + EnumChatFormatting.RESET + "]" : ""), cardX + cardPadding, cardY + cardPadding, Util.Color.WHITE.getValue(), true);
