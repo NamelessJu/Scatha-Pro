@@ -34,7 +34,7 @@ public class PersistentData {
 
     public static final PersistentData instance = new PersistentData();
     
-    private static final File saveFile = FileManager.getModFile("persistentData.json");
+    private static final File saveFile = SaveManager.getModFile("persistentData.json");
     private static final String unlockedAchievementsKey = "unlockedAchievements";
     private static final String petDropsKey = "petDrops";
 
@@ -99,7 +99,7 @@ public class PersistentData {
         backup(name, false);
     }
     public void backup(String name, boolean overwrite) {
-        File backupFile = FileManager.getModFile("backups/persistentData-" + name + ".json");
+        File backupFile = SaveManager.getModFile("backups/persistentData_" + name + ".json");
 
         File backupFolder = backupFile.getParentFile();
         if (!backupFolder.exists()) backupFolder.mkdirs();
@@ -115,7 +115,7 @@ public class PersistentData {
 
             ChatComponentText message = new ChatComponentText("Created persistent data backup as ");
 
-            ChatComponentText path = new ChatComponentText(EnumChatFormatting.UNDERLINE + "persistentData-" + name + ".json");
+            ChatComponentText path = new ChatComponentText(EnumChatFormatting.UNDERLINE + "persistentData_" + name + ".json");
             ChatStyle pathStyle = new ChatStyle()
                     .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.GRAY + "Open backup folder")))
                     .setChatClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, backupFolder.getCanonicalPath()));

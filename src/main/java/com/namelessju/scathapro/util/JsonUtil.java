@@ -68,6 +68,11 @@ public abstract class JsonUtil {
         JsonPrimitive primitive = getJsonPrimitive(object, path);
         return primitive != null && primitive.isString() ? primitive.getAsString() : null;
     }
+
+    public static Boolean getBoolean(JsonElement object, String path) {
+        JsonPrimitive primitive = getJsonPrimitive(object, path);
+        return primitive != null && primitive.isBoolean() ? primitive.getAsBoolean() : null;
+    }
     
     public static void set(JsonObject object, String path, JsonElement value) {
         if (object == null) throw new NullPointerException("Object cannot be null");

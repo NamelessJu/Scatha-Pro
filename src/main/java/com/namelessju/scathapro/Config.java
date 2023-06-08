@@ -4,9 +4,12 @@ import java.io.File;
 
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
-import net.minecraftforge.fml.common.Loader;
 
 public class Config {
+
+    private static File getFile() {
+    	return SaveManager.getModFile("config.cfg");
+    }
     
     public static final Config instance = new Config();
     
@@ -57,19 +60,12 @@ public class Config {
     }
     
     private Config() {
-        File legacyConfigFile = new File(Loader.instance().getConfigDir(), "scathapro.cfg");
-        if (legacyConfigFile.exists()) legacyConfigFile.renameTo(getFile());
-        
-        updateFile();
+        loadFile();
     }
     
-    public void updateFile() {
+    public void loadFile() {
         config = new Configuration(getFile());
         config.load();
-    }
-    
-    private File getFile() {
-    	return FileManager.getModFile("config.cfg");
     }
     
     
