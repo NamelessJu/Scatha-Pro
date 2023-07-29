@@ -35,14 +35,14 @@ public enum Achievement {
     kill_weapons_regular_worm("Variety gamer", "Kill a regular worm using 5 different weapons", 5, Type.SECRET),
     kill_weapons_scatha("A fine collection", "Kill a Scatha using 10 different weapons", 10, Type.SECRET),
     
-    hard_stone_mined_1("Rock solid", "Mine 1,000,000 hard stone", 1000000),
-    hard_stone_mined_2("Stoned", "Mine 10,000,000 hard stone", 10000000),
-    hard_stone_mined_3("Crystal hollowed", "Mine 100,000,000 hard stone", 100000000),
+    hard_stone_mined_1("Rock solid", "Mine 1,000,000 hard stone", 1000000, Type.LEGACY),
+    hard_stone_mined_2("Stoned", "Mine 10,000,000 hard stone", 10000000, Type.LEGACY),
+    hard_stone_mined_3("Crystal hollowed", "Mine 100,000,000 hard stone", 100000000, Type.LEGACY),
     
     crystal_hollows_time_1("Time flies", "Spend 1 hour in a single Crystal Hollows lobby", 1),
     crystal_hollows_time_2("New Home", "Spend 3 hours in a single Crystal Hollows lobby", 3),
     crystal_hollows_time_3("Go touch some grass", "Spend 5 hours in a single Crystal Hollows lobby", 5),
-
+    
     scatha_spawn_time("Any%", "Spawn a Scatha in the 1st minute after joining a lobby", 1, Type.SECRET),
     
     lobby_kills_1("They keep coming", "Kill 25 worms in a single lobby", 25),

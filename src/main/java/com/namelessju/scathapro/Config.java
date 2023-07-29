@@ -40,6 +40,8 @@ public class Config {
         chatCopy("other", "chatCopy", false),
         automaticBackups("other", "automaticBackups", true),
         automaticUpdateChecks("other", "automaticUpdateChecks", true),
+        automaticStatsParsing("other", "automaticStatsParsing", true),
+        wormSpawnTimer("other", "wormSpawnTimer", false),
         
         devMode("other", "devMode", false);
         

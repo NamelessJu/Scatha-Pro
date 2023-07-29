@@ -3,7 +3,6 @@ package com.namelessju.scathapro.eventlisteners;
 import java.util.List;
 
 import com.google.gson.JsonPrimitive;
-import com.namelessju.scathapro.HypixelApiManager;
 import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.OverlayManager;
 import com.namelessju.scathapro.PersistentData;
@@ -24,7 +23,6 @@ import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.StringUtils;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.sound.PlaySoundEvent;
@@ -75,6 +73,8 @@ public class MiscListeners {
             scathaPro.regularWormKills = 0;
             scathaPro.scathaKills = 0;
             
+            scathaPro.lastWormSpawnTime = -1;
+            
             scathaPro.inBedrockWallRange = false;
             
             scathaPro.resetPreviousScathaPets();
@@ -99,9 +99,10 @@ public class MiscListeners {
             Achievement.crystal_hollows_time_3.setProgress(0);
             
             // API request
-            
+            /*
             if (scathaPro.repeatProfilesDataRequest && Util.getCurrentTime() - scathaPro.lastProfilesDataRequestTime > 1000 * 60 * 5)
                 HypixelApiManager.requestProfilesData();
+            */
         }
     }
     
@@ -147,10 +148,10 @@ public class MiscListeners {
     public void onChatReceived(ClientChatReceivedEvent e) {
         if (e.type == 2) return;
         
-        String unformattedText = StringUtils.stripControlCodes(e.message.getUnformattedText());
+        // String unformattedText = StringUtils.stripControlCodes(e.message.getUnformattedText());
         
         // Automatically update API key when generating new one
-        
+        /*
         if (unformattedText.startsWith("Your new API key is ") && e.message.getSiblings().size() >= 1) {
             String apiKey = e.message.getSiblings().get(0).getChatStyle().getChatClickEvent().getValue();
             Config.instance.set(Config.Key.apiKey, apiKey);
@@ -161,6 +162,7 @@ public class MiscListeners {
             ScathaPro.getInstance().repeatProfilesDataRequest = true;
             if (scathaPro.profilesDataRequestNeeded()) HypixelApiManager.requestProfilesData();
         }
+        */
         
         // Add copy button
         

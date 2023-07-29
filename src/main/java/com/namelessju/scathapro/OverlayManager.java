@@ -254,33 +254,44 @@ public class OverlayManager {
         double wallLength = wallMax - wallMin;
         
         EntityPlayer player = mc.thePlayer;
+
+        String coordinatesString;
+        String facingAxis;
+        double wallProgress;
         
-        String facingAxis = "";
-        double wallDistance = 0D;
-        
-        int facing = player != null ? Util.getFacing(player) : 1;
-        switch (facing) {
-            case 0:
-                facingAxis = "-Z";
-                wallDistance = wallMax - player.posZ;
-                break;
-            case 1:
-                facingAxis = "+X";
-                wallDistance = player.posX - wallMin;
-                break;
-            case 2:
-                facingAxis = "+Z";
-                wallDistance = player.posZ - wallMin;
-                break;
-            case 3:
-                facingAxis = "-X";
-                wallDistance = wallMax - player.posX;
-                break;
+        if (player != null) {
+        	coordinatesString = (int) Math.floor(player.posX) + " " + (int) Math.floor(player.posY) + " " + (int) Math.floor(player.posZ);
+        	
+            int facing = Util.getFacing(player);
+            double wallDistance = 0D;
+            
+	        switch (facing) {
+	            case 0:
+	                facingAxis = "-Z";
+	                wallDistance = wallMax - player.posZ;
+	                break;
+	            case 1:
+	                facingAxis = "+X";
+	                wallDistance = player.posX - wallMin;
+	                break;
+                default:
+	            case 2:
+	                facingAxis = "+Z";
+	                wallDistance = player.posZ - wallMin;
+	                break;
+	            case 3:
+	                facingAxis = "-X";
+	                wallDistance = wallMax - player.posX;
+	                break;
+	        }
+	        
+	        wallProgress = Math.min(Math.max((wallDistance - 1D) / (wallLength - 2D), 0D), 1D);
         }
-        
-        double wallProgress = Math.min(Math.max((wallDistance - 1D) / (wallLength - 2D), 0D), 1D);
-        
-        String coordinatesString = player != null ? (int) Math.floor(player.posX) + " "  + (int) Math.floor(player.posY) + " "  + (int) Math.floor(player.posZ) : EnumChatFormatting.OBFUSCATED + "0 0 0";
+        else {
+        	coordinatesString = "0 0 0";
+        	facingAxis = "+Z";
+        	wallProgress = 0D;
+        }
         
         coordsText.setText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.WHITE + coordinatesString + " " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + facingAxis + " (" + Util.numberToString(Math.floor(wallProgress * 1000D) / 10D, 1) + "% to wall)");
     }

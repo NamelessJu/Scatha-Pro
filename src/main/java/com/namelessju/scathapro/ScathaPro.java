@@ -11,13 +11,11 @@ import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.achievements.AchievementManager;
 import com.namelessju.scathapro.commands.ChancesCommand;
 import com.namelessju.scathapro.commands.MainCommand;
-import com.namelessju.scathapro.eventlisteners.ApiListeners;
 import com.namelessju.scathapro.eventlisteners.GuiListeners;
 import com.namelessju.scathapro.eventlisteners.LoopListeners;
 import com.namelessju.scathapro.eventlisteners.MiscListeners;
 import com.namelessju.scathapro.eventlisteners.ScathaProListeners;
 import com.namelessju.scathapro.objects.Worm;
-import com.namelessju.scathapro.util.Util;
 import com.namelessju.scathapro.commands.DevCommand;
 
 import net.minecraft.client.gui.GuiScreen;
@@ -35,7 +33,7 @@ public class ScathaPro
 {
     public static final String MODNAME = "Scatha-Pro";
     public static final String MODID = "scathapro";
-    public static final String VERSION = "1.2.2";
+    public static final String VERSION = "1.2.3";
     
     public static final String CHATPREFIX = EnumChatFormatting.GRAY + MODNAME + ": " + EnumChatFormatting.RESET;
     public static final int pingTreshold = 2000;
@@ -64,8 +62,8 @@ public class ScathaPro
 
     public long lastWormSpawnTime = -1;
     
-    public int overallRegularWormKills = -1;
-    public int overallScathaKills = -1;
+    public int overallRegularWormKills = 0;
+    public int overallScathaKills = 0;
     
     public int regularWormKills = 0;
     public int scathaKills = 0;
@@ -80,21 +78,20 @@ public class ScathaPro
     
     public int hardstoneMined = 0;
     
-
+    
     public static ScathaPro getInstance() {
         return instance;
     }
     
     
     @EventHandler
-    public void preInit(FMLPreInitializationEvent event)
-    {
+    public void preInit(FMLPreInitializationEvent event) {
+    	
         MinecraftForge.EVENT_BUS.register(new LoopListeners());
-        MinecraftForge.EVENT_BUS.register(new ApiListeners());
         MinecraftForge.EVENT_BUS.register(new GuiListeners());
         MinecraftForge.EVENT_BUS.register(new MiscListeners());
-        
         MinecraftForge.EVENT_BUS.register(new ScathaProListeners());
+        // MinecraftForge.EVENT_BUS.register(new HypixelApiListeners());
         
         ClientCommandHandler.instance.registerCommand(new MainCommand());
         ClientCommandHandler.instance.registerCommand(new ChancesCommand());
@@ -193,7 +190,9 @@ public class ScathaPro
         previousScathaPets = null;
     }
     
+    /*
     public boolean profilesDataRequestNeeded() {
         return Util.inCrystalHollows() && (overallRegularWormKills < 0 || overallScathaKills < 0);
     }
+    */
 }

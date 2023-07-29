@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.logging.log4j.Level;
+
 import com.google.common.base.Predicate;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -13,6 +15,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.OverlayManager;
+import com.namelessju.scathapro.PersistentData;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.UpdateChecker;
 import com.namelessju.scathapro.events.BedrockWallEvent;
@@ -26,13 +29,16 @@ import com.namelessju.scathapro.gui.menus.FakeBanGui;
 import com.namelessju.scathapro.gui.menus.OverlaySettingsGui;
 import com.namelessju.scathapro.objects.PetDrop;
 import com.namelessju.scathapro.objects.Worm;
+import com.namelessju.scathapro.util.ChatUtil;
 import com.namelessju.scathapro.util.NBTUtil;
 import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.client.renderer.GlStateManager;
@@ -41,8 +47,11 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.entity.projectile.EntityFishHook;
 import net.minecraft.init.Blocks;
+import net.minecraft.inventory.ContainerChest;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
@@ -135,6 +144,11 @@ public class LoopListeners {
                     	UpdateChecker.checkForUpdate(false);
                     
                     firstIngameFrame = false;
+                }
+                
+                
+                if (Config.instance.getBoolean(Config.Key.automaticStatsParsing)) {
+                	checkOpenedChest();
                 }
                 
 
@@ -445,5 +459,94 @@ public class LoopListeners {
                 }
             }
         }
+    }
+    
+    private GuiChest lastChestCheckedForKillInfo = null;
+    
+    private void checkOpenedChest() {
+		GuiScreen guiScreen = Minecraft.getMinecraft().currentScreen;
+		if (guiScreen == null) return;
+		if (!(guiScreen instanceof GuiChest)) return;
+		GuiChest chestGui = (GuiChest) guiScreen;
+		
+		if (lastChestCheckedForKillInfo != null && lastChestCheckedForKillInfo == chestGui) return;
+		
+    	IInventory chestInventory = ((ContainerChest) chestGui.inventorySlots).getLowerChestInventory();
+    	
+    	if (!chestInventory.hasCustomName()) {
+    		lastChestCheckedForKillInfo = chestGui;
+    		return;
+    	}
+    	
+    	// Bestiary worms
+    	String wormBestiaryTitle = "Deep Caverns " + Util.getUnicodeString("279C") + " Worm";
+    	
+        if (chestInventory.getDisplayName().getUnformattedText().equals(wormBestiaryTitle)) {
+        	
+        	int regularWormKills = parseWormKillsFromStack(chestInventory.getStackInSlot(21));
+        	int scathaKills = parseWormKillsFromStack(chestInventory.getStackInSlot(23));
+        	
+        	ScathaPro scathaPro = ScathaPro.getInstance();
+        	
+        	boolean killsUpdated = false;
+        	
+        	if (regularWormKills >= 0) {
+        		if (scathaPro.overallRegularWormKills != regularWormKills) {
+            		scathaPro.overallRegularWormKills = regularWormKills;
+            		OverlayManager.instance.updateWormKills();
+            		killsUpdated = true;
+        		}
+        		else {
+            		lastChestCheckedForKillInfo = chestGui;
+        		}
+        	}
+        	if (scathaKills >= 0) {
+        		if (scathaPro.overallScathaKills != scathaKills) {
+            		scathaPro.overallScathaKills = scathaKills;
+            		OverlayManager.instance.updateScathaKills();
+            		killsUpdated = true;
+        		}
+        		else {
+            		lastChestCheckedForKillInfo = chestGui;
+        		}
+        	}
+        	
+        	if (killsUpdated) {
+        		PersistentData.instance.saveWormKills();
+        		ChatUtil.sendModChatMessage("Updated overall worm kills from bestiary");
+        		lastChestCheckedForKillInfo = chestGui;
+        	}
+        }
+        else {
+        	// Could be an issue if the chest GUI is opened before the custom name gets loaded
+        	// (idk if that's possible)
+    		lastChestCheckedForKillInfo = chestGui;
+        }
+    }
+    
+    private int parseWormKillsFromStack(ItemStack stack) {
+    	
+    	if (stack != null && stack.getTagCompound() != null) {
+    		NBTTagCompound displayTagCompound = stack.getTagCompound().getCompoundTag("display");
+    		if (displayTagCompound != null) {
+    			NBTTagList loreTagList = displayTagCompound.getTagList("Lore", 8);
+    			
+    			int length = loreTagList.tagCount();
+    			for (int i = 0; i < length; i ++) {
+        	    	ScathaPro.getInstance().logger.log(Level.INFO, loreTagList.getStringTagAt(i));
+    			}
+    			
+    			String killsLine = StringUtils.stripControlCodes(loreTagList.getStringTagAt(4));
+    			killsLine = killsLine.replace("Kills: ", "");
+    			killsLine = killsLine.replace(",", "");
+    			try {
+    				int kills = Integer.parseInt(killsLine);
+    				return kills;
+    			}
+    			catch (NumberFormatException ignored) {}
+    		}
+    	}
+    	
+    	return -1;
     }
 }

@@ -16,6 +16,7 @@ import java.net.URL;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.Event;
 
+// Unused
 public class HypixelApiManager {
 
     public abstract static class HypixelApiEvent extends Event {
@@ -67,17 +68,6 @@ public class HypixelApiManager {
         
         ScathaPro.getInstance().lastProfilesDataRequestTime = Util.getCurrentTime();
     }
-    
-    /*
-     *     Ah damn, you found the rat...
-     *        
-     *                _..----.._    _
-     *              .'  .--.    "-.(0)_
-     *  '-.__.-'"'=:|   ,  _)_ \__ . c\'-..
-     *             '''------'---''---'-"
-     *  
-     *     (It won't steal your data tho)
-     */
     
     public static void sendRequest(final String endpoint, final String parameters) {
         final String apiKey = Config.instance.getString(Config.Key.apiKey);

@@ -151,7 +151,7 @@ public class AchievementsList extends Gui {
     public void draw(int mouseX, int mouseY, int screenHeight)
     {
         this.hovered = mouseX >= this.xPosition && mouseY >= this.yPosition && mouseX < this.xPosition + this.width && mouseY < this.yPosition + this.height;
-
+        
         GlStateManager.enableAlpha();
         GlStateManager.disableBlend();
         
@@ -166,7 +166,7 @@ public class AchievementsList extends Gui {
         int scrollBarHeight = getScrollBarHeight();
         int scrollBarX = xPosition + width + 2;
         int scrollBarY = yPosition + Math.round((height - scrollBarHeight) * (scroll / (getScrollHeight() - height)));
-        Gui.drawRect(scrollBarX, scrollBarY, scrollBarX + scrollBarWidth, scrollBarY + scrollBarHeight, 0xB0000002);
+        Gui.drawRect(scrollBarX, scrollBarY, scrollBarX + scrollBarWidth, scrollBarY + scrollBarHeight, 0xFFFFFFFF);
         
         this.scrollBarHovered = mouseX >= scrollBarX - 2 && mouseY >= yPosition && mouseX < scrollBarX + scrollBarWidth + 2 && mouseY < yPosition + height;
 

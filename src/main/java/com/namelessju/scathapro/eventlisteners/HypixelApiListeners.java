@@ -14,7 +14,8 @@ import com.namelessju.scathapro.util.Util;
 
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-public class ApiListeners {
+// Unused
+public class HypixelApiListeners {
     
     ScathaPro scathaPro = ScathaPro.getInstance();
     

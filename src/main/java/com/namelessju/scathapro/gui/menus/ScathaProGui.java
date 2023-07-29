@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.namelessju.scathapro.gui.elements.ClickActionButton;
 import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiLabel;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
@@ -24,10 +26,6 @@ public abstract class ScathaProGui extends GuiScreen {
     
     protected static void setSliderDefaultString(GuiSlider slider) {
         slider.displayString = slider.dispString + "default";
-    }
-    
-    protected static String getEnabledString(boolean enabled) {
-        return enabled ? "ON" : "OFF";
     }
     
     
@@ -97,6 +95,14 @@ public abstract class ScathaProGui extends GuiScreen {
         }
 
         super.mouseClicked(mouseX, mouseY, mouseEvent);
+    }
+
+    @Override
+    protected void actionPerformed(GuiButton button) throws IOException
+    {
+    	if (button instanceof ClickActionButton) {
+    		((ClickActionButton) button).click();
+    	}
     }
     
     @Override

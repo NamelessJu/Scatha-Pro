@@ -31,6 +31,8 @@ public class FakeBanGui extends GuiDisconnected {
     @Override
     protected void actionPerformed(GuiButton button) throws IOException
     {
+    	super.actionPerformed(button);
+    	
         if (button.id == 0) {
             Achievement.cheat.setProgress(Achievement.cheat.goal);
             

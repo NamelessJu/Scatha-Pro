@@ -9,11 +9,9 @@ import java.net.URL;
 
 import org.apache.logging.log4j.Level;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
 import com.namelessju.scathapro.util.ChatUtil;
 import com.namelessju.scathapro.util.JsonUtil;
 
@@ -25,7 +23,7 @@ import net.minecraft.util.EnumChatFormatting;
 
 public class UpdateChecker {
     
-    private final static String releasesApiUrl = "https://api.github.com/repos/NamelessJu/Scatha-Pro/releases";
+    private final static String releasesApiUrl = "https://api.github.com/repos/NamelessJu/Scatha-Pro/releases/latest";
 
     public static void checkForUpdate(final boolean showAllResults) {
         new Thread(new Runnable() {
@@ -51,58 +49,45 @@ public class UpdateChecker {
 
                         JsonElement json = new JsonParser().parse(response.toString());
                         
-                        if (json.isJsonArray()) {
-                            JsonArray versions = json.getAsJsonArray();
+                        if (json.isJsonObject()) {
+                            JsonObject versionObject = json.getAsJsonObject();
                             
-                            for (JsonElement versionJson : versions) {
-                                if (versionJson.isJsonObject()) {
-                                    JsonObject versionObject = versionJson.getAsJsonObject();
+                            String versionTag = JsonUtil.getString(versionObject, "tag_name");
+                            String updateUrl = JsonUtil.getString(versionObject, "html_url");
+                            
+                            if (versionTag != null) {
+                            	int comparison = compareVersions(ScathaPro.VERSION, versionTag);
+                            	
+                                if (comparison > 0) {
+                                    ChatComponentText updateNotice = new ChatComponentText(EnumChatFormatting.GOLD.toString() + EnumChatFormatting.ITALIC + "A new version (" + versionTag + ") is available. You can download it ");
                                     
-                                    // Skip pre-releases
-                                    JsonPrimitive prereleaseJsonPrimitive = JsonUtil.getJsonPrimitive(versionObject, "prerelease");
-                                    if (prereleaseJsonPrimitive != null && prereleaseJsonPrimitive.isBoolean() && prereleaseJsonPrimitive.getAsBoolean() == true)
-                                        continue;
-                                    
-                                    String versionTag = JsonUtil.getString(versionObject, "tag_name");
-                                    String updateUrl = JsonUtil.getString(versionObject, "html_url");
-                                    
-                                    if (versionTag != null) {
-                                    	int comparison = compareVersions(ScathaPro.VERSION, versionTag);
-                                    	
-                                        if (comparison > 0) {
-                                            ChatComponentText updateNotice = new ChatComponentText(EnumChatFormatting.GOLD.toString() + EnumChatFormatting.ITALIC + "A new version (" + versionTag + ") is available. You can download it ");
-                                            
-                                            ChatComponentText downloadLink = new ChatComponentText(EnumChatFormatting.BLUE.toString() + EnumChatFormatting.ITALIC + EnumChatFormatting.UNDERLINE + "here");
-                                            if (updateUrl != null) {
-                                                ChatStyle style = new ChatStyle()
-                                                        .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.GRAY + updateUrl)))
-                                                        .setChatClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, updateUrl));
-                                                downloadLink.setChatStyle(style);
-                                            }
-                                            else {
-                                                ChatStyle style = new ChatStyle().setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.RED + "No download found")));
-                                                downloadLink.setChatStyle(style);
-                                            }
-                                            updateNotice.appendSibling(downloadLink);
-                                            
-                                            updateNotice.appendText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GOLD + EnumChatFormatting.ITALIC + ".");
-                                            
-                                            ChatUtil.sendModChatMessage(updateNotice);
-                                            return;
-                                        }
-                                        else {
-                                        	if (showAllResults) {
-	                                        	if (comparison < 0) ChatUtil.sendModChatMessage("Your version is newer than the latest public release");
-	                                        	else ChatUtil.sendModChatMessage(EnumChatFormatting.GREEN + "You're using the newest version!");
-                                        	}
-                                        	break;
-                                        }
+                                    ChatComponentText downloadLink = new ChatComponentText(EnumChatFormatting.BLUE.toString() + EnumChatFormatting.ITALIC + EnumChatFormatting.UNDERLINE + "here");
+                                    if (updateUrl != null) {
+                                        ChatStyle style = new ChatStyle()
+                                                .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.GRAY + updateUrl)))
+                                                .setChatClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, updateUrl));
+                                        downloadLink.setChatStyle(style);
                                     }
+                                    else {
+                                        ChatStyle style = new ChatStyle().setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.RED + "No download found")));
+                                        downloadLink.setChatStyle(style);
+                                    }
+                                    updateNotice.appendSibling(downloadLink);
+                                    
+                                    updateNotice.appendText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GOLD + EnumChatFormatting.ITALIC + ".");
+                                    
+                                    ChatUtil.sendModChatMessage(updateNotice);
+                                }
+                                else {
+                                	if (showAllResults) {
+                                    	if (comparison < 0) ChatUtil.sendModChatMessage("Your version is newer than the latest public release");
+                                    	else ChatUtil.sendModChatMessage(EnumChatFormatting.GREEN + "You're using the newest version!");
+                                	}
                                 }
                             }
-                            return; // Prevent bubbling down to errors when there's no error
+                            return; // Return with no error
                         }
-                        else ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't check for update (response is no array)");
+                        else ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't check for update (response is not an object)");
                     }
                     else ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't check for update (response code " + code + ")");
                 }
