@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.lwjgl.input.Mouse;
 
 import com.namelessju.scathapro.gui.elements.AchievementsList;
+import com.namelessju.scathapro.gui.elements.DoneButton;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -32,18 +33,20 @@ public class AchievementsGui extends ScathaProGui {
         float heightFactor = (height * scaledResolution.getScaleFactor()) / 1080f;
 
         
-        buttonList.add(new GuiButton(504704399, width / 2 - 100, Math.round(height - 20 - 50 * heightFactor), 200, 20, "Close"));
-        
         int achievementsListWidth = 310;
         int achievementsListX = width / 2 - achievementsListWidth / 2;
         int achievementsListY = 41;
         int achievementsListHeight = Math.round(height - achievementsListY - 20 - 50 * heightFactor - 10);
         achievementsList = new AchievementsList(achievementsListX, achievementsListY, achievementsListWidth, achievementsListHeight);
+        
+        buttonList.add(new DoneButton(504704399, width / 2 - 100, Math.round(height - 20 - 50 * heightFactor), 200, 20, "Close", this));
     }
     
     @Override
     protected void actionPerformed(GuiButton button) throws IOException
     {
+    	super.actionPerformed(button);
+    	
         if (button.enabled && button.id == 504704399)
             openParentGui();
     }

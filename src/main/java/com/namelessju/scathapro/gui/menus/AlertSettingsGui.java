@@ -4,6 +4,8 @@ import java.io.IOException;
 
 import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.ScathaPro;
+import com.namelessju.scathapro.gui.elements.BooleanSettingButton;
+import com.namelessju.scathapro.gui.elements.DoneButton;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -22,69 +24,32 @@ public class AlertSettingsGui extends ScathaProGui implements GuiSlider.ISlider 
     }
 
     @Override
-    public void initGui()
-    {
+    public void initGui() {
         super.initGui();
         
         double volume = Config.instance.getDouble(Config.Key.volume);
-        buttonList.add(new GuiSlider(504704401, width / 2 - 155, height / 6 - 6, 310, 20, "Alert Volume: ", "%", 0, 100, volume * 100, false, true, this));
+        buttonList.add(new GuiSlider(504704401, width / 2 - 155, height / 6 - 12, 310, 20, "Alert Volume: ", "%", 0, 100, volume * 100, false, true, this));
 
-        buttonList.add(new GuiButton(504704402, width / 2 + 5, height / 6 + 24 - 6, 150, 20, getWormAlertString()));
-        buttonList.add(new GuiButton(504704403, width / 2 - 155, height / 6 + 48 - 6, 150, 20, getScathaAlertString()));
-        buttonList.add(new GuiButton(504704404, width / 2 - 155, height / 6 + 24 - 6, 150, 20, getWormPreAlertString()));
-        buttonList.add(new GuiButton(504704405, width / 2 + 5, height / 6 + 48 - 6, 150, 20, getWallAlertString()));
-        buttonList.add(new GuiButton(504704406, width / 2 - 155, height / 6 + 72 - 6, 150, 20, getPetAlertString()));
+        buttonList.add(new BooleanSettingButton(504704404, width / 2 - 155, height / 6 + 48 - 6, 150, 20, "Worm Pre-Spawn Alert", Config.Key.wormPreAlert));
+        buttonList.add(new BooleanSettingButton(504704402, width / 2 + 5, height / 6 + 48 - 6, 150, 20, "Worm Spawn Alert", Config.Key.wormAlert));
+        buttonList.add(new BooleanSettingButton(504704403, width / 2 - 155, height / 6 + 72 - 6, 150, 20, "Scatha Spawn Alert", Config.Key.scathaAlert));
+        buttonList.add(new BooleanSettingButton(504704405, width / 2 + 5, height / 6 + 72 - 6, 150, 20, "Bedrock Wall Alert", Config.Key.wallAlert));
+        buttonList.add(new BooleanSettingButton(504704406, width / 2 - 155, height / 6 + 96 - 6, 150, 20, "Scatha Pet Drop Alert", Config.Key.petAlert));
         
-        buttonList.add(new GuiButton(504704499, width / 2 - 100, height / 6 + 168, 200, 20, "Done"));
+        buttonList.add(new DoneButton(504704499, width / 2 - 100, height / 6 + 168, 200, 20, "Done", this));
     }
     
     @Override
-    protected void actionPerformed(GuiButton button) throws IOException
-    {
-        if (button.enabled)
-        {
+    protected void actionPerformed(GuiButton button) throws IOException {
+    	super.actionPerformed(button);
+    	
+        if (button.enabled) {
             switch (button.id) {
-            
-                case 504704402:
-                    Config.instance.set(Config.Key.wormAlert, !Config.instance.getBoolean(Config.Key.wormAlert));
-                    Config.instance.save();
-                    
-                    button.displayString = getWormAlertString();
-                    break;
-            
-                case 504704403:
-                    Config.instance.set(Config.Key.scathaAlert, !Config.instance.getBoolean(Config.Key.scathaAlert));
-                    Config.instance.save();
-                    
-                    button.displayString = getScathaAlertString();
-                    break;
-                    
-                case 504704404:
-                    Config.instance.set(Config.Key.wormPreAlert, !Config.instance.getBoolean(Config.Key.wormPreAlert));
-                    Config.instance.save();
-                    
-                    button.displayString = getWormPreAlertString();
-                    break;
-                    
-                case 504704405:
-                    Config.instance.set(Config.Key.wallAlert, !Config.instance.getBoolean(Config.Key.wallAlert));
-                    Config.instance.save();
-                    
-                    button.displayString = getWallAlertString();
-                    break;
-                    
+            	
                 case 504704406:
-                    boolean enabled = !Config.instance.getBoolean(Config.Key.petAlert);
-                    Config.instance.set(Config.Key.petAlert, enabled);
-                    Config.instance.save();
-                    
-                    if (enabled) ScathaPro.getInstance().resetPreviousScathaPets();
-                    
-                    button.displayString = getPetAlertString();
-                    break;
-                
-                case 504704499:
-                    openParentGui();
+                    if (Config.instance.getBoolean(Config.Key.petAlert)) {
+                    	ScathaPro.getInstance().resetPreviousScathaPets();
+                    }
                     break;
             }
         }
@@ -102,32 +67,6 @@ public class AlertSettingsGui extends ScathaProGui implements GuiSlider.ISlider 
                     break;
             }
         }
-    }
-    
-    
-    private String getWormAlertString() {
-        boolean enabled = Config.instance.getBoolean(Config.Key.wormAlert);
-        return "Worm Spawn Alert: " + getEnabledString(enabled);
-    }
-    
-    private String getScathaAlertString() {
-        boolean enabled = Config.instance.getBoolean(Config.Key.scathaAlert);
-        return "Scatha Spawn Alert: " + getEnabledString(enabled);
-    }
-    
-    private String getWormPreAlertString() {
-        boolean enabled = Config.instance.getBoolean(Config.Key.wormPreAlert);
-        return "Worm Pre-Spawn Alert: " + getEnabledString(enabled);
-    }
-    
-    private String getWallAlertString() {
-        boolean enabled = Config.instance.getBoolean(Config.Key.wallAlert);
-        return "Bedrock Wall Alert: " + getEnabledString(enabled);
-    }
-    
-    private String getPetAlertString() {
-        boolean enabled = Config.instance.getBoolean(Config.Key.petAlert);
-        return "Scatha Drop Alert: " + getEnabledString(enabled);
     }
     
 }

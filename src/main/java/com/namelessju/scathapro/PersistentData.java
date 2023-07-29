@@ -31,19 +31,21 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.common.config.Configuration.UnicodeInputStreamReader;
 
 public class PersistentData {
-
+	
     public static final PersistentData instance = new PersistentData();
     
     private static final File saveFile = SaveManager.getModFile("persistentData.json");
+    
     private static final String unlockedAchievementsKey = "unlockedAchievements";
     private static final String petDropsKey = "petDrops";
-
+    private static final String wormKillsKey = "wormKills";
+    
     public static final ScathaPro scathaPro = ScathaPro.getInstance();
     
     private JsonObject data = new JsonObject();
     
     private PersistentData() {}
-
+    
     public void loadData() {
         if (saveFile.exists() && saveFile.canRead()) {
             try {
@@ -70,6 +72,7 @@ public class PersistentData {
                     
                     loadAchievements();
                     loadPetDrops();
+                    loadWormKills();
                 }
                 else ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't load persistent data (JSON root is not an object)");
             }
@@ -158,7 +161,7 @@ public class PersistentData {
     }
     
     
-    public void loadAchievements() {
+    private void loadAchievements() {
         try {
             JsonArray achievementsJsonArray = JsonUtil.getJsonArray(PersistentData.instance.getCurrentPlayerObject(), unlockedAchievementsKey);
             
@@ -209,15 +212,15 @@ public class PersistentData {
     }
     
     
-    public void loadPetDrops() {
+    private void loadPetDrops() {
         try {
-            JsonObject petDropsJson = JsonUtil.getJsonObject(PersistentData.instance.getCurrentPlayerObject(), petDropsKey);
+        	JsonObject playerJson = PersistentData.instance.getCurrentPlayerObject();
             
-            if (petDropsJson != null) {
+            if (playerJson != null) {
                 
-                Integer rarePetDrops = JsonUtil.getInt(petDropsJson, "rare");
-                Integer epicPetDrops = JsonUtil.getInt(petDropsJson, "epic");
-                Integer legendaryPetDrops = JsonUtil.getInt(petDropsJson, "legendary");
+                Integer rarePetDrops = JsonUtil.getInt(playerJson, petDropsKey + "/rare");
+                Integer epicPetDrops = JsonUtil.getInt(playerJson, petDropsKey + "/epic");
+                Integer legendaryPetDrops = JsonUtil.getInt(playerJson, petDropsKey + "/legendary");
                 
                 if (rarePetDrops != null) scathaPro.rarePetDrops = rarePetDrops;
                 if (epicPetDrops != null) scathaPro.epicPetDrops = epicPetDrops;
@@ -232,7 +235,7 @@ public class PersistentData {
                     scathaPro.showFakeBan = true;
                 
                 
-                Integer scathaKillsAtLastDrop = JsonUtil.getInt(petDropsJson, "scathaKillsAtLastDrop");
+                Integer scathaKillsAtLastDrop = JsonUtil.getInt(playerJson, petDropsKey + "/scathaKillsAtLastDrop");
                 if (scathaKillsAtLastDrop != null) {
                     scathaPro.scathaKillsAtLastDrop = scathaKillsAtLastDrop;
                     
@@ -260,6 +263,46 @@ public class PersistentData {
         	petDropsJsonObject.add("scathaKillsAtLastDrop", new JsonPrimitive(scathaPro.scathaKillsAtLastDrop));
         
         PersistentData.instance.set(petDropsKey, petDropsJsonObject);
+        
+        PersistentData.instance.saveData();
+    }
+    
+    
+    private void loadWormKills() {
+        try {
+        	JsonObject playerJson = PersistentData.instance.getCurrentPlayerObject();
+            
+            if (playerJson != null) {
+                
+                Integer regularWormKills = JsonUtil.getInt(playerJson, wormKillsKey + "/regularWorms");
+                Integer scathaKills = JsonUtil.getInt(playerJson, wormKillsKey + "/scathas");
+                
+                if (regularWormKills != null) scathaPro.overallRegularWormKills = regularWormKills;
+                if (scathaKills != null) scathaPro.overallScathaKills = scathaKills;
+                
+                if ((regularWormKills == null || scathaKills == null) && Config.instance.getBoolean(Config.Key.automaticStatsParsing)) {
+                	ChatUtil.sendModChatMessage(EnumChatFormatting.YELLOW + "Open \"/be worms\" to load previous worm kills into the overlay!");
+                }
+                
+                OverlayManager.instance.updateWormKills();
+                OverlayManager.instance.updateScathaKills();
+                OverlayManager.instance.updateTotalKills();
+                OverlayManager.instance.updateScathaKillsAtLastDrop();
+            }
+        }
+        catch (Exception e) {
+            ScathaPro.getInstance().logger.log(Level.ERROR, "Error while trying to load worm kills data:");
+            e.printStackTrace();
+        }
+    }
+    
+    public void saveWormKills() {
+        JsonObject wormKillsJsonObject = new JsonObject();
+        
+        wormKillsJsonObject.add("regularWorms", new JsonPrimitive(scathaPro.overallRegularWormKills));
+        wormKillsJsonObject.add("scathas", new JsonPrimitive(scathaPro.overallScathaKills));
+        
+        PersistentData.instance.set(wormKillsKey, wormKillsJsonObject);
         
         PersistentData.instance.saveData();
     }

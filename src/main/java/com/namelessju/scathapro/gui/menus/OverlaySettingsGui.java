@@ -4,6 +4,8 @@ import java.io.IOException;
 
 import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.OverlayManager;
+import com.namelessju.scathapro.gui.elements.BooleanSettingButton;
+import com.namelessju.scathapro.gui.elements.DoneButton;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
@@ -33,8 +35,8 @@ public class OverlaySettingsGui extends ScathaProGui implements GuiSlider.ISlide
         super.initGui();
         
         Minecraft.getMinecraft().gameSettings.showDebugInfo = false;
-
-        buttonList.add(new GuiButton(504704101, width / 2 - 155, height - 118 - 6, 150, 20, getOverlayString()));
+        
+        buttonList.add(new BooleanSettingButton(504704101, width / 2 - 155, height - 118 - 6, 150, 20, "UI Overlay", Config.Key.overlay));
         
         double overlayX = Config.instance.getDouble(Config.Key.overlayX);
         GuiSlider overlayXSlider = new GuiSlider(504704102, width / 2 + 5, height - 118 - 6, 150, 20, "Overlay X Position: ", "%", -1, 100, overlayX >= 0 ? overlayX * 100 : -1, false, true, this);
@@ -48,7 +50,7 @@ public class OverlaySettingsGui extends ScathaProGui implements GuiSlider.ISlide
         
         buttonList.add(new GuiSlider(504704104, width / 2 - 155, height - 94 - 6, 150, 20, "Overlay Scale: ", "%", 50, 150, Config.instance.getDouble(Config.Key.overlayScale) * 100, false, true, this));
         
-        buttonList.add(new GuiButton(504704199, width / 2 - 100, height - 70, 200, 20, "Done"));
+        buttonList.add(new DoneButton(504704199, width / 2 - 100, height - 70, 200, 20, "Done", this));
         
         OverlayManager.instance.updateOverlayFull();
     }
@@ -60,23 +62,14 @@ public class OverlaySettingsGui extends ScathaProGui implements GuiSlider.ISlide
     
 
     @Override
-    protected void actionPerformed(GuiButton button) throws IOException
-    {
-        if (button.enabled)
-        {
+    protected void actionPerformed(GuiButton button) throws IOException {
+    	super.actionPerformed(button);
+    	
+        if (button.enabled) {
             switch (button.id) {
             
                 case 504704101:
-                    Config.instance.set(Config.Key.overlay, !Config.instance.getBoolean(Config.Key.overlay));
-                    Config.instance.save();
-                    
                     OverlayManager.instance.updateVisibility();
-                    
-                    button.displayString = getOverlayString();
-                    break;
-                
-                case 504704199:
-                    openParentGui();
                     break;
             }
         }
@@ -117,11 +110,5 @@ public class OverlaySettingsGui extends ScathaProGui implements GuiSlider.ISlide
                     break;
             }
         }
-    }
-
-    
-    private String getOverlayString() {
-        boolean enabled = Config.instance.getBoolean(Config.Key.overlay);
-        return "UI Overlay: " + getEnabledString(enabled);
     }
 }

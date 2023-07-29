@@ -107,10 +107,6 @@ public class DevCommand extends CommandBase {
                 }
             }
             
-            else if (subCommand.equalsIgnoreCase("triggerWormSpawnCooldown")) {
-            	ScathaPro.getInstance().lastWormSpawnTime = Util.getCurrentTime();
-            }
-            
             else throw new CommandException("Invalid subcommand");
         }
         else throw new CommandException("Missing subcommand: /scathadev <subcommand> [values...]");

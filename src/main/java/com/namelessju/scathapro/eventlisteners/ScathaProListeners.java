@@ -134,7 +134,24 @@ public class ScathaProListeners {
             }
         }
         
-        scathaPro.lastWormSpawnTime = Util.getCurrentTime();
+        long now = Util.getCurrentTime();
+        
+        if (Config.instance.getBoolean(Config.Key.wormSpawnTimer) && scathaPro.lastWormSpawnTime >= 0L) {
+        	int secondsSinceLastSpawn = (int) Math.floor((now - scathaPro.lastWormSpawnTime) / 1000D);
+        	
+        	String timeString;
+        	
+        	if (secondsSinceLastSpawn < 60) {
+        		timeString = secondsSinceLastSpawn + " seconds";
+        	}
+        	else {
+        		timeString = Util.numberToString(secondsSinceLastSpawn / 60D, 1) + " minutes";
+        	}
+        	
+        	ChatUtil.sendModChatMessage(EnumChatFormatting.GRAY + "Worm spawned " + timeString + " after previous worm");
+        }
+        
+        scathaPro.lastWormSpawnTime = now;
 
         scathaPro.updateSpawnAchievements();
         
@@ -173,6 +190,8 @@ public class ScathaProListeners {
 
             OverlayManager.instance.updateWormKills();
         }
+        
+        PersistentData.instance.saveWormKills();
         
         OverlayManager.instance.updateTotalKills();
         
