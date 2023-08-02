@@ -6,8 +6,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.logging.log4j.Level;
-
 import com.google.common.base.Predicate;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -78,6 +76,8 @@ public class LoopListeners {
 
     private List<PetDrop> receivedPets = new ArrayList<PetDrop>();
     private HashMap<Integer, String> arrowOwners = new HashMap<Integer, String>();
+    
+    private GuiChest lastChestCheckedForKillInfo = null;
     
     
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -461,8 +461,6 @@ public class LoopListeners {
         }
     }
     
-    private GuiChest lastChestCheckedForKillInfo = null;
-    
     private void checkOpenedChest() {
 		GuiScreen guiScreen = Minecraft.getMinecraft().currentScreen;
 		if (guiScreen == null) return;
@@ -479,7 +477,7 @@ public class LoopListeners {
     	}
     	
     	// Bestiary worms
-    	String wormBestiaryTitle = "Deep Caverns " + Util.getUnicodeString("279C") + " Worm";
+    	String wormBestiaryTitle = "Crystal Hollows " + Util.getUnicodeString("279C") + " Worm";
     	
         if (chestInventory.getDisplayName().getUnformattedText().equals(wormBestiaryTitle)) {
         	
@@ -530,11 +528,6 @@ public class LoopListeners {
     		NBTTagCompound displayTagCompound = stack.getTagCompound().getCompoundTag("display");
     		if (displayTagCompound != null) {
     			NBTTagList loreTagList = displayTagCompound.getTagList("Lore", 8);
-    			
-    			int length = loreTagList.tagCount();
-    			for (int i = 0; i < length; i ++) {
-        	    	ScathaPro.getInstance().logger.log(Level.INFO, loreTagList.getStringTagAt(i));
-    			}
     			
     			String killsLine = StringUtils.stripControlCodes(loreTagList.getStringTagAt(4));
     			killsLine = killsLine.replace("Kills: ", "");
