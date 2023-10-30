@@ -26,16 +26,18 @@ public class Config {
         overlayScale("overlay", "scale", 1D),
         
         // Alerts
-        volume("alerts", "volume", 1D),
+        mode("alerts", "mode", ""),
+        customModeSubmode("alerts", "customModeSubmode", ""),
+        alertVolume("alerts", "volume", 1D),
         
         wormAlert("alerts", "worms", true),
         scathaAlert("alerts", "scathas", true),
         wormPreAlert("alerts", "wormsPre", true),
         petAlert("alerts", "pet", true),
         wallAlert("alerts", "wall", true),
+        goblinAlert("alerts", "goblin", true),
         
         // Other
-        mode("other", "mode", 0),
         showRotationAngles("other", "showRotationAngles", false),
         chatCopy("other", "chatCopy", false),
         automaticBackups("other", "automaticBackups", true),
@@ -63,6 +65,32 @@ public class Config {
     
     private Config() {
         loadFile();
+    	
+    	// convert old integer-based mode ID to new string-based mode ID
+    	// (only if no string ID is saved yet)
+    	if (getString(Key.mode).isEmpty()) {
+    		
+    		int oldMode = config.get("other", "mode", -1).getInt();
+    		if (oldMode >= 0) {
+    			
+    			String newMode;
+    			
+    			switch (oldMode) {
+	    			case 1:
+	    				newMode = "meme";
+	    				break;
+	    			case 2:
+	    				newMode = "anime";
+	    				break;
+	    			case 0:
+	    			default:
+	    				newMode = "normal";
+    			}
+    			
+    			set(Key.mode, newMode);
+    			config.save();
+    		}
+    	}
     }
     
     public void loadFile() {

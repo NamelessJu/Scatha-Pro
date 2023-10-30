@@ -4,6 +4,9 @@ import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.ScathaProSound;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.SoundEventAccessorComposite;
+import net.minecraft.client.audio.SoundHandler;
+import net.minecraft.util.ResourceLocation;
 
 public abstract class SoundUtil {
 
@@ -19,6 +22,12 @@ public abstract class SoundUtil {
     }
     public static void playModSound(String sound, float volume, float pitch) {
         playSound(ScathaPro.MODID + ":" + sound, volume, pitch);
+    }
+    
+    public static boolean soundExists(String id) {
+    	SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
+    	SoundEventAccessorComposite soundeventaccessorcomposite = soundHandler.getSound(new ResourceLocation(id));
+    	return soundeventaccessorcomposite != null && soundeventaccessorcomposite.cloneEntry() != SoundHandler.missing_sound;
     }
     
 }

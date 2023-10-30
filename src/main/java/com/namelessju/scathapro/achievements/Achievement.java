@@ -24,7 +24,7 @@ public enum Achievement {
     scatha_kills_2("No pet yet?!", "Kill 10 Scathas", 10),
     scatha_kills_3("Continuing the grind...", "Kill 100 Scathas", 100),
     scatha_kills_4("k", "Kill 1,000 Scathas", 1000),
-    scatha_kills_5("Over 9000", "Kill over 9,000 Scathas", 9001),
+    scatha_kills_5("Over 9000", "Kill 9,001 Scathas", 9001),
     scatha_kills_6("Scatha Pro", "Kill 20,000 Scathas", 20000),
 
     worm_kill_time_1("No time to waste", "Kill a worm less than one second after it spawned", 1, Type.SECRET),
@@ -45,7 +45,7 @@ public enum Achievement {
     
     scatha_spawn_time("Any%", "Spawn a Scatha in the 1st minute after joining a lobby", 1, Type.SECRET),
     
-    lobby_kills_1("They keep coming", "Kill 25 worms in a single lobby", 25),
+    lobby_kills_1("And they don't stop coming", "Kill 25 worms in a single lobby", 25),
     lobby_kills_2("Scatha grinding session", "Kill 50 worms in a single lobby", 50),
     lobby_kills_3("Lobby emptied", "Kill 100 worms in a single lobby", 100),
     
@@ -95,15 +95,22 @@ public enum Achievement {
     
     
     public enum Type {
-        NORMAL(null),
-        SECRET(EnumChatFormatting.AQUA + "Secret"),
-        HIDDEN(EnumChatFormatting.RED.toString() + EnumChatFormatting.ITALIC + "HIDDEN"),
-        LEGACY(EnumChatFormatting.DARK_PURPLE.toString() + EnumChatFormatting.BOLD + "LEGACY");
+    	
+        NORMAL(null, Visibility.VISIBLE),
+        SECRET(EnumChatFormatting.AQUA + "Secret", Visibility.TITLE_ONLY),
+        HIDDEN(EnumChatFormatting.RED.toString() + EnumChatFormatting.ITALIC + "HIDDEN", Visibility.HIDDEN),
+        LEGACY(EnumChatFormatting.DARK_PURPLE.toString() + EnumChatFormatting.BOLD + "LEGACY", Visibility.HIDDEN);
+    	
+    	public enum Visibility {
+    		VISIBLE, TITLE_ONLY, HIDDEN;
+    	}
         
         public final String string;
+        public final Visibility visibility;
         
-        private Type(String string) {
+        private Type(String string, Visibility visibility) {
             this.string = string;
+            this.visibility = visibility;
         }
         
         @Override

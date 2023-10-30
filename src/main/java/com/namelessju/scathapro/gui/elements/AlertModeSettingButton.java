@@ -1,15 +1,16 @@
 package com.namelessju.scathapro.gui.elements;
 
-import com.namelessju.scathapro.AlertMode;
 import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.OverlayManager;
+import com.namelessju.scathapro.alertmodes.AlertMode;
+import com.namelessju.scathapro.alertmodes.AlertModeManager;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
-public class AlertModeSettingButton extends GuiButton implements ClickActionButton {
+public class AlertModeSettingButton extends GuiButton implements IClickActionButton {
 	
 	public String text;
 	
@@ -23,12 +24,21 @@ public class AlertModeSettingButton extends GuiButton implements ClickActionButt
     
 	@Override
 	public void click() {
-        int currentMode = Config.instance.getInt(Config.Key.mode);
+		AlertMode[] allModes = AlertModeManager.getAllModes();
+		AlertMode currentMode = AlertModeManager.getCurrentMode();
         
-        int nextMode = currentMode + 1;
-        if (nextMode >= AlertMode.values().length) nextMode = 0;
+        int nextModeIndex = 0;
         
-        Config.instance.set(Config.Key.mode, nextMode);
+        for (int i = 0; i < allModes.length; i ++) {
+        	if (allModes[i] == currentMode) {
+        		nextModeIndex = i + 1;
+        		break;
+        	}
+        }
+        
+        if (nextModeIndex >= allModes.length) nextModeIndex = 0;
+        
+        Config.instance.set(Config.Key.mode, allModes[nextModeIndex].id);
         Config.instance.save();
         
         OverlayManager.instance.updateScathaPetImage();
@@ -37,6 +47,6 @@ public class AlertModeSettingButton extends GuiButton implements ClickActionButt
 	}
 	
 	private void updateText() {
-        displayString = text + ": " + AlertMode.getCurrentMode().name;
+        displayString = text + ": " + AlertModeManager.getCurrentMode().name;
 	}
 }

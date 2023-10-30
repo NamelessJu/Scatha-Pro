@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.namelessju.scathapro.gui.elements.ClickActionButton;
+import com.namelessju.scathapro.gui.elements.IClickActionButton;
 import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.client.Minecraft;
@@ -12,6 +12,8 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiLabel;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
+import net.minecraftforge.client.event.GuiScreenEvent;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.config.GuiSlider;
 
 public abstract class ScathaProGui extends GuiScreen {
@@ -70,7 +72,7 @@ public abstract class ScathaProGui extends GuiScreen {
             drawDefaultBackground();
         else if (mc.theWorld == null) {
             drawBackground(0);
-            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.GuiScreenEvent.BackgroundDrawnEvent(this));
+            MinecraftForge.EVENT_BUS.post(new GuiScreenEvent.BackgroundDrawnEvent(this));
         }
         
         drawCustomBackground();
@@ -100,8 +102,8 @@ public abstract class ScathaProGui extends GuiScreen {
     @Override
     protected void actionPerformed(GuiButton button) throws IOException
     {
-    	if (button instanceof ClickActionButton) {
-    		((ClickActionButton) button).click();
+    	if (button.enabled && button instanceof IClickActionButton) {
+    		((IClickActionButton) button).click();
     	}
     }
     

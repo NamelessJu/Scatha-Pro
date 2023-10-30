@@ -4,21 +4,29 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.achievements.AchievementManager;
+import com.namelessju.scathapro.alertmodes.customalertmode.CustomAlertModeManager;
 import com.namelessju.scathapro.commands.ChancesCommand;
 import com.namelessju.scathapro.commands.MainCommand;
 import com.namelessju.scathapro.eventlisteners.GuiListeners;
 import com.namelessju.scathapro.eventlisteners.LoopListeners;
 import com.namelessju.scathapro.eventlisteners.MiscListeners;
 import com.namelessju.scathapro.eventlisteners.ScathaProListeners;
+import com.namelessju.scathapro.events.GoblinSpawnEvent;
+import com.namelessju.scathapro.objects.Goblin;
 import com.namelessju.scathapro.objects.Worm;
+import com.namelessju.scathapro.util.ChatUtil;
 import com.namelessju.scathapro.commands.DevCommand;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.resources.IResourceManager;
+import net.minecraft.client.resources.SimpleReloadableResourceManager;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.client.ClientCommandHandler;
@@ -33,7 +41,7 @@ public class ScathaPro
 {
     public static final String MODNAME = "Scatha-Pro";
     public static final String MODID = "scathapro";
-    public static final String VERSION = "1.2.3.1";
+    public static final String VERSION = "1.3_DEV";
     
     public static final String CHATPREFIX = EnumChatFormatting.GRAY + MODNAME + ": " + EnumChatFormatting.RESET;
     public static final int pingTreshold = 2000;
@@ -68,7 +76,8 @@ public class ScathaPro
     public int regularWormKills = 0;
     public int scathaKills = 0;
     
-    public int wormStreak = 0; // positive -> scatha streak; negative -> regular worm streak
+    // positive -> scatha streak, negative -> regular worm streak
+    public int wormStreak = 0;
     
     public int rarePetDrops = 0;
     public int epicPetDrops = 0;
@@ -100,8 +109,40 @@ public class ScathaPro
         
         SaveManager.updateOldSaveLocations();
         Config.instance.loadFile();
+        
+        
+        IResourceManager resourceManager = Minecraft.getMinecraft().getResourceManager();
+        if (resourceManager instanceof SimpleReloadableResourceManager) {
+			SimpleReloadableResourceManager simpleReloadableResourceManager = (SimpleReloadableResourceManager) resourceManager;
+			simpleReloadableResourceManager.registerReloadListener(CustomAlertModeManager.instance);
+        }
+        else {
+    		logger.log(Level.ERROR, "Couldn't register resource reload listener - resource manager of unexpected type " + resourceManager.getClass().getCanonicalName() + " (expected " + SimpleReloadableResourceManager.class.getCanonicalName() + ")");
+        }
     }
     
+    
+    public boolean devTrigger(String trigger, String[] arguments) {
+    	
+    	if (trigger.equalsIgnoreCase("goblin")) {
+    		if (arguments.length > 0) {
+    			try {
+    				Goblin.Type type = Goblin.Type.valueOf(arguments[0]);
+    				MinecraftForge.EVENT_BUS.post(new GoblinSpawnEvent(new Goblin(null, type)));
+    				
+    	    		ChatUtil.sendModErrorMessage("Goblin spawn triggered");
+    			}
+    			catch (IllegalArgumentException e) {
+    				ChatUtil.sendModErrorMessage("Invalid goblin type");
+    			}
+    		}
+    		else ChatUtil.sendModErrorMessage("Goblin type argument missing");
+    		
+    		return true;
+    	}
+    	
+    	return false;
+    }
     
     public void updateKillAchievements() {
         
@@ -174,7 +215,7 @@ public class ScathaPro
         
         for (int i = 0; i < achievements.length; i ++) {
             Achievement a = achievements[i];
-            if (a.type != Achievement.Type.HIDDEN) {
+            if (a.type.visibility != Achievement.Type.Visibility.HIDDEN) {
                 nonHiddenAchievements ++;
                 if (AchievementManager.instance.isAchievementUnlocked(a)) unlockedNonHiddenAchievements ++;
             }
@@ -189,6 +230,7 @@ public class ScathaPro
     public void resetPreviousScathaPets() {
         previousScathaPets = null;
     }
+
     
     /*
     public boolean profilesDataRequestNeeded() {

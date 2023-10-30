@@ -1,14 +1,16 @@
 package com.namelessju.scathapro.eventlisteners;
 
-import com.namelessju.scathapro.AlertMode;
 import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.OverlayManager;
 import com.namelessju.scathapro.PersistentData;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.achievements.Achievement;
+import com.namelessju.scathapro.alertmodes.AlertMode;
+import com.namelessju.scathapro.alertmodes.AlertModeManager;
 import com.namelessju.scathapro.events.AchievementUnlockedEvent;
 import com.namelessju.scathapro.events.BedrockWallEvent;
 import com.namelessju.scathapro.events.CrystalHollowsTickEvent;
+import com.namelessju.scathapro.events.GoblinSpawnEvent;
 import com.namelessju.scathapro.events.MeetDeveloperEvent;
 import com.namelessju.scathapro.events.ScathaPetDropEvent;
 import com.namelessju.scathapro.events.UpdateEvent;
@@ -89,11 +91,14 @@ public class ScathaProListeners {
         if (Config.instance.getBoolean(Config.Key.wormPreAlert)) {
             long now = Util.getCurrentTime();
             if (now - lastPreAlertTime > 2500) {
+            	AlertMode alertMode = AlertModeManager.getCurrentMode();
+            	
                 mc.ingameGUI.displayTitle(null, null, 0, 20, 5);
-                mc.ingameGUI.displayTitle(null, EnumChatFormatting.YELLOW + "Worm about to spawn...", 0, 0, 0);
+                mc.ingameGUI.displayTitle(null, EnumChatFormatting.YELLOW + alertMode.getWormPrespawnSubtitle(), 0, 0, 0);
                 mc.ingameGUI.displayTitle("", null, 0, 0, 0);
                 
-                if (!AlertMode.playModeSound("prespawn")) SoundUtil.playSound("random.orb", 1f, 0.5f);
+                // if (!AlertMode.playModeSound("prespawn")) SoundUtil.playSound("random.orb", 1f, 0.5f);
+                alertMode.playWormPrespawnSound();
                 
                 lastPreAlertTime = now;
             }
@@ -115,10 +120,11 @@ public class ScathaProListeners {
             
             if (Config.instance.getBoolean(Config.Key.scathaAlert)) {
                 mc.ingameGUI.displayTitle(null, null, 0, 40, 10);
-                mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + "Pray to RNGesus!", 0, 0, 0);
-                mc.ingameGUI.displayTitle(EnumChatFormatting.RED + "Scatha", null, 0, 0, 0);
+                mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + AlertModeManager.getCurrentMode().getScathaSpawnSubtitle(), 0, 0, 0);
+                mc.ingameGUI.displayTitle(EnumChatFormatting.RED + AlertModeManager.getCurrentMode().getScathaSpawnTitle(), null, 0, 0, 0);
                 
-                if (!AlertMode.playModeSound("scatha")) SoundUtil.playSound("random.levelup", 1f, 0.8f);
+                // if (!AlertMode.playModeSound("scatha")) SoundUtil.playSound("random.levelup", 1f, 0.8f);
+                AlertModeManager.getCurrentMode().playScathaSpawnSound();
             }
         }
         else {
@@ -127,10 +133,11 @@ public class ScathaProListeners {
             
             if (Config.instance.getBoolean(Config.Key.wormAlert)) {
                 mc.ingameGUI.displayTitle(null, null, 5, 20, 5);
-                mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + "Just a regular worm...", 0, 0, 0);
-                mc.ingameGUI.displayTitle(EnumChatFormatting.YELLOW + "Worm", null, 0, 0, 0);
+                mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + AlertModeManager.getCurrentMode().getWormSpawnSubtitle(), 0, 0, 0);
+                mc.ingameGUI.displayTitle(EnumChatFormatting.YELLOW + AlertModeManager.getCurrentMode().getWormSpawnTitle(), null, 0, 0, 0);
 
-                if (!AlertMode.playModeSound("worm")) SoundUtil.playSound("random.levelup", 1f, 0.5f);
+                // if (!AlertMode.playModeSound("worm")) SoundUtil.playSound("random.levelup", 1f, 0.5f);
+                AlertModeManager.getCurrentMode().playWormSpawnSound();
             }
         }
         
@@ -178,7 +185,7 @@ public class ScathaProListeners {
             lastKillIsScatha = true;
             
             OverlayManager.instance.updateScathaKills();
-            OverlayManager.instance.updateScathaKillsAtLastDrop();
+            OverlayManager.instance.updateScathaKillsSinceLastDrop();
         }
         else {
             scathaPro.regularWormKills ++;
@@ -192,8 +199,6 @@ public class ScathaProListeners {
         }
         
         PersistentData.instance.saveWormKills();
-        
-        OverlayManager.instance.updateTotalKills();
         
         scathaPro.updateKillAchievements();
         
@@ -233,31 +238,39 @@ public class ScathaProListeners {
             
             mc.ingameGUI.displayTitle(null, null, 0, 130, 20);
             mc.ingameGUI.displayTitle(null, rarityTitle, 0, 0, 0);
-            mc.ingameGUI.displayTitle(EnumChatFormatting.YELLOW + "Scatha Pet!", null, 0, 0, 0);
+            mc.ingameGUI.displayTitle(EnumChatFormatting.YELLOW + AlertModeManager.getCurrentMode().getScathaPetDropTitle(), null, 0, 0, 0);
             
             SoundUtil.playSound("random.chestopen", 1.5f, 0.95f);
             
-            if (!AlertMode.playModeSound("pet_drop")) SoundUtil.playSound("mob.wither.death", 0.75f, 0.8f);
+            AlertModeManager.getCurrentMode().playScathaPetDropSound();
         }
+        
+        if (scathaPro.overallScathaKills >= 0 && scathaPro.scathaKillsAtLastDrop >= 0) {
+            int dryStreak = (scathaPro.overallScathaKills - 1) - scathaPro.scathaKillsAtLastDrop;
+            if (dryStreak > 0) {
+            	ChatUtil.sendModChatMessage(EnumChatFormatting.YELLOW + "Scatha pet dropped after a " + EnumChatFormatting.RED + dryStreak + " Scatha kill" + (dryStreak != 1 ? "s" : "") + EnumChatFormatting.YELLOW + " dry streak");
+            }
+            else if (dryStreak == 0) {
+            	ChatUtil.sendModChatMessage(EnumChatFormatting.RED + "BACK TO BACK" + EnumChatFormatting.YELLOW + " Scatha pet drop!");
+            }
+        }
+        
         
         scathaPro.updatePetDropAchievements();
         
-        switch (Config.instance.getInt(Config.Key.mode)) {
-            case 0:
-                Achievement.scatha_pet_drop_mode_normal.unlock();
-                break;
-            case 1:
-                Achievement.scatha_pet_drop_mode_meme.unlock();
-                break;
-            case 2:
-                Achievement.scatha_pet_drop_mode_anime.unlock();
-                break;
-        }
+        if (Config.instance.getString(Config.Key.mode).equals("normal"))
+            Achievement.scatha_pet_drop_mode_normal.unlock();
+        if (Config.instance.getString(Config.Key.mode).equals("meme"))
+            Achievement.scatha_pet_drop_mode_meme.unlock();
+        if (Config.instance.getString(Config.Key.mode).equals("anime"))
+            Achievement.scatha_pet_drop_mode_anime.unlock();
         
-        if ((scathaPro.scathaKillsAtLastDrop >= 0 && scathaPro.overallScathaKills >= 0 && scathaPro.overallScathaKills == scathaPro.scathaKillsAtLastDrop + 1) || droppedPetAtLastScatha) Achievement.scatha_pet_drop_b2b.unlock();
+        if ((scathaPro.scathaKillsAtLastDrop >= 0 && scathaPro.overallScathaKills >= 0 && scathaPro.overallScathaKills == scathaPro.scathaKillsAtLastDrop + 1) || droppedPetAtLastScatha) {
+        	Achievement.scatha_pet_drop_b2b.unlock();
+        }
         if (scathaPro.overallScathaKills >= 0) {
             scathaPro.scathaKillsAtLastDrop = scathaPro.overallScathaKills;
-            OverlayManager.instance.updateScathaKillsAtLastDrop();
+            OverlayManager.instance.updateScathaKillsSinceLastDrop();
         }
         droppedPetAtLastScatha = true;
         lastPetDropTime = Util.getCurrentTime(); 
@@ -271,10 +284,35 @@ public class ScathaProListeners {
     public void onBedrockWall(BedrockWallEvent e) {
         if (Config.instance.getBoolean(Config.Key.wallAlert)) {
             mc.ingameGUI.displayTitle(null, null, 3, 20, 5);
-            mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + "Close to bedrock wall", 0, 0, 0);
+            mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + AlertModeManager.getCurrentMode().getBedrockWallSubtitle(), 0, 0, 0);
             mc.ingameGUI.displayTitle("", null, 0, 0, 0);
             
-            if (!AlertMode.playModeSound("bedrock_wall")) SoundUtil.playSound("note.pling", 1f, 0.5f);
+            AlertModeManager.getCurrentMode().playBedrockWallSound();
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onGoblinSpawn(GoblinSpawnEvent e) {
+        if (Config.instance.getBoolean(Config.Key.goblinAlert)) {
+        	
+        	String goblinText;
+        	
+        	switch (e.goblin.type) {
+				case GOLD:
+		        	goblinText = EnumChatFormatting.YELLOW + "Golden Goblin";
+					break;
+				case DIAMOND:
+		        	goblinText = EnumChatFormatting.AQUA + "Diamond Goblin";
+					break;
+				default:
+					goblinText = EnumChatFormatting.GRAY + "Unknown Goblin";
+        	}
+            
+            mc.ingameGUI.displayTitle(null, null, 2, 30, 10);
+            mc.ingameGUI.displayTitle(null, goblinText, 0, 0, 0);
+            mc.ingameGUI.displayTitle("", null, 0, 0, 0);
+            
+            AlertModeManager.getCurrentMode().playGoblinSpawnSound();
         }
     }
     

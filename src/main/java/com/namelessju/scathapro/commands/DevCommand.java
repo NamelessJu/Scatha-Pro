@@ -1,12 +1,13 @@
 package com.namelessju.scathapro.commands;
 
+import java.util.Arrays;
 import java.util.List;
 
 import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.UpdateChecker;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.achievements.AchievementManager;
+import com.namelessju.scathapro.util.ChatUtil;
 import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.command.CommandBase;
@@ -88,23 +89,23 @@ public class DevCommand extends CommandBase {
                 else throw new CommandException("You are not a player");
             }
             
-            else if (subCommand.equalsIgnoreCase("compareVersions")) {
-                if (args.length < 3) throw new CommandException("Missing arguments: <current version> <other version>");
-                
-                int difference = UpdateChecker.compareVersions(args[1], args[2]);
-                if (difference > 0)
-                    sender.addChatMessage(new ChatComponentText(args[1] + " is lower than " + args[2]));
-                else if (difference < 0)
-                    sender.addChatMessage(new ChatComponentText(args[1] + " is higher than " + args[2]));
-                else
-                    sender.addChatMessage(new ChatComponentText(args[1] + " and " + args[2] + " are the same"));
-            }
-            
             else if (subCommand.equalsIgnoreCase("achievementsUnlockAll")) {
                 Achievement[] achievements = AchievementManager.getAllAchievements();
                 for (int i = 0; i < achievements.length; i ++) {
                     achievements[i].unlock();
                 }
+            }
+            
+            else if (subCommand.equalsIgnoreCase("trigger")) {
+            	String trigger = args[1];
+            	String[] triggerArguments = Arrays.copyOfRange(args, 2, args.length);
+            	
+            	if (ScathaPro.getInstance().devTrigger(trigger, triggerArguments)) {
+                    sender.addChatMessage(new ChatComponentText("Triggered \"" + trigger + "\""));
+            	}
+            	else {
+                	ChatUtil.sendModErrorMessage("Trigger \"" + trigger + "\" doesn't exist");
+            	}
             }
             
             else throw new CommandException("Invalid subcommand");

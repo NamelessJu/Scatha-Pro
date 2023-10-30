@@ -1,6 +1,5 @@
 package com.namelessju.scathapro;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,7 +27,6 @@ import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraftforge.common.config.Configuration.UnicodeInputStreamReader;
 
 public class PersistentData {
 	
@@ -49,17 +47,9 @@ public class PersistentData {
     public void loadData() {
         if (saveFile.exists() && saveFile.canRead()) {
             try {
-                UnicodeInputStreamReader inputStream = new UnicodeInputStreamReader(new FileInputStream(saveFile), "UTF-8");
-                BufferedReader bufferedReader = new BufferedReader(inputStream);
-    
-                StringBuilder jsonBuilder = new StringBuilder();
-                String line;
-                while ((line = bufferedReader.readLine()) != null) {
-                    jsonBuilder.append(line);
-                }
-                bufferedReader.close();
-                
-                JsonElement dataJson = new JsonParser().parse(jsonBuilder.toString());
+            	String jsonString = SaveManager.readInputStream(new FileInputStream(saveFile));
+            	
+                JsonElement dataJson = new JsonParser().parse(jsonString);
                 if (dataJson.isJsonObject()) {
                     data = dataJson.getAsJsonObject();
                     
@@ -169,6 +159,8 @@ public class PersistentData {
             
                 AchievementManager.instance.unlockedAchievements.clear();
                 
+                long now = Util.getCurrentTime();
+                
                 for (JsonElement achievementJsonElement : achievementsJsonArray) {
                     
                     String achievementID = JsonUtil.getString(achievementJsonElement, "achievementID");
@@ -180,7 +172,7 @@ public class PersistentData {
     
                         if (achievement != null && !AchievementManager.instance.isAchievementUnlocked(achievement)) {
                             
-                            if (unlockedAtTimestamp > Util.getCurrentTime() || unlockedAtTimestamp < 1640991600000L)
+                            if (unlockedAtTimestamp > now || unlockedAtTimestamp < 1640991600000L)
                                 scathaPro.showFakeBan = true;
                             
                             AchievementManager.instance.unlockedAchievements.add(new UnlockedAchievement(achievement, unlockedAtTimestamp));
@@ -238,12 +230,9 @@ public class PersistentData {
                 Integer scathaKillsAtLastDrop = JsonUtil.getInt(playerJson, petDropsKey + "/scathaKillsAtLastDrop");
                 if (scathaKillsAtLastDrop != null) {
                     scathaPro.scathaKillsAtLastDrop = scathaKillsAtLastDrop;
-                    
-                    if (scathaPro.scathaKillsAtLastDrop < 0)
-                        scathaPro.showFakeBan = true;
                 }
                 
-                OverlayManager.instance.updateScathaKillsAtLastDrop();
+                OverlayManager.instance.updateScathaKillsSinceLastDrop();
             }
         }
         catch (Exception e) {
@@ -286,8 +275,6 @@ public class PersistentData {
                 
                 OverlayManager.instance.updateWormKills();
                 OverlayManager.instance.updateScathaKills();
-                OverlayManager.instance.updateTotalKills();
-                OverlayManager.instance.updateScathaKillsAtLastDrop();
             }
         }
         catch (Exception e) {

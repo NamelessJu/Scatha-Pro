@@ -87,8 +87,10 @@ public class LoopListeners {
             ScoreObjective scoreobjective = this.mc.theWorld.getScoreboard().getObjectiveInDisplaySlot(0);
             NetHandlerPlayClient handler = mc.thePlayer.sendQueue;
             boolean playerListShown = mc.gameSettings.keyBindPlayerList.isKeyDown() && (!mc.isIntegratedServerRunning() || handler.getPlayerInfoMap().size() > 1 || scoreobjective != null);
-            if (Config.instance.getBoolean(Config.Key.overlay) && Util.inCrystalHollows() && !mc.gameSettings.showDebugInfo && !playerListShown && !(mc.currentScreen instanceof OverlaySettingsGui))
+            
+            if (Util.inCrystalHollows() && !mc.gameSettings.showDebugInfo && !playerListShown && !(mc.currentScreen instanceof OverlaySettingsGui)) {
                 OverlayManager.instance.drawOverlay();
+            }
             
             if (Config.instance.getBoolean(Config.Key.showRotationAngles)) {
                 EntityPlayer player = mc.thePlayer;
@@ -407,18 +409,6 @@ public class LoopListeners {
                             MinecraftForge.EVENT_BUS.post(new ScathaPetDropEvent(pet));
                             receivedPets.remove(i);
                         }
-                    }
-                    
-                    
-                    // Update UI overlay
-                    
-                    if (Config.instance.getBoolean(Config.Key.overlay) && !Minecraft.getMinecraft().gameSettings.showDebugInfo) {
-                        OverlayManager.instance.updateCoords();
-                        OverlayManager.instance.updateDay();
-                        
-                        OverlayManager.instance.updatePosition();
-
-                        OverlayManager.instance.updateCooldownProgressBar();
                     }
                     
                 }

@@ -3,6 +3,7 @@ package com.namelessju.scathapro;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 
+import com.namelessju.scathapro.alertmodes.AlertModeManager;
 import com.namelessju.scathapro.events.OverlayInitEvent;
 import com.namelessju.scathapro.overlay.OverlayContainer;
 import com.namelessju.scathapro.overlay.OverlayElement;
@@ -41,7 +42,7 @@ public class OverlayManager {
     private final OverlayText rarePetDropsText;
     private final OverlayText epicPetDropsText;
     private final OverlayText legendaryPetDropsText;
-    private final OverlayText scathaKillsAtLastDropText;
+    private final OverlayText scathaKillsSinceLastDropText;
     
     
     private OverlayManager() {
@@ -112,15 +113,30 @@ public class OverlayManager {
         overlay.add(countersContainer);
 
         
-        overlay.add(scathaKillsAtLastDropText = new OverlayText(null, Util.Color.WHITE.getValue(), 0, 60, 1f));
+        overlay.add(scathaKillsSinceLastDropText = new OverlayText(null, Util.Color.WHITE.getValue(), 0, 60, 1f));
 
         overlay.add(dayText = new OverlayText(null, Util.Color.WHITE.getValue(), 0, 71, 1f));
         overlay.add(coordsText = new OverlayText(null, Util.Color.WHITE.getValue(), 0, 81, 1f));
         
 
         MinecraftForge.EVENT_BUS.post(new OverlayInitEvent.Post(overlay));
+        
+        
+        updateVisibility();
     }
     public void drawOverlay() {
+    	
+    	if (overlay.isVisible()) {
+	        // Update per-frame stats
+
+	        OverlayManager.instance.updateSpawnCooldownProgressBar();
+	        OverlayManager.instance.updateCoords();
+	        OverlayManager.instance.updateDay();
+	        OverlayManager.instance.updatePosition();
+    	}
+        
+        // Render the overlay
+        
         overlay.draw();
     }
     
@@ -133,17 +149,14 @@ public class OverlayManager {
 
         updateWormKills();
         updateScathaKills();
-        updateTotalKills();
 
-        updateCooldownProgressBar();
+        updateSpawnCooldownProgressBar();
 
         updateWormStreak();
         updateCoords();
         updateDay();
         
         updatePetDrops();
-        
-        updateScathaKillsAtLastDrop();
     }
 
     public void updatePosition() {
@@ -174,11 +187,7 @@ public class OverlayManager {
     }
     
     public void updateScathaPetImage() {
-        String alertModeID = AlertMode.getCurrentMode().id;
-        
-        String petImagePath = "overlay/" + (alertModeID != null ? "mode_icons/" + alertModeID : "scatha_pet") + ".png";
-
-        scathaPetImage.setImage(petImagePath, 256, 256);
+        scathaPetImage.setImage(AlertModeManager.getCurrentMode().getIconPath(), 256, 256);
     }
     
     public void updatePetDrops() {
@@ -192,6 +201,8 @@ public class OverlayManager {
         
         regularWormKillsText.setText(Util.numberToString(world != null ? scathaPro.regularWormKills : 0));
         overallWormKillsText.setText(scathaPro.overallRegularWormKills >= 0 ? Util.numberToString(scathaPro.overallRegularWormKills) : EnumChatFormatting.OBFUSCATED + "?");
+
+        updateTotalKills();
     }
     
     public void updateScathaKills() {
@@ -199,9 +210,12 @@ public class OverlayManager {
         
         scathaKillsText.setText(Util.numberToString(world != null ? scathaPro.scathaKills : 0));
         overallScathaKillsText.setText(scathaPro.overallScathaKills >= 0 ? Util.numberToString(scathaPro.overallScathaKills) : EnumChatFormatting.OBFUSCATED + "?");
+
+        updateTotalKills();
+        updateScathaKillsSinceLastDrop();
     }
     
-    public void updateTotalKills() {
+    private void updateTotalKills() {
         World world = mc.theWorld;
 
         int totalKills = world != null ? scathaPro.regularWormKills + scathaPro.scathaKills : 0;
@@ -219,7 +233,7 @@ public class OverlayManager {
                 scathaPro.wormStreak != 0
                 ? (
                         scathaPro.wormStreak > 0
-                        ? "Scatha streak: " + Util.numberToString(scathaPro.wormStreak)
+                        ? "Scatha spawn streak: " + Util.numberToString(scathaPro.wormStreak)
                         : "No Scatha for " + Util.numberToString(-scathaPro.wormStreak) + " " + (-scathaPro.wormStreak == 1 ? "spawn" : "spawns")
                 )
                 : "No worms spawned yet"
@@ -296,11 +310,22 @@ public class OverlayManager {
         coordsText.setText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.WHITE + coordinatesString + " " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + facingAxis + " (" + Util.numberToString(Math.floor(wallProgress * 1000D) / 10D, 1) + "% to wall)");
     }
     
-    public void updateScathaKillsAtLastDrop() {
-        scathaKillsAtLastDropText.setText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + "Scathas since last pet drop: " + (scathaPro.overallScathaKills >= 0 && scathaPro.scathaKillsAtLastDrop >= 0 ? scathaPro.overallScathaKills - scathaPro.scathaKillsAtLastDrop : EnumChatFormatting.OBFUSCATED + "?"));
+    public void updateScathaKillsSinceLastDrop() {
+    	String killsText;
+    	if (scathaPro.overallScathaKills >= 0 && scathaPro.scathaKillsAtLastDrop >= 0) {
+    		int scathaKillsSinceLastDrop = scathaPro.overallScathaKills - scathaPro.scathaKillsAtLastDrop;
+    		
+    		if (scathaKillsSinceLastDrop >= 0) {
+    			killsText = Integer.toString(scathaKillsSinceLastDrop); 
+    		}
+    		else killsText = EnumChatFormatting.OBFUSCATED + "???"; // 3 obfuscated characters indicate negative number
+    	}
+    	else killsText = EnumChatFormatting.OBFUSCATED + "?";
+    	
+        scathaKillsSinceLastDropText.setText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + "Scathas since last pet drop: " + killsText);
     }
     
-    public void updateCooldownProgressBar() {
+    public void updateSpawnCooldownProgressBar() {
     	if (scathaPro.lastWormSpawnTime >= 0f) {
         	spawnCooldownProgressBar.setProgress(1f - ((Util.getCurrentTime() - scathaPro.lastWormSpawnTime) / 30000f));
     	}

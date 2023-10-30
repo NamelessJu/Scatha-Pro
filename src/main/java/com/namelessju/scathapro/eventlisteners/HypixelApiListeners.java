@@ -57,8 +57,6 @@ public class HypixelApiListeners {
                         
                         OverlayManager.instance.updateWormKills();
                         OverlayManager.instance.updateScathaKills();
-                        OverlayManager.instance.updateTotalKills();
-                        OverlayManager.instance.updateScathaKillsAtLastDrop();
 
                         scathaPro.updateKillAchievements();
                     }

@@ -1,8 +1,11 @@
 package com.namelessju.scathapro;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStream;
 
 import net.minecraft.client.Minecraft;
+import net.minecraftforge.common.config.Configuration.UnicodeInputStreamReader;
 import net.minecraftforge.fml.common.Loader;
 
 public abstract class SaveManager {
@@ -16,6 +19,26 @@ public abstract class SaveManager {
     
     public static File getSaveLocation() {
         return new File(Loader.instance().getConfigDir(), ScathaPro.MODID);
+    }
+    
+    public static String readInputStream(InputStream inputStream) {
+    	try {
+	        UnicodeInputStreamReader inputStreamReader = new UnicodeInputStreamReader(inputStream, "UTF-8");
+	        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+	        
+	        StringBuilder stringBuilder = new StringBuilder();
+	        
+	        String line;
+	        while ((line = bufferedReader.readLine()) != null) {
+	        	stringBuilder.append(line);
+	        }
+	        bufferedReader.close();
+	        
+	        return stringBuilder.toString();
+    	}
+    	catch (Exception e) {
+    		return "";
+    	}
     }
     
     public static void updateOldSaveLocations() {

@@ -3,9 +3,18 @@ package com.namelessju.scathapro.util;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 public abstract class JsonUtil {
+	
+	public static JsonObject parseObject(String jsonString) {
+		JsonElement json = new JsonParser().parse(jsonString);
+    	if (json != null && json instanceof JsonObject) {
+    		return json.getAsJsonObject();
+    	}
+    	else return null;
+	}
     
     public static JsonElement getJsonElement(JsonElement object, String path) {
         if (object == null || object.isJsonNull()) return null;

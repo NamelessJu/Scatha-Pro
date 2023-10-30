@@ -14,7 +14,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
-public class SubMenuButton extends GuiButton implements ClickActionButton {
+public class SubMenuButton extends GuiButton implements IClickActionButton {
 	
 	public GuiScreen parentMenu;
 	public Class<? extends ScathaProGui> menuClass;
