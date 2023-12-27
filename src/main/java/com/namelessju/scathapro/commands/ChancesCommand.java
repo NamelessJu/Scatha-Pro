@@ -3,7 +3,7 @@ package com.namelessju.scathapro.commands;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.namelessju.scathapro.util.ChatUtil;
+import com.namelessju.scathapro.util.MessageUtil;
 import com.namelessju.scathapro.util.NBTUtil;
 import com.namelessju.scathapro.util.Util;
 
@@ -47,14 +47,13 @@ public class ChancesCommand extends CommandBase {
         EntityPlayer player = sender instanceof EntityPlayer ? (EntityPlayer) sender : null;
         
         
-        int magicFind = args.length > 0 ? Math.max(CommandBase.parseInt(args[0]), 0) : 0;
-        int petLuck = args.length > 1 ? Math.max(CommandBase.parseInt(args[1]), 0) : 0;
+        float magicFind = args.length > 0 ? (float) Math.max(CommandBase.parseDouble(args[0]), 0) : 0f;
+        float petLuck = args.length > 1 ? (float) Math.max(CommandBase.parseDouble(args[1]), 0) : 0f;
         int kills = args.length > 2 ? Math.max(CommandBase.parseInt(args[2]), 0) : 0;
         
         int looting = 0;
         NBTTagCompound enchantments = NBTUtil.getSkyblockTagCompound(player != null ? player.getHeldItem() : null, "enchantments");
-        if (enchantments != null)
-            looting = enchantments.getInteger("looting");
+        if (enchantments != null) looting = enchantments.getInteger("looting");
         
 
         boolean specificChances = magicFind > 0 || petLuck > 0;
@@ -72,7 +71,7 @@ public class ChancesCommand extends CommandBase {
         }
         
         
-        String attributesString = EnumChatFormatting.AQUA + Util.getUnicodeString("272F") + " " + magicFind + " magic find" + EnumChatFormatting.RESET + (looting > 0 ? ", " : " and ") + EnumChatFormatting.LIGHT_PURPLE + Util.getUnicodeString("2663") + " " + petLuck + " pet luck" + EnumChatFormatting.RESET + (looting > 0 ? " and " + EnumChatFormatting.BLUE + "looting " + looting + EnumChatFormatting.GRAY + " (held item)" + EnumChatFormatting.RESET : "") + EnumChatFormatting.RESET;
+        String attributesString = EnumChatFormatting.AQUA + Util.getUnicodeString("272F") + " " + Util.numberToString(magicFind, 2) + " magic find" + EnumChatFormatting.RESET + (looting > 0 ? ", " : " and ") + EnumChatFormatting.LIGHT_PURPLE + Util.getUnicodeString("2663") + " " + Util.numberToString(petLuck, 2) + " pet luck" + EnumChatFormatting.RESET + (looting > 0 ? " and " + EnumChatFormatting.BLUE + "looting " + looting + EnumChatFormatting.GRAY + " (held item)" + EnumChatFormatting.RESET : "") + EnumChatFormatting.RESET;
         
         
         if (kills == 0) {
@@ -82,7 +81,7 @@ public class ChancesCommand extends CommandBase {
             int legendaryKills = (int) Math.ceil(1 / legendaryChance);
             int anyKills = (int) Math.ceil(1 / anyChance);
             
-            ChatUtil.sendModChatMessage(
+            MessageUtil.sendModChatMessage(
                     (specificChances
                         ? "Scatha pet drop chances with " + attributesString + ":\n"
                         : "Scatha pet drop base chances:\n"
@@ -102,7 +101,7 @@ public class ChancesCommand extends CommandBase {
             float epicChanceAtKills = (float) (1 - Math.pow(1 - epicChance, kills));
             float legendaryChanceAtKills = (float) (1 - Math.pow(1 - legendaryChance, kills));
             
-            ChatUtil.sendModChatMessage(
+            MessageUtil.sendModChatMessage(
                     "You have the following chances to drop at least 1 Scatha pet when killing " + EnumChatFormatting.RED + Util.getUnicodeString("2694") + " " + kills + " Scatha" + (kills == 1 ? "" : "s") + EnumChatFormatting.RESET + " with " + attributesString + ":\n"
                     + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.RESET + "Any: " + (anyChanceAtKills >= 0.999995f ? Util.numberToString(99.999f, 3) : Util.numberToString(anyChanceAtKills * 100, 3)) + "%"+ EnumChatFormatting.RESET + "\n"
                     + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.BLUE + "Rare: " + (rareChanceAtKills >= 0.999995f ? Util.numberToString(99.999f, 3) : Util.numberToString(rareChanceAtKills * 100, 3)) + "%" + EnumChatFormatting.RESET + "\n"

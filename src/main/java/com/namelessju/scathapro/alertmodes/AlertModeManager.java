@@ -7,11 +7,10 @@ public class AlertModeManager {
 	
 	public static final AlertModeManager instance = new AlertModeManager();
 	
-	private AlertMode defaultAlertMode;
 	private LinkedHashMap<String, AlertMode> modes = new LinkedHashMap<String, AlertMode>();
 	
 	private AlertModeManager() {
-		registerMode(defaultAlertMode = new AlertMode("normal", "Normal"));
+		registerMode(AlertMode.DEFAULT_MODE);
 		registerMode(new CustomAlertMode("custom", "Custom"));
 		registerMode(new PresetAlertMode("meme", "Meme"));
 		registerMode(new PresetAlertMode("anime", "Anime"));
@@ -31,9 +30,9 @@ public class AlertModeManager {
     
     public static AlertMode getCurrentMode() {
     	String currentModeId = Config.instance.getString(Config.Key.mode);
-    	if (currentModeId.isEmpty()) return instance.defaultAlertMode;
+    	if (currentModeId.isEmpty()) return AlertMode.DEFAULT_MODE;
     	AlertMode mode = getModeByID(currentModeId);
-        return mode != null ? mode : instance.defaultAlertMode;
+        return mode != null ? mode : AlertMode.DEFAULT_MODE;
     }
 	
 }

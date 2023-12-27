@@ -1,5 +1,6 @@
 package com.namelessju.scathapro.util;
 
+import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.ScathaProSound;
 
@@ -14,9 +15,9 @@ public abstract class SoundUtil {
         playSound(sound, 1f, 1f);
     }
     public static void playSound(String sound, float volume, float pitch) {
-        Minecraft.getMinecraft().getSoundHandler().playSound(new ScathaProSound(sound, volume, pitch));
+        Minecraft.getMinecraft().getSoundHandler().playSound(new ScathaProSound(sound, volume * (float) Config.instance.getDouble(Config.Key.soundsVolume), pitch));
     }
-
+    
     public static void playModSound(String sound) {
         playModSound(sound, 1f, 1f);
     }

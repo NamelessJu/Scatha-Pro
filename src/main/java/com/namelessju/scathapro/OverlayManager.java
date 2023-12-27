@@ -221,11 +221,11 @@ public class OverlayManager {
         int totalKills = world != null ? scathaPro.regularWormKills + scathaPro.scathaKills : 0;
         int overallTotalKills = scathaPro.overallRegularWormKills >= 0 && scathaPro.overallScathaKills >= 0 ? scathaPro.overallRegularWormKills + scathaPro.overallScathaKills : -1;
         
-        int percentage = totalKills > 0 ? (int) Math.round(((float) scathaPro.scathaKills / totalKills) * 100) : -1;
-        int overallPercentage = overallTotalKills > 0 ? (int) Math.round(((float) scathaPro.overallScathaKills / overallTotalKills) * 100) : -1;
+        float percentage = totalKills > 0 ? ((float) scathaPro.scathaKills / totalKills) * 100 : -1f;
+        float overallPercentage = overallTotalKills > 0 ? ((float) scathaPro.overallScathaKills / overallTotalKills) * 100 : -1f;
 
-        totalKillsText.setText(EnumChatFormatting.RESET + Util.numberToString(totalKills) + (percentage >= 0 ? EnumChatFormatting.GRAY.toString() + EnumChatFormatting.ITALIC + " (" + percentage + "%)" : ""));
-        overallTotalKillsText.setText(overallTotalKills >= 0 ? EnumChatFormatting.RESET + Util.numberToString(overallTotalKills) + (overallPercentage >= 0 ? EnumChatFormatting.GRAY.toString() + EnumChatFormatting.ITALIC + " (" + overallPercentage + "%)" : "") : EnumChatFormatting.OBFUSCATED + "?");
+        totalKillsText.setText(EnumChatFormatting.RESET + Util.numberToString(totalKills) + (percentage >= 0 ? EnumChatFormatting.GRAY.toString() + EnumChatFormatting.ITALIC + " (" + Util.numberToString(percentage, 1, true) + "%)" : ""));
+        overallTotalKillsText.setText(overallTotalKills >= 0 ? EnumChatFormatting.RESET + Util.numberToString(overallTotalKills) + (overallPercentage >= 0 ? EnumChatFormatting.GRAY.toString() + EnumChatFormatting.ITALIC + " (" + Util.numberToString(overallPercentage, 1, true) + "%)" : "") : EnumChatFormatting.OBFUSCATED + "?");
     }
     
     public void updateWormStreak() {

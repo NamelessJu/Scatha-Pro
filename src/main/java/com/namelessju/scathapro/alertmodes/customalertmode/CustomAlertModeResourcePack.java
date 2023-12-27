@@ -16,6 +16,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.namelessju.scathapro.ScathaPro;
+import com.namelessju.scathapro.alertmodes.Alert;
 
 import net.minecraft.client.resources.IResourcePack;
 import net.minecraft.client.resources.data.IMetadataSection;
@@ -25,20 +26,13 @@ import net.minecraft.util.ResourceLocation;
 public class CustomAlertModeResourcePack implements IResourcePack {
 
     private static final Set<String> resourceDomains = ImmutableSet.<String>of(CustomAlertModeManager.resourceDomain);
-    
-    private static final Set<String> soundNames = ImmutableSet.<String>of(
-    		"prespawn",
-    		"worm",
-    		"scatha",
-    		"bedrock_wall",
-    		"pet_drop",
-    		"goblin"
-		);
-	
 	
 	private JsonObject generateSoundsJson() {
-		JsonObject soundsJson = new JsonObject(); 
-		for (String soundName : soundNames) {
+		Alert[] alertSounds = Alert.values();
+		
+		JsonObject soundsJson = new JsonObject();
+		for (Alert sound : alertSounds) {
+			String soundName = sound.alertId;
 			if (resourceExists(new ResourceLocation(CustomAlertModeManager.getResourceName("sounds/" + soundName + ".ogg")))) {
 				addSoundToJson(soundName, soundsJson);
 			}
@@ -63,10 +57,26 @@ public class CustomAlertModeResourcePack implements IResourcePack {
 		
 		json.add(soundName, soundEntry);
 	}
+
+	@Override
+	public boolean resourceExists(ResourceLocation location) {
+		String subMode = CustomAlertModeManager.instance.getCurrentSubmodeId();
+		if (subMode == null) return false;
+		
+		if (location.getResourcePath().equals("sounds.json")) {
+			return true;
+		}
+		
+		String path = location.getResourcePath();
+		
+        File file = CustomAlertModeManager.getSubModeFile(subMode + "/assets/" + path);
+        // ScathaPro.getInstance().logger.log(Level.INFO, "Checking for resource file \"" + file.getAbsolutePath() + "\" (" + (file != null && file.isFile() ? "exists" : "not found") + ")");
+        return file != null && file.isFile();
+	}
 	
 	@Override
 	public InputStream getInputStream(ResourceLocation location) throws IOException {
-		String subMode = CustomAlertModeManager.instance.getSubmodeId();
+		String subMode = CustomAlertModeManager.instance.getCurrentSubmodeId();
 		
 		if (subMode == null) {
 			ScathaPro.getInstance().logger.log(Level.WARN, "Tried to get input stream for custom alert mode resource, but no custom mode is set!");
@@ -81,24 +91,8 @@ public class CustomAlertModeResourcePack implements IResourcePack {
 		
 		String path = location.getResourcePath();
 		
-        File file = new File(CustomAlertModeManager.submodesDirectory, subMode + "/" + path);
+        File file = CustomAlertModeManager.getSubModeFile(subMode + "/assets/" + path);
         return file != null && file.isFile() ? new FileInputStream(file) : null;
-	}
-
-	@Override
-	public boolean resourceExists(ResourceLocation location) {
-		String subMode = CustomAlertModeManager.instance.getSubmodeId();
-		if (subMode == null) return false;
-		
-		if (location.getResourcePath().equals("sounds.json")) {
-			return true;
-		}
-		
-		String path = location.getResourcePath();
-		
-        File file = new File(CustomAlertModeManager.submodesDirectory, subMode + "/" + path);
-        // ScathaPro.getInstance().logger.log(Level.INFO, "Checking for resource file \"" + file.getAbsolutePath() + "\" (" + (file != null && file.isFile() ? "exists" : "not found") + ")");
-        return file != null && file.isFile();
 	}
 	
 	@Override
@@ -118,7 +112,7 @@ public class CustomAlertModeResourcePack implements IResourcePack {
 
 	@Override
 	public String getPackName() {
-		return "Scatha-Pro Custom Alert Sounds";
+		return "Scatha-Pro Custom Alert Mode";
 	}
 
 }

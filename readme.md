@@ -12,14 +12,14 @@ _Make sure you download the .jar-file, not the source code!_
 - pet drop counter
 - worm/scatha kills counter
    - kills in current lobby
-   - total kills *(requires API key)*
+   - total kills
+- worm spawn cooldown bar
 - worm/scatha spawn streak
 - Scatha kills since last pet drop counter
 - time display
    - ingame time
    - time spent in lobby
-- coordinates + view axis
-- progress to bedrock wall
+- coordinates, view direction axis and progress to bedrock wall
 
 You can use `/scathapro setPetDrops <rare> <epic> <legendary>` to add pets you dropped before installing the mod to the counter
 
@@ -68,7 +68,6 @@ When a kills value is entered, calculates the chances for dropping at least 1 pe
 Accessible either via a button in the "Options" menu, or using `/scathapro settings`  
   
 ### All settings:
-- API key
 - alert volume
 - Overlay:
    - enable/disable
@@ -82,6 +81,11 @@ Accessible either via a button in the "Options" menu, or using `/scathapro setti
 - mode
 - show rotation angles
 - chat copy button
+
+## Worm spawn timer
+
+*(disabled by default)*  
+Sends a chat message after spawning a worm that displays the amount of time since the previous worm spawn
 
 ## Display rotation angles
 

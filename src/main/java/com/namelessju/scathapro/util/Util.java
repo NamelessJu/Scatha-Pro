@@ -89,14 +89,18 @@ public abstract class Util {
     }
 
     public static String numberToString(int number) {
-        return numberToString(number, 0);
+        return numberToString(number, 0, false);
     }
     public static String numberToString(double number, int maxDecimalPlaces) {
+        return numberToString(number, maxDecimalPlaces, false);
+    }
+    public static String numberToString(double number, int maxDecimalPlaces, boolean showTrailingDecimalZeros) {
         DecimalFormatSymbols decimalSymbols = new DecimalFormatSymbols();
         decimalSymbols.setDecimalSeparator('.');
         decimalSymbols.setGroupingSeparator(',');
         DecimalFormat decimalFormat = new DecimalFormat("#,###.#", decimalSymbols);
         decimalFormat.setMaximumFractionDigits(maxDecimalPlaces);
+        if (showTrailingDecimalZeros) decimalFormat.setMinimumFractionDigits(maxDecimalPlaces);
         return decimalFormat.format(number);
     }
     
@@ -124,10 +128,14 @@ public abstract class Util {
         clipboard.setContents(selection, selection);
     }
     
-    public static float calculatePetChance(float initialChance, int magicFind, int petLuck, int looting) {
+    public static float calculatePetChance(float initialChance, float magicFind, float petLuck, int looting) {
         
-        float lootingMultiplier = 1f;
+        float lootingMultiplier;
+        
         switch (looting) {
+        	default:
+        		lootingMultiplier = 1f;
+        		break;
             case 1:
                 lootingMultiplier = 1.15f;
                 break;
@@ -145,6 +153,6 @@ public abstract class Util {
                 break;
         }
         
-        return initialChance * (1 + (magicFind + petLuck)/100f) * lootingMultiplier;
+        return initialChance * (1f + (magicFind + petLuck)/100f) * lootingMultiplier;
     }
 }

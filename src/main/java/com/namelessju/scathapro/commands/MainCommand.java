@@ -1,7 +1,5 @@
 package com.namelessju.scathapro.commands;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +10,7 @@ import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.UpdateChecker;
 import com.namelessju.scathapro.gui.menus.AchievementsGui;
 import com.namelessju.scathapro.gui.menus.SettingsGui;
-import com.namelessju.scathapro.util.ChatUtil;
+import com.namelessju.scathapro.util.MessageUtil;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
@@ -47,7 +45,7 @@ public class MainCommand extends CommandBase {
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
             
         if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
-            ChatUtil.sendModChatMessage(
+            MessageUtil.sendModChatMessage(
                     "All commands:\n"
                     + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/scathapro " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "(alias /sp)" + EnumChatFormatting.WHITE + " (help):" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Shows this help message\n"
                     + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/scathachances " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "(alias /scacha)" + EnumChatFormatting.WHITE + " [magic find] [pet luck] [Scatha kills]:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Check/calculate Scatha pet drop chances\n"
@@ -85,7 +83,7 @@ public class MainCommand extends CommandBase {
                     scathaPro.epicPetDrops = epic;
                     scathaPro.legendaryPetDrops = legendary;
                     
-                    ChatUtil.sendModChatMessage("Pet drops changed");
+                    MessageUtil.sendModChatMessage("Pet drops changed");
                     
                     PersistentData.instance.savePetDrops();
                     OverlayManager.instance.updatePetDrops();
@@ -95,15 +93,12 @@ public class MainCommand extends CommandBase {
             }
             
             else if (subCommand.equalsIgnoreCase("backup")) {
-                LocalDateTime date = LocalDateTime.now();
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd_kk-mm-ss-SSS");
-                String timeString = date.format(formatter);
-                
-                PersistentData.instance.backup(timeString);
+            	PersistentData.instance.saveData();
+                PersistentData.instance.backup();
             }
             
             else if (subCommand.equalsIgnoreCase("checkUpdate")) {
-                ChatUtil.sendModChatMessage(EnumChatFormatting.GRAY + "Checking for update...");
+                MessageUtil.sendModChatMessage(EnumChatFormatting.GRAY + "Checking for update...");
             	UpdateChecker.checkForUpdate(true);
             }
             
@@ -114,7 +109,7 @@ public class MainCommand extends CommandBase {
                 
                 if (Config.instance.getBoolean(Config.Key.petAlert)) ScathaPro.getInstance().resetPreviousScathaPets();
     
-                ChatUtil.sendModChatMessage("All settings reset");
+                MessageUtil.sendModChatMessage("All settings reset");
             }
             
             else if (subCommand.equalsIgnoreCase("devMode")) {
@@ -124,7 +119,7 @@ public class MainCommand extends CommandBase {
                     Config.instance.set(Config.Key.devMode, enabled);
                     Config.instance.save();
                     
-                    ChatUtil.sendModChatMessage("Developer mode " + (enabled ? "enabled" : "disabled"));
+                    MessageUtil.sendModChatMessage("Developer mode " + (enabled ? "enabled" : "disabled"));
                 }
                 else throw new CommandException("Missing values: /scathapro devMode <true/false>");
             }

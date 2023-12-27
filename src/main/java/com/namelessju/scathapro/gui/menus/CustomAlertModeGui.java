@@ -13,7 +13,7 @@ import net.minecraft.util.EnumChatFormatting;
 public class CustomAlertModeGui extends ScathaProGui {
 
     public String getTitle() {
-        return "Custom Alert Modes";
+        return "Custom Alert Mode";
     }
 
 	public CustomAlertModeGui(GuiScreen parentGui) {
@@ -24,7 +24,8 @@ public class CustomAlertModeGui extends ScathaProGui {
     public void initGui() {
         super.initGui();
         
-        String currentSubmode = CustomAlertModeManager.instance.getSubmodeId();
+        CustomAlertModeManager.instance.loadMeta();
+        String currentSubmode = CustomAlertModeManager.instance.getCurrentSubmodeId();
         
         
         GuiLabel currentSubmodeLabel = new GuiLabel(fontRendererObj, 1, width / 2 - 155, 40, 310, 10, Util.Color.GREEN.getValue()).setCentered();
@@ -32,7 +33,7 @@ public class CustomAlertModeGui extends ScathaProGui {
         labelList.add(currentSubmodeLabel);
         
         
-        String[] submodes = CustomAlertModeManager.instance.getAllSubmodes();
+        String[] submodes = CustomAlertModeManager.instance.getAllSubmodeIds();
         String[] submodeNames = new String[submodes.length];
         for (int i = 0; i < submodes.length; i ++) {
         	String submodeName = CustomAlertModeManager.instance.getSubmodeDisplayName(submodes[i]);

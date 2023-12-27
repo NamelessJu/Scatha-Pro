@@ -13,7 +13,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StringUtils;
 
-public abstract class ChatUtil {
+public abstract class MessageUtil {
     
     public static void sendModChatMessage(IChatComponent chatComponent) {
         sendModChatMessage(chatComponent, true);
@@ -29,7 +29,7 @@ public abstract class ChatUtil {
     }
 
     public static void sendModChatMessage(String message) {
-        String[] lines = message.split("\n");
+        String[] lines = message.split("(\\r\\n)|(\\n)|(\\r)");
         for (int i = 0; i < lines.length; i ++) {
             String line = lines[i];
             sendModChatMessage(new ChatComponentText(EnumChatFormatting.RESET + line), i == 0);   
@@ -54,5 +54,13 @@ public abstract class ChatUtil {
             message.appendSibling(copyText);
         }
     }
+    
+    
+	public static void displayTitle(String title, String subtitle, int fadeInTicks, int stayTicks, int fadeOutTicks) {
+		Minecraft mc = Minecraft.getMinecraft();
+        mc.ingameGUI.displayTitle(null, null, fadeInTicks, stayTicks, fadeOutTicks);
+        mc.ingameGUI.displayTitle(null, subtitle, 0, 0, 0);
+        mc.ingameGUI.displayTitle(title, null, 0, 0, 0);
+	}
 
 }

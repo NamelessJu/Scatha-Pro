@@ -3,9 +3,13 @@ package com.namelessju.scathapro;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+
+import org.apache.commons.io.IOUtils;
+
+import com.google.common.base.Charsets;
 
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.common.config.Configuration.UnicodeInputStreamReader;
 import net.minecraftforge.fml.common.Loader;
 
 public abstract class SaveManager {
@@ -22,9 +26,12 @@ public abstract class SaveManager {
     }
     
     public static String readInputStream(InputStream inputStream) {
+    	if (inputStream == null) return "";
+    	
+    	BufferedReader bufferedReader = null;
+    	
     	try {
-	        UnicodeInputStreamReader inputStreamReader = new UnicodeInputStreamReader(inputStream, "UTF-8");
-	        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+	        bufferedReader = new BufferedReader(new InputStreamReader(inputStream, Charsets.UTF_8));
 	        
 	        StringBuilder stringBuilder = new StringBuilder();
 	        
@@ -38,6 +45,9 @@ public abstract class SaveManager {
     	}
     	catch (Exception e) {
     		return "";
+    	}
+    	finally {
+            IOUtils.closeQuietly(bufferedReader);
     	}
     }
     

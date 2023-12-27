@@ -20,7 +20,7 @@ import com.namelessju.scathapro.eventlisteners.ScathaProListeners;
 import com.namelessju.scathapro.events.GoblinSpawnEvent;
 import com.namelessju.scathapro.objects.Goblin;
 import com.namelessju.scathapro.objects.Worm;
-import com.namelessju.scathapro.util.ChatUtil;
+import com.namelessju.scathapro.util.MessageUtil;
 import com.namelessju.scathapro.commands.DevCommand;
 
 import net.minecraft.client.Minecraft;
@@ -41,7 +41,7 @@ public class ScathaPro
 {
     public static final String MODNAME = "Scatha-Pro";
     public static final String MODID = "scathapro";
-    public static final String VERSION = "1.3_DEV";
+    public static final String VERSION = "1.3_WIP";
     
     public static final String CHATPREFIX = EnumChatFormatting.GRAY + MODNAME + ": " + EnumChatFormatting.RESET;
     public static final int pingTreshold = 2000;
@@ -64,9 +64,6 @@ public class ScathaPro
     public ItemStack lastProjectileWeaponUsed = null;
     
     public boolean showFakeBan = false;
-    
-    public long lastProfilesDataRequestTime = -1;
-    public boolean repeatProfilesDataRequest = true;
 
     public long lastWormSpawnTime = -1;
     
@@ -100,7 +97,6 @@ public class ScathaPro
         MinecraftForge.EVENT_BUS.register(new GuiListeners());
         MinecraftForge.EVENT_BUS.register(new MiscListeners());
         MinecraftForge.EVENT_BUS.register(new ScathaProListeners());
-        // MinecraftForge.EVENT_BUS.register(new HypixelApiListeners());
         
         ClientCommandHandler.instance.registerCommand(new MainCommand());
         ClientCommandHandler.instance.registerCommand(new ChancesCommand());
@@ -130,13 +126,13 @@ public class ScathaPro
     				Goblin.Type type = Goblin.Type.valueOf(arguments[0]);
     				MinecraftForge.EVENT_BUS.post(new GoblinSpawnEvent(new Goblin(null, type)));
     				
-    	    		ChatUtil.sendModErrorMessage("Goblin spawn triggered");
+    	    		MessageUtil.sendModChatMessage("Goblin spawn triggered");
     			}
     			catch (IllegalArgumentException e) {
-    				ChatUtil.sendModErrorMessage("Invalid goblin type");
+    				MessageUtil.sendModErrorMessage("Invalid goblin type");
     			}
     		}
-    		else ChatUtil.sendModErrorMessage("Goblin type argument missing");
+    		else MessageUtil.sendModErrorMessage("Goblin type argument missing");
     		
     		return true;
     	}
@@ -230,11 +226,5 @@ public class ScathaPro
     public void resetPreviousScathaPets() {
         previousScathaPets = null;
     }
-
     
-    /*
-    public boolean profilesDataRequestNeeded() {
-        return Util.inCrystalHollows() && (overallRegularWormKills < 0 || overallScathaKills < 0);
-    }
-    */
 }

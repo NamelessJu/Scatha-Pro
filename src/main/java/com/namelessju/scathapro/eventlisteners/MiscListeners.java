@@ -7,11 +7,12 @@ import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.OverlayManager;
 import com.namelessju.scathapro.PersistentData;
 import com.namelessju.scathapro.ScathaPro;
+import com.namelessju.scathapro.ScathaProSound;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.events.UpdateEvent;
 import com.namelessju.scathapro.events.WormPreSpawnEvent;
 import com.namelessju.scathapro.objects.Worm;
-import com.namelessju.scathapro.util.ChatUtil;
+import com.namelessju.scathapro.util.MessageUtil;
 import com.namelessju.scathapro.util.JsonUtil;
 import com.namelessju.scathapro.util.NBTUtil;
 import com.namelessju.scathapro.util.Util;
@@ -79,8 +80,6 @@ public class MiscListeners {
             
             scathaPro.resetPreviousScathaPets();
             
-            scathaPro.repeatProfilesDataRequest = true;
-            
             scathaPro.lastWorldJoinTime = Util.getCurrentTime();
             
             // Update overlay
@@ -97,12 +96,6 @@ public class MiscListeners {
             Achievement.crystal_hollows_time_1.setProgress(0);
             Achievement.crystal_hollows_time_2.setProgress(0);
             Achievement.crystal_hollows_time_3.setProgress(0);
-            
-            // API request
-            /*
-            if (scathaPro.repeatProfilesDataRequest && Util.getCurrentTime() - scathaPro.lastProfilesDataRequestTime > 1000 * 60 * 5)
-                HypixelApiManager.requestProfilesData();
-            */
         }
     }
     
@@ -148,31 +141,34 @@ public class MiscListeners {
     public void onChatReceived(ClientChatReceivedEvent e) {
         if (e.type == 2) return;
         
-        // String unformattedText = StringUtils.stripControlCodes(e.message.getUnformattedText());
-        
-        // Automatically update API key when generating new one
-        /*
-        if (unformattedText.startsWith("Your new API key is ") && e.message.getSiblings().size() >= 1) {
-            String apiKey = e.message.getSiblings().get(0).getChatStyle().getChatClickEvent().getValue();
-            Config.instance.set(Config.Key.apiKey, apiKey);
-            Config.instance.save();
-            
-            ChatUtil.sendModChatMessage("Automatically updated API key to " + apiKey);
-
-            ScathaPro.getInstance().repeatProfilesDataRequest = true;
-            if (scathaPro.profilesDataRequestNeeded()) HypixelApiManager.requestProfilesData();
-        }
-        */
-        
-        // Add copy button
-        
-        ChatUtil.addChatCopyButton(e.message);
+        MessageUtil.addChatCopyButton(e.message);
     }
     
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onSound(PlaySoundEvent e) {
-        if ((Util.inCrystalHollows() && e.sound.getPitch() == 2.0952382f || Config.instance.getBoolean(Config.Key.devMode) && e.sound.getPitch() >= 2f) && e.name.equals("mob.spider.step"))
+    	
+    	// Detect worm pre-spawn
+        if (
+        		e.name.equals("mob.spider.step")
+        		&& (
+        			e.sound.getPitch() == 2.0952382f && Util.inCrystalHollows()
+    				|| e.sound.getPitch() >= 2f && Config.instance.getBoolean(Config.Key.devMode)
+				)
+    		)
+        {
             MinecraftForge.EVENT_BUS.post(new WormPreSpawnEvent());
+    	}
+        
+        
+        // Mute other sounds option
+        if (
+        		Config.instance.getBoolean(Config.Key.muteOtherSounds)
+        		&& Util.inCrystalHollows()
+        		&& !(e.sound instanceof ScathaProSound) && !e.name.equals("gui.button.press")
+    		)
+        {
+        	e.result = null;
+        }
     }
     
     @SubscribeEvent(priority = EventPriority.LOWEST)

@@ -4,9 +4,12 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import org.apache.logging.log4j.Level;
 
@@ -18,7 +21,7 @@ import com.google.gson.JsonPrimitive;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.achievements.AchievementManager;
 import com.namelessju.scathapro.achievements.UnlockedAchievement;
-import com.namelessju.scathapro.util.ChatUtil;
+import com.namelessju.scathapro.util.MessageUtil;
 import com.namelessju.scathapro.util.JsonUtil;
 import com.namelessju.scathapro.util.Util;
 
@@ -64,10 +67,16 @@ public class PersistentData {
                     loadPetDrops();
                     loadWormKills();
                 }
-                else ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't load persistent data (JSON root is not an object)");
+                else {
+                	ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't load persistent data (JSON root is not an object)");
+                	
+                    onLoadError();
+                }
             }
             catch (Exception e) {
                 ScathaPro.getInstance().logger.log(Level.ERROR, "Error while trying to load persistent data (" + e.getClass().getSimpleName() + ")");
+                
+                onLoadError();
             }
         }
     }
@@ -85,9 +94,14 @@ public class PersistentData {
                 ScathaPro.getInstance().logger.log(Level.ERROR, "Error while trying to save persistent data");
             }
         }
-        else ChatUtil.sendModErrorMessage("Your session is offline, so data won't be saved!");
+        else MessageUtil.sendModErrorMessage("Persistent data can't be saved, your session is offline!");
     }
 
+    public void backup() {
+        LocalDateTime date = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd_kk-mm-ss-SSS");
+        backup(date.format(formatter), false);
+    }
     public void backup(String name) {
         backup(name, false);
     }
@@ -98,12 +112,11 @@ public class PersistentData {
         if (!backupFolder.exists()) backupFolder.mkdirs();
         
         if (backupFile.exists() && !overwrite) {
-            ChatUtil.sendModErrorMessage("Couldn't backup persistent data: File already exists");
+            MessageUtil.sendModErrorMessage("Couldn't backup persistent data: File already exists");
             return;
         }
         
         try {
-            saveData();
             Files.copy(saveFile.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
             ChatComponentText message = new ChatComponentText("Created persistent data backup as ");
@@ -115,11 +128,11 @@ public class PersistentData {
             path.setChatStyle(pathStyle);
             message.appendSibling(path);
             
-            ChatUtil.sendModChatMessage(message);
+            MessageUtil.sendModChatMessage(message);
         }
-        catch (Exception e) {
+        catch (IOException e) {
             e.printStackTrace();
-            ChatUtil.sendModErrorMessage("Couldn't backup persistent data: Failed to write file");
+            MessageUtil.sendModErrorMessage("Couldn't backup persistent data: Failed to write file");
         }
     }
     
@@ -129,7 +142,7 @@ public class PersistentData {
         if (playerElement != null && playerElement.isJsonObject())
             return playerElement.getAsJsonObject();
         
-        return null; 
+        return null;
     }
     
     public JsonObject getData() {
@@ -185,6 +198,8 @@ public class PersistentData {
         catch (Exception e) {
             ScathaPro.getInstance().logger.log(Level.ERROR, "Error while trying to load achievements data:");
             e.printStackTrace();
+            
+            onLoadError();
         }
     }
     
@@ -238,6 +253,8 @@ public class PersistentData {
         catch (Exception e) {
             ScathaPro.getInstance().logger.log(Level.ERROR, "Error while trying to load pet drops data:");
             e.printStackTrace();
+            
+            onLoadError();
         }
     }
     
@@ -270,7 +287,7 @@ public class PersistentData {
                 if (scathaKills != null) scathaPro.overallScathaKills = scathaKills;
                 
                 if ((regularWormKills == null || scathaKills == null) && Config.instance.getBoolean(Config.Key.automaticStatsParsing)) {
-                	ChatUtil.sendModChatMessage(EnumChatFormatting.YELLOW + "Open \"/be worms\" to load previous worm kills into the overlay!");
+                	MessageUtil.sendModChatMessage(EnumChatFormatting.YELLOW + "Open \"/be worms\" to load previous worm kills into the overlay!");
                 }
                 
                 OverlayManager.instance.updateWormKills();
@@ -280,6 +297,8 @@ public class PersistentData {
         catch (Exception e) {
             ScathaPro.getInstance().logger.log(Level.ERROR, "Error while trying to load worm kills data:");
             e.printStackTrace();
+            
+            onLoadError();
         }
     }
     
@@ -292,5 +311,11 @@ public class PersistentData {
         PersistentData.instance.set(wormKillsKey, wormKillsJsonObject);
         
         PersistentData.instance.saveData();
+    }
+    
+    
+    private void onLoadError() {
+    	MessageUtil.sendModErrorMessage("Error while loading persistent data, creating backup...");
+    	backup();
     }
 }

@@ -16,19 +16,19 @@ public class Config {
     private Configuration config;
     
     public enum Key {
-
-        // API
-        apiKey("api", "key", ""),
-        
+    	
         // Overlay
         overlay("overlay", "enabled", true),
         overlayX("overlay", "x", -1D), overlayY("overlay", "y", -1D),
         overlayScale("overlay", "scale", 1D),
         
+        // Sounds
+        soundsVolume("sounds", "volume", 1D),
+        muteOtherSounds("sounds", "muteOtherSounds", false),
+        
         // Alerts
         mode("alerts", "mode", ""),
         customModeSubmode("alerts", "customModeSubmode", ""),
-        alertVolume("alerts", "volume", 1D),
         
         wormAlert("alerts", "worms", true),
         scathaAlert("alerts", "scathas", true),
@@ -88,6 +88,16 @@ public class Config {
     			}
     			
     			set(Key.mode, newMode);
+    			config.save();
+    		}
+    	}
+    	
+    	
+    	if (config.get(Key.soundsVolume.category, Key.soundsVolume.key, -1D).getDouble() < 0D) {
+    		
+    		double oldVolume = config.get("alerts", "volume", -1D).getDouble();
+    		if (oldVolume >= 0) {
+    			set(Key.soundsVolume, oldVolume);
     			config.save();
     		}
     	}

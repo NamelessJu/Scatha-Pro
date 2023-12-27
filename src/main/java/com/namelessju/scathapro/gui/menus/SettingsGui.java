@@ -12,8 +12,9 @@ import com.namelessju.scathapro.gui.elements.SubMenuButton;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraftforge.fml.client.config.GuiSlider;
 
-public class SettingsGui extends ScathaProGui {
+public class SettingsGui extends ScathaProGui implements GuiSlider.ISlider {
     
     @Override
     public String getTitle() {
@@ -22,11 +23,6 @@ public class SettingsGui extends ScathaProGui {
     
     private GuiButton alertModeSettingButton;
     private GuiButton customAlertModeEditButton;
-    /*
-    private GuiTextField apiKeyTextField;
-    private String apiKeyInitialValue;
-    private boolean editingApiKey = false;
-    */
     
     public SettingsGui(GuiScreen parentGui) {
         super(parentGui);
@@ -37,26 +33,14 @@ public class SettingsGui extends ScathaProGui {
     {
         super.initGui();
         
-        // apiKeyInitialValue = Config.instance.getString(Config.Key.apiKey);
-
-        /*
-        GuiLabel apiKeyLabel = new GuiLabel(fontRendererObj, 1, width / 2 - 155, height / 6 - 1 - 6, 310, 10, Util.Color.GRAY.getValue());
-        apiKeyLabel.func_175202_a("API-Key");
-        labelList.add(apiKeyLabel);
-        
-        apiKeyTextField = new GuiTextField(50470401, fontRendererObj, width / 2 - 155, height / 6 + 10 - 6, 265, 20);
-        apiKeyTextField.setMaxStringLength(64);
-        textFieldList.add(apiKeyTextField);
-        updateApiKeyTextField();
-        
-        buttonList.add(new GuiButton(504704003, width / 2 + 115, height / 6 + 10 - 6, 40, 20, getEditApiKeyString()));
-        */
-        
         buttonList.add(new SubMenuButton(504704004, width / 2 - 155, height / 6 - 12, 150, 20, "Overlay...", this, OverlaySettingsGui.class));
         buttonList.add(new SubMenuButton(504704005, width / 2 + 5, height / 6 - 12, 150, 20, "Alerts...", this, AlertSettingsGui.class));
+        
+        buttonList.add(new GuiSlider(504704014, width / 2 - 155, height / 6 + 24 - 12, 150, 20, "Mod Sounds Volume: ", "%", 0, 100, Config.instance.getDouble(Config.Key.soundsVolume) * 100, false, true, this));
+        buttonList.add(new BooleanSettingButton(504704015, width / 2 + 5, height / 6 + 24 - 12, 150, 20, "Mute sounds in CH", Config.Key.muteOtherSounds));
 
-        buttonList.add(customAlertModeEditButton = new SubMenuButton(504704013, width / 2 - 45, height / 6 + 48 - 6, 40, 20, "Edit...", this, CustomAlertModeGui.class));
         buttonList.add(alertModeSettingButton = new AlertModeSettingButton(504704006, width / 2 - 155, height / 6 + 48 - 6, 150, 20, "Mode"));
+        buttonList.add(customAlertModeEditButton = new SubMenuButton(504704013, width / 2 - 45, height / 6 + 48 - 6, 40, 20, "Edit...", this, CustomAlertModeGui.class));
         updateModeButtons();
         
         buttonList.add(new BooleanSettingButton(504704011, width / 2 + 5, height / 6 + 48 - 6, 150, 20, "Bestiary Kills Parsing", Config.Key.automaticStatsParsing));
@@ -82,6 +66,20 @@ public class SettingsGui extends ScathaProGui {
             }
         }
     }
+
+    @Override
+    public void onChangeSliderValue(GuiSlider slider) {
+        if (slider.enabled) {
+            switch (slider.id) {
+                case 504704014:
+                    double volume = (double) slider.getValueInt() / 100;
+                    
+                    Config.instance.set(Config.Key.soundsVolume, volume);
+                    Config.instance.save();
+                    break;
+            }
+        }
+    }
     
     private void updateModeButtons() {
     	if (AlertModeManager.getCurrentMode() instanceof CustomAlertMode) {
@@ -93,32 +91,5 @@ public class SettingsGui extends ScathaProGui {
     		customAlertModeEditButton.visible = false;
     	}
     }
-    
-    /*
-    @Override
-    public void onGuiClosed() {
-        if (!Config.instance.getString(Config.Key.apiKey).equals(apiKeyInitialValue)) {
-            ScathaPro.getInstance().repeatProfilesDataRequest = true;
-            if (ScathaPro.getInstance().profilesDataRequestNeeded()) HypixelApiManager.requestProfilesData();
-        }
-    }
-	
-    private void updateApiKeyTextField() {
-        if (editingApiKey) {
-            apiKeyTextField.setText(Config.instance.getString(Config.Key.apiKey));
-            apiKeyTextField.setEnabled(true);
-        }
-        else {
-            String apiKey = Config.instance.getString(Config.Key.apiKey);
-            
-            apiKeyTextField.setText(apiKey.replaceAll(".", "*"));
-            apiKeyTextField.setEnabled(false);
-        }
-    }
-    
-    private String getEditApiKeyString() {
-        return editingApiKey ? "save" : "edit";
-    }
-    */
     
 }

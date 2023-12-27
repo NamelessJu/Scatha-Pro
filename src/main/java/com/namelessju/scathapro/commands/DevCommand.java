@@ -7,7 +7,7 @@ import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.achievements.AchievementManager;
-import com.namelessju.scathapro.util.ChatUtil;
+import com.namelessju.scathapro.util.MessageUtil;
 import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.command.CommandBase;
@@ -104,7 +104,7 @@ public class DevCommand extends CommandBase {
                     sender.addChatMessage(new ChatComponentText("Triggered \"" + trigger + "\""));
             	}
             	else {
-                	ChatUtil.sendModErrorMessage("Trigger \"" + trigger + "\" doesn't exist");
+                	MessageUtil.sendModErrorMessage("Trigger \"" + trigger + "\" doesn't exist");
             	}
             }
             
