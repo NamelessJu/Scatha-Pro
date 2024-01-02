@@ -12,8 +12,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.namelessju.scathapro.Config;
-import com.namelessju.scathapro.OverlayManager;
-import com.namelessju.scathapro.PersistentData;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.UpdateChecker;
 import com.namelessju.scathapro.events.BedrockWallEvent;
@@ -96,10 +94,10 @@ public class LoopListeners {
             boolean playerListShown = mc.gameSettings.keyBindPlayerList.isKeyDown() && (!mc.isIntegratedServerRunning() || handler.getPlayerInfoMap().size() > 1 || scoreobjective != null);
             
             if (Util.inCrystalHollows() && !mc.gameSettings.showDebugInfo && !playerListShown && !(mc.currentScreen instanceof OverlaySettingsGui)) {
-                OverlayManager.instance.drawOverlay();
+                ScathaPro.getInstance().overlayManager.drawOverlay();
             }
             
-            if (Config.instance.getBoolean(Config.Key.showRotationAngles)) {
+            if (scathaPro.config.getBoolean(Config.Key.showRotationAngles)) {
                 EntityPlayer player = mc.thePlayer;
                 
                 if (player != null) {
@@ -149,14 +147,14 @@ public class LoopListeners {
                 
                 
                 if (firstIngameFrame) {
-                    if (Config.instance.getBoolean(Config.Key.automaticUpdateChecks))
+                    if (scathaPro.config.getBoolean(Config.Key.automaticUpdateChecks))
                     	UpdateChecker.checkForUpdate(false);
                     
                     firstIngameFrame = false;
                 }
                 
                 
-                if (Config.instance.getBoolean(Config.Key.automaticStatsParsing)) {
+                if (scathaPro.config.getBoolean(Config.Key.automaticStatsParsing)) {
                 	checkOpenedChest();
                 }
                 
@@ -166,7 +164,7 @@ public class LoopListeners {
                     
                 	if (firstCrystalHollowsFrame) {
                 		
-                        if (Config.instance.getBoolean(Config.Key.muteOtherSounds)) {
+                        if (scathaPro.config.getBoolean(Config.Key.muteOtherSounds)) {
                         	ChatComponentText chatComponent = new ChatComponentText(EnumChatFormatting.GRAY + "Note: You've muted sounds in the Crystal Hollows! Only Scatha-Pro sounds will play - you can unmute other sounds again in ");
                         	
                         	ChatComponentText commandComponent = new ChatComponentText(EnumChatFormatting.GRAY.toString() + EnumChatFormatting.UNDERLINE + "/scathapro settings");
@@ -528,7 +526,7 @@ public class LoopListeners {
         	if (regularWormKills >= 0) {
         		if (scathaPro.overallRegularWormKills != regularWormKills) {
             		scathaPro.overallRegularWormKills = regularWormKills;
-            		OverlayManager.instance.updateWormKills();
+            		ScathaPro.getInstance().overlayManager.updateWormKills();
             		killsUpdated = true;
         		}
         		else {
@@ -538,7 +536,7 @@ public class LoopListeners {
         	if (scathaKills >= 0) {
         		if (scathaPro.overallScathaKills != scathaKills) {
             		scathaPro.overallScathaKills = scathaKills;
-            		OverlayManager.instance.updateScathaKills();
+            		ScathaPro.getInstance().overlayManager.updateScathaKills();
             		killsUpdated = true;
         		}
         		else {
@@ -547,7 +545,7 @@ public class LoopListeners {
         	}
         	
         	if (killsUpdated) {
-        		PersistentData.instance.saveWormKills();
+        		ScathaPro.getInstance().persistentData.saveWormKills();
         		MessageUtil.sendModChatMessage("Updated overall worm kills from bestiary");
         		lastChestCheckedForKillInfo = chestGui;
         	}

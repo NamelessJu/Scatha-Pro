@@ -1,11 +1,7 @@
 package com.namelessju.scathapro;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
@@ -33,8 +29,6 @@ import net.minecraft.util.EnumChatFormatting;
 
 public class PersistentData {
 	
-    public static final PersistentData instance = new PersistentData();
-    
     private static final File saveFile = SaveManager.getModFile("persistentData.json");
     
     private static final String unlockedAchievementsKey = "unlockedAchievements";
@@ -45,37 +39,32 @@ public class PersistentData {
     
     private JsonObject data = new JsonObject();
     
-    private PersistentData() {}
-    
     public void loadData() {
-        if (saveFile.exists() && saveFile.canRead()) {
-            try {
-            	String jsonString = SaveManager.readInputStream(new FileInputStream(saveFile));
-            	
-                JsonElement dataJson = new JsonParser().parse(jsonString);
-                if (dataJson.isJsonObject()) {
-                    data = dataJson.getAsJsonObject();
-                    
-                    String uuid = Util.getPlayerUUIDString(); 
-                    if (uuid != null && (data.get("unlockedAchievements") != null || data.get("petDrops") != null)) {
-                        JsonObject oldData = data;
-                        data = new JsonObject();
-                        data.add(uuid, oldData);
-                    }
-                    
-                    loadAchievements();
-                    loadPetDrops();
-                    loadWormKills();
-                }
-                else {
-                	ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't load persistent data (JSON root is not an object)");
-                	
-                    onLoadError();
-                }
-            }
-            catch (Exception e) {
-                ScathaPro.getInstance().logger.log(Level.ERROR, "Error while trying to load persistent data (" + e.getClass().getSimpleName() + ")");
+        if (saveFile.exists() && saveFile.canRead())
+        {
+        	String jsonString = SaveManager.readFile(saveFile);
+        	if (jsonString == null) {
+            	ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't load persistent data (failed to read file)");
+        		return;
+        	}
+        	
+            JsonElement dataJson = new JsonParser().parse(jsonString);
+            if (dataJson.isJsonObject()) {
+                data = dataJson.getAsJsonObject();
                 
+                String uuid = Util.getPlayerUUIDString(); 
+                if (uuid != null && (data.get("unlockedAchievements") != null || data.get("petDrops") != null)) {
+                    JsonObject oldData = data;
+                    data = new JsonObject();
+                    data.add(uuid, oldData);
+                }
+                
+                loadAchievements();
+                loadPetDrops();
+                loadWormKills();
+            }
+            else {
+            	ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't load persistent data (JSON root is not an object)");
                 onLoadError();
             }
         }
@@ -83,14 +72,7 @@ public class PersistentData {
     
     public void saveData() {
         if (Util.getPlayerUUIDString() != null) {
-            try {
-                FileOutputStream outputStream = new FileOutputStream(saveFile);
-                BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
-    
-                bufferedWriter.write(data.toString());
-                bufferedWriter.close();
-            }
-            catch (Exception e) {
+            if (!SaveManager.writeFile(saveFile, data.toString())) {
                 ScathaPro.getInstance().logger.log(Level.ERROR, "Error while trying to save persistent data");
             }
         }
@@ -166,11 +148,12 @@ public class PersistentData {
     
     private void loadAchievements() {
         try {
-            JsonArray achievementsJsonArray = JsonUtil.getJsonArray(PersistentData.instance.getCurrentPlayerObject(), unlockedAchievementsKey);
+            JsonArray achievementsJsonArray = JsonUtil.getJsonArray(getCurrentPlayerObject(), unlockedAchievementsKey);
             
             if (achievementsJsonArray != null) {
+            	AchievementManager achievementManager = ScathaPro.getInstance().achievementManager;
             
-                AchievementManager.instance.unlockedAchievements.clear();
+            	achievementManager.unlockedAchievements.clear();
                 
                 long now = Util.getCurrentTime();
                 
@@ -183,12 +166,12 @@ public class PersistentData {
                         
                         Achievement achievement = Achievement.getByID(achievementID);
     
-                        if (achievement != null && !AchievementManager.instance.isAchievementUnlocked(achievement)) {
+                        if (achievement != null && !achievementManager.isAchievementUnlocked(achievement)) {
                             
                             if (unlockedAtTimestamp > now || unlockedAtTimestamp < 1640991600000L)
                                 scathaPro.showFakeBan = true;
                             
-                            AchievementManager.instance.unlockedAchievements.add(new UnlockedAchievement(achievement, unlockedAtTimestamp));
+                            achievementManager.unlockedAchievements.add(new UnlockedAchievement(achievement, unlockedAtTimestamp));
                             achievement.setProgress(achievement.goal);
                         }
                     }
@@ -206,22 +189,22 @@ public class PersistentData {
     public void saveAchievements() {
         JsonArray unlockedAchievementsJson = new JsonArray();
         
-        for (UnlockedAchievement unlockedAchievement : AchievementManager.instance.unlockedAchievements) {
+        for (UnlockedAchievement unlockedAchievement : ScathaPro.getInstance().achievementManager.unlockedAchievements) {
             JsonObject achievementObject = new JsonObject();
             achievementObject.add("achievementID", new JsonPrimitive(unlockedAchievement.achievement.getID()));
             achievementObject.add("unlockedAt", new JsonPrimitive(unlockedAchievement.unlockedAtTimestamp));
             unlockedAchievementsJson.add(achievementObject);
         }
         
-        PersistentData.instance.set(unlockedAchievementsKey, unlockedAchievementsJson);
+        set(unlockedAchievementsKey, unlockedAchievementsJson);
         
-        PersistentData.instance.saveData();
+        saveData();
     }
     
     
     private void loadPetDrops() {
         try {
-        	JsonObject playerJson = PersistentData.instance.getCurrentPlayerObject();
+        	JsonObject playerJson = getCurrentPlayerObject();
             
             if (playerJson != null) {
                 
@@ -247,7 +230,7 @@ public class PersistentData {
                     scathaPro.scathaKillsAtLastDrop = scathaKillsAtLastDrop;
                 }
                 
-                OverlayManager.instance.updateScathaKillsSinceLastDrop();
+                ScathaPro.getInstance().overlayManager.updateScathaKillsSinceLastDrop();
             }
         }
         catch (Exception e) {
@@ -268,15 +251,15 @@ public class PersistentData {
         if (scathaPro.scathaKillsAtLastDrop >= 0)
         	petDropsJsonObject.add("scathaKillsAtLastDrop", new JsonPrimitive(scathaPro.scathaKillsAtLastDrop));
         
-        PersistentData.instance.set(petDropsKey, petDropsJsonObject);
+        set(petDropsKey, petDropsJsonObject);
         
-        PersistentData.instance.saveData();
+        saveData();
     }
     
     
     private void loadWormKills() {
         try {
-        	JsonObject playerJson = PersistentData.instance.getCurrentPlayerObject();
+        	JsonObject playerJson = getCurrentPlayerObject();
             
             if (playerJson != null) {
                 
@@ -286,12 +269,12 @@ public class PersistentData {
                 if (regularWormKills != null) scathaPro.overallRegularWormKills = regularWormKills;
                 if (scathaKills != null) scathaPro.overallScathaKills = scathaKills;
                 
-                if ((regularWormKills == null || scathaKills == null) && Config.instance.getBoolean(Config.Key.automaticStatsParsing)) {
+                if ((regularWormKills == null || scathaKills == null) && scathaPro.config.getBoolean(Config.Key.automaticStatsParsing)) {
                 	MessageUtil.sendModChatMessage(EnumChatFormatting.YELLOW + "Open \"/be worms\" to load previous worm kills into the overlay!");
                 }
                 
-                OverlayManager.instance.updateWormKills();
-                OverlayManager.instance.updateScathaKills();
+                ScathaPro.getInstance().overlayManager.updateWormKills();
+                ScathaPro.getInstance().overlayManager.updateScathaKills();
             }
         }
         catch (Exception e) {
@@ -308,9 +291,9 @@ public class PersistentData {
         wormKillsJsonObject.add("regularWorms", new JsonPrimitive(scathaPro.overallRegularWormKills));
         wormKillsJsonObject.add("scathas", new JsonPrimitive(scathaPro.overallScathaKills));
         
-        PersistentData.instance.set(wormKillsKey, wormKillsJsonObject);
+        set(wormKillsKey, wormKillsJsonObject);
         
-        PersistentData.instance.saveData();
+        saveData();
     }
     
     

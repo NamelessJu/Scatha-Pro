@@ -33,7 +33,7 @@ public class DevCommand extends CommandBase {
 
     @Override
     public int getRequiredPermissionLevel() {
-        return Config.instance.getBoolean(Config.Key.devMode) ? 0 : 9;
+        return ScathaPro.getInstance().config.getBoolean(Config.Key.devMode) ? 0 : 9;
     }
 
     @Override
@@ -97,6 +97,7 @@ public class DevCommand extends CommandBase {
             }
             
             else if (subCommand.equalsIgnoreCase("trigger")) {
+            	if (args.length < 2) throw new CommandException("Missing trigger argument: /scathadev trigger <trigger name>");
             	String trigger = args[1];
             	String[] triggerArguments = Arrays.copyOfRange(args, 2, args.length);
             	

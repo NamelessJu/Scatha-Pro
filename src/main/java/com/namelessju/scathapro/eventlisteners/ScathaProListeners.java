@@ -1,11 +1,9 @@
 package com.namelessju.scathapro.eventlisteners;
 
 import com.namelessju.scathapro.Config;
-import com.namelessju.scathapro.OverlayManager;
 import com.namelessju.scathapro.PersistentData;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.achievements.Achievement;
-import com.namelessju.scathapro.alertmodes.AlertModeManager;
 import com.namelessju.scathapro.alertmodes.Alert;
 import com.namelessju.scathapro.events.AchievementUnlockedEvent;
 import com.namelessju.scathapro.events.BedrockWallEvent;
@@ -54,8 +52,9 @@ public class ScathaProListeners {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onUpdate(UpdateEvent e) {
-    	if (Config.instance.getBoolean(Config.Key.automaticBackups) && PersistentData.instance.getData().entrySet().size() > 0)
-    		PersistentData.instance.backup("Update-" + (e.previousVersion != null ? "v" + e.previousVersion : "unknown") + "_to_v" + e.newVersion, true);
+    	PersistentData persistentData = scathaPro.persistentData;
+    	if (scathaPro.config.getBoolean(Config.Key.automaticBackups) && persistentData.getData().entrySet().size() > 0)
+    		persistentData.backup("Update-" + (e.previousVersion != null ? "v" + e.previousVersion : "unknown") + "_to_v" + e.newVersion, true);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -88,7 +87,7 @@ public class ScathaProListeners {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onWormPreSpawn(WormPreSpawnEvent e) {
-        if (Config.instance.getBoolean(Config.Key.wormPreAlert)) {
+        if (scathaPro.config.getBoolean(Config.Key.wormPreAlert)) {
             long now = Util.getCurrentTime();
             if (now - lastPreAlertTime > 2500) {
                 Alert.wormPrespawn.play();
@@ -111,7 +110,7 @@ public class ScathaProListeners {
             else if (e.worm.armorStand.posY < 32.5)
                 Achievement.scatha_spawn_chbottom.unlock();
             
-            if (Config.instance.getBoolean(Config.Key.scathaAlert)) {
+            if (scathaPro.config.getBoolean(Config.Key.scathaAlert)) {
                 Alert.scathaSpawn.play();
             }
         }
@@ -120,14 +119,14 @@ public class ScathaProListeners {
             if (scathaPro.wormStreak > 0) scathaPro.wormStreak = 0;
             scathaPro.wormStreak --;
             
-            if (Config.instance.getBoolean(Config.Key.wormAlert)) {
+            if (scathaPro.config.getBoolean(Config.Key.wormAlert)) {
                 Alert.wormSpawn.play();
             }
         }
         
         long now = Util.getCurrentTime();
         
-        if (Config.instance.getBoolean(Config.Key.wormSpawnTimer) && scathaPro.lastWormSpawnTime >= 0L) {
+        if (scathaPro.config.getBoolean(Config.Key.wormSpawnTimer) && scathaPro.lastWormSpawnTime >= 0L) {
         	int secondsSinceLastSpawn = (int) Math.floor((now - scathaPro.lastWormSpawnTime) / 1000D);
         	
         	String timeString;
@@ -146,7 +145,7 @@ public class ScathaProListeners {
 
         scathaPro.updateSpawnAchievements();
         
-        OverlayManager.instance.updateWormStreak();
+        scathaPro.overlayManager.updateWormStreak();
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -168,8 +167,8 @@ public class ScathaProListeners {
             
             lastKillIsScatha = true;
             
-            OverlayManager.instance.updateScathaKills();
-            OverlayManager.instance.updateScathaKillsSinceLastDrop();
+            scathaPro.overlayManager.updateScathaKills();
+            scathaPro.overlayManager.updateScathaKillsSinceLastDrop();
         }
         else {
             scathaPro.regularWormKills ++;
@@ -179,10 +178,10 @@ public class ScathaProListeners {
             
             lastKillIsScatha = false;
 
-            OverlayManager.instance.updateWormKills();
+            scathaPro.overlayManager.updateWormKills();
         }
         
-        PersistentData.instance.saveWormKills();
+        scathaPro.persistentData.saveWormKills();
         
         scathaPro.updateKillAchievements();
         
@@ -218,7 +217,7 @@ public class ScathaProListeners {
                 rarityTitle = EnumChatFormatting.GRAY + "unknown rarity";
         }
         
-        if (Config.instance.getBoolean(Config.Key.petAlert)) {
+        if (scathaPro.config.getBoolean(Config.Key.petAlert)) {
             SoundUtil.playSound("random.chestopen", 1.5f, 0.95f);
             Alert.scathaPetDrop.play(rarityTitle);
         }
@@ -236,11 +235,11 @@ public class ScathaProListeners {
         
         scathaPro.updatePetDropAchievements();
         
-        if (AlertModeManager.getCurrentMode().id.equals("normal"))
+        if (scathaPro.alertModeManager.getCurrentMode().id.equals("normal"))
             Achievement.scatha_pet_drop_mode_normal.unlock();
-        else if (AlertModeManager.getCurrentMode().id.equals("meme"))
+        else if (scathaPro.alertModeManager.getCurrentMode().id.equals("meme"))
             Achievement.scatha_pet_drop_mode_meme.unlock();
-        else if (AlertModeManager.getCurrentMode().id.equals("anime"))
+        else if (scathaPro.alertModeManager.getCurrentMode().id.equals("anime"))
             Achievement.scatha_pet_drop_mode_anime.unlock();
         
         if ((scathaPro.scathaKillsAtLastDrop >= 0 && scathaPro.overallScathaKills >= 0 && scathaPro.overallScathaKills == scathaPro.scathaKillsAtLastDrop + 1) || droppedPetAtLastScatha) {
@@ -248,26 +247,26 @@ public class ScathaProListeners {
         }
         if (scathaPro.overallScathaKills >= 0) {
             scathaPro.scathaKillsAtLastDrop = scathaPro.overallScathaKills;
-            OverlayManager.instance.updateScathaKillsSinceLastDrop();
+            scathaPro.overlayManager.updateScathaKillsSinceLastDrop();
         }
         droppedPetAtLastScatha = true;
         lastPetDropTime = Util.getCurrentTime(); 
         
-        PersistentData.instance.savePetDrops();
+        scathaPro.persistentData.savePetDrops();
         
-        OverlayManager.instance.updatePetDrops();
+        scathaPro.overlayManager.updatePetDrops();
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onBedrockWall(BedrockWallEvent e) {
-        if (Config.instance.getBoolean(Config.Key.wallAlert)) {
+        if (scathaPro.config.getBoolean(Config.Key.wallAlert)) {
             Alert.bedrockWall.play();
         }
     }
-
+    
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onGoblinSpawn(GoblinSpawnEvent e) {
-        if (Config.instance.getBoolean(Config.Key.goblinAlert)) {
+        if (scathaPro.config.getBoolean(Config.Key.goblinAlert)) {
         	
         	String goblinText;
         	

@@ -3,7 +3,6 @@ package com.namelessju.scathapro;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 
-import com.namelessju.scathapro.alertmodes.AlertModeManager;
 import com.namelessju.scathapro.events.OverlayInitEvent;
 import com.namelessju.scathapro.overlay.OverlayContainer;
 import com.namelessju.scathapro.overlay.OverlayElement;
@@ -21,8 +20,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 
 public class OverlayManager {
-    public static final OverlayManager instance = new OverlayManager();
-
+	
     private final ScathaPro scathaPro = ScathaPro.getInstance();
     private final Minecraft mc = Minecraft.getMinecraft();
     
@@ -45,7 +43,7 @@ public class OverlayManager {
     private final OverlayText scathaKillsSinceLastDropText;
     
     
-    private OverlayManager() {
+    public OverlayManager() {
         
         overlay = new OverlayContainer(0, 0, 1f);
         overlay.padding = 5;
@@ -124,15 +122,16 @@ public class OverlayManager {
         
         updateVisibility();
     }
+    
     public void drawOverlay() {
     	
     	if (overlay.isVisible()) {
 	        // Update per-frame stats
 
-	        OverlayManager.instance.updateSpawnCooldownProgressBar();
-	        OverlayManager.instance.updateCoords();
-	        OverlayManager.instance.updateDay();
-	        OverlayManager.instance.updatePosition();
+	        updateSpawnCooldownProgressBar();
+	        updateCoords();
+	        updateDay();
+	        updatePosition();
     	}
         
         // Render the overlay
@@ -162,7 +161,7 @@ public class OverlayManager {
     public void updatePosition() {
         ScaledResolution scaledResolution = new ScaledResolution(mc);
     
-        final double[] overlayPositionPercentage = {Config.instance.getDouble(Config.Key.overlayX), Config.instance.getDouble(Config.Key.overlayY)};
+        final double[] overlayPositionPercentage = {scathaPro.config.getDouble(Config.Key.overlayX), scathaPro.config.getDouble(Config.Key.overlayY)};
         final int[] overlayPosition = {
                 overlayPositionPercentage[0] >= 0 ? (int) Math.round(scaledResolution.getScaledWidth() * overlayPositionPercentage[0]) : 10,
                 overlayPositionPercentage[1] >= 0 ? (int) Math.round(scaledResolution.getScaledHeight() * overlayPositionPercentage[1]) : 10,
@@ -179,15 +178,15 @@ public class OverlayManager {
     }
     
     public void updateScale() {
-        overlay.setScale((float) Config.instance.getDouble(Config.Key.overlayScale));
+        overlay.setScale((float) scathaPro.config.getDouble(Config.Key.overlayScale));
     }
     
     public void updateVisibility() {
-        overlay.setVisible(Config.instance.getBoolean(Config.Key.overlay));
+        overlay.setVisible(scathaPro.config.getBoolean(Config.Key.overlay));
     }
     
     public void updateScathaPetImage() {
-        scathaPetImage.setImage(AlertModeManager.getCurrentMode().getIconPath(), 256, 256);
+        scathaPetImage.setImage(ScathaPro.getInstance().alertModeManager.getCurrentMode().getIconPath(), 256, 256);
     }
     
     public void updatePetDrops() {

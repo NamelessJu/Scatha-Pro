@@ -1,9 +1,14 @@
 package com.namelessju.scathapro;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 
 import org.apache.commons.io.IOUtils;
 
@@ -26,7 +31,7 @@ public abstract class SaveManager {
     }
     
     public static String readInputStream(InputStream inputStream) {
-    	if (inputStream == null) return "";
+    	if (inputStream == null) return null;
     	
     	BufferedReader bufferedReader = null;
     	
@@ -44,11 +49,41 @@ public abstract class SaveManager {
 	        return stringBuilder.toString();
     	}
     	catch (Exception e) {
-    		return "";
+    		return null;
     	}
     	finally {
             IOUtils.closeQuietly(bufferedReader);
     	}
+    }
+    
+    public static String readFile(File file) {
+    	if (file == null || !file.isFile() || !file.canRead()) return null;
+    	
+    	try {
+			return readInputStream(new FileInputStream(file));
+		}
+    	catch (FileNotFoundException e) {
+			return null;
+		}
+    }
+    
+    public static boolean writeFile(File file, String content) {
+    	boolean success = false;
+    	
+    	BufferedWriter bufferedWriter = null;
+    	try {
+            FileOutputStream outputStream = new FileOutputStream(file);
+            bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+
+            bufferedWriter.write(content);
+            success = true;
+        }
+        catch (Exception e) { }
+    	finally {
+            IOUtils.closeQuietly(bufferedWriter);
+    	}
+    	
+    	return success;
     }
     
     public static void updateOldSaveLocations() {
@@ -61,9 +96,7 @@ public abstract class SaveManager {
     }
     
     private static void move(File source, File destination) {
-    	System.out.println("Destination: " + destination);
 		File directory = destination.getParentFile();
-    	System.out.println("Destination dir: " + directory);
     	if (!directory.exists()) directory.mkdirs();
     	
     	source.renameTo(destination);

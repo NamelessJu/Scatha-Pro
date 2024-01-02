@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.achievements.AchievementManager;
+import com.namelessju.scathapro.alertmodes.AlertModeManager;
 import com.namelessju.scathapro.alertmodes.customalertmode.CustomAlertModeManager;
 import com.namelessju.scathapro.commands.ChancesCommand;
 import com.namelessju.scathapro.commands.MainCommand;
@@ -33,7 +34,6 @@ import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
-import net.minecraftforge.fml.common.Mod.Instance;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
 @Mod(modid = ScathaPro.MODID, version = ScathaPro.VERSION, name = ScathaPro.MODNAME, clientSideOnly = true)
@@ -47,10 +47,15 @@ public class ScathaPro
     public static final int pingTreshold = 2000;
     
     
-    @Instance(value = MODID)
     private static ScathaPro instance;
-
-    public final Logger logger = LogManager.getLogger(MODID);
+    
+    public final Logger logger;
+    public final Config config;
+    public final PersistentData persistentData;
+    public final AchievementManager achievementManager;
+    public final OverlayManager overlayManager;
+	public final AlertModeManager alertModeManager;
+    public final CustomAlertModeManager customAlertModeManager;
     
     
     public GuiScreen openGuiNextTick = null;
@@ -90,6 +95,23 @@ public class ScathaPro
     }
     
     
+    public ScathaPro() {
+    	instance = this;
+    	
+    	logger = LogManager.getLogger(MODID);
+
+    	config = new Config();
+        SaveManager.updateOldSaveLocations();
+        config.init();
+        
+    	persistentData = new PersistentData();
+    	achievementManager = new AchievementManager();
+    	overlayManager = new OverlayManager();
+    	alertModeManager = new AlertModeManager();
+    	customAlertModeManager = new CustomAlertModeManager();
+    }
+    
+    
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
     	
@@ -102,15 +124,10 @@ public class ScathaPro
         ClientCommandHandler.instance.registerCommand(new ChancesCommand());
         ClientCommandHandler.instance.registerCommand(new DevCommand());
         
-        
-        SaveManager.updateOldSaveLocations();
-        Config.instance.loadFile();
-        
-        
         IResourceManager resourceManager = Minecraft.getMinecraft().getResourceManager();
         if (resourceManager instanceof SimpleReloadableResourceManager) {
 			SimpleReloadableResourceManager simpleReloadableResourceManager = (SimpleReloadableResourceManager) resourceManager;
-			simpleReloadableResourceManager.registerReloadListener(CustomAlertModeManager.instance);
+			simpleReloadableResourceManager.registerReloadListener(customAlertModeManager);
         }
         else {
     		logger.log(Level.ERROR, "Couldn't register resource reload listener - resource manager of unexpected type " + resourceManager.getClass().getCanonicalName() + " (expected " + SimpleReloadableResourceManager.class.getCanonicalName() + ")");
@@ -213,7 +230,7 @@ public class ScathaPro
             Achievement a = achievements[i];
             if (a.type.visibility != Achievement.Type.Visibility.HIDDEN) {
                 nonHiddenAchievements ++;
-                if (AchievementManager.instance.isAchievementUnlocked(a)) unlockedNonHiddenAchievements ++;
+                if (achievementManager.isAchievementUnlocked(a)) unlockedNonHiddenAchievements ++;
             }
         }
         

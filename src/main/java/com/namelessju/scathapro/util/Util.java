@@ -3,14 +3,18 @@ package com.namelessju.scathapro.util;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.UUID;
 
 import com.mojang.authlib.GameProfile;
 import com.namelessju.scathapro.Config;
+import com.namelessju.scathapro.ScathaPro;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.NetHandlerPlayClient;
@@ -56,7 +60,7 @@ public abstract class Util {
     }
     
     public static boolean inCrystalHollows() {
-        if (Config.instance.getBoolean(Config.Key.devMode)) return true;
+        if (ScathaPro.getInstance().config.getBoolean(Config.Key.devMode)) return true;
         
         boolean inCrystalHollows = false;
         
@@ -102,6 +106,19 @@ public abstract class Util {
         decimalFormat.setMaximumFractionDigits(maxDecimalPlaces);
         if (showTrailingDecimalZeros) decimalFormat.setMinimumFractionDigits(maxDecimalPlaces);
         return decimalFormat.format(number);
+    }
+    
+    public static String formatTime(long timestamp, int dateFormat, int timeFormat) {
+    	Date date = new Date(timestamp);
+	    Locale locale = Locale.getDefault();
+	    String formattedDate = dateFormat >= 0 ? DateFormat.getDateInstance(dateFormat, locale).format(date) : null;
+	    String formattedTime = timeFormat >= 0 ? DateFormat.getTimeInstance(timeFormat, locale).format(date) : null;
+	    
+	    if (formattedDate != null && formattedTime != null) return formattedDate + " " + formattedTime;
+	    else if (formattedDate == null && formattedTime != null) return formattedTime;
+	    else if (formattedDate != null && formattedTime == null) return formattedDate;
+	    
+        return null;
     }
     
     public static String getUnicodeString(String hexValue) {

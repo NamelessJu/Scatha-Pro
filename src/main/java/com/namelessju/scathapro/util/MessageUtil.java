@@ -43,7 +43,7 @@ public abstract class MessageUtil {
     public static void addChatCopyButton(IChatComponent message) {
         String unformattedText = StringUtils.stripControlCodes(message.getUnformattedText());
         
-        if (Config.instance.getBoolean(Config.Key.chatCopy) && !unformattedText.replace(" ", "").isEmpty()) {
+        if (ScathaPro.getInstance().config.getBoolean(Config.Key.chatCopy) && !unformattedText.replace(" ", "").isEmpty()) {
             ChatComponentText copyText = new ChatComponentText(EnumChatFormatting.DARK_GRAY + Util.getUnicodeString("270D"));
             ChatStyle style = new ChatStyle()
                     .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.GRAY + "Copy message")))

@@ -1,6 +1,7 @@
 package com.namelessju.scathapro.gui.elements;
 
 import com.namelessju.scathapro.Config;
+import com.namelessju.scathapro.ScathaPro;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraftforge.fml.relauncher.Side;
@@ -23,13 +24,14 @@ public class BooleanSettingButton extends GuiButton implements IClickActionButto
     
 	@Override
 	public void click() {
-		Config.instance.set(configSetting, !Config.instance.getBoolean(configSetting));
-		Config.instance.save();
+		Config config = ScathaPro.getInstance().config;
+		config.set(configSetting, !config.getBoolean(configSetting));
+		config.save();
 		updateText();
 	}
 	
 	private void updateText() {
-		boolean enabled = Config.instance.getBoolean(configSetting);
+		boolean enabled = ScathaPro.getInstance().config.getBoolean(configSetting);
 		this.displayString = text + ": " + (enabled ? "ON" : "OFF");
 	}
 }

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.namelessju.scathapro.Config;
-import com.namelessju.scathapro.OverlayManager;
 import com.namelessju.scathapro.PersistentData;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.UpdateChecker;
@@ -85,16 +84,17 @@ public class MainCommand extends CommandBase {
                     
                     MessageUtil.sendModChatMessage("Pet drops changed");
                     
-                    PersistentData.instance.savePetDrops();
-                    OverlayManager.instance.updatePetDrops();
+                    scathaPro.persistentData.savePetDrops();
+                    scathaPro.overlayManager.updatePetDrops();
                     scathaPro.updatePetDropAchievements();
                 }
                 else throw new CommandException("Missing values: /scathapro setPetDrops <rare> <epic> <legendary>");
             }
             
             else if (subCommand.equalsIgnoreCase("backup")) {
-            	PersistentData.instance.saveData();
-                PersistentData.instance.backup();
+            	PersistentData persistentData = ScathaPro.getInstance().persistentData;
+            	persistentData.saveData();
+            	persistentData.backup();
             }
             
             else if (subCommand.equalsIgnoreCase("checkUpdate")) {
@@ -103,11 +103,13 @@ public class MainCommand extends CommandBase {
             }
             
             else if (subCommand.equalsIgnoreCase("resetConfig")) {
-                for (Config.Key key : Config.Key.values())
-                    Config.instance.reset(key);
-                Config.instance.save();
+            	Config config = ScathaPro.getInstance().config;
+                for (Config.Key key : Config.Key.values()) {
+                	config.reset(key);
+                }
+                config.save();
                 
-                if (Config.instance.getBoolean(Config.Key.petAlert)) ScathaPro.getInstance().resetPreviousScathaPets();
+                if (config.getBoolean(Config.Key.petAlert)) ScathaPro.getInstance().resetPreviousScathaPets();
     
                 MessageUtil.sendModChatMessage("All settings reset");
             }
@@ -115,9 +117,10 @@ public class MainCommand extends CommandBase {
             else if (subCommand.equalsIgnoreCase("devMode")) {
                 if (args.length > 1) {
                     boolean enabled = CommandBase.parseBoolean(args[1]);
-                    
-                    Config.instance.set(Config.Key.devMode, enabled);
-                    Config.instance.save();
+
+                	Config config = ScathaPro.getInstance().config;
+                	config.set(Config.Key.devMode, enabled);
+                	config.save();
                     
                     MessageUtil.sendModChatMessage("Developer mode " + (enabled ? "enabled" : "disabled"));
                 }

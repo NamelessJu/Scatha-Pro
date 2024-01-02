@@ -2,9 +2,7 @@ package com.namelessju.scathapro.gui.elements;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Hashtable;
-import java.util.Locale;
 
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
@@ -38,6 +36,7 @@ public class AchievementsList extends Gui {
     private Minecraft mc = Minecraft.getMinecraft();
     private FontRenderer fontRenderer = mc.fontRendererObj;
     private ScaledResolution scaledResolution = new ScaledResolution(mc);
+    private AchievementManager achievementManager = ScathaPro.getInstance().achievementManager;
     
     private AchievementCard[] achievementCards;
     private String unlockedAchievementsString;
@@ -68,20 +67,15 @@ public class AchievementsList extends Gui {
             
             if (cardY + cardHeight < yPosition || cardY >= yPosition + height) return;
             
-            boolean unlocked = AchievementManager.instance.isAchievementUnlocked(achievement);
+            boolean unlocked = achievementManager.isAchievementUnlocked(achievement);
             boolean detailsHidden = achievement.type.visibility == Achievement.Type.Visibility.TITLE_ONLY && !unlocked;
             
             Gui.drawRect(cardX, cardY, cardX + width, cardY + cardHeight, 0xA0101012);
             
             if (unlocked) {
                 fontRenderer.drawString(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + EnumChatFormatting.BOLD + achievement.name + (achievement.type.string != null ? EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + " [" + achievement.type.string + EnumChatFormatting.RESET + EnumChatFormatting.GREEN + "]" : ""), cardX + cardPadding, cardY + cardPadding, Util.Color.WHITE.getValue(), true);
-
-                Date unlockedDate = new Date(AchievementManager.instance.getUnlockedAchievement(achievement).unlockedAtTimestamp);
-                Locale locale = Locale.getDefault();
-                String formattedDate = DateFormat.getDateInstance(DateFormat.MEDIUM, locale).format(unlockedDate);
-                String formattedTime = DateFormat.getTimeInstance(DateFormat.SHORT, locale).format(unlockedDate);
                 
-                String unlockedString = EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + formattedDate + " " + formattedTime;
+                String unlockedString = EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + Util.formatTime(achievementManager.getUnlockedAchievement(achievement).unlockedAtTimestamp, DateFormat.MEDIUM, DateFormat.SHORT);
                 fontRenderer.drawString(unlockedString, cardX + width - cardPadding - fontRenderer.getStringWidth(unlockedString), cardY + cardPadding, Util.Color.WHITE.getValue(), true);
             }
             else fontRenderer.drawString(EnumChatFormatting.RESET + achievement.name + (achievement.type.string != null ? " [" + achievement.type.string + EnumChatFormatting.RESET + "]" : ""), cardX + cardPadding, cardY + cardPadding, Util.Color.WHITE.getValue(), true);
@@ -129,7 +123,7 @@ public class AchievementsList extends Gui {
         for (int i = 0; i < achievementList.length; i ++) {
             Achievement achievement = achievementList[i];
             
-            boolean unlocked = AchievementManager.instance.isAchievementUnlocked(achievement);
+            boolean unlocked = achievementManager.isAchievementUnlocked(achievement);
             
             if (achievement.type.visibility != Achievement.Type.Visibility.HIDDEN || unlocked) visibleAchievements.add(achievement);
             

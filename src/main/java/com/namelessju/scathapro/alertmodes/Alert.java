@@ -1,39 +1,46 @@
 package com.namelessju.scathapro.alertmodes;
 
+import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.util.SoundUtil;
 
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
 
 public enum Alert {
 
-	bedrockWall("bedrock_wall", "note.pling", 1f, 0.5f, new AlertTitle(null, "Close to bedrock wall"), 3, 20, 5),
-	wormPrespawn("worm_prespawn", "random.orb", 1f, 0.5f, new AlertTitle(null, "Worm about to spawn..."), 0, 20, 5),
-	wormSpawn("worm_spawn", "random.levelup", 1f, 0.5f, new AlertTitle("Worm", "Just a regular worm..."), 5, 20, 5),
-	scathaSpawn("scatha_spawn", "random.levelup", 1f, 0.8f, new AlertTitle("Scatha", "Pray to RNGesus!"), 0, 40, 10),
-	scathaPetDrop("scatha_pet_drop", "mob.wither.death", 0.75f, 0.8f, new AlertTitle("Scatha Pet Drop!", null), 0, 130, 20),
-	goblinSpawn("goblin_spawn", "random.levelup", 1f, 1.5f, new AlertTitle("Goblin", null), 2, 30, 10);
+	bedrockWall("bedrock_wall", "Bedrock Wall Alert", new DefaultAlertSound("note.pling", 1f, 0.5f), new AlertTitle(null, "Close to bedrock wall", null, EnumChatFormatting.GRAY.toString(), 3, 20, 5)),
+	wormPrespawn("worm_prespawn", "Worm Prespawn Alert", new DefaultAlertSound("random.orb", 1f, 0.5f), new AlertTitle(null, "Worm about to spawn...", null, EnumChatFormatting.YELLOW.toString(), 0, 20, 5)),
+	wormSpawn("worm_spawn", "Worm Spawn Alert", new DefaultAlertSound("random.levelup", 1f, 0.5f), new AlertTitle("Worm", "Just a regular worm...", EnumChatFormatting.YELLOW.toString(), EnumChatFormatting.GRAY.toString(), 5, 20, 5)),
+	scathaSpawn("scatha_spawn", "Scatha Spawn Alert", new DefaultAlertSound("random.levelup", 1f, 0.8f), new AlertTitle("Scatha", "Pray to RNGesus!", EnumChatFormatting.RED.toString(), EnumChatFormatting.GRAY.toString(), 0, 40, 10)),
+	scathaPetDrop("scatha_pet_drop", "Scatha Pet Drop Alert", new DefaultAlertSound("mob.wither.death", 0.75f, 0.8f), new AlertTitle("Scatha Pet Drop!", null, EnumChatFormatting.YELLOW.toString(), null, 0, 130, 20)),
+	goblinSpawn("goblin_spawn", "Goblin Spawn Alert", new DefaultAlertSound("random.levelup", 1f, 1.5f), new AlertTitle("Goblin", null, EnumChatFormatting.GREEN.toString(), null, 0, 30, 10));
+	
+	
+	private static class DefaultAlertSound {
+		public final String soundId;
+		public final float volume;
+		public final float pitch;
+		
+		public DefaultAlertSound(String soundId, float volume, float pitch) {
+			this.soundId = soundId;
+			this.volume = volume;
+			this.pitch = pitch;
+		}
+	}
 	
 	
 	public final String alertId;
+	public final String alertName;
 	
-	private final String defaultSoundName;
-	private final float defaultSoundVolume;
-	private final float defaultSoundPitch;
+	private final DefaultAlertSound defaultSound;
 	private final AlertTitle defaultTitle;
-	private final int titleFadeInTicks;
-	private final int titleStayTicks;
-	private final int titleFadeOutTicks;
 	
-	Alert(String alertId, String defaultSoundName, float defaultSoundVolume, float defaultSoundPitch, AlertTitle defaultTitle, int titleFadeInTicks, int titleStayTicks, int titleFadeOutTicks) {
+	Alert(String alertId, String alertName, DefaultAlertSound defaultSound, AlertTitle defaultTitle) {
 		this.alertId = alertId;
+		this.alertName = alertName;
 		
-		this.defaultSoundName = defaultSoundName;
-		this.defaultSoundVolume = defaultSoundVolume;
-		this.defaultSoundPitch = defaultSoundPitch;
+		this.defaultSound = defaultSound;
 		this.defaultTitle = defaultTitle;
-		this.titleFadeInTicks = titleFadeInTicks;
-		this.titleStayTicks = titleStayTicks;
-		this.titleFadeOutTicks = titleFadeOutTicks;
 	}
 	
 
@@ -47,7 +54,7 @@ public enum Alert {
 	
 	
 	public void playSound() {
-		ResourceLocation soundParentLocation = AlertModeManager.getCurrentMode().getSoundBaseResourceLocation();
+		ResourceLocation soundParentLocation = ScathaPro.getInstance().alertModeManager.getCurrentMode().getSoundBaseResourceLocation();
 		
 		if (soundParentLocation == null) {
 			playDefaultSound();
@@ -59,18 +66,15 @@ public enum Alert {
 		else playDefaultSound();
 	}
 	
-	public void playDefaultSound() {
-		SoundUtil.playSound(defaultSoundName, defaultSoundVolume, defaultSoundPitch);
+	private void playDefaultSound() {
+		SoundUtil.playSound(defaultSound.soundId, defaultSound.volume, defaultSound.pitch);
 	}
 	
 	
 	public void displayTitle(String details) {
-		AlertTitle modeTitle = AlertModeManager.getCurrentMode().getTitle(alertId);
-		if (modeTitle != null) {
-			AlertTitle title = new AlertTitle(this.hasTitle() ? modeTitle.title : defaultTitle.title, this.hasSubtitle() ? modeTitle.subtitle : (details != null ? details : defaultTitle.subtitle));
-			title.display(titleFadeInTicks, titleStayTicks, titleFadeOutTicks);
-		}
-		else defaultTitle.display(titleFadeInTicks, titleStayTicks, titleFadeOutTicks);
+		AlertTitle modeTitle = ScathaPro.getInstance().alertModeManager.getCurrentMode().getTitle(alertId);
+		AlertTitle title = defaultTitle.apply(modeTitle, details);
+		title.display();
 	}
 	
 	public boolean hasTitle() {
@@ -79,5 +83,9 @@ public enum Alert {
 	
 	public boolean hasSubtitle() {
 		return defaultTitle.subtitle != null;
+	}
+	
+	public AlertTitle getDefaultTitle() {
+		return defaultTitle.apply(null, null);
 	}
 }

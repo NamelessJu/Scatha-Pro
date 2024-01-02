@@ -3,7 +3,7 @@ package com.namelessju.scathapro.gui.menus;
 import java.io.IOException;
 
 import com.namelessju.scathapro.Config;
-import com.namelessju.scathapro.alertmodes.AlertModeManager;
+import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.alertmodes.CustomAlertMode;
 import com.namelessju.scathapro.gui.elements.AlertModeSettingButton;
 import com.namelessju.scathapro.gui.elements.BooleanSettingButton;
@@ -24,6 +24,8 @@ public class SettingsGui extends ScathaProGui implements GuiSlider.ISlider {
     private GuiButton alertModeSettingButton;
     private GuiButton customAlertModeEditButton;
     
+    private boolean modeChanged = false;
+    
     public SettingsGui(GuiScreen parentGui) {
         super(parentGui);
     }
@@ -36,8 +38,8 @@ public class SettingsGui extends ScathaProGui implements GuiSlider.ISlider {
         buttonList.add(new SubMenuButton(504704004, width / 2 - 155, height / 6 - 12, 150, 20, "Overlay...", this, OverlaySettingsGui.class));
         buttonList.add(new SubMenuButton(504704005, width / 2 + 5, height / 6 - 12, 150, 20, "Alerts...", this, AlertSettingsGui.class));
         
-        buttonList.add(new GuiSlider(504704014, width / 2 - 155, height / 6 + 24 - 12, 150, 20, "Mod Sounds Volume: ", "%", 0, 100, Config.instance.getDouble(Config.Key.soundsVolume) * 100, false, true, this));
-        buttonList.add(new BooleanSettingButton(504704015, width / 2 + 5, height / 6 + 24 - 12, 150, 20, "Mute sounds in CH", Config.Key.muteOtherSounds));
+        buttonList.add(new GuiSlider(504704014, width / 2 - 155, height / 6 + 24 - 12, 150, 20, "Mod Sounds Volume: ", "%", 0, 100, ScathaPro.getInstance().config.getDouble(Config.Key.soundsVolume) * 100, false, true, this));
+        buttonList.add(new BooleanSettingButton(504704015, width / 2 + 5, height / 6 + 24 - 12, 150, 20, "Mute C. Hollows sounds", Config.Key.muteOtherSounds));
 
         buttonList.add(alertModeSettingButton = new AlertModeSettingButton(504704006, width / 2 - 155, height / 6 + 48 - 6, 150, 20, "Mode"));
         buttonList.add(customAlertModeEditButton = new SubMenuButton(504704013, width / 2 - 45, height / 6 + 48 - 6, 40, 20, "Edit...", this, CustomAlertModeGui.class));
@@ -61,9 +63,24 @@ public class SettingsGui extends ScathaProGui implements GuiSlider.ISlider {
         if (button.enabled) {
             switch (button.id) {
                 case 504704006:
-                	updateModeButtons();
+                	modeChanged = true;
                     break;
             }
+        }
+    }
+    
+    @Override
+    protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+        super.mouseClicked(mouseX, mouseY, mouseButton);
+        
+        if (modeChanged) {
+        	/* if this is immediately done in actionPerformed(),
+        	 * the custom mode edit button might instantly get pressed
+        	 * if the mouse is over it while pressing the mode swapper button
+        	 * to fix this, the mode buttons are updated after all click checks are done
+        	 */
+        	updateModeButtons();
+        	modeChanged = false;
         }
     }
 
@@ -74,15 +91,16 @@ public class SettingsGui extends ScathaProGui implements GuiSlider.ISlider {
                 case 504704014:
                     double volume = (double) slider.getValueInt() / 100;
                     
-                    Config.instance.set(Config.Key.soundsVolume, volume);
-                    Config.instance.save();
+                    Config config = ScathaPro.getInstance().config;
+                    config.set(Config.Key.soundsVolume, volume);
+                    config.save();
                     break;
             }
         }
     }
     
     private void updateModeButtons() {
-    	if (AlertModeManager.getCurrentMode() instanceof CustomAlertMode) {
+    	if (ScathaPro.getInstance().alertModeManager.getCurrentMode() instanceof CustomAlertMode) {
     		alertModeSettingButton.width = 107;
     		customAlertModeEditButton.visible = true;
     	}

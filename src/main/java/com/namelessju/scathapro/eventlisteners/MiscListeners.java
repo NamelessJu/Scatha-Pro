@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.google.gson.JsonPrimitive;
 import com.namelessju.scathapro.Config;
-import com.namelessju.scathapro.OverlayManager;
 import com.namelessju.scathapro.PersistentData;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.ScathaProSound;
@@ -51,14 +50,15 @@ public class MiscListeners {
             // Load data
             
             if (!persistentDataLoaded) {
-                PersistentData.instance.loadData();
+            	PersistentData persistentData = ScathaPro.getInstance().persistentData;
+            	persistentData.loadData();
                 
-                String lastUsedVersion = JsonUtil.getString(PersistentData.instance.getData(), "global/lastUsedVersion");
+                String lastUsedVersion = JsonUtil.getString(persistentData.getData(), "global/lastUsedVersion");
                 if (lastUsedVersion == null || !lastUsedVersion.equals(ScathaPro.VERSION)) {
                     MinecraftForge.EVENT_BUS.post(new UpdateEvent(lastUsedVersion, ScathaPro.VERSION));
                       
-                    JsonUtil.set(PersistentData.instance.getData(), "global/lastUsedVersion", new JsonPrimitive(ScathaPro.VERSION));
-                    PersistentData.instance.saveData();
+                    JsonUtil.set(persistentData.getData(), "global/lastUsedVersion", new JsonPrimitive(ScathaPro.VERSION));
+                    persistentData.saveData();
                 }
                 
                 persistentDataLoaded = true;
@@ -84,7 +84,7 @@ public class MiscListeners {
             
             // Update overlay
             
-            OverlayManager.instance.updateOverlayFull();
+            ScathaPro.getInstance().overlayManager.updateOverlayFull();
             
             // Update achievements
             
@@ -106,7 +106,7 @@ public class MiscListeners {
             World world = entity.worldObj;
             
             ItemStack helmetItem = entity.getEquipmentInSlot(4);
-            if (helmetItem != null && NBTUtil.isWormSkull(helmetItem) || Config.instance.getBoolean(Config.Key.devMode)) {
+            if (helmetItem != null && NBTUtil.isWormSkull(helmetItem) || scathaPro.config.getBoolean(Config.Key.devMode)) {
                 
                 List<EntityArmorStand> nearbyArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(entity.posX, entity.posY, entity.posZ, entity.posX, entity.posY, entity.posZ).expand(8f, 2f, 8f));
                 
@@ -152,7 +152,7 @@ public class MiscListeners {
         		e.name.equals("mob.spider.step")
         		&& (
         			e.sound.getPitch() == 2.0952382f && Util.inCrystalHollows()
-    				|| e.sound.getPitch() >= 2f && Config.instance.getBoolean(Config.Key.devMode)
+    				|| e.sound.getPitch() >= 2f && scathaPro.config.getBoolean(Config.Key.devMode)
 				)
     		)
         {
@@ -162,7 +162,7 @@ public class MiscListeners {
         
         // Mute other sounds option
         if (
-        		Config.instance.getBoolean(Config.Key.muteOtherSounds)
+        		scathaPro.config.getBoolean(Config.Key.muteOtherSounds)
         		&& Util.inCrystalHollows()
         		&& !(e.sound instanceof ScathaProSound) && !e.name.equals("gui.button.press")
     		)
@@ -173,7 +173,7 @@ public class MiscListeners {
     
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onTooltip(ItemTooltipEvent e) {
-        if (Config.instance.getBoolean(Config.Key.devMode)) {
+        if (scathaPro.config.getBoolean(Config.Key.devMode)) {
             ItemStack item = e.itemStack;
     
             if (item != null) {

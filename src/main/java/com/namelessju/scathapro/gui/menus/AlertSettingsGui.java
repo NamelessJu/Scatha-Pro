@@ -44,8 +44,9 @@ public class AlertSettingsGui extends ScathaProGui {
             switch (button.id) {
             	
                 case 504704406:
-                    if (Config.instance.getBoolean(Config.Key.petAlert)) {
-                    	ScathaPro.getInstance().resetPreviousScathaPets();
+                	ScathaPro scathaPro = ScathaPro.getInstance();
+                    if (scathaPro.config.getBoolean(Config.Key.petAlert)) {
+                    	scathaPro.resetPreviousScathaPets();
                     }
                     break;
             }

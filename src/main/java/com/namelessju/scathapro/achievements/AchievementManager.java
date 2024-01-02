@@ -2,7 +2,7 @@ package com.namelessju.scathapro.achievements;
 
 import java.util.ArrayList;
 
-import com.namelessju.scathapro.PersistentData;
+import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.events.AchievementUnlockedEvent;
 import com.namelessju.scathapro.util.Util;
 
@@ -10,18 +10,13 @@ import net.minecraftforge.common.MinecraftForge;
 
 public class AchievementManager {
     
-    public static final AchievementManager instance = new AchievementManager();
-    
     public ArrayList<UnlockedAchievement> unlockedAchievements = new ArrayList<UnlockedAchievement>();
-    
-    private AchievementManager() {}
-    
     
     public void unlockAchievement(Achievement achievement) {
         if (!isAchievementUnlocked(achievement)) {
             unlockedAchievements.add(new UnlockedAchievement(achievement, Util.getCurrentTime()));
             
-            PersistentData.instance.saveAchievements();
+            ScathaPro.getInstance().persistentData.saveAchievements();
             
             MinecraftForge.EVENT_BUS.post(new AchievementUnlockedEvent(achievement));
         }

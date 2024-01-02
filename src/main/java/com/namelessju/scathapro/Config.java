@@ -11,8 +11,6 @@ public class Config {
     	return SaveManager.getModFile("config.cfg");
     }
     
-    public static final Config instance = new Config();
-    
     private Configuration config;
     
     public enum Key {
@@ -63,7 +61,7 @@ public class Config {
         }
     }
     
-    private Config() {
+    public void init() {
         loadFile();
     	
     	// convert old integer-based mode ID to new string-based mode ID

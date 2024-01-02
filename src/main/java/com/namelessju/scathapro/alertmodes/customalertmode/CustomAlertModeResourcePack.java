@@ -35,6 +35,7 @@ public class CustomAlertModeResourcePack implements IResourcePack {
 			String soundName = sound.alertId;
 			if (resourceExists(new ResourceLocation(CustomAlertModeManager.getResourceName("sounds/" + soundName + ".ogg")))) {
 				addSoundToJson(soundName, soundsJson);
+				// ScathaPro.getInstance().logger.log(Level.INFO, "Added sound to custom mode sound JSON: " + soundName);
 			}
 		}
 		return soundsJson;
@@ -60,7 +61,7 @@ public class CustomAlertModeResourcePack implements IResourcePack {
 
 	@Override
 	public boolean resourceExists(ResourceLocation location) {
-		String subMode = CustomAlertModeManager.instance.getCurrentSubmodeId();
+		String subMode = ScathaPro.getInstance().customAlertModeManager.getCurrentSubmodeId();
 		if (subMode == null) return false;
 		
 		if (location.getResourcePath().equals("sounds.json")) {
@@ -76,7 +77,7 @@ public class CustomAlertModeResourcePack implements IResourcePack {
 	
 	@Override
 	public InputStream getInputStream(ResourceLocation location) throws IOException {
-		String subMode = CustomAlertModeManager.instance.getCurrentSubmodeId();
+		String subMode = ScathaPro.getInstance().customAlertModeManager.getCurrentSubmodeId();
 		
 		if (subMode == null) {
 			ScathaPro.getInstance().logger.log(Level.WARN, "Tried to get input stream for custom alert mode resource, but no custom mode is set!");

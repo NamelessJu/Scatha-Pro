@@ -1,5 +1,7 @@
 package com.namelessju.scathapro.achievements;
 
+import com.namelessju.scathapro.ScathaPro;
+
 import net.minecraft.util.EnumChatFormatting;
 
 public enum Achievement {
@@ -139,11 +141,11 @@ public enum Achievement {
     public String getID() {
         return this.name();
     }
-
+    
     public void setProgress(float progress) {
-        if (progress < goal && AchievementManager.instance.isAchievementUnlocked(this)) this.progress = goal;
+        if (progress < goal && ScathaPro.getInstance().achievementManager.isAchievementUnlocked(this)) this.progress = goal;
         else this.progress = progress;
-        if (this.progress >= goal) AchievementManager.instance.unlockAchievement(this);
+        if (this.progress >= goal) ScathaPro.getInstance().achievementManager.unlockAchievement(this);
     }
     public float getProgress() {
         return progress;
