@@ -1,6 +1,5 @@
 package com.namelessju.scathapro.gui.elements;
 
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
@@ -75,7 +74,7 @@ public class AchievementsList extends Gui {
             if (unlocked) {
                 fontRenderer.drawString(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + EnumChatFormatting.BOLD + achievement.name + (achievement.type.string != null ? EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + " [" + achievement.type.string + EnumChatFormatting.RESET + EnumChatFormatting.GREEN + "]" : ""), cardX + cardPadding, cardY + cardPadding, Util.Color.WHITE.getValue(), true);
                 
-                String unlockedString = EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + Util.formatTime(achievementManager.getUnlockedAchievement(achievement).unlockedAtTimestamp, DateFormat.MEDIUM, DateFormat.SHORT);
+                String unlockedString = EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + Util.formatTime(achievementManager.getUnlockedAchievement(achievement).unlockedAtTimestamp);
                 fontRenderer.drawString(unlockedString, cardX + width - cardPadding - fontRenderer.getStringWidth(unlockedString), cardY + cardPadding, Util.Color.WHITE.getValue(), true);
             }
             else fontRenderer.drawString(EnumChatFormatting.RESET + achievement.name + (achievement.type.string != null ? " [" + achievement.type.string + EnumChatFormatting.RESET + "]" : ""), cardX + cardPadding, cardY + cardPadding, Util.Color.WHITE.getValue(), true);

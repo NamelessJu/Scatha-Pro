@@ -46,11 +46,15 @@ public class SettingsGui extends ScathaProGui implements GuiSlider.ISlider {
         updateModeButtons();
         
         buttonList.add(new BooleanSettingButton(504704011, width / 2 + 5, height / 6 + 48 - 6, 150, 20, "Bestiary Kills Parsing", Config.Key.automaticStatsParsing));
-        buttonList.add(new BooleanSettingButton(504704007, width / 2 - 155, height / 6 + 72 - 6, 150, 20, "Show Rotation Angles", Config.Key.showRotationAngles));
-        buttonList.add(new BooleanSettingButton(504704008, width / 2 + 5, height / 6 + 72 - 6, 150, 20, "Chat Copy Button", Config.Key.chatCopy));
-        buttonList.add(new BooleanSettingButton(504704010, width / 2 - 155, height / 6 + 96 - 6, 150, 20, "Auto Update Checks", Config.Key.automaticUpdateChecks));
-        buttonList.add(new BooleanSettingButton(504704009, width / 2 + 5, height / 6 + 96 - 6, 150, 20, "Auto Backups", Config.Key.automaticBackups));
-        buttonList.add(new BooleanSettingButton(504704012, width / 2 - 155, height / 6 + 120 - 6, 150, 20, "Worm Spawn Timer", Config.Key.wormSpawnTimer));
+        
+        buttonList.add(new BooleanSettingButton(504704016, width / 2 - 155, height / 6 + 72 - 6, 150, 20, "Dry Streak Message", Config.Key.dryStreakMessage));
+        buttonList.add(new BooleanSettingButton(504704012, width / 2 + 5, height / 6 + 72 - 6, 150, 20, "Worm Spawn Timer", Config.Key.wormSpawnTimer));
+        
+        buttonList.add(new BooleanSettingButton(504704007, width / 2 - 155, height / 6 + 96 - 6, 150, 20, "Show Rotation Angles", Config.Key.showRotationAngles));
+        buttonList.add(new BooleanSettingButton(504704008, width / 2 + 5, height / 6 + 96 - 6, 150, 20, "Chat Copy Button", Config.Key.chatCopy));
+        
+        buttonList.add(new BooleanSettingButton(504704010, width / 2 - 155, height / 6 + 120 - 6, 150, 20, "Auto Update Checks", Config.Key.automaticUpdateChecks));
+        buttonList.add(new BooleanSettingButton(504704009, width / 2 + 5, height / 6 + 120 - 6, 150, 20, "Auto Backups", Config.Key.automaticBackups));
         
         buttonList.add(new DoneButton(504704099, width / 2 - 100, height / 6 + 168, 200, 20, "Done", this));
     }

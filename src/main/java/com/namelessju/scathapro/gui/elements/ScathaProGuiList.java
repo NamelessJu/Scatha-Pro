@@ -4,7 +4,6 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiLabel;
 import net.minecraft.client.gui.GuiListExtended;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.GuiTextField;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -18,28 +17,40 @@ public abstract class ScathaProGuiList extends GuiListExtended
 {
 	protected final GuiScreen gui;
 	protected final List<ListEntry> listEntries = Lists.<ListEntry>newArrayList();
-    
+
+	
     public ScathaProGuiList(GuiScreen gui, int entryHeight)
     {
-        super(gui.mc, gui.width, gui.height, 63, gui.height - 32, entryHeight);
+        this(gui, 40, gui.height - 40, entryHeight);
+    }
+    
+    public ScathaProGuiList(GuiScreen gui, int listTopY, int listBottomY, int entryHeight)
+    {
+        super(gui.mc, gui.width, gui.height, listTopY, listBottomY, entryHeight);
         this.gui = gui;
     }
+    
+    protected abstract boolean areEntriesSelectable();
 
+    @Override
     protected int getSize()
     {
-        return this.listEntries.size();
+        return listEntries.size();
     }
     
-    public GuiListExtended.IGuiListEntry getListEntry(int index)
+    @Override
+    public IGuiListEntry getListEntry(int index)
     {
-        return this.listEntries.get(index);
+        return listEntries.get(index);
     }
-    
+
+    @Override
     protected int getScrollBarX()
     {
         return this.width / 2 + getListWidth() / 2 + 2 + 5;
     }
-    
+
+    @Override
     public int getListWidth()
     {
         return 310;
@@ -69,7 +80,7 @@ public abstract class ScathaProGuiList extends GuiListExtended
     }
     
     @SideOnly(Side.CLIENT)
-    public abstract class ListEntry implements GuiListExtended.IGuiListEntry
+    public abstract class ListEntry implements IGuiListEntry
     {
     	private abstract class EntryGuiElement {
     		protected final int localX;
@@ -112,9 +123,9 @@ public abstract class ScathaProGuiList extends GuiListExtended
     	}
     	
     	private class EntryTextField extends EntryGuiElement {
-    		public final GuiTextField textField;
+    		public final ScathaProTextField textField;
     		
-    		public EntryTextField(GuiTextField textField) {
+    		public EntryTextField(ScathaProTextField textField) {
     			super(textField.xPosition, textField.yPosition);
     			this.textField = textField;
     		}
@@ -140,7 +151,7 @@ public abstract class ScathaProGuiList extends GuiListExtended
             entryLabels.add(new EntryLabel(label));
     	}
     	
-    	public void addTextField(GuiTextField textField) {
+    	public void addTextField(ScathaProTextField textField) {
     		entryTextFields.add(new EntryTextField(textField));
     	}
 
@@ -166,6 +177,7 @@ public abstract class ScathaProGuiList extends GuiListExtended
         		GuiButton button = entryButton.button;
         		if (button.mousePressed(mc, x, y)) {
             		button.playPressSound(mc.getSoundHandler());
+            		if (button instanceof IClickActionButton) ((IClickActionButton) button).click();
         			onButtonPressed(button);
         			return true;
         		}

@@ -21,17 +21,18 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.IResourceManagerReloadListener;
 import net.minecraft.client.resources.SimpleReloadableResourceManager;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StringUtils;
 
-public class CustomAlertModeManager implements IResourceManagerReloadListener {
-	
+public class CustomAlertModeManager implements IResourceManagerReloadListener
+{
 	public static final String resourceDomain = "scathapro_customalertmode";
 	public static final File submodesDirectory = SaveManager.getModFile("customAlertModes");
     
     public static String getResourceName(String resourcePath) {
     	return resourceDomain + ":" + resourcePath;
     }
-	
+    
     public static File getSubModeFile(String path) {
     	return new File(submodesDirectory, path);
     }
@@ -46,6 +47,31 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener {
     
     public static File getAlertAudioFile(String submodeId, Alert alert) {
     	return getSubModeFile(submodeId + "/assets/sounds/" + alert.alertId + ".ogg");
+    }
+
+    public static String[] getAllSubmodeIds() {
+    	return submodesDirectory.list(DirectoryFileFilter.DIRECTORY);
+    }
+    
+    public static boolean doesSubmodeExist(String submodeId) {
+    	String[] submodeIds = getAllSubmodeIds();
+    	for (String id : submodeIds) {
+    		if (id.equals(submodeId)) return true;
+    	}
+    	return false; 
+    }
+    
+    public static String getNewSubmodeId() {
+    	int tries = 0;
+    	String newId;
+    	do {
+    		if (tries > 999) return null;
+    		newId = UUID.randomUUID().toString().replace("-", "");
+    		tries ++;
+    	}
+    	while (doesSubmodeExist(newId));
+    	
+    	return newId;
     }
     
     
@@ -74,7 +100,15 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener {
 		}
 	}
 	
+	public void reloadResourcePack() {
+		// Haven't found a way to reload just a single resource pack
+		// reloading all resources is slow, but it does the job
+		Minecraft.getMinecraft().refreshResources();
+	}
+	
 	public void changeSubmode(String submodeId) {
+		if (submodeId == null) submodeId = "";
+		
 		Config config = ScathaPro.getInstance().config;
 		config.set(Config.Key.customModeSubmode, submodeId);
 		config.save();
@@ -101,27 +135,46 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener {
 		ScathaPro.getInstance().logger.log(Level.INFO, "Custom alert mode resource pack loaded");
 	}
 	
-	public void reloadResourcePack() {
-		// Haven't found a way to reload just a single resource pack
-		// reloading all resources is slow, but it does the job for now
-		Minecraft.getMinecraft().refreshResources();
-	}
-	
     
     public String getCurrentSubmodeId() {
     	return currentSubmodeId;
     }
     
+    public boolean isSubmodeActive(String submodeId) {
+    	if (currentSubmodeId == null) return false;
+    	else return currentSubmodeId.equals(submodeId);
+    }
+    
+    public void deleteSubmode(String customModeId)
+    {
+		if (isSubmodeActive(customModeId))
+		{
+			changeSubmode(null);
+		}
+		
+		File modeFolder = getSubModeFile(customModeId);
+		if (!SaveManager.deleteDirectoryRecursive(modeFolder))
+		{
+			ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't delete custom alert mode - recursively deleting the directory failed");
+		}
+    }
+    
+    
     public String getSubmodeName(String submodeId) {
     	return JsonUtil.getString(metas.get(submodeId), "name");
     }
     
+    public void setSubmodeName(String submodeId, String name) {
+    	setMeta(submodeId, "name", new JsonPrimitive(name));
+    }
+    
     public String getSubmodeDisplayName(String submodeId) {
-    	if (submodeId == null) return "<missing mode>";
-    	if (!doesSubmodeExist(submodeId)) return "<mode not found>";
+    	if (submodeId == null) return EnumChatFormatting.ITALIC + "<missing mode ID>";
+    	if (!doesSubmodeExist(submodeId)) return EnumChatFormatting.ITALIC + "<mode not found>";
     	
     	String submodeName = getSubmodeName(submodeId);
-    	if (submodeName == null) return "<unnamed>";
+    	if (submodeName == null || submodeName.replace(" ", "").isEmpty()) return EnumChatFormatting.ITALIC + "<unnamed>";
+    	else submodeName = submodeName.trim();
     	return StringUtils.stripControlCodes(submodeName);
     }
     
@@ -142,10 +195,6 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener {
     public void loadMeta(String submodeId) {
     	String propertiesString = SaveManager.readFile(getMetaFile(submodeId));
     	if (propertiesString != null) metas.put(submodeId, JsonUtil.parseObject(propertiesString));
-    }
-
-    public JsonObject getMeta(String submodeId) {
-    	return metas.get(submodeId);
     }
     
     public void setMeta(String submodeId, String path, JsonElement value) {
@@ -211,34 +260,11 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener {
     }
 
     public void saveSubmodeProperties(String submodeId, JsonObject properties) {
-    	if (!SaveManager.writeFile(getPropertiesFile(submodeId), properties.toString())) {
+    	File propertiesFile = getPropertiesFile(submodeId);
+    	propertiesFile.getParentFile().mkdirs();
+    	if (!SaveManager.writeFile(propertiesFile, properties.toString())) {
     		ScathaPro.getInstance().logger.log(Level.ERROR, "Failed to write custom alert mode properties file (" + submodeId + ")");
     	}
     }
     
-    
-    public String[] getAllSubmodeIds() {
-    	return submodesDirectory.list(DirectoryFileFilter.DIRECTORY);
-    }
-    
-    public boolean doesSubmodeExist(String submodeId) {
-    	String[] submodeIds = getAllSubmodeIds();
-    	for (String id : submodeIds) {
-    		if (id.equals(submodeId)) return true;
-    	}
-    	return false; 
-    }
-    
-    public String getNewSubmodeId() {
-    	int tries = 0;
-    	String newId;
-    	do {
-    		if (tries > 999) return null;
-    		newId = UUID.randomUUID().toString();
-    		tries ++;
-    	}
-    	while (doesSubmodeExist(newId));
-    	
-    	return newId;
-    }
 }

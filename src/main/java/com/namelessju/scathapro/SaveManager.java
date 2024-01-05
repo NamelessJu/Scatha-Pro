@@ -18,6 +18,48 @@ import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.Loader;
 
 public abstract class SaveManager {
+    
+    public static String readFile(File file) {
+    	if (file == null || !file.isFile() || !file.canRead()) return null;
+    	
+    	try {
+			return readInputStream(new FileInputStream(file));
+		}
+    	catch (FileNotFoundException e) {
+			return null;
+		}
+    }
+    
+    public static boolean writeFile(File file, String content) {
+    	boolean success = false;
+    	
+    	BufferedWriter bufferedWriter = null;
+    	try {
+            FileOutputStream outputStream = new FileOutputStream(file);
+            bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+
+            bufferedWriter.write(content);
+            success = true;
+        }
+        catch (Exception e) { }
+    	finally {
+            IOUtils.closeQuietly(bufferedWriter);
+    	}
+    	
+    	return success;
+    }
+    
+    public static boolean deleteDirectoryRecursive(File directory) {
+        File[] childs = directory.listFiles();
+        if (childs != null) {
+            for (File file : childs) {
+            	deleteDirectoryRecursive(file);
+            }
+        }
+        
+        return directory.delete();
+    }
+    
 	
     public static File getModFile(String relativePath) {
         File saveLocation = getSaveLocation();
@@ -54,36 +96,6 @@ public abstract class SaveManager {
     	finally {
             IOUtils.closeQuietly(bufferedReader);
     	}
-    }
-    
-    public static String readFile(File file) {
-    	if (file == null || !file.isFile() || !file.canRead()) return null;
-    	
-    	try {
-			return readInputStream(new FileInputStream(file));
-		}
-    	catch (FileNotFoundException e) {
-			return null;
-		}
-    }
-    
-    public static boolean writeFile(File file, String content) {
-    	boolean success = false;
-    	
-    	BufferedWriter bufferedWriter = null;
-    	try {
-            FileOutputStream outputStream = new FileOutputStream(file);
-            bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
-
-            bufferedWriter.write(content);
-            success = true;
-        }
-        catch (Exception e) { }
-    	finally {
-            IOUtils.closeQuietly(bufferedWriter);
-    	}
-    	
-    	return success;
     }
     
     public static void updateOldSaveLocations() {

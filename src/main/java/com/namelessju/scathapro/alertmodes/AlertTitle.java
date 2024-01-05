@@ -33,10 +33,12 @@ public class AlertTitle {
 	
 	public AlertTitle apply(AlertTitle other, String details) {
 		String title = this.title;
-		if (title != null && other != null && other.title != null) title = other.title;
+		if (title != null && other != null && other.title != null && !other.title.trim().isEmpty()) {
+			title = other.title;
+		}
 		
 		String subtitle = this.subtitle;
-		if (subtitle != null && other != null && other.subtitle != null) {
+		if (subtitle != null && other != null && other.subtitle != null && !other.subtitle.trim().isEmpty()) {
 			subtitle = other.subtitle;
 		}
 		else if (subtitle == null && details != null) subtitle = details;

@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Level;
 
 import com.google.common.io.Files;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.alertmodes.Alert;
 import com.namelessju.scathapro.alertmodes.AlertTitle;
@@ -24,7 +25,12 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class CustomModeEditList extends ScathaProGuiList {
+public class CustomAlertModeEditGuiList extends ScathaProGuiList
+{
+	@Override
+	protected boolean areEntriesSelectable() {
+		return false;
+	}
 
 	private final CustomAlertModeManager customAlertModeManager;
 
@@ -33,15 +39,13 @@ public class CustomModeEditList extends ScathaProGuiList {
 	
 	private FileDialog activeFileDialog = null;
 	
-	public CustomModeEditList(GuiScreen gui, String customModeId) {
-		super(gui, 85);
+	public CustomAlertModeEditGuiList(GuiScreen gui, String customModeId) {
+		super(gui, 75, gui.height - 40, 85);
 		
 		customAlertModeManager = ScathaPro.getInstance().customAlertModeManager;
 		
 		this.customModeId = customModeId;
 		modeProperties = customAlertModeManager.loadSubmodeProperties(customModeId);
-		
-		listEntries.add(new CustomModeNameEditEntry());
 		
 		Alert[] alerts = Alert.values();
 		for (Alert alert : alerts) {
@@ -60,56 +64,30 @@ public class CustomModeEditList extends ScathaProGuiList {
 		if (activeFileDialog != null) {
 			activeFileDialog.setVisible(false);
 		}
+
+		Alert[] alerts = Alert.values();
+		for (Alert alert : alerts) {
+			alert.stopSound();
+		}
 	}
 	
 	public boolean saveChanges() {
-		boolean changesMade = false;
+		boolean reloadRequired = false;
 		for (ListEntry entry : listEntries) {
 			if (entry instanceof ISaveableEntry) {
-				if (((ISaveableEntry) entry).saveChanges()) changesMade = true;
+				if (((ISaveableEntry) entry).saveChanges()) reloadRequired = true;
 			}
 		}
-		return changesMade;
+		return reloadRequired;
 	}
 
     @SideOnly(Side.CLIENT)
     public interface ISaveableEntry
     {
+    	/**
+    	 * @return <code>boolean</code> Whether reloading resources is required
+    	 */
     	public boolean saveChanges();
-    }
-    
-    @SideOnly(Side.CLIENT)
-    public class CustomModeNameEditEntry extends ListEntry implements ISaveableEntry
-    {
-    	private String currentModeName;
-    	private PlaceholderTextField nameTextField;
-    	
-        private CustomModeNameEditEntry()
-        {
-    		currentModeName = customAlertModeManager.getSubmodeName(customModeId);
-    		if (currentModeName == null) currentModeName = "";
-        	
-            addLabel("Custom Mode Name", 0, 5, getListWidth(), 10);
-            
-            nameTextField = new PlaceholderTextField(0, mc.fontRendererObj, 0, 20, getListWidth(), 20);
-            nameTextField.setText(currentModeName);
-            nameTextField.setPlaceholder("<unnamed>");
-        	addTextField(nameTextField);
-        	
-        }
-		
-		@Override
-		public boolean saveChanges() {
-			String newName = nameTextField.getText();
-			if (newName == null) newName = "";
-			else if (newName.replace(" ", "").isEmpty()) newName = "";
-			
-			if (!newName.equals(currentModeName)) {
-				return true;
-			}
-			
-			return false;
-		}
     }
 	
     @SideOnly(Side.CLIENT)
@@ -122,8 +100,11 @@ public class CustomModeEditList extends ScathaProGuiList {
     	
     	private final GuiButton audioFileButton;
     	private final GuiButton resetAudioButton;
-    	private final PlaceholderTextField titleTextField;
-    	private final PlaceholderTextField subtitleTextField;
+    	private final ScathaProTextField titleTextField;
+    	private final ScathaProTextField subtitleTextField;
+
+    	private String initialTitle;
+    	private String initialSubtitle;
     	
     	private File newSoundFile = null;
     	
@@ -132,35 +113,40 @@ public class CustomModeEditList extends ScathaProGuiList {
             this.alert = alert;
             alertAudioFile = CustomAlertModeManager.getAlertAudioFile(customModeId, alert);
             
-            addLabel(alert.alertName, 0, 0, getListWidth(), 10);
+            addLabel(alert.alertName, 0, 5, getListWidth(), 10);
             
-            addButton(audioFileButton = new GuiButton(0, 0, 15, getListWidth() - 110, 20, "Choose audio..."));
+            addButton(audioFileButton = new GuiButton(0, 0, 20, getListWidth() - 110, 20, "Choose audio..."));
             
-            addButton(resetAudioButton = new GuiButton(2, getListWidth() - 105, 15, 50, 20, "Reset"));
+            addButton(resetAudioButton = new GuiButton(2, getListWidth() - 105, 20, 50, 20, "Reset"));
             resetAudioButton.enabled = alertAudioFile.exists();
             
-            GuiButton btnPlayAudio = new GuiButton(1, getListWidth() - 50, 15, 50, 20, "Play");
+            GuiButton btnPlayAudio = new GuiButton(1, getListWidth() - 50, 20, 50, 20, "Play");
             btnPlayAudio.enabled = customModeId.equals(customAlertModeManager.getCurrentSubmodeId());
             addButton(btnPlayAudio);
             
             
-            AlertTitle title = alert.getDefaultTitle();
-        	String customTitle = JsonUtil.getString(modeProperties, "titles/" + alert.alertId + "/title");
-        	String customSubtitle = JsonUtil.getString(modeProperties, "titles/" + alert.alertId + "/subtitle");
-            addLabel(EnumChatFormatting.GRAY + "Title", 0, 40, getListWidth() / 2 - 5, 10);
+            AlertTitle defaultTitle = alert.getDefaultTitle();
+            boolean canEditTitle = defaultTitle.title != null;
+            boolean canEditSubtitle = defaultTitle.subtitle != null;
+            initialTitle = JsonUtil.getString(modeProperties, "titles/" + alert.alertId + "/title");
+            if (initialTitle == null) initialTitle = "";
+            initialSubtitle = JsonUtil.getString(modeProperties, "titles/" + alert.alertId + "/subtitle");
+            if (initialSubtitle == null) initialSubtitle = "";
             
-            titleTextField = new PlaceholderTextField(0, mc.fontRendererObj, 0, 52, getListWidth() / 2 - 5, 20);
-            if (customTitle != null) titleTextField.setText(customTitle);
-            titleTextField.setPlaceholder(title.title != null ? title.title : EnumChatFormatting.ITALIC + "<none>");
-            if (title.title == null) titleTextField.setEnabled(false);
+            addLabel((canEditTitle ? EnumChatFormatting.GRAY : EnumChatFormatting.DARK_GRAY) + "Title", 0, 45, getListWidth() / 2 - 5, 10);
+            
+            titleTextField = new ScathaProTextField(0, mc.fontRendererObj, 0, 55, getListWidth() / 2 - 5, 20);
+            if (canEditTitle) titleTextField.setText(initialTitle);
+            else titleTextField.setEnabled(false);
+            titleTextField.setPlaceholder(canEditTitle ? defaultTitle.title : EnumChatFormatting.ITALIC + "(cannot set)");
         	addTextField(titleTextField);
         	
-            addLabel(EnumChatFormatting.GRAY + "Subtitle", getListWidth() / 2 + 5, 40, getListWidth() / 2 - 5, 10);
+            addLabel((canEditSubtitle ? EnumChatFormatting.GRAY : EnumChatFormatting.DARK_GRAY) + "Subtitle", getListWidth() / 2 + 5, 45, getListWidth() / 2 - 5, 10);
             
-            subtitleTextField = new PlaceholderTextField(0, mc.fontRendererObj, getListWidth() / 2 + 5, 52, getListWidth() / 2 - 5, 20);
-            if (customSubtitle != null) subtitleTextField.setText(customSubtitle);
-            subtitleTextField.setPlaceholder(title.subtitle != null ? title.subtitle : EnumChatFormatting.ITALIC + "<none>");
-            if (title.subtitle == null) subtitleTextField.setEnabled(false);
+            subtitleTextField = new ScathaProTextField(0, mc.fontRendererObj, getListWidth() / 2 + 5, 55, getListWidth() / 2 - 5, 20);
+            if (canEditSubtitle) subtitleTextField.setText(initialSubtitle);
+            else subtitleTextField.setEnabled(false);
+            subtitleTextField.setPlaceholder(canEditSubtitle ? defaultTitle.subtitle : EnumChatFormatting.ITALIC + "(cannot set)");
         	addTextField(subtitleTextField);
         }
         
@@ -177,7 +163,10 @@ public class CustomModeEditList extends ScathaProGuiList {
 						public void run() {
 							FileDialog fileDialog = new FileDialog((java.awt.Frame) null);
 							fileDialog.setMultipleMode(false);
-							fileDialog.setFile("*.mp3;*.ogg");
+							
+							boolean mp3Supported = false;
+							fileDialog.setFile((mp3Supported ? "*.mp3;" : "") + "*.ogg");
+							
 							fileDialog.setTitle("Select " + alert.alertName + " audio...");
 							try {
 								InputStream iconInputStream = Minecraft.getMinecraft().mcDefaultResourcePack.getInputStreamAssets(new ResourceLocation("icons/icon_32x32.png")); 
@@ -193,7 +182,6 @@ public class CustomModeEditList extends ScathaProGuiList {
 								onAudioFileChosen(selectedFiles[0]);
 							}
 							if (activeFileDialog == fileDialog) {
-								// TODO: bring MC window back to front 
 								activeFileDialog = null;
 							}
 						}
@@ -202,7 +190,8 @@ public class CustomModeEditList extends ScathaProGuiList {
 	                break;
 	            
 				case 1:
-	            	alert.playSound();
+					if (alert.isSoundPlaying()) alert.stopSound();
+					else alert.playSound();
 	                break;
 	            
 				case 2:
@@ -224,21 +213,44 @@ public class CustomModeEditList extends ScathaProGuiList {
 		}
 		
 		private void updateAudioFileButton(String text) {
-			audioFileButton.displayString = EnumChatFormatting.RESET + text + EnumChatFormatting.RESET + EnumChatFormatting.ITALIC + " (unsaved)";
+			audioFileButton.displayString = EnumChatFormatting.RESET + text + EnumChatFormatting.RESET + EnumChatFormatting.YELLOW + EnumChatFormatting.ITALIC + " (unsaved)";
 		}
 		
 		@Override
-		public boolean saveChanges() {
-			boolean changesMade = false;
+		public boolean saveChanges()
+		{
+			boolean reloadRequired = false;
+			
+			// Title
+			
+			boolean titleChanged = false;
+			
+			String newTitle = titleTextField.getText().trim();
+			if (alert.hasTitle() && !newTitle.equals(initialTitle)) {
+				JsonUtil.set(modeProperties, "titles/" + alert.alertId + "/title", new JsonPrimitive(newTitle));
+				titleChanged = true;
+			}
+			
+			String newSubtitle = subtitleTextField.getText().trim();
+			if (alert.hasSubtitle() && !newSubtitle.equals(initialSubtitle)) {
+				JsonUtil.set(modeProperties, "titles/" + alert.alertId + "/subtitle", new JsonPrimitive(newSubtitle));
+				titleChanged = true;
+			}
+			
+			if (titleChanged) {
+				customAlertModeManager.saveSubmodeProperties(customModeId, modeProperties);
+				if (customAlertModeManager.isSubmodeActive(customModeId)) customAlertModeManager.loadCurrentSubmodeProperties();
+			}
+			
+			// Sound
+			
 			if (newSoundFile != null)
 			{
 				if (newSoundFile == audioResetFile) {
-					// ScathaPro.getInstance().customAlertModeManager.deleteResourceFileOnReload(alertAudioFile);
-					
 					if (alertAudioFile.exists()) {
-						if (customAlertModeManager.getCurrentSubmodeId().equals(customModeId)) Minecraft.getMinecraft().getSoundHandler().unloadSounds();
+						if (customAlertModeManager.isSubmodeActive(customModeId)) Minecraft.getMinecraft().getSoundHandler().unloadSounds();
 						alertAudioFile.delete();
-						changesMade = true;
+						reloadRequired = true;
 					}
 				}
 				else {
@@ -250,7 +262,7 @@ public class CustomModeEditList extends ScathaProGuiList {
 					}
 					
 					if (alertAudioFile.exists()) {
-						if (customAlertModeManager.getCurrentSubmodeId().equals(customModeId)) Minecraft.getMinecraft().getSoundHandler().unloadSounds();
+						if (customAlertModeManager.isSubmodeActive(customModeId)) Minecraft.getMinecraft().getSoundHandler().unloadSounds();
 					}
 					else {
 						alertAudioFile.getParentFile().mkdirs();
@@ -258,14 +270,14 @@ public class CustomModeEditList extends ScathaProGuiList {
 					
 					try {
 						Files.copy(newSoundFile, alertAudioFile);
-						changesMade = true;
+						reloadRequired = true;
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
 				}
 			}
 			
-			return changesMade;
+			return reloadRequired;
 		}
     }
 

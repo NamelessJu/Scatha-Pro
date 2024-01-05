@@ -315,9 +315,9 @@ public class OverlayManager {
     		int scathaKillsSinceLastDrop = scathaPro.overallScathaKills - scathaPro.scathaKillsAtLastDrop;
     		
     		if (scathaKillsSinceLastDrop >= 0) {
-    			killsText = Integer.toString(scathaKillsSinceLastDrop); 
+    			killsText = Integer.toString(scathaKillsSinceLastDrop);
     		}
-    		else killsText = EnumChatFormatting.OBFUSCATED + "???"; // 3 obfuscated characters indicate negative number
+    		else killsText = EnumChatFormatting.OBFUSCATED + "???"; // 3 obfuscated characters to indicate that the difference is negative
     	}
     	else killsText = EnumChatFormatting.OBFUSCATED + "?";
     	

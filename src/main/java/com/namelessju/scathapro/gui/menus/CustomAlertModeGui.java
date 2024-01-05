@@ -1,7 +1,9 @@
 package com.namelessju.scathapro.gui.menus;
 
 import com.namelessju.scathapro.gui.elements.DoneButton;
-import com.namelessju.scathapro.gui.elements.CustomModeList;
+
+import com.namelessju.scathapro.gui.elements.CustomAlertModeGuiList;
+
 import net.minecraft.client.gui.GuiScreen;
 
 public class CustomAlertModeGui extends ScathaProGui {
@@ -23,14 +25,9 @@ public class CustomAlertModeGui extends ScathaProGui {
     public void initGui() {
         super.initGui();
         
-        scrollList = new CustomModeList(this);
+        scrollList = new CustomAlertModeGuiList(this);
         
-        buttonList.add(new DoneButton(504704599, this.width / 2 - 100, this.height - 29, 200, 20, "Done", this));
-    }
-    
-    @Override
-    public void onGuiClosed() {
-    	// ScathaPro.getInstance().customAlertModeManager.unloadAllMeta();
+        buttonList.add(new DoneButton(504704599, this.width / 2 - 100, this.height - 30, 200, 20, "Done", this));
     }
     
 }

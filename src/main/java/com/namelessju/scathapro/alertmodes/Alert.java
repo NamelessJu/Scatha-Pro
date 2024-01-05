@@ -3,12 +3,14 @@ package com.namelessju.scathapro.alertmodes;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.util.SoundUtil;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.ISound;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
 
 public enum Alert {
 
-	bedrockWall("bedrock_wall", "Bedrock Wall Alert", new DefaultAlertSound("note.pling", 1f, 0.5f), new AlertTitle(null, "Close to bedrock wall", null, EnumChatFormatting.GRAY.toString(), 3, 20, 5)),
+	bedrockWall("bedrock_wall", "Bedrock Wall Alert", new DefaultAlertSound("note.pling", 1f, 0.5f), new AlertTitle(null, "Close to bedrock wall", null, EnumChatFormatting.GRAY.toString(), 5, 20, 5)),
 	wormPrespawn("worm_prespawn", "Worm Prespawn Alert", new DefaultAlertSound("random.orb", 1f, 0.5f), new AlertTitle(null, "Worm about to spawn...", null, EnumChatFormatting.YELLOW.toString(), 0, 20, 5)),
 	wormSpawn("worm_spawn", "Worm Spawn Alert", new DefaultAlertSound("random.levelup", 1f, 0.5f), new AlertTitle("Worm", "Just a regular worm...", EnumChatFormatting.YELLOW.toString(), EnumChatFormatting.GRAY.toString(), 5, 20, 5)),
 	scathaSpawn("scatha_spawn", "Scatha Spawn Alert", new DefaultAlertSound("random.levelup", 1f, 0.8f), new AlertTitle("Scatha", "Pray to RNGesus!", EnumChatFormatting.RED.toString(), EnumChatFormatting.GRAY.toString(), 0, 40, 10)),
@@ -35,6 +37,8 @@ public enum Alert {
 	private final DefaultAlertSound defaultSound;
 	private final AlertTitle defaultTitle;
 	
+	private ISound lastSound = null;
+	
 	Alert(String alertId, String alertName, DefaultAlertSound defaultSound, AlertTitle defaultTitle) {
 		this.alertId = alertId;
 		this.alertName = alertName;
@@ -53,21 +57,31 @@ public enum Alert {
 	}
 	
 	
-	public void playSound() {
-		ResourceLocation soundParentLocation = ScathaPro.getInstance().alertModeManager.getCurrentMode().getSoundBaseResourceLocation();
+	public void playSound()
+	{
+		stopSound();
 		
-		if (soundParentLocation == null) {
-			playDefaultSound();
-			return;
+		ResourceLocation soundParentLocation = ScathaPro.getInstance().alertModeManager.getCurrentMode().getSoundBaseResourceLocation();
+		if (soundParentLocation != null)
+		{
+			String soundPath = soundParentLocation.toString() + (soundParentLocation.getResourcePath().isEmpty() ? "" : ".") + alertId;
+			if (SoundUtil.soundExists(soundPath)) {
+				lastSound = SoundUtil.playSound(soundPath);
+				return;
+			}
 		}
 		
-		String soundPath = soundParentLocation.toString() + (soundParentLocation.getResourcePath().isEmpty() ? "" : ".") + alertId;
-		if (SoundUtil.soundExists(soundPath)) SoundUtil.playSound(soundPath);
-		else playDefaultSound();
+		lastSound = SoundUtil.playSound(defaultSound.soundId, defaultSound.volume, defaultSound.pitch);
 	}
 	
-	private void playDefaultSound() {
-		SoundUtil.playSound(defaultSound.soundId, defaultSound.volume, defaultSound.pitch);
+	public void stopSound()
+	{
+		if (isSoundPlaying()) Minecraft.getMinecraft().getSoundHandler().stopSound(lastSound);
+	}
+	
+	public boolean isSoundPlaying()
+	{
+		return lastSound != null && Minecraft.getMinecraft().getSoundHandler().isSoundPlaying(lastSound);
 	}
 	
 	

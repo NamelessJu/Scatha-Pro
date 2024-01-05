@@ -42,7 +42,7 @@ public class MainCommand extends CommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
-            
+        
         if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
             MessageUtil.sendModChatMessage(
                     "All commands:\n"
@@ -60,12 +60,14 @@ public class MainCommand extends CommandBase {
         else {
             String subCommand = args[0];
             
+            ScathaPro scathaPro = ScathaPro.getInstance();
+            
             if (subCommand.equalsIgnoreCase("settings") || subCommand.equalsIgnoreCase("config")) {
-                ScathaPro.getInstance().openGuiNextTick = new SettingsGui(null);
+            	scathaPro.openGuiNextTick = new SettingsGui(null);
             }
             
             else if (subCommand.equalsIgnoreCase("achievements")) {
-                ScathaPro.getInstance().openGuiNextTick = new AchievementsGui(null);
+            	scathaPro.openGuiNextTick = new AchievementsGui(null);
             }
             
             else if (subCommand.equalsIgnoreCase("setPetDrops")) {
@@ -77,22 +79,24 @@ public class MainCommand extends CommandBase {
                     if (rare > 9999 || epic > 9999 || legendary > 9999) throw new CommandException("Pet drop amount too large! Maximum allowed amount is 9999.");
                     if (rare < 0 || epic < 0 || legendary < 0) throw new CommandException("Pet drop amount cannot be negative!");
                     
-                    ScathaPro scathaPro = ScathaPro.getInstance();
                     scathaPro.rarePetDrops = rare;
                     scathaPro.epicPetDrops = epic;
                     scathaPro.legendaryPetDrops = legendary;
+                    
+                    scathaPro.scathaKillsAtLastDrop = -1;
                     
                     MessageUtil.sendModChatMessage("Pet drops changed");
                     
                     scathaPro.persistentData.savePetDrops();
                     scathaPro.overlayManager.updatePetDrops();
+                    scathaPro.overlayManager.updateScathaKillsSinceLastDrop();
                     scathaPro.updatePetDropAchievements();
                 }
                 else throw new CommandException("Missing values: /scathapro setPetDrops <rare> <epic> <legendary>");
             }
             
             else if (subCommand.equalsIgnoreCase("backup")) {
-            	PersistentData persistentData = ScathaPro.getInstance().persistentData;
+            	PersistentData persistentData = scathaPro.persistentData;
             	persistentData.saveData();
             	persistentData.backup();
             }
@@ -103,13 +107,13 @@ public class MainCommand extends CommandBase {
             }
             
             else if (subCommand.equalsIgnoreCase("resetConfig")) {
-            	Config config = ScathaPro.getInstance().config;
+            	Config config = scathaPro.config;
                 for (Config.Key key : Config.Key.values()) {
                 	config.reset(key);
                 }
                 config.save();
                 
-                if (config.getBoolean(Config.Key.petAlert)) ScathaPro.getInstance().resetPreviousScathaPets();
+                if (config.getBoolean(Config.Key.petAlert)) scathaPro.resetPreviousScathaPets();
     
                 MessageUtil.sendModChatMessage("All settings reset");
             }
@@ -118,7 +122,7 @@ public class MainCommand extends CommandBase {
                 if (args.length > 1) {
                     boolean enabled = CommandBase.parseBoolean(args[1]);
 
-                	Config config = ScathaPro.getInstance().config;
+                	Config config = scathaPro.config;
                 	config.set(Config.Key.devMode, enabled);
                 	config.save();
                     

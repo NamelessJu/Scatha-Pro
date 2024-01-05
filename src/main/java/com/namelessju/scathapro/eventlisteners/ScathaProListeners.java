@@ -222,7 +222,7 @@ public class ScathaProListeners {
             Alert.scathaPetDrop.play(rarityTitle);
         }
         
-        if (scathaPro.overallScathaKills >= 0 && scathaPro.scathaKillsAtLastDrop >= 0) {
+        if (scathaPro.config.getBoolean(Config.Key.dryStreakMessage) && scathaPro.overallScathaKills >= 0 && scathaPro.scathaKillsAtLastDrop >= 0) {
             int dryStreak = (scathaPro.overallScathaKills - 1) - scathaPro.scathaKillsAtLastDrop;
             if (dryStreak > 0) {
             	MessageUtil.sendModChatMessage(EnumChatFormatting.YELLOW + "Scatha pet dropped after a " + EnumChatFormatting.RED + dryStreak + " Scatha kill" + (dryStreak != 1 ? "s" : "") + EnumChatFormatting.YELLOW + " dry streak");

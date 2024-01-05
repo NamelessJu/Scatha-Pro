@@ -1,15 +1,9 @@
 package com.namelessju.scathapro;
 
-import java.io.File;
-
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 
 public class Config {
-
-    private static File getFile() {
-    	return SaveManager.getModFile("config.cfg");
-    }
     
     private Configuration config;
     
@@ -37,11 +31,12 @@ public class Config {
         
         // Other
         showRotationAngles("other", "showRotationAngles", false),
+        wormSpawnTimer("other", "wormSpawnTimer", false),
+        dryStreakMessage("other", "dryStreakMessage", true),
         chatCopy("other", "chatCopy", false),
         automaticBackups("other", "automaticBackups", true),
         automaticUpdateChecks("other", "automaticUpdateChecks", true),
         automaticStatsParsing("other", "automaticStatsParsing", true),
-        wormSpawnTimer("other", "wormSpawnTimer", false),
         
         devMode("other", "devMode", false);
         
@@ -102,7 +97,7 @@ public class Config {
     }
     
     public void loadFile() {
-        config = new Configuration(getFile());
+        config = new Configuration(SaveManager.getModFile("config.cfg"));
         config.load();
     }
     

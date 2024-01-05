@@ -337,7 +337,7 @@ public class LoopListeners {
                     else if (!scathaPro.inBedrockWallRange) {
                         scathaPro.inBedrockWallRange = true;
                         
-                        if (viewBlocked && (lastBedrockWallDetectionTime < 0 || now - lastBedrockWallDetectionTime > 3000)) {
+                        if (viewBlocked && (lastBedrockWallDetectionTime < 0 || now - lastBedrockWallDetectionTime > 1500)) {
                         	lastBedrockWallDetectionTime = now;
                             MinecraftForge.EVENT_BUS.post(new BedrockWallEvent());
                         }

@@ -3,13 +3,12 @@ package com.namelessju.scathapro.util;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.Locale;
 import java.util.UUID;
 
 import com.mojang.authlib.GameProfile;
@@ -108,7 +107,9 @@ public abstract class Util {
         return decimalFormat.format(number);
     }
     
-    public static String formatTime(long timestamp, int dateFormat, int timeFormat) {
+    public static String formatTime(long timestamp) {
+    	return new SimpleDateFormat().format(new Date(timestamp));
+    	/*
     	Date date = new Date(timestamp);
 	    Locale locale = Locale.getDefault();
 	    String formattedDate = dateFormat >= 0 ? DateFormat.getDateInstance(dateFormat, locale).format(date) : null;
@@ -119,6 +120,7 @@ public abstract class Util {
 	    else if (formattedDate != null && formattedTime == null) return formattedDate;
 	    
         return null;
+        */
     }
     
     public static String getUnicodeString(String hexValue) {
