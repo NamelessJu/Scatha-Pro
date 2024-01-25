@@ -37,8 +37,8 @@ public class FakeBanGui extends GuiDisconnected {
             Achievement.cheat.setProgress(Achievement.cheat.goal);
             
             mc.ingameGUI.displayTitle(null, null, 5, 60, 40);
-            mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + "We do a little trolling", 0, 0, 0);
-            mc.ingameGUI.displayTitle(EnumChatFormatting.GREEN + "Just kidding!", null, 0, 0, 0);
+            mc.ingameGUI.displayTitle(null, EnumChatFormatting.GREEN + "We do a little trolling", 0, 0, 0);
+            mc.ingameGUI.displayTitle("", null, 0, 0, 0);
         }
         
         super.actionPerformed(button);

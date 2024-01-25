@@ -6,21 +6,14 @@ import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.gui.elements.ImageButton;
 import com.namelessju.scathapro.gui.menus.AchievementsGui;
 import com.namelessju.scathapro.gui.menus.SettingsGui;
-import com.namelessju.scathapro.util.ChatUtil;
-import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiIngameMenu;
 import net.minecraft.client.gui.GuiOptions;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraft.inventory.ContainerChest;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.ItemStack;
 
 public class GuiListeners {
     
@@ -65,39 +58,6 @@ public class GuiListeners {
             event.buttonList.add(achievementMenuButton);
         }
     	
-    }
-    
-    public void readChest(GuiScreen menu) {
-    	if (!(menu instanceof GuiChest)) return;
-    	
-    	GuiChest chest = (GuiChest) menu;
-    	IInventory chestInventory = ((ContainerChest) chest.inventorySlots).getLowerChestInventory();
-    	
-    	
-        if (chestInventory.hasCustomName()) {
-        	ChatUtil.sendModChatMessage("Chest name: \"" + chestInventory.getDisplayName().getUnformattedText() + "\"");
-        }
-        
-    	
-        StringBuilder inventoryDataStringBuilder = new StringBuilder("[");
-        boolean firstIteration = true;
-        for (int i = 0; i < chestInventory.getSizeInventory(); i ++) {
-        	ItemStack stack = chestInventory.getStackInSlot(i);
-        	
-        	if (!firstIteration) inventoryDataStringBuilder.append(", ");
-        	if (stack != null) {
-        		String nbtString = stack.getTagCompound() != null ? stack.getTagCompound().toString().replace("\"", "\\\"") : "";
-        		inventoryDataStringBuilder.append("{\"item\": \"" + stack.getItem().getRegistryName() + "\", \"nbt\": \"" + nbtString + "\"}");
-        	}
-        	else {
-        		inventoryDataStringBuilder.append("{\"item\": null}");
-        	}
-        	if (firstIteration) firstIteration = false;
-        }
-        inventoryDataStringBuilder.append("]");
-        
-        Util.copyToClipboard(inventoryDataStringBuilder.toString());
-        ChatUtil.sendModChatMessage("Chest menu data copied to clipboard");
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)

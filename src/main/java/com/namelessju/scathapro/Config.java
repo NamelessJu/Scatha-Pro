@@ -1,47 +1,42 @@
 package com.namelessju.scathapro;
 
-import java.io.File;
-
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 
 public class Config {
-
-    private static File getFile() {
-    	return SaveManager.getModFile("config.cfg");
-    }
-    
-    public static final Config instance = new Config();
     
     private Configuration config;
     
     public enum Key {
-
-        // API
-        apiKey("api", "key", ""),
-        
+    	
         // Overlay
         overlay("overlay", "enabled", true),
         overlayX("overlay", "x", -1D), overlayY("overlay", "y", -1D),
         overlayScale("overlay", "scale", 1D),
         
+        // Sounds
+        soundsVolume("sounds", "volume", 1D),
+        muteOtherSounds("sounds", "muteOtherSounds", false),
+        
         // Alerts
-        volume("alerts", "volume", 1D),
+        mode("alerts", "mode", ""),
+        customModeSubmode("alerts", "customModeSubmode", ""),
         
         wormAlert("alerts", "worms", true),
         scathaAlert("alerts", "scathas", true),
         wormPreAlert("alerts", "wormsPre", true),
         petAlert("alerts", "pet", true),
         wallAlert("alerts", "wall", true),
+        goblinAlert("alerts", "goblin", true),
         
         // Other
-        mode("other", "mode", 0),
         showRotationAngles("other", "showRotationAngles", false),
+        wormSpawnTimer("other", "wormSpawnTimer", false),
+        dryStreakMessage("other", "dryStreakMessage", true),
         chatCopy("other", "chatCopy", false),
         automaticBackups("other", "automaticBackups", true),
         automaticUpdateChecks("other", "automaticUpdateChecks", true),
         automaticStatsParsing("other", "automaticStatsParsing", true),
-        wormSpawnTimer("other", "wormSpawnTimer", false),
         
         devMode("other", "devMode", false);
         
@@ -61,12 +56,48 @@ public class Config {
         }
     }
     
-    private Config() {
+    public void init() {
         loadFile();
+    	
+    	// convert old integer-based mode ID to new string-based mode ID
+    	// (only if no string ID is saved yet)
+    	if (getString(Key.mode).isEmpty()) {
+    		
+    		int oldMode = config.get("other", "mode", -1).getInt();
+    		if (oldMode >= 0) {
+    			
+    			String newMode;
+    			
+    			switch (oldMode) {
+	    			case 1:
+	    				newMode = "meme";
+	    				break;
+	    			case 2:
+	    				newMode = "anime";
+	    				break;
+	    			case 0:
+	    			default:
+	    				newMode = "normal";
+    			}
+    			
+    			set(Key.mode, newMode);
+    			config.save();
+    		}
+    	}
+    	
+    	
+    	if (config.get(Key.soundsVolume.category, Key.soundsVolume.key, -1D).getDouble() < 0D) {
+    		
+    		double oldVolume = config.get("alerts", "volume", -1D).getDouble();
+    		if (oldVolume >= 0) {
+    			set(Key.soundsVolume, oldVolume);
+    			config.save();
+    		}
+    	}
     }
     
     public void loadFile() {
-        config = new Configuration(getFile());
+        config = new Configuration(SaveManager.getModFile("config.cfg"));
         config.load();
     }
     

@@ -9,45 +9,45 @@
     },
     
     
-    "alert_modes.meme.prespawn": {
-        "category": "master",
-        "sounds": [{"name": "alert_modes/meme/prespawn", "stream": true}]
-    },
-    "alert_modes.meme.worm": {
-        "category": "master",
-        "sounds": [{"name": "alert_modes/meme/worm", "stream": true}]
-    },
-    "alert_modes.meme.scatha": {
-        "category": "master",
-        "sounds": [{"name": "alert_modes/meme/scatha", "stream": true}]
-    },
     "alert_modes.meme.bedrock_wall": {
         "category": "master",
         "sounds": [{"name": "alert_modes/meme/bedrock_wall", "stream": true}]
     },
-    "alert_modes.meme.pet_drop": {
+    "alert_modes.meme.worm_prespawn": {
         "category": "master",
-        "sounds": [{"name": "alert_modes/meme/pet_drop", "stream": true}]
+        "sounds": [{"name": "alert_modes/meme/worm_prespawn", "stream": true}]
+    },
+    "alert_modes.meme.worm_spawn": {
+        "category": "master",
+        "sounds": [{"name": "alert_modes/meme/worm_spawn", "stream": true}]
+    },
+    "alert_modes.meme.scatha_spawn": {
+        "category": "master",
+        "sounds": [{"name": "alert_modes/meme/scatha_spawn", "stream": true}]
+    },
+    "alert_modes.meme.scatha_pet_drop": {
+        "category": "master",
+        "sounds": [{"name": "alert_modes/meme/scatha_pet_drop", "stream": true}]
     },
 
-    "alert_modes.anime.prespawn": {
-        "category": "master",
-        "sounds": [{"name": "alert_modes/anime/prespawn", "stream": true}]
-    },
-    "alert_modes.anime.worm": {
-        "category": "master",
-        "sounds": [{"name": "alert_modes/anime/worm", "stream": true}]
-    },
-    "alert_modes.anime.scatha": {
-        "category": "master",
-        "sounds": [{"name": "alert_modes/anime/scatha", "stream": true}]
-    },
     "alert_modes.anime.bedrock_wall": {
         "category": "master",
         "sounds": [{"name": "alert_modes/anime/bedrock_wall", "stream": true}]
     },
-    "alert_modes.anime.pet_drop": {
+    "alert_modes.anime.worm_prespawn": {
         "category": "master",
-        "sounds": [{"name": "alert_modes/anime/pet_drop", "stream": true}]
+        "sounds": [{"name": "alert_modes/anime/worm_prespawn", "stream": true}]
+    },
+    "alert_modes.anime.worm_spawn": {
+        "category": "master",
+        "sounds": [{"name": "alert_modes/anime/worm_spawn", "stream": true}]
+    },
+    "alert_modes.anime.scatha_spawn": {
+        "category": "master",
+        "sounds": [{"name": "alert_modes/anime/scatha_spawn", "stream": true}]
+    },
+    "alert_modes.anime.scatha_pet_drop": {
+        "category": "master",
+        "sounds": [{"name": "alert_modes/anime/scatha_pet_drop", "stream": true}]
     }
 }

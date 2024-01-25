@@ -1,14 +1,14 @@
 package com.namelessju.scathapro.eventlisteners;
 
-import com.namelessju.scathapro.AlertMode;
 import com.namelessju.scathapro.Config;
-import com.namelessju.scathapro.OverlayManager;
 import com.namelessju.scathapro.PersistentData;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.achievements.Achievement;
+import com.namelessju.scathapro.alertmodes.Alert;
 import com.namelessju.scathapro.events.AchievementUnlockedEvent;
 import com.namelessju.scathapro.events.BedrockWallEvent;
 import com.namelessju.scathapro.events.CrystalHollowsTickEvent;
+import com.namelessju.scathapro.events.GoblinSpawnEvent;
 import com.namelessju.scathapro.events.MeetDeveloperEvent;
 import com.namelessju.scathapro.events.ScathaPetDropEvent;
 import com.namelessju.scathapro.events.UpdateEvent;
@@ -18,7 +18,7 @@ import com.namelessju.scathapro.events.WormKillEvent;
 import com.namelessju.scathapro.events.WormPreSpawnEvent;
 import com.namelessju.scathapro.events.WormSpawnEvent;
 import com.namelessju.scathapro.objects.Worm;
-import com.namelessju.scathapro.util.ChatUtil;
+import com.namelessju.scathapro.util.MessageUtil;
 import com.namelessju.scathapro.util.NBTUtil;
 import com.namelessju.scathapro.util.SoundUtil;
 import com.namelessju.scathapro.util.Util;
@@ -52,8 +52,9 @@ public class ScathaProListeners {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onUpdate(UpdateEvent e) {
-    	if (Config.instance.getBoolean(Config.Key.automaticBackups) && PersistentData.instance.getData().entrySet().size() > 0)
-    		PersistentData.instance.backup("Update-" + (e.previousVersion != null ? "v" + e.previousVersion : "unknown") + "_to_v" + e.newVersion, true);
+    	PersistentData persistentData = scathaPro.persistentData;
+    	if (scathaPro.config.getBoolean(Config.Key.automaticBackups) && persistentData.getData().entrySet().size() > 0)
+    		persistentData.backup("Update-" + (e.previousVersion != null ? "v" + e.previousVersion : "unknown") + "_to_v" + e.newVersion, true);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -86,15 +87,10 @@ public class ScathaProListeners {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onWormPreSpawn(WormPreSpawnEvent e) {
-        if (Config.instance.getBoolean(Config.Key.wormPreAlert)) {
+        if (scathaPro.config.getBoolean(Config.Key.wormPreAlert)) {
             long now = Util.getCurrentTime();
             if (now - lastPreAlertTime > 2500) {
-                mc.ingameGUI.displayTitle(null, null, 0, 20, 5);
-                mc.ingameGUI.displayTitle(null, EnumChatFormatting.YELLOW + "Worm about to spawn...", 0, 0, 0);
-                mc.ingameGUI.displayTitle("", null, 0, 0, 0);
-                
-                if (!AlertMode.playModeSound("prespawn")) SoundUtil.playSound("random.orb", 1f, 0.5f);
-                
+                Alert.wormPrespawn.play();
                 lastPreAlertTime = now;
             }
         }
@@ -102,6 +98,7 @@ public class ScathaProListeners {
     
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onWormSpawn(WormSpawnEvent e) {
+    	// Scatha spawn
         if (e.worm.isScatha) {
             if (scathaPro.wormStreak < 0) scathaPro.wormStreak = 0;
             scathaPro.wormStreak ++;
@@ -113,30 +110,23 @@ public class ScathaProListeners {
             else if (e.worm.armorStand.posY < 32.5)
                 Achievement.scatha_spawn_chbottom.unlock();
             
-            if (Config.instance.getBoolean(Config.Key.scathaAlert)) {
-                mc.ingameGUI.displayTitle(null, null, 0, 40, 10);
-                mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + "Pray to RNGesus!", 0, 0, 0);
-                mc.ingameGUI.displayTitle(EnumChatFormatting.RED + "Scatha", null, 0, 0, 0);
-                
-                if (!AlertMode.playModeSound("scatha")) SoundUtil.playSound("random.levelup", 1f, 0.8f);
+            if (scathaPro.config.getBoolean(Config.Key.scathaAlert)) {
+                Alert.scathaSpawn.play();
             }
         }
+        // Worm spawn
         else {
             if (scathaPro.wormStreak > 0) scathaPro.wormStreak = 0;
             scathaPro.wormStreak --;
             
-            if (Config.instance.getBoolean(Config.Key.wormAlert)) {
-                mc.ingameGUI.displayTitle(null, null, 5, 20, 5);
-                mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + "Just a regular worm...", 0, 0, 0);
-                mc.ingameGUI.displayTitle(EnumChatFormatting.YELLOW + "Worm", null, 0, 0, 0);
-
-                if (!AlertMode.playModeSound("worm")) SoundUtil.playSound("random.levelup", 1f, 0.5f);
+            if (scathaPro.config.getBoolean(Config.Key.wormAlert)) {
+                Alert.wormSpawn.play();
             }
         }
         
         long now = Util.getCurrentTime();
         
-        if (Config.instance.getBoolean(Config.Key.wormSpawnTimer) && scathaPro.lastWormSpawnTime >= 0L) {
+        if (scathaPro.config.getBoolean(Config.Key.wormSpawnTimer) && scathaPro.lastWormSpawnTime >= 0L) {
         	int secondsSinceLastSpawn = (int) Math.floor((now - scathaPro.lastWormSpawnTime) / 1000D);
         	
         	String timeString;
@@ -148,14 +138,14 @@ public class ScathaProListeners {
         		timeString = Util.numberToString(secondsSinceLastSpawn / 60D, 1) + " minutes";
         	}
         	
-        	ChatUtil.sendModChatMessage(EnumChatFormatting.GRAY + "Worm spawned " + timeString + " after previous worm");
+        	MessageUtil.sendModChatMessage(EnumChatFormatting.GRAY + "Worm spawned " + timeString + " after previous worm");
         }
         
         scathaPro.lastWormSpawnTime = now;
 
         scathaPro.updateSpawnAchievements();
         
-        OverlayManager.instance.updateWormStreak();
+        scathaPro.overlayManager.updateWormStreak();
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -177,8 +167,8 @@ public class ScathaProListeners {
             
             lastKillIsScatha = true;
             
-            OverlayManager.instance.updateScathaKills();
-            OverlayManager.instance.updateScathaKillsAtLastDrop();
+            scathaPro.overlayManager.updateScathaKills();
+            scathaPro.overlayManager.updateScathaKillsSinceLastDrop();
         }
         else {
             scathaPro.regularWormKills ++;
@@ -188,12 +178,10 @@ public class ScathaProListeners {
             
             lastKillIsScatha = false;
 
-            OverlayManager.instance.updateWormKills();
+            scathaPro.overlayManager.updateWormKills();
         }
         
-        PersistentData.instance.saveWormKills();
-        
-        OverlayManager.instance.updateTotalKills();
+        scathaPro.persistentData.saveWormKills();
         
         scathaPro.updateKillAchievements();
         
@@ -229,52 +217,71 @@ public class ScathaProListeners {
                 rarityTitle = EnumChatFormatting.GRAY + "unknown rarity";
         }
         
-        if (Config.instance.getBoolean(Config.Key.petAlert)) {
-            
-            mc.ingameGUI.displayTitle(null, null, 0, 130, 20);
-            mc.ingameGUI.displayTitle(null, rarityTitle, 0, 0, 0);
-            mc.ingameGUI.displayTitle(EnumChatFormatting.YELLOW + "Scatha Pet!", null, 0, 0, 0);
-            
+        if (scathaPro.config.getBoolean(Config.Key.petAlert)) {
             SoundUtil.playSound("random.chestopen", 1.5f, 0.95f);
-            
-            if (!AlertMode.playModeSound("pet_drop")) SoundUtil.playSound("mob.wither.death", 0.75f, 0.8f);
+            Alert.scathaPetDrop.play(rarityTitle);
         }
+        
+        if (scathaPro.config.getBoolean(Config.Key.dryStreakMessage) && scathaPro.overallScathaKills >= 0 && scathaPro.scathaKillsAtLastDrop >= 0) {
+            int dryStreak = (scathaPro.overallScathaKills - 1) - scathaPro.scathaKillsAtLastDrop;
+            if (dryStreak > 0) {
+            	MessageUtil.sendModChatMessage(EnumChatFormatting.YELLOW + "Scatha pet dropped after a " + EnumChatFormatting.RED + dryStreak + " Scatha kill" + (dryStreak != 1 ? "s" : "") + EnumChatFormatting.YELLOW + " dry streak");
+            }
+            else if (dryStreak == 0) {
+            	MessageUtil.sendModChatMessage(EnumChatFormatting.RED + "BACK TO BACK" + EnumChatFormatting.YELLOW + " Scatha pet drop!");
+            }
+        }
+        
         
         scathaPro.updatePetDropAchievements();
         
-        switch (Config.instance.getInt(Config.Key.mode)) {
-            case 0:
-                Achievement.scatha_pet_drop_mode_normal.unlock();
-                break;
-            case 1:
-                Achievement.scatha_pet_drop_mode_meme.unlock();
-                break;
-            case 2:
-                Achievement.scatha_pet_drop_mode_anime.unlock();
-                break;
-        }
+        if (scathaPro.alertModeManager.getCurrentMode().id.equals("normal"))
+            Achievement.scatha_pet_drop_mode_normal.unlock();
+        else if (scathaPro.alertModeManager.getCurrentMode().id.equals("meme"))
+            Achievement.scatha_pet_drop_mode_meme.unlock();
+        else if (scathaPro.alertModeManager.getCurrentMode().id.equals("anime"))
+            Achievement.scatha_pet_drop_mode_anime.unlock();
         
-        if ((scathaPro.scathaKillsAtLastDrop >= 0 && scathaPro.overallScathaKills >= 0 && scathaPro.overallScathaKills == scathaPro.scathaKillsAtLastDrop + 1) || droppedPetAtLastScatha) Achievement.scatha_pet_drop_b2b.unlock();
+        if ((scathaPro.scathaKillsAtLastDrop >= 0 && scathaPro.overallScathaKills >= 0 && scathaPro.overallScathaKills == scathaPro.scathaKillsAtLastDrop + 1) || droppedPetAtLastScatha) {
+        	Achievement.scatha_pet_drop_b2b.unlock();
+        }
         if (scathaPro.overallScathaKills >= 0) {
             scathaPro.scathaKillsAtLastDrop = scathaPro.overallScathaKills;
-            OverlayManager.instance.updateScathaKillsAtLastDrop();
+            scathaPro.overlayManager.updateScathaKillsSinceLastDrop();
         }
         droppedPetAtLastScatha = true;
         lastPetDropTime = Util.getCurrentTime(); 
         
-        PersistentData.instance.savePetDrops();
+        scathaPro.persistentData.savePetDrops();
         
-        OverlayManager.instance.updatePetDrops();
+        scathaPro.overlayManager.updatePetDrops();
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onBedrockWall(BedrockWallEvent e) {
-        if (Config.instance.getBoolean(Config.Key.wallAlert)) {
-            mc.ingameGUI.displayTitle(null, null, 3, 20, 5);
-            mc.ingameGUI.displayTitle(null, EnumChatFormatting.GRAY + "Close to bedrock wall", 0, 0, 0);
-            mc.ingameGUI.displayTitle("", null, 0, 0, 0);
-            
-            if (!AlertMode.playModeSound("bedrock_wall")) SoundUtil.playSound("note.pling", 1f, 0.5f);
+        if (scathaPro.config.getBoolean(Config.Key.wallAlert)) {
+            Alert.bedrockWall.play();
+        }
+    }
+    
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onGoblinSpawn(GoblinSpawnEvent e) {
+        if (scathaPro.config.getBoolean(Config.Key.goblinAlert)) {
+        	
+        	String goblinText;
+        	
+        	switch (e.goblin.type) {
+				case GOLD:
+		        	goblinText = EnumChatFormatting.YELLOW + "Golden Goblin";
+					break;
+				case DIAMOND:
+		        	goblinText = EnumChatFormatting.AQUA + "Diamond Goblin";
+					break;
+				default:
+					goblinText = EnumChatFormatting.GRAY + "Unknown Goblin";
+        	}
+        	
+            Alert.goblinSpawn.play(goblinText);
         }
     }
     
@@ -297,7 +304,7 @@ public class ScathaProListeners {
         
         chatMessage.appendSibling(achievementComponent);
         
-        ChatUtil.sendModChatMessage(chatMessage);
+        MessageUtil.sendModChatMessage(chatMessage);
         
         long now = Util.getCurrentTime();
         

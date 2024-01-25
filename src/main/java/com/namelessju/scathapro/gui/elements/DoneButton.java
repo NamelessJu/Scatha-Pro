@@ -7,7 +7,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
-public class DoneButton extends GuiButton implements ClickActionButton {
+public class DoneButton extends GuiButton implements IClickActionButton {
 	
 	public ScathaProGui gui;
 	

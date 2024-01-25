@@ -5,12 +5,15 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.UUID;
 
 import com.mojang.authlib.GameProfile;
 import com.namelessju.scathapro.Config;
+import com.namelessju.scathapro.ScathaPro;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.NetHandlerPlayClient;
@@ -23,7 +26,7 @@ import net.minecraft.util.IChatComponent;
 public abstract class Util {
     
     public enum Color {
-        DARK_RED(0xAA0000), RED(0xFF5555), GOLD(0xFFAA00), YELLOW(16777045), DARK_GREEN(0x00AA00), GREEN(0x55FF55), AQUA(0x55FFFF), DARK_AQUA(0x00AAAA), DARK_BLUE(0x0000AA), BLUE(0x5555FF), LIGHT_PURPLE(0xFF55FF), DARK_PURPLE(0xAA00AA), WHITE(0xFFFFFF), GRAY(0xAAAAAA), DARK_GRAY(0x555555), BLACK(0x000000);
+        DARK_RED(0xFFAA0000), RED(0xFFFF5555), GOLD(0xFFFFAA00), YELLOW(0xFFFFFF55), DARK_GREEN(0xFF00AA00), GREEN(0xFF55FF55), AQUA(0xFF55FFFF), DARK_AQUA(0xFF00AAAA), DARK_BLUE(0xFF0000AA), BLUE(0xFF5555FF), LIGHT_PURPLE(0xFFFF55FF), DARK_PURPLE(0xFFAA00AA), WHITE(0xFFFFFFFF), GRAY(0xFFAAAAAA), DARK_GRAY(0xFF555555), BLACK(0xFF000000);
         
         private final int value;
         
@@ -56,7 +59,7 @@ public abstract class Util {
     }
     
     public static boolean inCrystalHollows() {
-        if (Config.instance.getBoolean(Config.Key.devMode)) return true;
+        if (ScathaPro.getInstance().config.getBoolean(Config.Key.devMode)) return true;
         
         boolean inCrystalHollows = false;
         
@@ -89,15 +92,35 @@ public abstract class Util {
     }
 
     public static String numberToString(int number) {
-        return numberToString(number, 0);
+        return numberToString(number, 0, false);
     }
     public static String numberToString(double number, int maxDecimalPlaces) {
+        return numberToString(number, maxDecimalPlaces, false);
+    }
+    public static String numberToString(double number, int maxDecimalPlaces, boolean showTrailingDecimalZeros) {
         DecimalFormatSymbols decimalSymbols = new DecimalFormatSymbols();
         decimalSymbols.setDecimalSeparator('.');
         decimalSymbols.setGroupingSeparator(',');
         DecimalFormat decimalFormat = new DecimalFormat("#,###.#", decimalSymbols);
         decimalFormat.setMaximumFractionDigits(maxDecimalPlaces);
+        if (showTrailingDecimalZeros) decimalFormat.setMinimumFractionDigits(maxDecimalPlaces);
         return decimalFormat.format(number);
+    }
+    
+    public static String formatTime(long timestamp) {
+    	return new SimpleDateFormat().format(new Date(timestamp));
+    	/*
+    	Date date = new Date(timestamp);
+	    Locale locale = Locale.getDefault();
+	    String formattedDate = dateFormat >= 0 ? DateFormat.getDateInstance(dateFormat, locale).format(date) : null;
+	    String formattedTime = timeFormat >= 0 ? DateFormat.getTimeInstance(timeFormat, locale).format(date) : null;
+	    
+	    if (formattedDate != null && formattedTime != null) return formattedDate + " " + formattedTime;
+	    else if (formattedDate == null && formattedTime != null) return formattedTime;
+	    else if (formattedDate != null && formattedTime == null) return formattedDate;
+	    
+        return null;
+        */
     }
     
     public static String getUnicodeString(String hexValue) {
@@ -124,10 +147,14 @@ public abstract class Util {
         clipboard.setContents(selection, selection);
     }
     
-    public static float calculatePetChance(float initialChance, int magicFind, int petLuck, int looting) {
+    public static float calculatePetChance(float initialChance, float magicFind, float petLuck, int looting) {
         
-        float lootingMultiplier = 1f;
+        float lootingMultiplier;
+        
         switch (looting) {
+        	default:
+        		lootingMultiplier = 1f;
+        		break;
             case 1:
                 lootingMultiplier = 1.15f;
                 break;
@@ -145,6 +172,6 @@ public abstract class Util {
                 break;
         }
         
-        return initialChance * (1 + (magicFind + petLuck)/100f) * lootingMultiplier;
+        return initialChance * (1f + (magicFind + petLuck)/100f) * lootingMultiplier;
     }
 }

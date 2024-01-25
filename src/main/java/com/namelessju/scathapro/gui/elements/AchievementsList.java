@@ -1,10 +1,7 @@
 package com.namelessju.scathapro.gui.elements;
 
-import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Hashtable;
-import java.util.Locale;
 
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
@@ -38,6 +35,7 @@ public class AchievementsList extends Gui {
     private Minecraft mc = Minecraft.getMinecraft();
     private FontRenderer fontRenderer = mc.fontRendererObj;
     private ScaledResolution scaledResolution = new ScaledResolution(mc);
+    private AchievementManager achievementManager = ScathaPro.getInstance().achievementManager;
     
     private AchievementCard[] achievementCards;
     private String unlockedAchievementsString;
@@ -66,39 +64,40 @@ public class AchievementsList extends Gui {
             int cardX = xPosition;
             int cardY = Math.round(yPosition + listIndex * (cardHeight + cardSpacing) - scroll);
             
-            if (cardY + AchievementCard.cardHeight >= yPosition && cardY < xPosition + height) {
+            if (cardY + cardHeight < yPosition || cardY >= yPosition + height) return;
+            
+            boolean unlocked = achievementManager.isAchievementUnlocked(achievement);
+            boolean detailsHidden = achievement.type.visibility == Achievement.Type.Visibility.TITLE_ONLY && !unlocked;
+            
+            Gui.drawRect(cardX, cardY, cardX + width, cardY + cardHeight, 0xA0101012);
+            
+            if (unlocked) {
+                fontRenderer.drawString(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + EnumChatFormatting.BOLD + achievement.name + (achievement.type.string != null ? EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + " [" + achievement.type.string + EnumChatFormatting.RESET + EnumChatFormatting.GREEN + "]" : ""), cardX + cardPadding, cardY + cardPadding, Util.Color.WHITE.getValue(), true);
                 
-                boolean unlocked = AchievementManager.instance.isAchievementUnlocked(achievement);
-                
-                Gui.drawRect(cardX, cardY, cardX + width, cardY + cardHeight, 0xA0101012);
-                
-                if (unlocked) {
-                    fontRenderer.drawString(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + EnumChatFormatting.BOLD + achievement.name + (achievement.type.string != null ? EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + " [" + achievement.type.string + EnumChatFormatting.RESET + EnumChatFormatting.GREEN + "]" : ""), cardX + cardPadding, cardY + cardPadding, Util.Color.WHITE.getValue(), true);
-
-                    Date unlockedDate = new Date(AchievementManager.instance.getUnlockedAchievement(achievement).unlockedAtTimestamp);
-                    Locale locale = Locale.getDefault();
-                    String formattedDate = DateFormat.getDateInstance(DateFormat.MEDIUM, locale).format(unlockedDate);
-                    String formattedTime = DateFormat.getTimeInstance(DateFormat.SHORT, locale).format(unlockedDate);
-                    
-                    String unlockedString = EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + formattedDate + " " + formattedTime;
-                    fontRenderer.drawString(unlockedString, cardX + width - cardPadding - fontRenderer.getStringWidth(unlockedString), cardY + cardPadding, Util.Color.WHITE.getValue(), true);
-                }
-                else fontRenderer.drawString(EnumChatFormatting.RESET + achievement.name + (achievement.type.string != null ? " [" + achievement.type.string + EnumChatFormatting.RESET + "]" : ""), cardX + cardPadding, cardY + cardPadding, Util.Color.WHITE.getValue(), true);
-                fontRenderer.drawString(EnumChatFormatting.GRAY + (achievement.type == Achievement.Type.SECRET && !unlocked ? EnumChatFormatting.OBFUSCATED.toString() : "") + achievement.description, cardX + cardPadding, cardY + cardPadding + 12, Util.Color.WHITE.getValue(), true);
-
-                GlStateManager.color(1f, 1f, 1f, 1f);
-                mc.getTextureManager().bindTexture(progressBarResourceLocation);
-                
-                int barWidth = 300;
-                drawModalRectWithCustomSizedTexture(cardX + cardPadding, cardY + cardPadding + 24, 0, 0, barWidth, 3, 512, 16);
-                
-                int progress = Math.round(barWidth * Math.min(achievement.getProgress() / achievement.goal, 1));
-                if (progress >= barWidth) drawModalRectWithCustomSizedTexture(cardX + cardPadding, cardY + cardPadding + 24, 0, 8, barWidth, 3, 512, 16);
-                else if (progress > 0) drawModalRectWithCustomSizedTexture(cardX + cardPadding, cardY + cardPadding + 24, 0, 4, progress, 3, 512, 16);
-
-                String progressString = (AchievementManager.instance.isAchievementUnlocked(achievement) ? EnumChatFormatting.GREEN : EnumChatFormatting.YELLOW).toString() + (achievement.type == Achievement.Type.SECRET && !unlocked ? "?/?" : Util.numberToString(Math.min(achievement.getProgress(), achievement.goal), 2) + "/" + Util.numberToString(achievement.goal, 2));
-                fontRenderer.drawString(progressString, cardX + cardPadding + barWidth - fontRenderer.getStringWidth(progressString), cardY + cardPadding + 12, Util.Color.WHITE.getValue(), true);
+                String unlockedString = EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + Util.formatTime(achievementManager.getUnlockedAchievement(achievement).unlockedAtTimestamp);
+                fontRenderer.drawString(unlockedString, cardX + width - cardPadding - fontRenderer.getStringWidth(unlockedString), cardY + cardPadding, Util.Color.WHITE.getValue(), true);
             }
+            else fontRenderer.drawString(EnumChatFormatting.RESET + achievement.name + (achievement.type.string != null ? " [" + achievement.type.string + EnumChatFormatting.RESET + "]" : ""), cardX + cardPadding, cardY + cardPadding, Util.Color.WHITE.getValue(), true);
+            fontRenderer.drawString(EnumChatFormatting.GRAY + (detailsHidden ? EnumChatFormatting.OBFUSCATED.toString() : "") + achievement.description, cardX + cardPadding, cardY + cardPadding + 12, Util.Color.WHITE.getValue(), true);
+
+            GlStateManager.color(1f, 1f, 1f, 1f);
+            mc.getTextureManager().bindTexture(progressBarResourceLocation);
+            
+            int barWidth = 300;
+            drawModalRectWithCustomSizedTexture(cardX + cardPadding, cardY + cardPadding + 24, 0, 0, barWidth, 3, 512, 16);
+            
+            int progress = Math.round(barWidth * Math.min(achievement.getProgress() / achievement.goal, 1));
+            if (progress >= barWidth) drawModalRectWithCustomSizedTexture(cardX + cardPadding, cardY + cardPadding + 24, 0, 8, barWidth, 3, 512, 16);
+            else if (progress > 0) drawModalRectWithCustomSizedTexture(cardX + cardPadding, cardY + cardPadding + 24, 0, 4, progress, 3, 512, 16);
+
+            String progressString;
+            if (detailsHidden) progressString = EnumChatFormatting.YELLOW.toString() + EnumChatFormatting.OBFUSCATED + "?" + EnumChatFormatting.RESET + EnumChatFormatting.YELLOW + "/" + EnumChatFormatting.OBFUSCATED + "?";
+            else {
+            	progressString = Util.numberToString(Math.min(achievement.getProgress(), achievement.goal), 2) + "/" + Util.numberToString(achievement.goal, 2);
+                if (unlocked) progressString = EnumChatFormatting.GREEN + progressString;
+                else progressString = EnumChatFormatting.YELLOW + progressString;
+            }
+            fontRenderer.drawString(progressString, cardX + cardPadding + barWidth - fontRenderer.getStringWidth(progressString), cardY + cardPadding + 12, Util.Color.WHITE.getValue(), true);
         }
     }
     
@@ -123,10 +122,10 @@ public class AchievementsList extends Gui {
         for (int i = 0; i < achievementList.length; i ++) {
             Achievement achievement = achievementList[i];
             
-            boolean unlocked = AchievementManager.instance.isAchievementUnlocked(achievement);
+            boolean unlocked = achievementManager.isAchievementUnlocked(achievement);
             
-            if (achievement.type != Achievement.Type.LEGACY && achievement.type != Achievement.Type.HIDDEN || unlocked) visibleAchievements.add(achievement);
-
+            if (achievement.type.visibility != Achievement.Type.Visibility.HIDDEN || unlocked) visibleAchievements.add(achievement);
+            
             Integer currentTypeCount = achievementCount.get(achievement.type);
             achievementCount.put(achievement.type, getNullableInteger(currentTypeCount) + 1);
             

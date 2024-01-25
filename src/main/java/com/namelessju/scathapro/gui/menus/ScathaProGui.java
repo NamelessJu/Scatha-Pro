@@ -1,44 +1,49 @@
 package com.namelessju.scathapro.gui.menus;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
-import com.namelessju.scathapro.gui.elements.ClickActionButton;
+import com.google.common.collect.Lists;
+import com.namelessju.scathapro.gui.elements.IClickActionButton;
+import com.namelessju.scathapro.gui.elements.ScathaProGuiList;
+import com.namelessju.scathapro.gui.elements.ScathaProTextField;
 import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiLabel;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.GuiTextField;
+import net.minecraftforge.client.event.GuiScreenEvent;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.config.GuiSlider;
 
 public abstract class ScathaProGui extends GuiScreen {
-    
-    public String getTitle() {
-        return "Unnamed GUI";
-    }
-    
-    public boolean hasBackground() {
-        return true;
-    }
     
     protected static void setSliderDefaultString(GuiSlider slider) {
         slider.displayString = slider.dispString + "default";
     }
     
     
-    protected List<GuiTextField> textFieldList = new ArrayList<GuiTextField>();
-    protected List<GuiLabel> labelList = new ArrayList<GuiLabel>();
-
+    public abstract String getTitle();
+    
+    public boolean hasBackground() {
+        return true;
+    }
+    
+    protected void drawCustomBackground() {}
+    
+    
+    protected final List<ScathaProTextField> textFieldList = Lists.<ScathaProTextField>newArrayList();
+    protected final List<GuiLabel> labelList = Lists.<GuiLabel>newArrayList();
+    protected ScathaProGuiList scrollList;
+    
     private GuiScreen parentGui;
     
     public ScathaProGui(GuiScreen parentGui) {
         this.parentGui = parentGui;
     }
     
-    protected void textFieldTyped(GuiTextField textField) {}
+    protected void textFieldTyped(ScathaProTextField textField) {}
     
     protected void openGui(GuiScreen gui) {
         Minecraft.getMinecraft().displayGuiScreen(gui);
@@ -70,14 +75,16 @@ public abstract class ScathaProGui extends GuiScreen {
             drawDefaultBackground();
         else if (mc.theWorld == null) {
             drawBackground(0);
-            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.GuiScreenEvent.BackgroundDrawnEvent(this));
+            MinecraftForge.EVENT_BUS.post(new GuiScreenEvent.BackgroundDrawnEvent(this));
         }
         
         drawCustomBackground();
         
+        if (scrollList != null) scrollList.drawScreen(mouseX, mouseY, partialTicks);
+        
         super.drawScreen(mouseX, mouseY, partialTicks);
         
-        for (GuiTextField textField : textFieldList) {
+        for (ScathaProTextField textField : textFieldList) {
             textField.drawTextBox();
         }
         
@@ -86,38 +93,60 @@ public abstract class ScathaProGui extends GuiScreen {
         }
     }
     
-    protected void drawCustomBackground() {}
-
     @Override
-    protected void mouseClicked(final int mouseX, final int mouseY, final int mouseEvent) throws IOException {
-        for (GuiTextField textField : textFieldList) {
-            textField.mouseClicked(mouseX, mouseY, mouseEvent);
+    public void handleMouseInput() throws IOException
+    {
+        super.handleMouseInput();
+        if (scrollList != null) scrollList.handleMouseInput();
+    }
+    
+    @Override
+    protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+        if (mouseButton == 0 && scrollList != null) {
+        	scrollList.mouseClicked(mouseX, mouseY, mouseButton);
+        }
+        
+        for (ScathaProTextField textField : textFieldList) {
+            textField.mouseClicked(mouseX, mouseY, mouseButton);
         }
 
-        super.mouseClicked(mouseX, mouseY, mouseEvent);
+        super.mouseClicked(mouseX, mouseY, mouseButton);
+    }
+
+    @Override
+    protected void mouseReleased(int mouseX, int mouseY, int state)
+    {
+        if (state != 0 || scrollList == null || !scrollList.mouseReleased(mouseX, mouseY, state))
+        {
+            super.mouseReleased(mouseX, mouseY, state);
+        }
     }
 
     @Override
     protected void actionPerformed(GuiButton button) throws IOException
     {
-    	if (button instanceof ClickActionButton) {
-    		((ClickActionButton) button).click();
+    	if (button.enabled && button instanceof IClickActionButton) {
+    		((IClickActionButton) button).click();
     	}
     }
     
     @Override
     protected void keyTyped(char character, int code) throws IOException {
-        for (GuiTextField textField : textFieldList) {
+        for (ScathaProTextField textField : textFieldList) {
             textField.textboxKeyTyped(character, code);
             if (textField.isFocused()) textFieldTyped(textField);
         }
-
+        
+        if (scrollList != null) {
+        	scrollList.keyTyped(character, code);
+        }
+        
         super.keyTyped(character, code);
     }
 
     @Override
     public void updateScreen() {
-        for (GuiTextField textField : textFieldList) {
+        for (ScathaProTextField textField : textFieldList) {
             textField.updateCursorCounter();
         }
         

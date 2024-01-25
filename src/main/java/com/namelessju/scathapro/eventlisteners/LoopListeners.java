@@ -12,8 +12,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.namelessju.scathapro.Config;
-import com.namelessju.scathapro.OverlayManager;
-import com.namelessju.scathapro.PersistentData;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.UpdateChecker;
 import com.namelessju.scathapro.events.BedrockWallEvent;
@@ -27,7 +25,7 @@ import com.namelessju.scathapro.gui.menus.FakeBanGui;
 import com.namelessju.scathapro.gui.menus.OverlaySettingsGui;
 import com.namelessju.scathapro.objects.PetDrop;
 import com.namelessju.scathapro.objects.Worm;
-import com.namelessju.scathapro.util.ChatUtil;
+import com.namelessju.scathapro.util.MessageUtil;
 import com.namelessju.scathapro.util.NBTUtil;
 import com.namelessju.scathapro.util.Util;
 
@@ -44,6 +42,8 @@ import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.entity.projectile.EntityFishHook;
+import net.minecraft.event.ClickEvent;
+import net.minecraft.event.HoverEvent;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
@@ -53,6 +53,9 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatStyle;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StringUtils;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -69,10 +72,12 @@ public class LoopListeners {
     ScathaPro scathaPro = ScathaPro.getInstance();
     
     private boolean firstIngameFrame = true;
+    private boolean firstCrystalHollowsFrame = true;
     
     private long lastDeveloperCheckTime = -1;
     private boolean developerFoundBefore = false;
     private long lastScathaKillTime = -1;
+    private long lastBedrockWallDetectionTime = -1;
 
     private List<PetDrop> receivedPets = new ArrayList<PetDrop>();
     private HashMap<Integer, String> arrowOwners = new HashMap<Integer, String>();
@@ -87,10 +92,12 @@ public class LoopListeners {
             ScoreObjective scoreobjective = this.mc.theWorld.getScoreboard().getObjectiveInDisplaySlot(0);
             NetHandlerPlayClient handler = mc.thePlayer.sendQueue;
             boolean playerListShown = mc.gameSettings.keyBindPlayerList.isKeyDown() && (!mc.isIntegratedServerRunning() || handler.getPlayerInfoMap().size() > 1 || scoreobjective != null);
-            if (Config.instance.getBoolean(Config.Key.overlay) && Util.inCrystalHollows() && !mc.gameSettings.showDebugInfo && !playerListShown && !(mc.currentScreen instanceof OverlaySettingsGui))
-                OverlayManager.instance.drawOverlay();
             
-            if (Config.instance.getBoolean(Config.Key.showRotationAngles)) {
+            if (Util.inCrystalHollows() && !mc.gameSettings.showDebugInfo && !playerListShown && !(mc.currentScreen instanceof OverlaySettingsGui)) {
+                ScathaPro.getInstance().overlayManager.drawOverlay();
+            }
+            
+            if (scathaPro.config.getBoolean(Config.Key.showRotationAngles)) {
                 EntityPlayer player = mc.thePlayer;
                 
                 if (player != null) {
@@ -140,14 +147,14 @@ public class LoopListeners {
                 
                 
                 if (firstIngameFrame) {
-                    if (Config.instance.getBoolean(Config.Key.automaticUpdateChecks))
+                    if (scathaPro.config.getBoolean(Config.Key.automaticUpdateChecks))
                     	UpdateChecker.checkForUpdate(false);
                     
                     firstIngameFrame = false;
                 }
                 
                 
-                if (Config.instance.getBoolean(Config.Key.automaticStatsParsing)) {
+                if (scathaPro.config.getBoolean(Config.Key.automaticStatsParsing)) {
                 	checkOpenedChest();
                 }
                 
@@ -155,13 +162,33 @@ public class LoopListeners {
                 boolean inCrystalHollows = Util.inCrystalHollows();
                 if (inCrystalHollows) {
                     
+                	if (firstCrystalHollowsFrame) {
+                		
+                        if (scathaPro.config.getBoolean(Config.Key.muteOtherSounds)) {
+                        	ChatComponentText chatComponent = new ChatComponentText(EnumChatFormatting.GRAY + "Note: You've muted sounds in the Crystal Hollows! Only Scatha-Pro sounds will play - you can unmute other sounds again in ");
+                        	
+                        	ChatComponentText commandComponent = new ChatComponentText(EnumChatFormatting.GRAY.toString() + EnumChatFormatting.UNDERLINE + "/scathapro settings");
+                        	commandComponent.setChatStyle(
+                        			new ChatStyle()
+                        			.setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/scathapro settings"))
+                        			.setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("Open Scatha-Pro settings")))
+                			);
+                        	chatComponent.appendSibling(commandComponent);
+                        	
+                        	chatComponent.appendSibling(new ChatComponentText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + "!"));
+                        	MessageUtil.sendModChatMessage(chatComponent);
+                        }
+                        
+                        firstCrystalHollowsFrame = false;
+                	}
                     
                     MinecraftForge.EVENT_BUS.post(new CrystalHollowsTickEvent());
                     
                     
                     // Worm detection
                     
-                    List<EntityArmorStand> nearbyArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(player.posX, player.posY, player.posZ, player.posX, player.posY, player.posZ).expand(20f, 10f, 20f));
+                    AxisAlignedBB wormDetectionAABB = new AxisAlignedBB(player.posX, player.posY, player.posZ, player.posX, player.posY, player.posZ).expand(20f, 10f, 20f);
+                    List<EntityArmorStand> nearbyArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, wormDetectionAABB);
                     
                     for (int i = 0; i < nearbyArmorStands.size(); i ++) {
                         
@@ -249,11 +276,24 @@ public class LoopListeners {
                         int entityID = worm.armorStand.getEntityId();
                         
                         if (world.getEntityByID(entityID) == null) {
+                        	// Kill
                             if (worm.getLastAttackTime() >= 0 && now - worm.getLastAttackTime() < ScathaPro.pingTreshold || worm.isFireAspectActive()) {
                                 if (worm.isScatha) lastScathaKillTime = now;
+                                scathaPro.registeredWorms.remove((Integer) entityID); // TEST_WORM_UNREGISTER
                                 MinecraftForge.EVENT_BUS.post(new WormKillEvent(worm));
                             }
-                            else MinecraftForge.EVENT_BUS.post(new WormDespawnEvent(worm));
+                            // Despawn (also triggers when worm leaves render distance)
+                            else {
+                            	// if the worm is close to the player, it is safe to assume the worm
+                            	// didn't despawn by leaving the render distance -> unregister
+                            	// if a worm leaves the render distance, it might come back so it
+                            	// shouldn't be unregistered
+                            	if (worm.armorStand.getEntityBoundingBox().intersectsWith(wormDetectionAABB)) {
+                            		scathaPro.registeredWorms.remove((Integer) entityID);
+                            	}
+                            	
+                            	MinecraftForge.EVENT_BUS.post(new WormDespawnEvent(worm));
+                            }
                             
                             scathaPro.activeWorms.remove(worm);
                         }
@@ -261,7 +301,7 @@ public class LoopListeners {
                     
                     
                     // Bedrock wall detection
-    
+                    
                     int[] checkDirection = {0, 0};
                     
                     switch (Util.getFacing(player)) {
@@ -297,7 +337,10 @@ public class LoopListeners {
                     else if (!scathaPro.inBedrockWallRange) {
                         scathaPro.inBedrockWallRange = true;
                         
-                        if (viewBlocked) MinecraftForge.EVENT_BUS.post(new BedrockWallEvent());
+                        if (viewBlocked && (lastBedrockWallDetectionTime < 0 || now - lastBedrockWallDetectionTime > 1500)) {
+                        	lastBedrockWallDetectionTime = now;
+                            MinecraftForge.EVENT_BUS.post(new BedrockWallEvent());
+                        }
                     }
                     
                     
@@ -409,24 +452,16 @@ public class LoopListeners {
                         }
                     }
                     
-                    
-                    // Update UI overlay
-                    
-                    if (Config.instance.getBoolean(Config.Key.overlay) && !Minecraft.getMinecraft().gameSettings.showDebugInfo) {
-                        OverlayManager.instance.updateCoords();
-                        OverlayManager.instance.updateDay();
-                        
-                        OverlayManager.instance.updatePosition();
-
-                        OverlayManager.instance.updateCooldownProgressBar();
-                    }
-                    
+                }
+                // not in CH
+                else {
+                	firstCrystalHollowsFrame = true;
                 }
                 
                 
                 // Dev check
                 
-                if (now - lastDeveloperCheckTime >= 1000) {
+                if (now - lastDeveloperCheckTime >= 3000) {
                     NetHandlerPlayClient netHandler = Minecraft.getMinecraft().getNetHandler();
                     if (netHandler != null) {
                         Collection<NetworkPlayerInfo> playerInfos = netHandler.getPlayerInfoMap();
@@ -491,7 +526,7 @@ public class LoopListeners {
         	if (regularWormKills >= 0) {
         		if (scathaPro.overallRegularWormKills != regularWormKills) {
             		scathaPro.overallRegularWormKills = regularWormKills;
-            		OverlayManager.instance.updateWormKills();
+            		ScathaPro.getInstance().overlayManager.updateWormKills();
             		killsUpdated = true;
         		}
         		else {
@@ -501,7 +536,7 @@ public class LoopListeners {
         	if (scathaKills >= 0) {
         		if (scathaPro.overallScathaKills != scathaKills) {
             		scathaPro.overallScathaKills = scathaKills;
-            		OverlayManager.instance.updateScathaKills();
+            		ScathaPro.getInstance().overlayManager.updateScathaKills();
             		killsUpdated = true;
         		}
         		else {
@@ -510,8 +545,8 @@ public class LoopListeners {
         	}
         	
         	if (killsUpdated) {
-        		PersistentData.instance.saveWormKills();
-        		ChatUtil.sendModChatMessage("Updated overall worm kills from bestiary");
+        		ScathaPro.getInstance().persistentData.saveWormKills();
+        		MessageUtil.sendModChatMessage("Updated overall worm kills from bestiary");
         		lastChestCheckedForKillInfo = chestGui;
         	}
         }

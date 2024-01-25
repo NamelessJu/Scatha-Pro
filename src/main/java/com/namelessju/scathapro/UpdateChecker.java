@@ -12,7 +12,7 @@ import org.apache.logging.log4j.Level;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.namelessju.scathapro.util.ChatUtil;
+import com.namelessju.scathapro.util.MessageUtil;
 import com.namelessju.scathapro.util.JsonUtil;
 
 import net.minecraft.event.ClickEvent;
@@ -76,12 +76,12 @@ public class UpdateChecker {
                                     
                                     updateNotice.appendText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GOLD + EnumChatFormatting.ITALIC + ".");
                                     
-                                    ChatUtil.sendModChatMessage(updateNotice);
+                                    MessageUtil.sendModChatMessage(updateNotice);
                                 }
                                 else {
                                 	if (showAllResults) {
-                                    	if (comparison < 0) ChatUtil.sendModChatMessage("Your version is newer than the latest public release");
-                                    	else ChatUtil.sendModChatMessage(EnumChatFormatting.GREEN + "You're using the newest version!");
+                                    	if (comparison < 0) MessageUtil.sendModChatMessage("Your version is newer than the latest public release");
+                                    	else MessageUtil.sendModChatMessage(EnumChatFormatting.GREEN + "You're using the newest version!");
                                 	}
                                 }
                             }
@@ -98,7 +98,7 @@ public class UpdateChecker {
                     ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't read API response while checking for update");
                 }
                 
-                ChatUtil.sendModErrorMessage("Error while checking for update!");
+                MessageUtil.sendModErrorMessage("Error while checking for update!");
             }
         }).start();
     }
