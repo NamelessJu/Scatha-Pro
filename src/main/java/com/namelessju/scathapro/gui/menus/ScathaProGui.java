@@ -64,7 +64,6 @@ public abstract class ScathaProGui extends GuiScreen
     
     public void openParentGui()
     {
-        if (parentGui == null) return;
         openGui(parentGui);
     }
     

@@ -15,7 +15,7 @@ public enum Alert
     wormSpawn("worm_spawn", "Worm Spawn Alert", new DefaultAlertSound("random.levelup", 1f, 0.5f), new AlertTitle("Worm", "Just a regular worm...", EnumChatFormatting.YELLOW.toString(), EnumChatFormatting.GRAY.toString(), 5, 20, 5)),
     scathaSpawn("scatha_spawn", "Scatha Spawn Alert", new DefaultAlertSound("random.levelup", 1f, 0.8f), new AlertTitle("Scatha", "Pray to RNGesus!", EnumChatFormatting.RED.toString(), EnumChatFormatting.GRAY.toString(), 0, 40, 10)),
     scathaPetDrop("scatha_pet_drop", "Scatha Pet Drop Alert", new DefaultAlertSound("mob.wither.death", 0.75f, 0.8f), new AlertTitle("SCATHA PET DROP!", AlertTitle.SubtitleType.VARIABLE, EnumChatFormatting.YELLOW.toString(), null, 0, 130, 20)),
-    goblinSpawn("goblin_spawn", "Goblin Spawn Alert", new DefaultAlertSound("random.levelup", 1f, 1.5f), new AlertTitle("Goblin", AlertTitle.SubtitleType.VARIABLE, EnumChatFormatting.GREEN.toString(), null, 0, 30, 10));
+    goblinSpawn("goblin_spawn", "Goblin Spawn Alert", new DefaultAlertSound("random.levelup", 1f, 1.25f), new AlertTitle("GOBLIN", AlertTitle.SubtitleType.VARIABLE, EnumChatFormatting.GREEN.toString(), null, 0, 30, 15));
     
     
     private static class DefaultAlertSound
