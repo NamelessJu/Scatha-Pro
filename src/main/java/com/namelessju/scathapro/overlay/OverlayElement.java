@@ -2,30 +2,34 @@ package com.namelessju.scathapro.overlay;
 
 import net.minecraft.client.renderer.GlStateManager;
 
-public abstract class OverlayElement {
-
+public abstract class OverlayElement
+{
     protected int x, y;
     protected int translationX, translationY;
     protected float scale;
     protected Alignment alignment = null;
     protected boolean visible = true;
     
-    public enum Alignment {
+    public enum Alignment
+    {
         LEFT, CENTER, RIGHT;
     }
     
-    public OverlayElement(int x, int y, float scale) {
+    public OverlayElement(int x, int y, float scale)
+    {
         this.x = x;
         this.y = y;
         this.scale = scale;
     }
     
-    public void draw() {
+    public void draw()
+    {
         draw(null);
     }
     
     @SuppressWarnings("incomplete-switch")
-    public void draw(OverlayContainer container) {
+    public void draw(OverlayContainer container)
+    {
         if (!visible) return;
         
         Alignment renderAlignment = alignment;
@@ -33,13 +37,16 @@ public abstract class OverlayElement {
         int positionTranslationX = x + translationX;
         int positionTranslationY = y + translationY;
         
-        if (container != null) {
+        if (container != null)
+        {
             Alignment containerAlignment = container.getContentAlignment();
             
             if (renderAlignment == null) renderAlignment = containerAlignment;
             
-            if (containerAlignment != null) {
-                switch (containerAlignment) {
+            if (containerAlignment != null)
+            {
+                switch (containerAlignment)
+                {
                     case LEFT:
                         positionTranslationX = container.padding + x + translationX;
                         break;
@@ -57,8 +64,10 @@ public abstract class OverlayElement {
         
         int alignmentTranslation = 0;
         
-        if (renderAlignment != null) {
-            switch (renderAlignment) {
+        if (renderAlignment != null)
+        {
+            switch (renderAlignment)
+            {
                 case CENTER:
                     alignmentTranslation = - (int) Math.ceil(getWidth() / 2f);
                     break;
@@ -77,58 +86,69 @@ public abstract class OverlayElement {
         drawSpecific();
         GlStateManager.popMatrix();
         
-        // Reset color to white, because Minecraft's rendering sucks and might take the last color used to render a string to render some image afterwards...
+        // Reset color to white, otherwise Minecraft's rendering might incorrectly color something as it doesn't always reset the color itself
         GlStateManager.color(1f, 1f, 1f);
     }
     
     protected abstract void drawSpecific();
     
-    public void setAlignment(Alignment alignment) {
+    public void setAlignment(Alignment alignment)
+    {
         this.alignment = alignment;
     }
 
-    public void setPosition(int x, int y) {
+    public void setPosition(int x, int y)
+    {
         this.x = x;
         this.y = y;
     }
     
-    public void setTranslation(int x, int y) {
+    public void setTranslation(int x, int y)
+    {
         this.translationX = x;
         this.translationY = y;
     }
     
-    public void setScale(float scale) {
+    public void setScale(float scale)
+    {
         this.scale = scale;
     }
     
-    public void setVisible(boolean visible) {
+    public void setVisible(boolean visible)
+    {
         this.visible = visible;
     }
 
-    public int getX() {
+    public int getX()
+    {
         return x;
     }
     
-    public int getY() {
+    public int getY()
+    {
         return y;
     }
     
-    public int getWidth() {
+    public int getWidth()
+    {
         return getWidth(true);
     }
     
-    public int getHeight() {
+    public int getHeight()
+    {
         return getHeight(true);
     }
     
     public abstract int getWidth(boolean scaled);
     public abstract int getHeight(boolean scaled);
 
-    public Alignment getAlignment() {
+    public Alignment getAlignment()
+    {
         return alignment;
     }
 
-    public boolean isVisible() {
+    public boolean isVisible()
+    {
         return visible;
     }
 }

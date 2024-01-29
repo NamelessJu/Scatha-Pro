@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import com.google.common.collect.Lists;
+import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.gui.elements.IClickActionButton;
 import com.namelessju.scathapro.gui.elements.ScathaProGuiList;
 import com.namelessju.scathapro.gui.elements.ScathaProTextField;
@@ -17,16 +18,20 @@ import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.config.GuiSlider;
 
-public abstract class ScathaProGui extends GuiScreen {
-    
-    protected static void setSliderDefaultString(GuiSlider slider) {
+public abstract class ScathaProGui extends GuiScreen
+{
+    protected static void setSliderDefaultString(GuiSlider slider)
+    {
         slider.displayString = slider.dispString + "default";
     }
+
     
+    public final ScathaPro scathaPro;
     
     public abstract String getTitle();
     
-    public boolean hasBackground() {
+    public boolean hasBackground()
+    {
         return true;
     }
     
@@ -38,30 +43,42 @@ public abstract class ScathaProGui extends GuiScreen {
     protected ScathaProGuiList scrollList;
     
     private GuiScreen parentGui;
+
+    public ScathaProGui(ScathaPro scathaPro)
+    {
+        this.scathaPro = scathaPro;
+    }
     
-    public ScathaProGui(GuiScreen parentGui) {
+    public ScathaProGui(ScathaPro scathaPro, GuiScreen parentGui)
+    {
+        this(scathaPro);
         this.parentGui = parentGui;
     }
     
     protected void textFieldTyped(ScathaProTextField textField) {}
     
-    protected void openGui(GuiScreen gui) {
+    protected void openGui(GuiScreen gui)
+    {
         Minecraft.getMinecraft().displayGuiScreen(gui);
     }
     
-    public void openParentGui() {
+    public void openParentGui()
+    {
+        if (parentGui == null) return;
         openGui(parentGui);
     }
     
     @Override
-    public void initGui() {
+    public void initGui()
+    {
         super.initGui();
         
         textFieldList.clear();
         labelList.clear();
         
         String title = getTitle();
-        if (title != null && !title.replace(" ", "").isEmpty()) {
+        if (title != null && !title.replace(" ", "").isEmpty())
+        {
             GuiLabel titleLabel = new GuiLabel(fontRendererObj, 1, width / 2 - 155, 15, 310, 10, Util.Color.WHITE.getValue()).setCentered();
             titleLabel.func_175202_a("Scatha-Pro " + title);
             labelList.add(titleLabel);
@@ -72,8 +89,11 @@ public abstract class ScathaProGui extends GuiScreen {
     public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
         if (hasBackground())
-            drawDefaultBackground();
-        else if (mc.theWorld == null) {
+        {
+            drawDefaultBackground();   
+        }
+        else if (mc.theWorld == null)
+        {
             drawBackground(0);
             MinecraftForge.EVENT_BUS.post(new GuiScreenEvent.BackgroundDrawnEvent(this));
         }
@@ -84,11 +104,13 @@ public abstract class ScathaProGui extends GuiScreen {
         
         super.drawScreen(mouseX, mouseY, partialTicks);
         
-        for (ScathaProTextField textField : textFieldList) {
+        for (ScathaProTextField textField : textFieldList)
+        {
             textField.drawTextBox();
         }
         
-        for (GuiLabel label : labelList) {
+        for (GuiLabel label : labelList)
+        {
             label.drawLabel(mc, mouseX, mouseY);
         }
     }
@@ -102,11 +124,13 @@ public abstract class ScathaProGui extends GuiScreen {
     
     @Override
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
-        if (mouseButton == 0 && scrollList != null) {
-        	scrollList.mouseClicked(mouseX, mouseY, mouseButton);
+        if (mouseButton == 0 && scrollList != null)
+        {
+            scrollList.mouseClicked(mouseX, mouseY, mouseButton);
         }
         
-        for (ScathaProTextField textField : textFieldList) {
+        for (ScathaProTextField textField : textFieldList)
+        {
             textField.mouseClicked(mouseX, mouseY, mouseButton);
         }
 
@@ -125,20 +149,24 @@ public abstract class ScathaProGui extends GuiScreen {
     @Override
     protected void actionPerformed(GuiButton button) throws IOException
     {
-    	if (button.enabled && button instanceof IClickActionButton) {
-    		((IClickActionButton) button).click();
-    	}
+        if (button.enabled && button instanceof IClickActionButton)
+        {
+            ((IClickActionButton) button).click();
+        }
     }
     
     @Override
-    protected void keyTyped(char character, int code) throws IOException {
-        for (ScathaProTextField textField : textFieldList) {
+    protected void keyTyped(char character, int code) throws IOException
+    {
+        for (ScathaProTextField textField : textFieldList)
+        {
             textField.textboxKeyTyped(character, code);
             if (textField.isFocused()) textFieldTyped(textField);
         }
         
-        if (scrollList != null) {
-        	scrollList.keyTyped(character, code);
+        if (scrollList != null)
+        {
+            scrollList.keyTyped(character, code);
         }
         
         super.keyTyped(character, code);
@@ -146,7 +174,8 @@ public abstract class ScathaProGui extends GuiScreen {
 
     @Override
     public void updateScreen() {
-        for (ScathaProTextField textField : textFieldList) {
+        for (ScathaProTextField textField : textFieldList)
+        {
             textField.updateCursorCounter();
         }
         
@@ -154,7 +183,8 @@ public abstract class ScathaProGui extends GuiScreen {
     }
     
     @Override
-    public boolean doesGuiPauseGame() {
+    public boolean doesGuiPauseGame()
+    {
         return true;
     }
 }

@@ -5,19 +5,25 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 
-public abstract class NBTUtil {
-
-    public static NBTTagCompound getSkyblockTagCompound(ItemStack item) {
+public class NBTUtil
+{
+    public static NBTTagCompound getSkyblockTagCompound(ItemStack item)
+    {
         return getSkyblockTagCompound(item, null);
     }
-    public static NBTTagCompound getSkyblockTagCompound(ItemStack item, String path) {
-        if (item != null && item.hasTagCompound()) {
+    
+    public static NBTTagCompound getSkyblockTagCompound(ItemStack item, String path)
+    {
+        if (item != null && item.hasTagCompound())
+        {
             NBTTagCompound currentCompound = item.getSubCompound("ExtraAttributes", false);
             if (currentCompound == null) return null;
             
-            if (path != null) {
+            if (path != null)
+            {
                 String[] pathSegments = path.split("/");
-                for (int i = 0; i < pathSegments.length; i ++) {
+                for (int i = 0; i < pathSegments.length; i ++)
+                {
                     currentCompound = currentCompound.hasKey(pathSegments[i]) ? currentCompound.getCompoundTag(pathSegments[i]) : null;
                     if (i == pathSegments.length - 1) break;
                     else if (currentCompound == null) return null;
@@ -30,21 +36,27 @@ public abstract class NBTUtil {
         return null;
     }
     
-    public static String getSkyblockItemID(ItemStack item) {
+    public static String getSkyblockItemID(ItemStack item)
+    {
         NBTTagCompound skyblockData = getSkyblockTagCompound(item);
-        if (skyblockData != null) {
+        if (skyblockData != null)
+        {
             String id = skyblockData.getString("id");
             if (!id.equals("")) return id;
         }
         return null;
     }
     
-    public static boolean isWormSkull(ItemStack stack) {
-        if (stack.getItem() == Items.skull && stack.hasTagCompound()) {
+    public static boolean isWormSkull(ItemStack stack)
+    {
+        if (stack.getItem() == Items.skull && stack.hasTagCompound())
+        {
             NBTTagCompound skullOwner = stack.getTagCompound().getCompoundTag("SkullOwner");
-            if (skullOwner != null && skullOwner.getBoolean("hypixelPopulated")) {
+            if (skullOwner != null && skullOwner.getBoolean("hypixelPopulated"))
+            {
                 NBTTagList textureList = skullOwner.getCompoundTag("Properties").getTagList("textures", 10);
-                if (textureList.tagCount() > 0) {
+                if (textureList.tagCount() > 0)
+                {
                     String textureBase64 = textureList.getCompoundTagAt(0).getString("Value");
                     
                     if (
@@ -60,4 +72,6 @@ public abstract class NBTUtil {
         return false;
     }
 
+
+    private NBTUtil() {}
 }

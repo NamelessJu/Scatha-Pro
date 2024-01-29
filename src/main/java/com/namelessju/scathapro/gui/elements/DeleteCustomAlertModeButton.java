@@ -1,7 +1,7 @@
 package com.namelessju.scathapro.gui.elements;
 
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.alertmodes.customalertmode.CustomAlertModeManager;
+import com.namelessju.scathapro.alerts.customalertmode.CustomAlertModeManager;
 import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.client.Minecraft;
@@ -15,45 +15,45 @@ import net.minecraft.util.EnumChatFormatting;
 
 public class DeleteCustomAlertModeButton extends GuiButton implements IClickActionButton, GuiYesNoCallback {
 
-	private final CustomAlertModeManager customAlertModeManager;
-	
-	private final String customModeId;
-	private final GuiScreen returnGui;
-	
-	public DeleteCustomAlertModeButton(int buttonId, int x, int y, int widthIn, int heightIn, String buttonText, String customModeId, GuiScreen returnGui)
-	{
-		super(buttonId, x, y, widthIn, heightIn, buttonText);
-		
-		this.customModeId = customModeId;
-		this.returnGui = returnGui;
-		
-		this.customAlertModeManager = ScathaPro.getInstance().customAlertModeManager;
-	}
+    private final CustomAlertModeManager customAlertModeManager;
+    
+    private final String customModeId;
+    private final GuiScreen returnGui;
+    
+    public DeleteCustomAlertModeButton(int buttonId, int x, int y, int widthIn, int heightIn, String buttonText, String customModeId, GuiScreen returnGui)
+    {
+        super(buttonId, x, y, widthIn, heightIn, buttonText);
+        
+        this.customModeId = customModeId;
+        this.returnGui = returnGui;
+        
+        this.customAlertModeManager = ScathaPro.getInstance().customAlertModeManager;
+    }
 
-	@Override
-	public void click()
-	{
-		String customModeName = customAlertModeManager.getSubmodeDisplayName(customModeId);
-    	GuiYesNo confirmGui = new GuiYesNo(this, EnumChatFormatting.RESET + "Do you really want to delete \"" + customModeName + EnumChatFormatting.RESET + "\"?", "This cannot be undone!", 0);
-    	Minecraft.getMinecraft().displayGuiScreen(confirmGui);
-	}
-	
-	@Override
-	public void confirmClicked(boolean result, int sourceButtonId)
-	{
-		if (result)
-		{
-			customAlertModeManager.deleteSubmode(customModeId);
-		}
-		
-		Minecraft.getMinecraft().displayGuiScreen(returnGui);
-	}
-	
-	
+    @Override
+    public void click()
+    {
+        String customModeName = customAlertModeManager.getSubmodeDisplayName(customModeId);
+        GuiYesNo confirmGui = new GuiYesNo(this, EnumChatFormatting.RESET + "Do you really want to delete \"" + customModeName + EnumChatFormatting.RESET + "\"?", "This cannot be undone!", 0);
+        Minecraft.getMinecraft().displayGuiScreen(confirmGui);
+    }
+    
+    @Override
+    public void confirmClicked(boolean result, int sourceButtonId)
+    {
+        if (result)
+        {
+            customAlertModeManager.deleteSubmode(customModeId);
+        }
+        
+        Minecraft.getMinecraft().displayGuiScreen(returnGui);
+    }
+    
+    
     /**
      * Draws this button to the screen.
      */
-	@Override
+    @Override
     public void drawButton(Minecraft mc, int mouseX, int mouseY)
     {
         if (this.visible)
@@ -83,7 +83,7 @@ public class DeleteCustomAlertModeButton extends GuiButton implements IClickActi
             else if (this.hovered)
             {
                 // j = 16777120;
-            	j = Util.Color.RED.getValue();
+                j = Util.Color.RED.getValue();
             }
 
             this.drawCenteredString(fontrenderer, this.displayString, this.xPosition + this.width / 2, this.yPosition + (this.height - 8) / 2, j);

@@ -2,34 +2,36 @@ package com.namelessju.scathapro.gui.menus;
 
 import java.io.IOException;
 
-import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.alertmodes.CustomAlertMode;
+import com.namelessju.scathapro.alerts.CustomAlertMode;
 import com.namelessju.scathapro.gui.elements.AlertModeSettingButton;
 import com.namelessju.scathapro.gui.elements.BooleanSettingButton;
 import com.namelessju.scathapro.gui.elements.DoneButton;
 import com.namelessju.scathapro.gui.elements.SubMenuButton;
+import com.namelessju.scathapro.managers.Config;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraftforge.fml.client.config.GuiSlider;
 
-public class SettingsGui extends ScathaProGui implements GuiSlider.ISlider {
-    
-    @Override
-    public String getTitle() {
-        return "Settings";
-    }
-    
+public class SettingsGui extends ScathaProGui implements GuiSlider.ISlider
+{
     private GuiButton alertModeSettingButton;
     private GuiButton customAlertModeEditButton;
     
     private boolean modeChanged = false;
     
-    public SettingsGui(GuiScreen parentGui) {
-        super(parentGui);
+    public SettingsGui(ScathaPro scathaPro, GuiScreen parentGui)
+    {
+        super(scathaPro, parentGui);
     }
 
+    @Override
+    public String getTitle()
+    {
+        return "Settings";
+    }
+    
     @Override
     public void initGui()
     {
@@ -38,7 +40,7 @@ public class SettingsGui extends ScathaProGui implements GuiSlider.ISlider {
         buttonList.add(new SubMenuButton(504704004, width / 2 - 155, height / 6 - 12, 150, 20, "Overlay...", this, OverlaySettingsGui.class));
         buttonList.add(new SubMenuButton(504704005, width / 2 + 5, height / 6 - 12, 150, 20, "Alerts...", this, AlertSettingsGui.class));
         
-        buttonList.add(new GuiSlider(504704014, width / 2 - 155, height / 6 + 24 - 12, 150, 20, "Mod Sounds Volume: ", "%", 0, 100, ScathaPro.getInstance().config.getDouble(Config.Key.soundsVolume) * 100, false, true, this));
+        buttonList.add(new GuiSlider(504704014, width / 2 - 155, height / 6 + 24 - 12, 150, 20, "Mod Sounds Volume: ", "%", 0, 100, scathaPro.config.getDouble(Config.Key.soundsVolume) * 100, false, true, this));
         buttonList.add(new BooleanSettingButton(504704015, width / 2 + 5, height / 6 + 24 - 12, 150, 20, "Mute C. Hollows sounds", Config.Key.muteOtherSounds));
 
         buttonList.add(alertModeSettingButton = new AlertModeSettingButton(504704006, width / 2 - 155, height / 6 + 48 - 6, 150, 20, "Mode"));
@@ -62,40 +64,48 @@ public class SettingsGui extends ScathaProGui implements GuiSlider.ISlider {
     @Override
     protected void actionPerformed(GuiButton button) throws IOException
     {
-    	super.actionPerformed(button);
-    	
-        if (button.enabled) {
-            switch (button.id) {
+        super.actionPerformed(button);
+        
+        if (button.enabled)
+        {
+            switch (button.id)
+            {
                 case 504704006:
-                	modeChanged = true;
+                    modeChanged = true;
                     break;
             }
         }
     }
     
     @Override
-    protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+    protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException
+    {
         super.mouseClicked(mouseX, mouseY, mouseButton);
         
-        if (modeChanged) {
-        	/* if this is immediately done in actionPerformed(),
-        	 * the custom mode edit button might instantly get pressed
-        	 * if the mouse is over it while pressing the mode swapper button
-        	 * to fix this, the mode buttons are updated after all click checks are done
-        	 */
-        	updateModeButtons();
-        	modeChanged = false;
+        if (modeChanged)
+        {
+            /*
+            if this is immediately done in actionPerformed(),
+            the custom mode edit button might instantly get pressed
+            if the mouse is over it while pressing the mode swapper button
+            to fix this, the mode buttons are updated after all click checks are done
+            */
+            updateModeButtons();
+            modeChanged = false;
         }
     }
 
     @Override
-    public void onChangeSliderValue(GuiSlider slider) {
-        if (slider.enabled) {
-            switch (slider.id) {
+    public void onChangeSliderValue(GuiSlider slider)
+    {
+        if (slider.enabled)
+        {
+            switch (slider.id)
+            {
                 case 504704014:
                     double volume = (double) slider.getValueInt() / 100;
                     
-                    Config config = ScathaPro.getInstance().config;
+                    Config config = scathaPro.config;
                     config.set(Config.Key.soundsVolume, volume);
                     config.save();
                     break;
@@ -103,15 +113,18 @@ public class SettingsGui extends ScathaProGui implements GuiSlider.ISlider {
         }
     }
     
-    private void updateModeButtons() {
-    	if (ScathaPro.getInstance().alertModeManager.getCurrentMode() instanceof CustomAlertMode) {
-    		alertModeSettingButton.width = 107;
-    		customAlertModeEditButton.visible = true;
-    	}
-    	else {
-    		alertModeSettingButton.width = 150;
-    		customAlertModeEditButton.visible = false;
-    	}
+    private void updateModeButtons()
+    {
+        if (scathaPro.alertModeManager.getCurrentMode() instanceof CustomAlertMode)
+        {
+            alertModeSettingButton.width = 107;
+            customAlertModeEditButton.visible = true;
+        }
+        else
+        {
+            alertModeSettingButton.width = 150;
+            customAlertModeEditButton.visible = false;
+        }
     }
     
 }

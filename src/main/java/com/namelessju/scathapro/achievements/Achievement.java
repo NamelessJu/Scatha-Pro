@@ -4,8 +4,8 @@ import com.namelessju.scathapro.ScathaPro;
 
 import net.minecraft.util.EnumChatFormatting;
 
-public enum Achievement {
-    
+public enum Achievement
+{
     /**********************
      *                    *
      *   SPOILER ALERT!   *
@@ -30,9 +30,9 @@ public enum Achievement {
     scatha_kills_6("Scatha Pro", "Kill 20,000 Scathas", 20000),
 
     worm_kill_time_1("No time to waste", "Kill a worm less than one second after it spawned", 1, Type.SECRET),
-    worm_kill_time_2("Yeah, I've got time!", "Kill a worm less than a second before it despawns", 29, Type.SECRET),
+    worm_kill_time_2("Yeah, I've got time!", "Kill a worm less than a second before it despawns", 1, Type.SECRET),
     
-    worm_despawn("Bye, have a great time", "Let a worm despawn", 30, Type.SECRET),
+    worm_despawn("Bye, have a great time", "Let a worm despawn", 1, Type.SECRET),
 
     kill_weapons_regular_worm("Variety gamer", "Kill a regular worm using 5 different weapons", 5, Type.SECRET),
     kill_weapons_scatha("A fine collection", "Kill a Scatha using 10 different weapons", 10, Type.SECRET),
@@ -51,14 +51,14 @@ public enum Achievement {
     lobby_kills_2("Scatha grinding session", "Kill 50 worms in a single lobby", 50),
     lobby_kills_3("Lobby emptied", "Kill 100 worms in a single lobby", 100),
     
-    scatha_kill_sneak("Sneak 100", "Kill a Scatha while sneaking the whole time", 1, Type.SECRET),
+    scatha_kill_sneak("Sneak 100", "Spawn and kill a Scatha while sneaking the entire time", 1, Type.SECRET),
 
-    scatha_hit_dirt("Bully Maguire", "Put some dirt in a Scatha's eye", 1, Type.SECRET),
+    scatha_hit_dirt("Bully Maguire's eye treatment", "Put some dirt in a Scatha's eye", 1, Type.SECRET),
     scatha_kill_terminator("I'll be back!", "Kill a Scatha with a Terminator", 1, Type.HIDDEN),
     
     regular_worm_streak_1("Still perfectly normal", "Get 7 regular worm spawns in a row", 7),
     regular_worm_streak_2("Unlucky number", "Get 13 regular worm spawns in a row", 13),
-    regular_worm_streak_3("RNGesus is on vacation", "Get 20 regular worm spawns in a row", 20),
+    regular_worm_streak_3("Scathas are on vacation", "Get 20 regular worm spawns in a row", 20),
     
     scatha_streak_1("This is getting out of hand", "Get 2 Scatha spawns back to back", 2),
     scatha_streak_2("Oh baby a triple!", "Get 3 Scatha spawns back to back", 3),
@@ -85,38 +85,42 @@ public enum Achievement {
     scatha_pet_drop_any_1("Scathavenger", "Drop 10 Scatha pets of any rarity", 10),
     scatha_pet_drop_any_2("Scathaddiction", "Drop 50 Scatha pets of any rarity", 50),
 
-    scatha_pet_drop_mode_normal("Default", "Drop a Scatha pet in normal mode", 1),
+    scatha_pet_drop_mode_normal("The default experience", "Drop a Scatha pet in normal mode", 1),
     scatha_pet_drop_mode_meme("Stonks", "Drop a Scatha pet in meme mode", 1),
     scatha_pet_drop_mode_anime("Scatha-Chan", "Drop a Scatha pet in anime mode", 1),
+    scatha_pet_drop_mode_custom("Scatha tinkerer", "Drop a Scatha pet in custom mode", 1),
 
     scatha_pet_drop_b2b("Sold your soul to RNGesus", "Drop two Scatha pets back to back", 2, Type.HIDDEN),
     
-    meet_developer("The Creator", "Be in a lobby with Scatha-Pro's developer", 1, Type.SECRET),
+    meet_developer("The Creator", "Be in a lobby with Scatha-Pro's developer", 1, Type.HIDDEN),
     
-    cheat("Cheater", "Obviously modify your Scatha-Pro savefile", 1, Type.HIDDEN);
+    cheat("Cheater", "Modify your Scatha-Pro savefile to contain impossible values", 1, Type.HIDDEN);
     
     
-    public enum Type {
-    	
+    public enum Type
+    {
         NORMAL(null, Visibility.VISIBLE),
         SECRET(EnumChatFormatting.AQUA + "Secret", Visibility.TITLE_ONLY),
         HIDDEN(EnumChatFormatting.RED.toString() + EnumChatFormatting.ITALIC + "HIDDEN", Visibility.HIDDEN),
         LEGACY(EnumChatFormatting.DARK_PURPLE.toString() + EnumChatFormatting.BOLD + "LEGACY", Visibility.HIDDEN);
-    	
-    	public enum Visibility {
-    		VISIBLE, TITLE_ONLY, HIDDEN;
-    	}
+        
+        public enum Visibility
+        {
+            VISIBLE, TITLE_ONLY, HIDDEN;
+        }
         
         public final String string;
         public final Visibility visibility;
         
-        private Type(String string, Visibility visibility) {
+        private Type(String string, Visibility visibility)
+        {
             this.string = string;
             this.visibility = visibility;
         }
         
         @Override
-        public String toString() {
+        public String toString()
+        {
             return string != null ? string : "";
         }
     }
@@ -127,37 +131,47 @@ public enum Achievement {
     public final float goal;
     public final Type type;
     private float progress = 0f;
+
+    Achievement(String name, String description, float goal)
+    {
+        this(name, description, goal, Type.NORMAL);
+    }
     
-    Achievement(String name, String description, float goal, Type type) {
+    Achievement(String name, String description, float goal, Type type)
+    {
         this.name = name;
         this.description = description;
         this.goal = goal;
         this.type = type;
     }
-    Achievement(String name, String description, float goal) {
-        this(name, description, goal, Type.NORMAL);
-    }
     
-    public String getID() {
+    public String getID()
+    {
         return this.name();
     }
     
-    public void setProgress(float progress) {
+    public void setProgress(float progress)
+    {
         if (progress < goal && ScathaPro.getInstance().achievementManager.isAchievementUnlocked(this)) this.progress = goal;
         else this.progress = progress;
         if (this.progress >= goal) ScathaPro.getInstance().achievementManager.unlockAchievement(this);
     }
-    public float getProgress() {
+    
+    public float getProgress()
+    {
         return progress;
     }
     
-    public void unlock() {
-    	setProgress(goal);
+    public void unlock()
+    {
+        setProgress(goal);
     }
 
-    public static Achievement getByID(String id) {
+    public static Achievement getByID(String id)
+    {
         Achievement achievement = null;
-        try {
+        try
+        {
             achievement = Achievement.valueOf(id);
         }
         catch (IllegalArgumentException e) {}

@@ -3,15 +3,17 @@ package com.namelessju.scathapro.gui.menus;
 import java.io.IOException;
 
 import com.namelessju.scathapro.achievements.Achievement;
+import com.namelessju.scathapro.util.MessageUtil;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiDisconnected;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 
-public class FakeBanGui extends GuiDisconnected {
-
-    public FakeBanGui() {
+public class FakeBanGui extends GuiDisconnected
+{
+    public FakeBanGui()
+    {
         super(null, "connect.failed", new ChatComponentText(
                 EnumChatFormatting.RESET.toString() + EnumChatFormatting.RED + "You are permanently banned from this server!\n\n"
                 + EnumChatFormatting.GRAY + "Reason: " + EnumChatFormatting.WHITE + "Scatha-Pro Savefile Manipulation\n"
@@ -31,17 +33,15 @@ public class FakeBanGui extends GuiDisconnected {
     @Override
     protected void actionPerformed(GuiButton button) throws IOException
     {
-    	super.actionPerformed(button);
-    	
-        if (button.id == 0) {
-            Achievement.cheat.setProgress(Achievement.cheat.goal);
+        super.actionPerformed(button);
+        
+        if (button.id == 0)
+        {
+            Achievement.cheat.unlock();
             
-            mc.ingameGUI.displayTitle(null, null, 5, 60, 40);
-            mc.ingameGUI.displayTitle(null, EnumChatFormatting.GREEN + "We do a little trolling", 0, 0, 0);
-            mc.ingameGUI.displayTitle("", null, 0, 0, 0);
+            MessageUtil.displayTitle("", EnumChatFormatting.GREEN + "We do a little trolling", 5, 60, 40);
         }
         
         super.actionPerformed(button);
     }
-    
 }

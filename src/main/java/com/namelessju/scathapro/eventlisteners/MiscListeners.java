@@ -2,15 +2,17 @@ package com.namelessju.scathapro.eventlisteners;
 
 import java.util.List;
 
+import com.google.common.base.Predicate;
 import com.google.gson.JsonPrimitive;
-import com.namelessju.scathapro.Config;
-import com.namelessju.scathapro.PersistentData;
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.ScathaProSound;
 import com.namelessju.scathapro.achievements.Achievement;
-import com.namelessju.scathapro.events.UpdateEvent;
+import com.namelessju.scathapro.entitydetection.detectedentities.DetectedEntity;
+import com.namelessju.scathapro.entitydetection.detectedentities.DetectedWorm;
+import com.namelessju.scathapro.events.ModUpdateEvent;
 import com.namelessju.scathapro.events.WormPreSpawnEvent;
-import com.namelessju.scathapro.objects.Worm;
+import com.namelessju.scathapro.managers.Config;
+import com.namelessju.scathapro.managers.PersistentData;
+import com.namelessju.scathapro.miscellaneous.ScathaProSound;
 import com.namelessju.scathapro.util.MessageUtil;
 import com.namelessju.scathapro.util.JsonUtil;
 import com.namelessju.scathapro.util.NBTUtil;
@@ -34,152 +36,181 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-public class MiscListeners {
-
-    private final Minecraft mc = Minecraft.getMinecraft();
-    private final ScathaPro scathaPro = ScathaPro.getInstance();
+public class MiscListeners
+{
+    private final ScathaPro scathaPro;
+    private final Minecraft mc;
 
     private boolean persistentDataLoaded = false;
     
-    @SubscribeEvent
-    public void onWorldJoin(EntityJoinWorldEvent e) {
-        Entity entity = e.entity;
-
-        if (entity == mc.thePlayer) {
-            
-            // Load data
-            
-            if (!persistentDataLoaded) {
-            	PersistentData persistentData = ScathaPro.getInstance().persistentData;
-            	persistentData.loadData();
-                
-                String lastUsedVersion = JsonUtil.getString(persistentData.getData(), "global/lastUsedVersion");
-                if (lastUsedVersion == null || !lastUsedVersion.equals(ScathaPro.VERSION)) {
-                    MinecraftForge.EVENT_BUS.post(new UpdateEvent(lastUsedVersion, ScathaPro.VERSION));
-                      
-                    JsonUtil.set(persistentData.getData(), "global/lastUsedVersion", new JsonPrimitive(ScathaPro.VERSION));
-                    persistentData.saveData();
-                }
-                
-                persistentDataLoaded = true;
-            }
-            
-            // Reset
-            
-            scathaPro.wormStreak = 0;
-
-            scathaPro.registeredWorms.clear();
-            scathaPro.activeWorms.clear();
-            
-            scathaPro.regularWormKills = 0;
-            scathaPro.scathaKills = 0;
-            
-            scathaPro.lastWormSpawnTime = -1;
-            
-            scathaPro.inBedrockWallRange = false;
-            
-            scathaPro.resetPreviousScathaPets();
-            
-            scathaPro.lastWorldJoinTime = Util.getCurrentTime();
-            
-            // Update overlay
-            
-            ScathaPro.getInstance().overlayManager.updateOverlayFull();
-            
-            // Update achievements
-            
-            scathaPro.updateKillAchievements();
-            scathaPro.updateSpawnAchievements();
-            scathaPro.updatePetDropAchievements();
-            scathaPro.updateProgressAchievements();
-            
-            Achievement.crystal_hollows_time_1.setProgress(0);
-            Achievement.crystal_hollows_time_2.setProgress(0);
-            Achievement.crystal_hollows_time_3.setProgress(0);
-        }
+    public MiscListeners(ScathaPro scathaPro)
+    {
+        this.scathaPro = scathaPro;
+        mc = scathaPro.minecraft;
     }
     
     @SubscribeEvent
-    public void onAttack(AttackEntityEvent e) { // Worm attack detection
-        if (e.target instanceof EntityArmorStand) {
-            EntityArmorStand entity = (EntityArmorStand) e.target;
-            World world = entity.worldObj;
+    public void onWorldJoin(EntityJoinWorldEvent e)
+    {
+        Entity entity = e.entity;
+        if (entity != mc.thePlayer) return;
             
-            ItemStack helmetItem = entity.getEquipmentInSlot(4);
-            if (helmetItem != null && NBTUtil.isWormSkull(helmetItem) || scathaPro.config.getBoolean(Config.Key.devMode)) {
+        // Load data
+        
+        if (!persistentDataLoaded)
+        {
+            PersistentData persistentData = scathaPro.persistentData;
+            persistentData.loadData();
+            
+            String lastUsedVersion = JsonUtil.getString(persistentData.getData(), "global/lastUsedVersion");
+            if (lastUsedVersion == null || !lastUsedVersion.equals(ScathaPro.VERSION))
+            {
+                MinecraftForge.EVENT_BUS.post(new ModUpdateEvent(lastUsedVersion, ScathaPro.VERSION));
                 
-                List<EntityArmorStand> nearbyArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(entity.posX, entity.posY, entity.posZ, entity.posX, entity.posY, entity.posZ).expand(8f, 2f, 8f));
+                JsonUtil.set(persistentData.getData(), "global/lastUsedVersion", new JsonPrimitive(ScathaPro.VERSION));
+                persistentData.saveData();
+            }
+            
+            persistentDataLoaded = true;
+        }
+        
+        // Reset
+        
+        DetectedEntity.clearLists();
+        
+        scathaPro.variables.scathaStreak = 0;
+        
+        scathaPro.variables.regularWormKills = 0;
+        scathaPro.variables.scathaKills = 0;
+        
+        scathaPro.variables.lastWormSpawnTime = -1;
+        
+        scathaPro.variables.inBedrockWallRange = false;
+        
+        scathaPro.variables.previousScathaPets = null;
+        
+        scathaPro.variables.lastWorldJoinTime = Util.getCurrentTime();
+        
+        // Update overlay
+        
+        scathaPro.overlayManager.updateOverlayFull();
+        
+        // Update achievements
+        
+        scathaPro.updateKillAchievements();
+        scathaPro.updateSpawnAchievements();
+        scathaPro.updatePetDropAchievements();
+        scathaPro.updateProgressAchievements();
+        
+        Achievement.crystal_hollows_time_1.setProgress(0);
+        Achievement.crystal_hollows_time_2.setProgress(0);
+        Achievement.crystal_hollows_time_3.setProgress(0);
+    }
+    
+    @SubscribeEvent
+    public void onAttack(AttackEntityEvent e)
+    {
+        // Worm melee attack detection
+        
+        if (!(e.target instanceof EntityArmorStand)) return;
+        final EntityArmorStand attackedArmorStand = (EntityArmorStand) e.target;
+        
+        // Check for attacked armor stand being the worm itself (= the name tag)
+        DetectedWorm worm = DetectedWorm.getById(attackedArmorStand.getEntityId());
+
+        // Attacked armor stand could be a body piece, check for main armor stand nearby
+        if (worm == null)
+        {
+            ItemStack helmetItem = attackedArmorStand.getEquipmentInSlot(4);
+            if (helmetItem != null && NBTUtil.isWormSkull(helmetItem) || scathaPro.config.getBoolean(Config.Key.devMode))
+            {
+                World world = attackedArmorStand.worldObj;
+                List<EntityArmorStand> nearbyArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(attackedArmorStand.posX, attackedArmorStand.posY, attackedArmorStand.posZ, attackedArmorStand.posX, attackedArmorStand.posY, attackedArmorStand.posZ).expand(8f, 2f, 8f), new Predicate<EntityArmorStand>() {
+                    @Override
+                    public boolean apply(EntityArmorStand armorStand) {
+                        return armorStand != attackedArmorStand;
+                    }
+                });
                 
-                for (int i = 0; i < nearbyArmorStands.size(); i ++) {
-                    
+                for (int i = 0; i < nearbyArmorStands.size(); i ++)
+                {
                     EntityArmorStand armorStand = nearbyArmorStands.get(i);
-                    
                     int entityID = armorStand.getEntityId();
-                    Worm worm = Worm.getByID(entityID);
-                    
-                    if (worm != null) {
-                        ItemStack weapon = null;
-                        if (mc.thePlayer != null) weapon = mc.thePlayer.getHeldItem();
-                        worm.attack(weapon);
+                    DetectedWorm nearbyWorm = DetectedWorm.getById(entityID);
+                    if (nearbyWorm != null)
+                    {
+                        worm = nearbyWorm;
                         break;
                     }
                 }
             }
         }
+        
+        if (worm != null)
+        {
+            ItemStack weapon = null;
+            if (mc.thePlayer != null) weapon = mc.thePlayer.getHeldItem();
+            worm.attack(weapon);
+        }
     }
     
     @SubscribeEvent
-    public void onInteractItem(PlayerInteractEvent e) {
+    public void onInteractItem(PlayerInteractEvent e)
+    {
         ItemStack heldItem = e.entityPlayer.getHeldItem();
-        if (heldItem != null) {
-            if (heldItem.getItem() == Items.fishing_rod || heldItem.getItem() == Items.bow)
-                scathaPro.lastProjectileWeaponUsed = heldItem;
+        if (heldItem != null && (heldItem.getItem() == Items.fishing_rod || heldItem.getItem() == Items.bow))
+        {
+            scathaPro.variables.lastProjectileWeaponUsed = heldItem;
         }
     }
     
     @SubscribeEvent(priority = EventPriority.LOW)
-    public void onChatReceived(ClientChatReceivedEvent e) {
+    public void onChatReceived(ClientChatReceivedEvent e)
+    {
         if (e.type == 2) return;
-        
         MessageUtil.addChatCopyButton(e.message);
     }
     
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onSound(PlaySoundEvent e) {
-    	
-    	// Detect worm pre-spawn
-        if (
-        		e.name.equals("mob.spider.step")
-        		&& (
-        			e.sound.getPitch() == 2.0952382f && Util.inCrystalHollows()
-    				|| e.sound.getPitch() >= 2f && scathaPro.config.getBoolean(Config.Key.devMode)
-				)
-    		)
+    public void onSound(PlaySoundEvent e)
+    {
+        // Detect worm pre-spawn
+        if
+        (
+            e.name.equals("mob.spider.step")
+            &&
+            (
+                e.sound.getPitch() == 2.0952382f && Util.inCrystalHollows()
+                || e.sound.getPitch() >= 2f && scathaPro.config.getBoolean(Config.Key.devMode)
+            )
+        )
         {
             MinecraftForge.EVENT_BUS.post(new WormPreSpawnEvent());
-    	}
+        }
         
         
         // Mute other sounds option
-        if (
-        		scathaPro.config.getBoolean(Config.Key.muteOtherSounds)
-        		&& Util.inCrystalHollows()
-        		&& !(e.sound instanceof ScathaProSound) && !e.name.equals("gui.button.press")
-    		)
+        if
+        (
+            scathaPro.config.getBoolean(Config.Key.muteOtherSounds)
+            && Util.inCrystalHollows()
+            && !(e.sound instanceof ScathaProSound) && !e.name.equals("gui.button.press")
+        )
         {
-        	e.result = null;
+            e.result = null;
         }
     }
     
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void onTooltip(ItemTooltipEvent e) {
-        if (scathaPro.config.getBoolean(Config.Key.devMode)) {
-            ItemStack item = e.itemStack;
-    
-            if (item != null) {
-                String skyblockItemID = NBTUtil.getSkyblockItemID(item);
-                if (skyblockItemID != null) e.toolTip.add(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + skyblockItemID + EnumChatFormatting.RESET);
-            }
+    public void onTooltip(ItemTooltipEvent e)
+    {
+        if (!scathaPro.config.getBoolean(Config.Key.devMode)) return;
+        
+        String skyblockItemID = NBTUtil.getSkyblockItemID(e.itemStack);
+        if (skyblockItemID != null)
+        {
+            e.toolTip.add("");
+            e.toolTip.add(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + skyblockItemID + EnumChatFormatting.RESET);
         }
     }
 

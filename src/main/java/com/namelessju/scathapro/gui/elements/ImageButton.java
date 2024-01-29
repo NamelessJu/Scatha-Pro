@@ -11,22 +11,25 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
-public class ImageButton extends GuiButton {
-
+public class ImageButton extends GuiButton
+{
     private ResourceLocation resourceLocation;
     private int textureWidth, textureHeight;
     private float textureScale;
 
-    public ImageButton(int buttonId, int x, int y, int widthIn, int heightIn, String texturePath, int textureWidth, int textureHeight, float textureScale) {
+    public ImageButton(int buttonId, int x, int y, int widthIn, int heightIn, String texturePath, int textureWidth, int textureHeight, float textureScale)
+    {
         super(buttonId, x, y, widthIn, heightIn, "");
         setImage(texturePath, textureWidth, textureHeight, textureScale);
     }
     
     @Override
-    public void drawButton(Minecraft mc, int mouseX, int mouseY) {
+    public void drawButton(Minecraft mc, int mouseX, int mouseY)
+    {
         super.drawButton(mc, mouseX, mouseY);
 
-        if (visible) {
+        if (visible)
+        {
             GlStateManager.enableAlpha();
             GlStateManager.color(1f, 1f, 1f);
             Minecraft.getMinecraft().renderEngine.bindTexture(resourceLocation);
@@ -39,7 +42,8 @@ public class ImageButton extends GuiButton {
         }
     }
 
-    public void setImage(String texturePath, int textureWidth, int textureHeight, float textureScale) {
+    public void setImage(String texturePath, int textureWidth, int textureHeight, float textureScale)
+    {
         this.textureWidth = textureWidth;
         this.textureHeight = textureHeight;
         this.textureScale = textureScale;

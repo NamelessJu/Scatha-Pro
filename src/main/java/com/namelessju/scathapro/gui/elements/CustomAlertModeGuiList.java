@@ -13,41 +13,48 @@ import java.util.Comparator;
 import org.apache.logging.log4j.Level;
 
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.alertmodes.customalertmode.CustomAlertModeManager;
+import com.namelessju.scathapro.alerts.customalertmode.CustomAlertModeManager;
 import com.namelessju.scathapro.gui.menus.CustomAlertModeEditGui;
 import com.namelessju.scathapro.util.Util;
 
 @SideOnly(Side.CLIENT)
 public class CustomAlertModeGuiList extends ScathaProGuiList
 {
-	@Override
-	protected boolean areEntriesSelectable() {
-		return false;
-	}
-	
-	private final CustomAlertModeManager customAlertModeManager;
-	
-    public CustomAlertModeGuiList(GuiScreen gui)
+    private final ScathaPro scathaPro;
+    
+    @Override
+    protected boolean areEntriesSelectable()
+    {
+        return false;
+    }
+    
+    private final CustomAlertModeManager customAlertModeManager;
+    
+    public CustomAlertModeGuiList(ScathaPro scathaPro, GuiScreen gui)
     {
         super(gui, 30);
+        
+        this.scathaPro = scathaPro;
 
         this.listEntries.add(new CreateCustomModeEntry());
         
-        customAlertModeManager = ScathaPro.getInstance().customAlertModeManager;
+        customAlertModeManager = scathaPro.customAlertModeManager;
         customAlertModeManager.loadAllMeta();
         
         String[] customModeIds = CustomAlertModeManager.getAllSubmodeIds();
         Arrays.sort(customModeIds, new Comparator<String>() {
-			@Override
-			public int compare(String customModeId1, String customModeId2) {
-				long lastUsedTime1 = customAlertModeManager.getSubmodeLastUsed(customModeId1);
-				long lastUsedTime2 = customAlertModeManager.getSubmodeLastUsed(customModeId2);
-				
-				if (lastUsedTime2 > lastUsedTime1) return 1;
-				else if (lastUsedTime2 < lastUsedTime1) return -1;
-				return 0;
-			}
+            @Override
+            public int compare(String customModeId1, String customModeId2)
+            {
+                long lastUsedTime1 = customAlertModeManager.getSubmodeLastUsed(customModeId1);
+                long lastUsedTime2 = customAlertModeManager.getSubmodeLastUsed(customModeId2);
+                
+                if (lastUsedTime2 > lastUsedTime1) return 1;
+                else if (lastUsedTime2 < lastUsedTime1) return -1;
+                return 0;
+            }
         });
+        
         for (String customModeId : customModeIds)
         {
             this.listEntries.add(new CustomModeEntry(customModeId));
@@ -60,37 +67,38 @@ public class CustomAlertModeGuiList extends ScathaProGuiList
     {
         private CreateCustomModeEntry()
         {
-            addButton(new GuiButton(0, getListWidth() / 2 - 100, 5, 200, 20, "Create new..."));
+            addButton(new GuiButton(0, 0, 5, getListWidth(), 20, "Create new..."));
         }
         
-		@Override
-		protected void onButtonPressed(GuiButton button) {
-			switch (button.id)
-			{
-				case 0:
-		    		String newModeId = CustomAlertModeManager.getNewSubmodeId();
-		    		if (newModeId == null)
-		    		{
-		    			ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't create new custom alert mode - generating a new unique ID failed");
-		    			break;
-		    		}
-		    		
-					File modeFolder = CustomAlertModeManager.getSubModeFile(newModeId);
-					modeFolder.mkdirs();
-					
-	            	mc.displayGuiScreen(new CustomAlertModeEditGui(gui, newModeId));
-					
-	                break;
-			}
-		}
+        @Override
+        protected void onButtonPressed(GuiButton button)
+        {
+            switch (button.id)
+            {
+                case 0:
+                    String newModeId = CustomAlertModeManager.getNewSubmodeId();
+                    if (newModeId == null)
+                    {
+                        scathaPro.logger.log(Level.ERROR, "Couldn't create new custom alert mode - generating a new unique ID failed");
+                        break;
+                    }
+                    
+                    File modeFolder = CustomAlertModeManager.getSubModeFile(newModeId);
+                    modeFolder.mkdirs();
+                    
+                    mc.displayGuiScreen(new CustomAlertModeEditGui(scathaPro, gui, newModeId));
+                    
+                    break;
+            }
+        }
     }
     
     
     @SideOnly(Side.CLIENT)
     public class CustomModeEntry extends ListEntry
     {
-    	public final String customModeId;
-    	public final String customModeName;
+        public final String customModeId;
+        public final String customModeName;
 
         private CustomModeEntry(String customModeId)
         {
@@ -103,7 +111,7 @@ public class CustomAlertModeGuiList extends ScathaProGuiList
             addLabel(customModeName, 0, 5, getListWidth(), 10);
             
             String detailsString;
-            if (isModeActive) detailsString = EnumChatFormatting.GREEN.toString() + "Selected";
+            if (isModeActive) detailsString = EnumChatFormatting.GREEN.toString() + EnumChatFormatting.ITALIC + "Selected";
             else detailsString = EnumChatFormatting.DARK_GRAY + "Last used: " + (lastUsed >= 0L ? Util.formatTime(lastUsed) : EnumChatFormatting.ITALIC + "never");
             addLabel(detailsString, 0, 15, getListWidth(), 10);
             
@@ -115,17 +123,19 @@ public class CustomAlertModeGuiList extends ScathaProGuiList
             addButton(new DeleteCustomAlertModeButton(2, getListWidth() - 50, 5, 50, 20, "Delete", customModeId, gui));
         }
         
-		@Override
-		protected void onButtonPressed(GuiButton button) {
-			switch (button.id) {
-				case 0:
-					customAlertModeManager.changeSubmode(customModeId);
-	                gui.initGui();
-	                break;
-				case 1:
-	            	mc.displayGuiScreen(new CustomAlertModeEditGui(gui, customModeId));
-	                break;
-			}
-		}
+        @Override
+        protected void onButtonPressed(GuiButton button)
+        {
+            switch (button.id)
+            {
+                case 0:
+                    customAlertModeManager.changeSubmode(customModeId);
+                    gui.initGui();
+                    break;
+                case 1:
+                    mc.displayGuiScreen(new CustomAlertModeEditGui(scathaPro, gui, customModeId));
+                    break;
+            }
+        }
     }
 }

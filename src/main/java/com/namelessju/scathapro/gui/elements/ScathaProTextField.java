@@ -34,7 +34,7 @@ public class ScathaProTextField extends Gui
     private boolean visible = true;
     private Predicate<String> textPredicate = Predicates.<String>alwaysTrue();
 
-	private String placeholder = null;
+    private String placeholder = null;
 
     public int xPosition;
     public int yPosition;
@@ -51,16 +51,16 @@ public class ScathaProTextField extends Gui
         this.height = height;
     }
     
-	public void setPlaceholder(String placeholder)
-	{
-		this.placeholder = placeholder;
-	}
-	
+    public void setPlaceholder(String placeholder)
+    {
+        this.placeholder = placeholder;
+    }
+    
     public void drawTextBox()
     {
         if (this.getVisible())
         {
-			int outlineColor = this.isEnabled ? -6250336 : Util.Color.DARK_GRAY.getValue();
+            int outlineColor = this.isEnabled ? -6250336 : Util.Color.DARK_GRAY.getValue();
             drawRect(this.xPosition - 1, this.yPosition - 1, this.xPosition + this.width + 1, this.yPosition + this.height + 1, outlineColor);
             drawRect(this.xPosition, this.yPosition, this.xPosition + this.width, this.yPosition + this.height, -16777216);
 
@@ -85,11 +85,11 @@ public class ScathaProTextField extends Gui
                 j1 = this.fontRendererInstance.drawStringWithShadow(s1, (float)l, (float)i1, textColor);
             }
             else if (this.placeholder != null)
-	        {
+            {
                 String placeholderTrimmed = this.fontRendererInstance.trimStringToWidth(this.placeholder, this.getWidth());
-	        	this.fontRendererInstance.drawStringWithShadow(placeholderTrimmed, xPosition + 4, yPosition + (height - 8) / 2, Util.Color.DARK_GRAY.getValue());
-	        }
-	        
+                this.fontRendererInstance.drawStringWithShadow(placeholderTrimmed, xPosition + 4, yPosition + (height - 8) / 2, Util.Color.DARK_GRAY.getValue());
+            }
+            
 
             boolean flag2 = this.cursorPosition < this.text.length() || this.text.length() >= this.getMaxStringLength();
             int k1 = j1;
@@ -153,8 +153,8 @@ public class ScathaProTextField extends Gui
     
     public void setText(String newText)
     {
-    	newText = StringUtils.stripControlCodes(newText);
-    	
+        newText = StringUtils.stripControlCodes(newText);
+        
         if (this.textPredicate.apply(newText))
         {
             if (newText.length() > this.maxStringLength)

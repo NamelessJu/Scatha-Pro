@@ -1,11 +1,11 @@
 package com.namelessju.scathapro.events;
 
-import com.namelessju.scathapro.objects.Worm;
+import com.namelessju.scathapro.entitydetection.detectedentities.DetectedWorm;
 
-public class WormDespawnEvent extends WormEvent {
-
-    public WormDespawnEvent(Worm worm) {
+public class WormDespawnEvent extends WormEvent
+{
+    public WormDespawnEvent(DetectedWorm worm)
+    {
         super(worm);
     }
-    
 }

@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.lwjgl.input.Mouse;
 
+import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.gui.elements.AchievementsList;
 import com.namelessju.scathapro.gui.elements.DoneButton;
 
@@ -11,17 +12,19 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 
-public class AchievementsGui extends ScathaProGui {
-    
+public class AchievementsGui extends ScathaProGui
+{
     private AchievementsList achievementsList;
     
     @Override
-    public String getTitle() {
+    public String getTitle()
+    {
         return "Achievements";
     }
 
-    public AchievementsGui(GuiScreen parentGui) {
-        super(parentGui);
+    public AchievementsGui(ScathaPro scathaPro, GuiScreen parentGui)
+    {
+        super(scathaPro, parentGui);
     }
 
     @Override
@@ -45,14 +48,17 @@ public class AchievementsGui extends ScathaProGui {
     @Override
     protected void actionPerformed(GuiButton button) throws IOException
     {
-    	super.actionPerformed(button);
-    	
+        super.actionPerformed(button);
+        
         if (button.enabled && button.id == 504704399)
+        {
             openParentGui();
+        }
     }
     
     @Override
-    public void handleMouseInput() throws IOException {
+    public void handleMouseInput() throws IOException
+    {
         super.handleMouseInput();
         
         int mouseY = this.height - Mouse.getEventY() * this.height / this.mc.displayHeight - 1;

@@ -2,35 +2,40 @@ package com.namelessju.scathapro.gui.menus;
 
 import java.io.IOException;
 
-import com.namelessju.scathapro.Config;
-import com.namelessju.scathapro.OverlayManager;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.gui.elements.BooleanSettingButton;
 import com.namelessju.scathapro.gui.elements.DoneButton;
+import com.namelessju.scathapro.managers.Config;
+import com.namelessju.scathapro.managers.OverlayManager;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraftforge.fml.client.config.GuiSlider;
 
-public class OverlaySettingsGui extends ScathaProGui implements GuiSlider.ISlider {
-
-	private OverlayManager overlayManager = ScathaPro.getInstance().overlayManager;
-	private Config config = ScathaPro.getInstance().config;
+public class OverlaySettingsGui extends ScathaProGui implements GuiSlider.ISlider
+{
+    private final OverlayManager overlayManager;
+    private final Config config;
+    
+    public OverlaySettingsGui(ScathaPro scathaPro, GuiScreen parentGui)
+    {
+        super(scathaPro, parentGui);
+        
+        overlayManager = scathaPro.overlayManager;
+        config = scathaPro.config;
+    }
     
     @Override
-    public String getTitle() {
+    public String getTitle()
+    {
         return "Overlay Settings";
     }
 
     @Override
-    public boolean hasBackground() {
+    public boolean hasBackground()
+    {
         return false;
-    }
-    
-    
-    public OverlaySettingsGui(GuiScreen parentGui) {
-        super(parentGui);
     }
     
     @Override
@@ -60,29 +65,35 @@ public class OverlaySettingsGui extends ScathaProGui implements GuiSlider.ISlide
     }
     
     @Override
-    protected void drawCustomBackground() {
-    	overlayManager.drawOverlay();
+    protected void drawCustomBackground()
+    {
+        overlayManager.drawOverlay();
     }
     
 
     @Override
-    protected void actionPerformed(GuiButton button) throws IOException {
-    	super.actionPerformed(button);
-    	
-        if (button.enabled) {
-            switch (button.id) {
-            
+    protected void actionPerformed(GuiButton button) throws IOException
+    {
+        super.actionPerformed(button);
+        
+        if (button.enabled)
+        {
+            switch (button.id)
+            {
                 case 504704101:
-                	overlayManager.updateVisibility();
+                    overlayManager.updateVisibility();
                     break;
             }
         }
     }
     
     @Override
-    public void onChangeSliderValue(GuiSlider slider) {
-        if (slider.enabled) {
-            switch (slider.id) {
+    public void onChangeSliderValue(GuiSlider slider)
+    {
+        if (slider.enabled)
+        {
+            switch (slider.id)
+            {
                 case 504704102:
                     double overlayX = (double) slider.getValueInt() / 100;
                     
@@ -106,8 +117,8 @@ public class OverlaySettingsGui extends ScathaProGui implements GuiSlider.ISlide
                     break;
                     
                 case 504704104:
-                	config.set(Config.Key.overlayScale, (double) slider.getValueInt() / 100);
-                	config.save();
+                    config.set(Config.Key.overlayScale, (double) slider.getValueInt() / 100);
+                    config.save();
                     
                     overlayManager.updateScale();
                     overlayManager.updatePosition();

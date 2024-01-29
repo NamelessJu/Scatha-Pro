@@ -1,14 +1,15 @@
 package com.namelessju.scathapro.events;
 
-import com.namelessju.scathapro.objects.Goblin;
+import com.namelessju.scathapro.entitydetection.detectedentities.DetectedGoblin;
 
 import net.minecraftforge.fml.common.eventhandler.Event;
 
-public class GoblinSpawnEvent extends Event {
-
-    public final Goblin goblin;
+public class GoblinSpawnEvent extends Event
+{
+    public final DetectedGoblin goblin;
     
-    public GoblinSpawnEvent(Goblin goblin) {
+    public GoblinSpawnEvent(DetectedGoblin goblin)
+    {
         this.goblin = goblin;
     }
 }
