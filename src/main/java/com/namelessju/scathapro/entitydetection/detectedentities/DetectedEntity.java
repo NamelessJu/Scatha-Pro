@@ -3,10 +3,12 @@ package com.namelessju.scathapro.entitydetection.detectedentities;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.namelessju.scathapro.events.DetectedEntityRegisteredEvent;
 import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
 
 public abstract class DetectedEntity
 {
@@ -32,6 +34,7 @@ public abstract class DetectedEntity
         {
             registeredEntityIds.add(id);
             detectedEntity.onRegistration();
+            MinecraftForge.EVENT_BUS.post(new DetectedEntityRegisteredEvent(detectedEntity));
         }
     }
     

@@ -18,7 +18,7 @@ import com.namelessju.scathapro.ScathaPro;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.Loader;
 
-public class SaveManager
+public class FileManager
 {
     public static String readFile(File file)
     {
@@ -133,5 +133,5 @@ public class SaveManager
     }
     
     
-    private SaveManager() {}
+    private FileManager() {}
 }

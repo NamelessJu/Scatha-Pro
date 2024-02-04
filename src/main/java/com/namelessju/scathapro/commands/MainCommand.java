@@ -10,6 +10,7 @@ import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.managers.PersistentData;
 import com.namelessju.scathapro.managers.UpdateChecker;
 import com.namelessju.scathapro.util.MessageUtil;
+import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
@@ -133,9 +134,21 @@ public class MainCommand extends CommandBase
             }
             config.save();
             
-            if (config.getBoolean(Config.Key.petAlert)) scathaPro.variables.previousScathaPets = null;
+            if (config.getBoolean(Config.Key.scathaPetDropAlert)) scathaPro.variables.previousScathaPets = null;
 
             MessageUtil.sendModChatMessage("All settings reset");
+        }
+        
+        else if (subCommand.equalsIgnoreCase("persistentDataFile"))
+        {
+            if (Util.openFileInExplorer(PersistentData.saveFile))
+            {
+                MessageUtil.sendModChatMessage("Persistent data file opened in file explorer");
+            }
+            else
+            {
+                MessageUtil.sendModErrorMessage("Failed to open persistent data file in file explorer");
+            }
         }
         
         else if (subCommand.equalsIgnoreCase("devMode"))

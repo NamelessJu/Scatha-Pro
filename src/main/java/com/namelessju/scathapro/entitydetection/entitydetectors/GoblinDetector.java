@@ -13,18 +13,15 @@ public class GoblinDetector extends EntityDetector
     {
         if (unformattedEntityName != null && unformattedEntityName.contains(Util.getUnicodeString("2764")))
         {
-            DetectedGoblin goblin = null;
-            
             if (unformattedEntityName.contains("[Lv50] Golden Goblin "))
             {
-                goblin = new DetectedGoblin(entity, DetectedGoblin.Type.GOLD);
-            }
-            else if (unformattedEntityName.contains("[Lv500] Diamond Goblin "))
-            {
-                goblin = new DetectedGoblin(entity, DetectedGoblin.Type.DIAMOND);
+                return new DetectedGoblin(entity, DetectedGoblin.Type.GOLD);
             }
             
-            return goblin;
+            if (unformattedEntityName.contains("[Lv500] Diamond Goblin "))
+            {
+                return new DetectedGoblin(entity, DetectedGoblin.Type.DIAMOND);
+            }
         }
         
         return null;

@@ -32,6 +32,6 @@ public class BooleanSettingButton extends GuiButton implements IClickActionButto
     private void updateText()
     {
         boolean enabled = ScathaPro.getInstance().config.getBoolean(configSetting);
-        this.displayString = text + ": " + (enabled ? "ON" : "OFF");
+        this.displayString = (text != null ? text + ": " : "") + (enabled ? "ON" : "OFF");
     }
 }

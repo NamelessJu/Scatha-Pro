@@ -1,8 +1,9 @@
-package com.namelessju.scathapro.alerts;
+package com.namelessju.scathapro.alerts.alertmodes.customalertmode;
 
 import com.google.gson.JsonElement;
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.alerts.customalertmode.CustomAlertModeManager;
+import com.namelessju.scathapro.alerts.AlertTitle;
+import com.namelessju.scathapro.alerts.alertmodes.AlertMode;
 import com.namelessju.scathapro.util.JsonUtil;
 
 import net.minecraft.util.ResourceLocation;

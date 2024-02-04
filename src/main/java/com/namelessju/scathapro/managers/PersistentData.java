@@ -30,7 +30,7 @@ import net.minecraft.util.EnumChatFormatting;
 
 public class PersistentData
 {
-    private static final File saveFile = SaveManager.getModFile("persistentData.json");
+    public static final File saveFile = FileManager.getModFile("persistentData.json");
     
     private static final String unlockedAchievementsKey = "unlockedAchievements";
     private static final String petDropsKey = "petDrops";
@@ -50,7 +50,7 @@ public class PersistentData
     {
         if (saveFile.exists() && saveFile.canRead())
         {
-            String jsonString = SaveManager.readFile(saveFile);
+            String jsonString = FileManager.readFile(saveFile);
             if (jsonString == null)
             {
                 scathaPro.logger.log(Level.ERROR, "Couldn't load persistent data (failed to read file)");
@@ -86,7 +86,7 @@ public class PersistentData
     {
         if (Util.getPlayerUUIDString() != null)
         {
-            if (!SaveManager.writeFile(saveFile, data.toString()))
+            if (!FileManager.writeFile(saveFile, data.toString()))
             {
                 scathaPro.logger.log(Level.ERROR, "Error while trying to save persistent data");
             }
@@ -108,7 +108,7 @@ public class PersistentData
     
     public void backup(String name, boolean overwrite)
     {
-        File backupFile = SaveManager.getModFile("backups/persistentData_" + name + ".json");
+        File backupFile = FileManager.getModFile("backups/persistentData_" + name + ".json");
 
         File backupFolder = backupFile.getParentFile();
         if (!backupFolder.exists()) backupFolder.mkdirs();
@@ -199,7 +199,7 @@ public class PersistentData
                         {
                             if (unlockedAtTimestamp > now || unlockedAtTimestamp < 1640991600000L)
                             {
-                                scathaPro.variables.showFakeBan = true;
+                                scathaPro.variables.cheaterDetected = true;
                             }
                             
                             achievementManager.unlockedAchievements.add(new UnlockedAchievement(achievement, unlockedAtTimestamp));
@@ -257,7 +257,7 @@ public class PersistentData
                     || scathaPro.variables.legendaryPetDrops > 9999 || scathaPro.variables.legendaryPetDrops < 0
                 )
                 {
-                    scathaPro.variables.showFakeBan = true;
+                    scathaPro.variables.cheaterDetected = true;
                 }
                 
                 
@@ -304,8 +304,8 @@ public class PersistentData
                 Integer regularWormKills = JsonUtil.getInt(playerJson, wormKillsKey + "/regularWorms");
                 Integer scathaKills = JsonUtil.getInt(playerJson, wormKillsKey + "/scathas");
                 
-                if (regularWormKills != null) scathaPro.variables.overallRegularWormKills = regularWormKills;
-                if (scathaKills != null) scathaPro.variables.overallScathaKills = scathaKills;
+                if (regularWormKills != null) scathaPro.variables.regularWormKills = regularWormKills;
+                if (scathaKills != null) scathaPro.variables.scathaKills = scathaKills;
                 
                 if ((regularWormKills == null || scathaKills == null) && scathaPro.config.getBoolean(Config.Key.automaticStatsParsing))
                 {
@@ -328,8 +328,8 @@ public class PersistentData
     {
         JsonObject wormKillsJsonObject = new JsonObject();
         
-        wormKillsJsonObject.add("regularWorms", new JsonPrimitive(scathaPro.variables.overallRegularWormKills));
-        wormKillsJsonObject.add("scathas", new JsonPrimitive(scathaPro.variables.overallScathaKills));
+        wormKillsJsonObject.add("regularWorms", new JsonPrimitive(scathaPro.variables.regularWormKills));
+        wormKillsJsonObject.add("scathas", new JsonPrimitive(scathaPro.variables.scathaKills));
         
         set(wormKillsKey, wormKillsJsonObject);
         saveData();

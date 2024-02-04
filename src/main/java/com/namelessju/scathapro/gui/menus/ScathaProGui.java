@@ -20,7 +20,7 @@ import net.minecraftforge.fml.client.config.GuiSlider;
 
 public abstract class ScathaProGui extends GuiScreen
 {
-    protected static void setSliderDefaultString(GuiSlider slider)
+    protected static void setSliderTextDefault(GuiSlider slider)
     {
         slider.displayString = slider.dispString + "default";
     }
@@ -79,7 +79,7 @@ public abstract class ScathaProGui extends GuiScreen
         if (title != null && !title.replace(" ", "").isEmpty())
         {
             GuiLabel titleLabel = new GuiLabel(fontRendererObj, 1, width / 2 - 155, 15, 310, 10, Util.Color.WHITE.getValue()).setCentered();
-            titleLabel.func_175202_a("Scatha-Pro " + title);
+            titleLabel.func_175202_a("Scatha-Pro - " + title);
             labelList.add(titleLabel);
         }
     }

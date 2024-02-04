@@ -1,4 +1,4 @@
-package com.namelessju.scathapro.alerts.customalertmode;
+package com.namelessju.scathapro.alerts.alertmodes.customalertmode;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;

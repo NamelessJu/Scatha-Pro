@@ -1,4 +1,4 @@
-package com.namelessju.scathapro.alerts;
+package com.namelessju.scathapro.alerts.alertmodes;
 
 import com.namelessju.scathapro.ScathaPro;
 

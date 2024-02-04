@@ -62,17 +62,19 @@ public class DevCommand extends CommandBase
             {
                 EntityPlayer player = (EntityPlayer) senderEntity;
                 List<Entity> nearbyEntities = player.worldObj.getEntitiesWithinAABB(Entity.class, player.getEntityBoundingBox().expand(5f, 5f, 5f));
-
+                
                 StringBuilder entityString = new StringBuilder();
                 entityString.append("[");
                 for (int i = 0; i < nearbyEntities.size(); i ++)
                 {
                     Entity e = nearbyEntities.get(i);
                     String entityName = e.getName();
-                    NBTTagCompound nbt = e.getEntityData();
+                    
+                    NBTTagCompound nbt = new NBTTagCompound();
+                    e.writeToNBT(nbt);
                     
                     if (i > 0) entityString.append(", ");
-                    entityString.append("{type:\""+e.getClass().getSimpleName()+"\", name:\""+entityName+"\", nbt:"+(nbt != null ? nbt.toString() : "{}")+"}");
+                    entityString.append("{type: \""+e.getClass().getSimpleName()+"\", name: \""+entityName+"\", nbt: \""+(nbt != null ? nbt.toString() : "")+"\"}");
                 }
                 entityString.append("]");
                 

@@ -5,17 +5,23 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSyntaxException;
 
 public class JsonUtil
 {
     public static JsonObject parseObject(String jsonString)
     {
-        JsonElement json = new JsonParser().parse(jsonString);
-        if (json != null && json instanceof JsonObject)
+        try
         {
-            return json.getAsJsonObject();
+            JsonElement json = new JsonParser().parse(jsonString);
+            if (json != null && json instanceof JsonObject)
+            {
+                return json.getAsJsonObject();
+            }
         }
-        else return null;
+        catch (JsonSyntaxException e) {}
+        
+        return null;
     }
     
     public static JsonElement getJsonElement(JsonElement object, String path)

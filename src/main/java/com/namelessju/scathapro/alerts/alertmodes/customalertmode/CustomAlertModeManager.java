@@ -1,4 +1,4 @@
-package com.namelessju.scathapro.alerts.customalertmode;
+package com.namelessju.scathapro.alerts.alertmodes.customalertmode;
 
 import java.io.File;
 import java.util.HashMap;
@@ -13,11 +13,10 @@ import com.google.gson.JsonPrimitive;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.alerts.Alert;
 import com.namelessju.scathapro.managers.Config;
-import com.namelessju.scathapro.managers.SaveManager;
+import com.namelessju.scathapro.managers.FileManager;
 import com.namelessju.scathapro.util.JsonUtil;
 import com.namelessju.scathapro.util.Util;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.IResourceManagerReloadListener;
 import net.minecraft.client.resources.SimpleReloadableResourceManager;
@@ -27,7 +26,7 @@ import net.minecraft.util.StringUtils;
 public class CustomAlertModeManager implements IResourceManagerReloadListener
 {
     public static final String resourceDomain = "scathapro_customalertmode";
-    public static final File submodesDirectory = SaveManager.getModFile("customAlertModes");
+    public static final File submodesDirectory = FileManager.getModFile("customAlertModes");
     
     public static String getResourceName(String resourcePath)
     {
@@ -56,6 +55,7 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
 
     public static String[] getAllSubmodeIds()
     {
+        if (!submodesDirectory.exists()) return new String[0];
         return submodesDirectory.list(DirectoryFileFilter.DIRECTORY);
     }
     
@@ -75,7 +75,7 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
         String newId;
         do
         {
-            if (tries > 999) return null;
+            if (tries > 9999) return null;
             newId = UUID.randomUUID().toString().replace("-", "");
             tries ++;
         }
@@ -87,22 +87,26 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
     
     public final CustomAlertModeResourcePack resourcePack;
     
+    private final ScathaPro scathaPro;
+    
     private String currentSubmodeId = null;
     private JsonObject currentProperties = null;
     private HashMap<String, JsonObject> metas = new HashMap<String, JsonObject>();
     
     
-    public CustomAlertModeManager()
+    public CustomAlertModeManager(ScathaPro scathaPro)
     {
+        this.scathaPro = scathaPro;
+        
         resourcePack = new CustomAlertModeResourcePack();
-        updateCurrentSubmode();
+        loadCurrentSubmode();
     }
     
     
     @Override
     public void onResourceManagerReload(IResourceManager resourceManager)
     {
-        if (resourceManager != Minecraft.getMinecraft().getResourceManager()) return;
+        if (resourceManager != scathaPro.minecraft.getResourceManager()) return;
         
         if (resourceManager instanceof SimpleReloadableResourceManager)
         {
@@ -110,22 +114,22 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
         }
         else
         {
-            ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't load custom alert mode resource pack - resource manager of unexpected type " + resourceManager.getClass().getCanonicalName() + " (expected " + SimpleReloadableResourceManager.class.getCanonicalName() + ")");
+            scathaPro.logger.log(Level.ERROR, "Couldn't load custom alert mode resource pack - resource manager of unexpected type " + resourceManager.getClass().getCanonicalName() + " (expected " + SimpleReloadableResourceManager.class.getCanonicalName() + ")");
         }
     }
     
     public void reloadResourcePack()
     {
-        // Haven't found a way to reload just a single resource pack
-        // reloading all resources is slow, but it does the job
-        Minecraft.getMinecraft().refreshResources();
+        // Haven't found a good way to reload just a single resource pack
+        // Reloading all resources is slow, but it does the job
+        scathaPro.minecraft.refreshResources();
     }
     
     public void changeSubmode(String submodeId)
     {
         if (submodeId == null) submodeId = "";
         
-        Config config = ScathaPro.getInstance().config;
+        Config config = scathaPro.config;
         config.set(Config.Key.customModeSubmode, submodeId);
         config.save();
         setCurrentSubmode(submodeId);
@@ -133,16 +137,17 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
         reloadResourcePack();
     }
     
-    private void updateCurrentSubmode()
+    private void loadCurrentSubmode()
     {
-        String configSubmode = ScathaPro.getInstance().config.getString(Config.Key.customModeSubmode);
-        setCurrentSubmode(configSubmode);
+        String loadedSubmode = scathaPro.config.getString(Config.Key.customModeSubmode);
+        if (!doesSubmodeExist(loadedSubmode)) loadedSubmode = null;
+        setCurrentSubmode(loadedSubmode);
         loadCurrentSubmodeProperties();
     }
     
     private void setCurrentSubmode(String submodeId)
     {
-        currentSubmodeId = submodeId.isEmpty() ? null : submodeId;
+        currentSubmodeId = (submodeId != null && (submodeId.replace(" ", "").isEmpty())) ? null : submodeId;
     }
     
     private void loadResourcePack(SimpleReloadableResourceManager resourceManager)
@@ -151,7 +156,7 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
         
         loadCurrentSubmodeProperties();
         
-        ScathaPro.getInstance().logger.log(Level.INFO, "Custom alert mode resource pack loaded");
+        scathaPro.logger.log(Level.INFO, "Custom alert mode resource pack loaded");
     }
     
     
@@ -174,9 +179,9 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
         }
         
         File modeFolder = getSubModeFile(customModeId);
-        if (!SaveManager.deleteDirectoryRecursive(modeFolder))
+        if (!FileManager.deleteDirectoryRecursive(modeFolder))
         {
-            ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't delete custom alert mode - recursively deleting the directory failed");
+            scathaPro.logger.log(Level.ERROR, "Couldn't delete custom alert mode - recursively deleting the directory failed");
         }
     }
     
@@ -205,9 +210,9 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
     
     public void loadAllMeta()
     {
-        String[] submodeIds = getAllSubmodeIds();
-        
         unloadAllMeta();
+        
+        String[] submodeIds = getAllSubmodeIds();
         for (String submodeId : submodeIds)
         {
             loadMeta(submodeId);
@@ -221,7 +226,7 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
     
     public void loadMeta(String submodeId)
     {
-        String propertiesString = SaveManager.readFile(getMetaFile(submodeId));
+        String propertiesString = FileManager.readFile(getMetaFile(submodeId));
         if (propertiesString != null) metas.put(submodeId, JsonUtil.parseObject(propertiesString));
     }
     
@@ -242,9 +247,9 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
         JsonObject metaJson = metas.get(submodeId);
         if (metaJson == null) metaJson = new JsonObject();
         
-        if (!SaveManager.writeFile(getMetaFile(submodeId), metaJson.toString()))
+        if (!FileManager.writeFile(getMetaFile(submodeId), metaJson.toString()))
         {
-            ScathaPro.getInstance().logger.log(Level.ERROR, "Failed to write custom alert mode meta file (" + submodeId + ")");
+            scathaPro.logger.log(Level.ERROR, "Failed to write custom alert mode meta file (" + submodeId + ")");
         }
     }
 
@@ -261,6 +266,7 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
     
     public void updateCurrentSubmodeLastUsed()
     {
+        if (currentSubmodeId == null) return;
         setMeta(currentSubmodeId, "lastUsed", new JsonPrimitive(Util.getCurrentTime()));
         saveMeta(currentSubmodeId);
     }
@@ -268,7 +274,7 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
     
     public JsonObject loadSubmodeProperties(String submodeId)
     {
-        String propertiesString = SaveManager.readFile(getPropertiesFile(submodeId));
+        String propertiesString = FileManager.readFile(getPropertiesFile(submodeId));
         if (propertiesString != null)
         {
             JsonObject properties = JsonUtil.parseObject(propertiesString);
@@ -301,9 +307,9 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
     {
         File propertiesFile = getPropertiesFile(submodeId);
         propertiesFile.getParentFile().mkdirs();
-        if (!SaveManager.writeFile(propertiesFile, properties.toString()))
+        if (!FileManager.writeFile(propertiesFile, properties.toString()))
         {
-            ScathaPro.getInstance().logger.log(Level.ERROR, "Failed to write custom alert mode properties file (" + submodeId + ")");
+            scathaPro.logger.log(Level.ERROR, "Failed to write custom alert mode properties file (" + submodeId + ")");
         }
     }
     

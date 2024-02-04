@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.client.gui.Gui;
+import net.minecraft.client.renderer.GlStateManager;
 
 public class OverlayContainer extends OverlayElement
 {
     protected List<OverlayElement> elements = new ArrayList<OverlayElement>();
-    protected Alignment contentAlignment = null;
     public int backgroundColor = -1;
     public int padding = 0;
 
@@ -20,12 +20,17 @@ public class OverlayContainer extends OverlayElement
     @Override
     protected void drawSpecific()
     {
-        if (backgroundColor >= 0) Gui.drawRect(0, 0, getWidth(false), getHeight(false), backgroundColor); // note: parameters 3 and 4 are right and bottom coords instead of width and height!
+        if (backgroundColor >= 0) Gui.drawRect(0, 0, getWidth(false), getHeight(false), backgroundColor);
 
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(padding, padding, 0);
+        
         for (OverlayElement element : elements)
         {
-            element.draw(this);
+            element.draw();
         }
+        
+        GlStateManager.popMatrix();
     }
     
     public void add(OverlayElement element)
@@ -33,12 +38,6 @@ public class OverlayContainer extends OverlayElement
         elements.add(element);
     }
     
-    public void setContentAlignment(Alignment alignment)
-    {
-        this.contentAlignment = alignment;
-    }
-
-    @SuppressWarnings("incomplete-switch")
     @Override
     public int getWidth(boolean scaled)
     {
@@ -49,23 +48,11 @@ public class OverlayContainer extends OverlayElement
             if (!element.isVisible()) continue;
             
             int elementWidth = element.getWidth();
-            if (element.getAlignment() != null)
-            {
-                switch (element.getAlignment())
-                {
-                    case CENTER:
-                        elementWidth = element.getWidth() / 2;
-                        break;
-                    case RIGHT:
-                        elementWidth = 0;
-                        break;
-                }
-            }
             int elementRequiredWidth = element.getX() + elementWidth;
             if (elementRequiredWidth > width) width = elementRequiredWidth;
         }
         
-        return (int) Math.round((width + padding * 2) * (scaled ? scale : 1));
+        return Math.round((width + padding * 2) * (scaled ? scale : 1));
     }
 
     @Override
@@ -80,11 +67,6 @@ public class OverlayContainer extends OverlayElement
             if (elementRequiredHeight > height) height = elementRequiredHeight;
         }
         
-        return (int) Math.round((height + padding * 2) * (scaled ? scale : 1));
-    }
-    
-    public Alignment getContentAlignment()
-    {
-        return contentAlignment;
+        return Math.round((height + padding * 2) * (scaled ? scale : 1));
     }
 }

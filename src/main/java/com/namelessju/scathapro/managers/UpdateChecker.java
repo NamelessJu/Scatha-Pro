@@ -118,6 +118,9 @@ public class UpdateChecker
         }).start();
     }
     
+    /**
+     * @return If <code>to</code> is newer than <code>from</code> returns 1, if <code>to</code> is older than <code>from</code> returns -1, if both are the same returns 0
+     */
     public static int compareVersions(String from, String to)
     {
         from = getComparableVersion(from);
@@ -128,8 +131,8 @@ public class UpdateChecker
         
         for (int i = 0; (i < fromParts.length || i < toParts.length); i ++)
         {
-            int fromInt = -1;
-            int toInt = -1;
+            int fromInt = 0;
+            int toInt = 0;
             String fromString = null;
             String toString = null;
             
@@ -167,23 +170,19 @@ public class UpdateChecker
             }
             
             // Pre-releases
-            boolean fromIsPreRelease = fromString != null && (fromString.equalsIgnoreCase("pre") || fromString.equalsIgnoreCase("prerelease"));
-            boolean toIsPreRelease = toString != null && (toString.equalsIgnoreCase("pre") || toString.equalsIgnoreCase("prerelease"));
+            boolean fromIsPreRelease = fromString != null && (fromString.equalsIgnoreCase("pre") || fromString.equalsIgnoreCase("prerelease") || fromString.equalsIgnoreCase("pre-release"));
+            boolean toIsPreRelease = toString != null && (toString.equalsIgnoreCase("pre") || toString.equalsIgnoreCase("prerelease") || toString.equalsIgnoreCase("pre-release"));
             if (fromIsPreRelease && !toIsPreRelease) return 1;
             else if (!fromIsPreRelease && toIsPreRelease) return -1;
             else if (fromIsPreRelease && toIsPreRelease) continue;
             
-            // from or to empty
-            if (fromInt < 0 && fromString == null) return 1;
-            else if (toInt < 0 && toString == null) return -1;
-            
             // both ints or both strings
             else if (fromInt >= 0 && toInt >= 0 && fromInt != toInt) return (int) Math.signum(toInt - fromInt);
-            else if (fromString != null && toString != null && !fromString.equals(toString)) return (int) Math.signum(toString.compareTo(fromString));
+            else if (fromString != null && toString != null) return (int) Math.signum(toString.compareTo(fromString));
             
             // string and int mixed
-            else if (fromInt >= 0 && toString != null) return -1;
-            else if (fromString != null && toInt >= 0) return 1;
+            else if (fromString == null && toString != null) return -1;
+            else if (fromString != null && toString == null) return 1;
         }
         
         return 0;

@@ -12,7 +12,7 @@ public enum Achievement
      *                    *
      **********************/
     
-    achievements_unlocked_half("Halfway there...", "Unlock 50% of all non-hidden achievements", 50, Type.HIDDEN),
+    achievements_unlocked_half("Halfway there...", "Unlock half of all non-hidden achievements", 50, Type.HIDDEN),
     achievements_unlocked_all("Completionist", "Unlock all non-hidden achievements", 100, Type.HIDDEN),
     
     worm_kills_1("Long boi", "Kill a worm", 1),
@@ -28,12 +28,12 @@ public enum Achievement
     scatha_kills_4("k", "Kill 1,000 Scathas", 1000),
     scatha_kills_5("Over 9000", "Kill 9,001 Scathas", 9001),
     scatha_kills_6("Scatha Pro", "Kill 20,000 Scathas", 20000),
-
+    
     worm_kill_time_1("No time to waste", "Kill a worm less than one second after it spawned", 1, Type.SECRET),
     worm_kill_time_2("Yeah, I've got time!", "Kill a worm less than a second before it despawns", 1, Type.SECRET),
     
     worm_despawn("Bye, have a great time", "Let a worm despawn", 1, Type.SECRET),
-
+    
     kill_weapons_regular_worm("Variety gamer", "Kill a regular worm using 5 different weapons", 5, Type.SECRET),
     kill_weapons_scatha("A fine collection", "Kill a Scatha using 10 different weapons", 10, Type.SECRET),
     
@@ -52,7 +52,7 @@ public enum Achievement
     lobby_kills_3("Lobby emptied", "Kill 100 worms in a single lobby", 100),
     
     scatha_kill_sneak("Sneak 100", "Spawn and kill a Scatha while sneaking the entire time", 1, Type.SECRET),
-
+    
     scatha_hit_dirt("Bully Maguire's eye treatment", "Put some dirt in a Scatha's eye", 1, Type.SECRET),
     scatha_kill_terminator("I'll be back!", "Kill a Scatha with a Terminator", 1, Type.HIDDEN),
     
@@ -64,7 +64,7 @@ public enum Achievement
     scatha_streak_2("Oh baby a triple!", "Get 3 Scatha spawns back to back", 3),
     scatha_streak_3("Four Scatha clover", "Get 4 Scatha spawns back to back", 4),
     scatha_streak_4("Scatha Magnet", "Get 5 Scatha spawns back to back", 5),
-
+    
     scatha_spawn_chbottom("Hot Scatha farming place", "Spawn a Scatha at the bottom of the Crystal Hollows", 1),
     scatha_spawn_chtop("Reach for the sky", "Spawn a Scatha at the top of the Crystal Hollows", 1, Type.SECRET),
     
@@ -79,22 +79,22 @@ public enum Achievement
     scatha_pet_drop_3_rare("I'm blue da ba dee da ba di", "Get 10 rare Scatha pet drops", 10),
     scatha_pet_drop_3_epic("Epic Scatha gamer", "Get 10 epic Scatha pet drops", 10),
     scatha_pet_drop_3_legendary("Scatha billionaire", "Get 10 legendary Scatha pet drops", 10),
-
+    
     scatha_pet_drop_each("Full scathadex", "Drop a Scatha pet of each rarity", 3),
-
+    
     scatha_pet_drop_any_1("Scathavenger", "Drop 10 Scatha pets of any rarity", 10),
     scatha_pet_drop_any_2("Scathaddiction", "Drop 50 Scatha pets of any rarity", 50),
-
+    
     scatha_pet_drop_mode_normal("The default experience", "Drop a Scatha pet in normal mode", 1),
     scatha_pet_drop_mode_meme("Stonks", "Drop a Scatha pet in meme mode", 1),
     scatha_pet_drop_mode_anime("Scatha-Chan", "Drop a Scatha pet in anime mode", 1),
-    scatha_pet_drop_mode_custom("Scatha tinkerer", "Drop a Scatha pet in custom mode", 1),
-
+    scatha_pet_drop_mode_custom("Scatha tinkerer", "Drop a Scatha pet in a selected custom mode", 1),
+    
     scatha_pet_drop_b2b("Sold your soul to RNGesus", "Drop two Scatha pets back to back", 2, Type.HIDDEN),
     
     meet_developer("The Creator", "Be in a lobby with Scatha-Pro's developer", 1, Type.HIDDEN),
     
-    cheat("Cheater", "Modify your Scatha-Pro savefile to contain impossible values", 1, Type.HIDDEN);
+    cheat("Cheater", "Put impossible values into the Scatha-Pro savefile", 1, Type.HIDDEN);
     
     
     public enum Type

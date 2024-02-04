@@ -45,21 +45,21 @@ public class OverlaySettingsGui extends ScathaProGui implements GuiSlider.ISlide
         
         Minecraft.getMinecraft().gameSettings.showDebugInfo = false;
         
-        buttonList.add(new BooleanSettingButton(504704101, width / 2 - 155, height - 118 - 6, 150, 20, "UI Overlay", Config.Key.overlay));
+        buttonList.add(new BooleanSettingButton(504704101, width / 2 - 155, height - 88 - 6, 150, 20, "UI Overlay", Config.Key.overlay));
         
         double overlayX = config.getDouble(Config.Key.overlayX);
-        GuiSlider overlayXSlider = new GuiSlider(504704102, width / 2 + 5, height - 118 - 6, 150, 20, "Overlay X Position: ", "%", -1, 100, overlayX >= 0 ? overlayX * 100 : -1, false, true, this);
-        if (overlayX < 0) setSliderDefaultString(overlayXSlider);
+        GuiSlider overlayXSlider = new GuiSlider(504704102, width / 2 + 5, height - 88 - 6, 150, 20, "Overlay X Position: ", "%", -1, 100, overlayX >= 0 ? overlayX * 100 : -1, false, true, this);
+        if (overlayX < 0) setSliderTextDefault(overlayXSlider);
         buttonList.add(overlayXSlider);
         
         double overlayY = config.getDouble(Config.Key.overlayY);
-        GuiSlider overlayYSlider = new GuiSlider(504704103, width / 2 + 5, height - 94 - 6, 150, 20, "Overlay Y Position: ", "%", -1, 100, overlayY >= 0 ? overlayY * 100 : -1, false, true, this);
-        if (overlayY < 0) setSliderDefaultString(overlayYSlider);
+        GuiSlider overlayYSlider = new GuiSlider(504704103, width / 2 + 5, height - 64 - 6, 150, 20, "Overlay Y Position: ", "%", -1, 100, overlayY >= 0 ? overlayY * 100 : -1, false, true, this);
+        if (overlayY < 0) setSliderTextDefault(overlayYSlider);
         buttonList.add(overlayYSlider);
         
-        buttonList.add(new GuiSlider(504704104, width / 2 - 155, height - 94 - 6, 150, 20, "Overlay Scale: ", "%", 50, 150, config.getDouble(Config.Key.overlayScale) * 100, false, true, this));
+        buttonList.add(new GuiSlider(504704104, width / 2 - 155, height - 64 - 6, 150, 20, "Overlay Scale: ", "%", 50, 150, config.getDouble(Config.Key.overlayScale) * 100, false, true, this));
         
-        buttonList.add(new DoneButton(504704199, width / 2 - 100, height - 70, 200, 20, "Done", this));
+        buttonList.add(new DoneButton(504704199, width / 2 - 100, height - 40, 200, 20, "Done", this));
         
         overlayManager.updateOverlayFull();
     }
@@ -102,7 +102,7 @@ public class OverlaySettingsGui extends ScathaProGui implements GuiSlider.ISlide
                     
                     overlayManager.updatePosition();
                     
-                    if (overlayX < 0) setSliderDefaultString(slider);
+                    if (overlayX < 0) setSliderTextDefault(slider);
                     break;
                     
                 case 504704103:
@@ -113,7 +113,7 @@ public class OverlaySettingsGui extends ScathaProGui implements GuiSlider.ISlide
                     
                     overlayManager.updatePosition();
                     
-                    if (overlayY < 0) setSliderDefaultString(slider);
+                    if (overlayY < 0) setSliderTextDefault(slider);
                     break;
                     
                 case 504704104:

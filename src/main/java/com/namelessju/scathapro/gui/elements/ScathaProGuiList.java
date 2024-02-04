@@ -4,15 +4,12 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiLabel;
 import net.minecraft.client.gui.GuiListExtended;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.List;
 
 import com.google.common.collect.Lists;
 import com.namelessju.scathapro.util.Util;
 
-@SideOnly(Side.CLIENT)
 public abstract class ScathaProGuiList extends GuiListExtended
 {
     protected final GuiScreen gui;
@@ -30,8 +27,6 @@ public abstract class ScathaProGuiList extends GuiListExtended
         this.gui = gui;
     }
     
-    protected abstract boolean areEntriesSelectable();
-
     @Override
     protected int getSize()
     {
@@ -83,7 +78,6 @@ public abstract class ScathaProGuiList extends GuiListExtended
         }
     }
     
-    @SideOnly(Side.CLIENT)
     public abstract class ListEntry implements IGuiListEntry
     {
         private abstract class EntryGuiElement

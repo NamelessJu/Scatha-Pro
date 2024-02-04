@@ -8,9 +8,9 @@ import com.namelessju.scathapro.entitydetection.detectedentities.DetectedWorm;
 import com.namelessju.scathapro.events.AchievementUnlockedEvent;
 import com.namelessju.scathapro.events.BedrockWallEvent;
 import com.namelessju.scathapro.events.CrystalHollowsTickEvent;
-import com.namelessju.scathapro.events.GoblinSpawnEvent;
 import com.namelessju.scathapro.events.MeetDeveloperEvent;
 import com.namelessju.scathapro.events.ScathaPetDropEvent;
+import com.namelessju.scathapro.events.SkyblockAreaDetectedEvent;
 import com.namelessju.scathapro.events.ModUpdateEvent;
 import com.namelessju.scathapro.events.WormDespawnEvent;
 import com.namelessju.scathapro.events.WormHitEvent;
@@ -19,12 +19,14 @@ import com.namelessju.scathapro.events.WormPreSpawnEvent;
 import com.namelessju.scathapro.events.WormSpawnEvent;
 import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.managers.PersistentData;
+import com.namelessju.scathapro.miscellaneous.SkyblockArea;
 import com.namelessju.scathapro.util.MessageUtil;
 import com.namelessju.scathapro.util.NBTUtil;
 import com.namelessju.scathapro.util.SoundUtil;
 import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatStyle;
@@ -56,7 +58,7 @@ public class ScathaProListeners
         mc = scathaPro.minecraft;
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent(priority = EventPriority.HIGH)
     public void onUpdate(ModUpdateEvent e)
     {
         PersistentData persistentData = scathaPro.persistentData;
@@ -65,8 +67,30 @@ public class ScathaProListeners
             persistentData.backup("Update_" + (e.previousVersion != null ? "v" + e.previousVersion : "unknown") + "_to_v" + e.newVersion, true);
         }
     }
+    
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public void onSkyblockAreaDetected(SkyblockAreaDetectedEvent e)
+    {
+        if (e.area != SkyblockArea.CRYSTAL_HOLLOWS) return;
+        
+        if (scathaPro.config.getBoolean(Config.Key.muteOtherSounds))
+        {
+            ChatComponentText chatComponent = new ChatComponentText(EnumChatFormatting.GRAY + "Note: You've muted sounds in the Crystal Hollows! Only Scatha-Pro sounds will play - you can unmute other sounds again in ");
+            
+            ChatComponentText commandComponent = new ChatComponentText(EnumChatFormatting.GRAY.toString() + EnumChatFormatting.ITALIC + "/scathapro settings");
+            commandComponent.setChatStyle(
+                    new ChatStyle()
+                    .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/scathapro settings"))
+                    .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("Open Scatha-Pro settings")))
+            );
+            chatComponent.appendSibling(commandComponent);
+            
+            chatComponent.appendSibling(new ChatComponentText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + "!"));
+            MessageUtil.sendModChatMessage(chatComponent);
+        }
+    }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent(priority = EventPriority.HIGH)
     public void onCrystalHollowsTick(CrystalHollowsTickEvent e)
     {
         long now = Util.getCurrentTime();
@@ -98,11 +122,9 @@ public class ScathaProListeners
         Achievement.crystal_hollows_time_3.setProgress(hours);
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent(priority = EventPriority.HIGH)
     public void onWormPreSpawn(WormPreSpawnEvent e)
     {
-        if (!scathaPro.config.getBoolean(Config.Key.wormPreAlert)) return;
-        
         long now = Util.getCurrentTime();
         if (now - lastPreAlertTime > 3000)
         {
@@ -111,14 +133,14 @@ public class ScathaProListeners
         }
     }
     
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent(priority = EventPriority.HIGH)
     public void onWormSpawn(WormSpawnEvent e)
     {
         // Scatha spawn
         if (e.worm.isScatha)
         {
-            if (scathaPro.variables.scathaStreak < 0) scathaPro.variables.scathaStreak = 0;
-            scathaPro.variables.scathaStreak ++;
+            if (scathaPro.variables.scathaSpawnStreak < 0) scathaPro.variables.scathaSpawnStreak = 0;
+            scathaPro.variables.scathaSpawnStreak ++;
             
             if (Util.getCurrentTime() - scathaPro.variables.lastWorldJoinTime <= Achievement.scatha_spawn_time.goal * 60 * 1000)
             {
@@ -133,22 +155,16 @@ public class ScathaProListeners
                 Achievement.scatha_spawn_chbottom.unlock();
             }
             
-            if (scathaPro.config.getBoolean(Config.Key.scathaAlert))
-            {
-                Alert.scathaSpawn.play();
-            }
+            Alert.scathaSpawn.play();
         }
         
         // Worm spawn
         else
         {
-            if (scathaPro.variables.scathaStreak > 0) scathaPro.variables.scathaStreak = 0;
-            scathaPro.variables.scathaStreak --;
+            if (scathaPro.variables.scathaSpawnStreak > 0) scathaPro.variables.scathaSpawnStreak = 0;
+            scathaPro.variables.scathaSpawnStreak --;
             
-            if (scathaPro.config.getBoolean(Config.Key.wormAlert))
-            {
-                Alert.wormSpawn.play();
-            }
+            Alert.regularWormSpawn.play();
         }
         
         long now = Util.getCurrentTime();
@@ -178,21 +194,21 @@ public class ScathaProListeners
         scathaPro.overlayManager.updateWormStreak();
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent(priority = EventPriority.HIGH)
     public void onWormHit(WormHitEvent e)
     {
         String skyblockItemID = NBTUtil.getSkyblockItemID(e.weapon);
         if (skyblockItemID != null && skyblockItemID.equals("DIRT") && e.worm.isScatha) Achievement.scatha_hit_dirt.unlock();
     }
     
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent(priority = EventPriority.HIGH)
     public void onWormKill(WormKillEvent e)
     {
         DetectedWorm worm = e.worm;
         if (worm.isScatha)
         {
-            scathaPro.variables.scathaKills ++;
-            if (scathaPro.variables.overallScathaKills >= 0) scathaPro.variables.overallScathaKills ++;
+            scathaPro.variables.lobbyScathaKills ++;
+            if (scathaPro.variables.scathaKills >= 0) scathaPro.variables.scathaKills ++;
             
             if (worm.getHitWeaponsCount() >= Achievement.kill_weapons_scatha.goal) Achievement.kill_weapons_scatha.unlock();
             if (worm.getHitWeaponsCount() > 0 && worm.getHitWeapons()[worm.getHitWeaponsCount() - 1].equals("TERMINATOR")) Achievement.scatha_kill_terminator.unlock();
@@ -206,8 +222,8 @@ public class ScathaProListeners
         }
         else
         {
-            scathaPro.variables.regularWormKills ++;
-            if (scathaPro.variables.overallRegularWormKills >= 0) scathaPro.variables.overallRegularWormKills ++;
+            scathaPro.variables.lobbyRegularWormKills ++;
+            if (scathaPro.variables.regularWormKills >= 0) scathaPro.variables.regularWormKills ++;
             
             if (worm.getHitWeaponsCount() >= Achievement.kill_weapons_regular_worm.goal) Achievement.kill_weapons_regular_worm.unlock();
             
@@ -232,7 +248,7 @@ public class ScathaProListeners
         if (e.worm.getLifetime() >= 29 * 1000) Achievement.worm_despawn.unlock();
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent(priority = EventPriority.HIGH)
     public void onScathaPetDrop(ScathaPetDropEvent e)
     {
         String rarityTitle = null;
@@ -255,15 +271,15 @@ public class ScathaProListeners
                 rarityTitle = EnumChatFormatting.GRAY.toString() + EnumChatFormatting.ITALIC + "Unknown Rarity";
         }
         
-        if (scathaPro.config.getBoolean(Config.Key.petAlert))
+        if (scathaPro.config.getBoolean(Config.Key.scathaPetDropAlert))
         {
             SoundUtil.playSound("random.chestopen", 1.5f, 0.95f);
             Alert.scathaPetDrop.play(rarityTitle);
         }
         
-        if (scathaPro.config.getBoolean(Config.Key.dryStreakMessage) && scathaPro.variables.overallScathaKills >= 0 && scathaPro.variables.scathaKillsAtLastDrop >= 0)
+        if (scathaPro.config.getBoolean(Config.Key.dryStreakMessage) && scathaPro.variables.scathaKills >= 0 && scathaPro.variables.scathaKillsAtLastDrop >= 0)
         {
-            int dryStreak = (scathaPro.variables.overallScathaKills - 1) - scathaPro.variables.scathaKillsAtLastDrop;
+            int dryStreak = (scathaPro.variables.scathaKills - 1) - scathaPro.variables.scathaKillsAtLastDrop;
             if (dryStreak > 0)
             {
                 MessageUtil.sendModChatMessage(EnumChatFormatting.YELLOW + "Scatha pet dropped after a " + EnumChatFormatting.RED + dryStreak + " Scatha kill" + (dryStreak != 1 ? "s" : "") + EnumChatFormatting.YELLOW + " dry streak");
@@ -289,19 +305,19 @@ public class ScathaProListeners
         {
             Achievement.scatha_pet_drop_mode_anime.unlock();
         }
-        else if (scathaPro.alertModeManager.getCurrentMode().id.equals("custom"))
+        else if (scathaPro.alertModeManager.getCurrentMode().id.equals("custom") && scathaPro.customAlertModeManager.getCurrentSubmodeId() != null)
         {
             Achievement.scatha_pet_drop_mode_custom.unlock();
         }
         
-        if ((scathaPro.variables.scathaKillsAtLastDrop >= 0 && scathaPro.variables.overallScathaKills >= 0 && scathaPro.variables.overallScathaKills == scathaPro.variables.scathaKillsAtLastDrop + 1) || droppedPetAtLastScatha)
+        if ((scathaPro.variables.scathaKillsAtLastDrop >= 0 && scathaPro.variables.scathaKills >= 0 && scathaPro.variables.scathaKills == scathaPro.variables.scathaKillsAtLastDrop + 1) || droppedPetAtLastScatha)
         {
             Achievement.scatha_pet_drop_b2b.unlock();
         }
         
-        if (scathaPro.variables.overallScathaKills >= 0)
+        if (scathaPro.variables.scathaKills >= 0)
         {
-            scathaPro.variables.scathaKillsAtLastDrop = scathaPro.variables.overallScathaKills;
+            scathaPro.variables.scathaKillsAtLastDrop = scathaPro.variables.scathaKills;
             scathaPro.overlayManager.updateScathaKillsSinceLastDrop();
         }
         
@@ -313,39 +329,13 @@ public class ScathaProListeners
         scathaPro.overlayManager.updatePetDrops();
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent(priority = EventPriority.HIGH)
     public void onBedrockWall(BedrockWallEvent e)
     {
-        if (scathaPro.config.getBoolean(Config.Key.wallAlert))
-        {
-            Alert.bedrockWall.play();
-        }
+        Alert.bedrockWall.play();
     }
     
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onGoblinSpawn(GoblinSpawnEvent e)
-    {
-        if (scathaPro.config.getBoolean(Config.Key.goblinAlert))
-        {
-            String goblinText;
-            
-            switch (e.goblin.type)
-            {
-                case GOLD:
-                    goblinText = EnumChatFormatting.YELLOW + "Golden";
-                    break;
-                case DIAMOND:
-                    goblinText = EnumChatFormatting.AQUA + "Diamond";
-                    break;
-                default:
-                    goblinText = EnumChatFormatting.GRAY + "Unknown type";
-            }
-            
-            Alert.goblinSpawn.play(goblinText);
-        }
-    }
-    
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent(priority = EventPriority.HIGH)
     public void onAchievementUnlocked(AchievementUnlockedEvent e)
     {
         Achievement achievement = e.achievement;
@@ -391,7 +381,7 @@ public class ScathaProListeners
         lastAchievementUnlockTime = now;
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent(priority = EventPriority.HIGH)
     public void onMeetDeveloper(MeetDeveloperEvent e)
     {
         Achievement.meet_developer.unlock();

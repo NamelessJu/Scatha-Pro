@@ -17,9 +17,9 @@
         "category": "master",
         "sounds": [{"name": "alert_modes/meme/worm_prespawn", "stream": true}]
     },
-    "alert_modes.meme.worm_spawn": {
+    "alert_modes.meme.regular_worm_spawn": {
         "category": "master",
-        "sounds": [{"name": "alert_modes/meme/worm_spawn", "stream": true}]
+        "sounds": [{"name": "alert_modes/meme/regular_worm_spawn", "stream": true}]
     },
     "alert_modes.meme.scatha_spawn": {
         "category": "master",
@@ -38,9 +38,9 @@
         "category": "master",
         "sounds": [{"name": "alert_modes/anime/worm_prespawn", "stream": true}]
     },
-    "alert_modes.anime.worm_spawn": {
+    "alert_modes.anime.regular_worm_spawn": {
         "category": "master",
-        "sounds": [{"name": "alert_modes/anime/worm_spawn", "stream": true}]
+        "sounds": [{"name": "alert_modes/anime/regular_worm_spawn", "stream": true}]
     },
     "alert_modes.anime.scatha_spawn": {
         "category": "master",

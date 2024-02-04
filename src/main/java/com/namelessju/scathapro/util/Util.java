@@ -3,25 +3,21 @@ package com.namelessju.scathapro.util;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.io.File;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.UUID;
 
 import com.mojang.authlib.GameProfile;
-import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.managers.Config;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.IChatComponent;
 
 public class Util
 {
@@ -79,28 +75,6 @@ public class Util
         }
         
         return null;
-    }
-    
-    public static boolean inCrystalHollows()
-    {
-        if (ScathaPro.getInstance().config.getBoolean(Config.Key.devMode)) return true;
-        
-        NetHandlerPlayClient netHandler = Minecraft.getMinecraft().getNetHandler();
-        if (netHandler != null)
-        {
-            Collection<NetworkPlayerInfo> playerInfos = netHandler.getPlayerInfoMap();
-            for (Iterator<NetworkPlayerInfo> iterator = playerInfos.iterator(); iterator.hasNext();)
-            {
-                NetworkPlayerInfo p = iterator.next();
-                IChatComponent displayName = p.getDisplayName();
-                if (displayName != null && displayName.getUnformattedText().contains("Area:") && displayName.getUnformattedText().contains("Crystal Hollows"))
-                {
-                    return true;
-                }
-            }
-        }
-        
-        return false;
     }
     
     public static boolean isDeveloper(NetworkPlayerInfo playerInfo)
@@ -171,6 +145,23 @@ public class Util
     public static float calculatePetChance(float initialChance, float magicFind, float petLuck, int looting)
     {
         return initialChance * (1f + (magicFind + petLuck)/100f) * (1 + looting * 0.15f);
+    }
+    
+    public static boolean openFileInExplorer(File file)
+    {
+        if (!file.exists()) return false;
+        
+        try
+        {
+            Runtime.getRuntime().exec("explorer.exe " + (file.isFile() ? "/select," : "") + file.getAbsolutePath());
+            return true;
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        
+        return false;
     }
     
     

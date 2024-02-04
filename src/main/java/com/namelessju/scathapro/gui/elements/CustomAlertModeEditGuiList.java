@@ -13,7 +13,7 @@ import com.google.gson.JsonPrimitive;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.alerts.Alert;
 import com.namelessju.scathapro.alerts.AlertTitle;
-import com.namelessju.scathapro.alerts.customalertmode.CustomAlertModeManager;
+import com.namelessju.scathapro.alerts.alertmodes.customalertmode.CustomAlertModeManager;
 import com.namelessju.scathapro.util.JsonUtil;
 
 import net.minecraft.client.Minecraft;
@@ -22,17 +22,9 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class CustomAlertModeEditGuiList extends ScathaProGuiList
 {
-    @Override
-    protected boolean areEntriesSelectable()
-    {
-        return false;
-    }
-
     private final CustomAlertModeManager customAlertModeManager;
 
     private final String customModeId;
@@ -91,7 +83,6 @@ public class CustomAlertModeEditGuiList extends ScathaProGuiList
         return reloadRequired;
     }
 
-    @SideOnly(Side.CLIENT)
     public interface ISaveableEntry
     {
         /**
@@ -100,8 +91,7 @@ public class CustomAlertModeEditGuiList extends ScathaProGuiList
         public boolean saveChanges();
     }
     
-    @SideOnly(Side.CLIENT)
-    public class AlertEditEntry extends ListEntry implements ISaveableEntry
+    private class AlertEditEntry extends ListEntry implements ISaveableEntry
     {
         private final File alertAudioFile;
         private final File audioResetFile = new File("");
@@ -121,7 +111,7 @@ public class CustomAlertModeEditGuiList extends ScathaProGuiList
         private File newSoundFile = null;
         
         
-        private AlertEditEntry(Alert alert)
+        public AlertEditEntry(Alert alert)
         {
             this.alert = alert;
             alertAudioFile = CustomAlertModeManager.getAlertAudioFile(customModeId, alert);
@@ -129,7 +119,7 @@ public class CustomAlertModeEditGuiList extends ScathaProGuiList
             boolean audioExists = alertAudioFile.exists();
             boolean canPlayAudio = customAlertModeManager.isSubmodeActive(customModeId) || !audioExists;
             
-            addLabel(EnumChatFormatting.YELLOW.toString() + EnumChatFormatting.BOLD + alert.alertName, 0, 5, 0, 10);
+            addLabel(EnumChatFormatting.YELLOW + alert.alertName, 0, 5, 0, 10);
             
             playButton = new GuiButton(0, 0, 20, 100, 20, "");
             playButton.enabled = canPlayAudio;

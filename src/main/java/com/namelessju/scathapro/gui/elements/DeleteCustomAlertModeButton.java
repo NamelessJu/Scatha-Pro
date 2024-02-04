@@ -1,7 +1,7 @@
 package com.namelessju.scathapro.gui.elements;
 
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.alerts.customalertmode.CustomAlertModeManager;
+import com.namelessju.scathapro.alerts.alertmodes.customalertmode.CustomAlertModeManager;
 import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.client.Minecraft;

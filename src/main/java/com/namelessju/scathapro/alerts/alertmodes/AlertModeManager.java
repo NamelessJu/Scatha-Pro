@@ -1,6 +1,7 @@
-package com.namelessju.scathapro.alerts;
+package com.namelessju.scathapro.alerts.alertmodes;
 import java.util.LinkedHashMap;
 
+import com.namelessju.scathapro.alerts.alertmodes.customalertmode.CustomAlertMode;
 import com.namelessju.scathapro.managers.Config;
 
 public class AlertModeManager
@@ -14,12 +15,12 @@ public class AlertModeManager
         this.config = config;
         
         registerMode(AlertMode.DEFAULT_MODE);
-        registerMode(new CustomAlertMode("custom", "Custom"));
         registerMode(new PresetAlertMode("meme", "Meme"));
         registerMode(new PresetAlertMode("anime", "Anime"));
+        registerMode(new CustomAlertMode("custom", "Custom"));
     }
     
-    private void registerMode(AlertMode mode)
+    public void registerMode(AlertMode mode)
     {
         modes.put(mode.id, mode);
     }

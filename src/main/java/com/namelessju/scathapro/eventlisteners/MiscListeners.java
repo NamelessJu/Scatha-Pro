@@ -78,18 +78,17 @@ public class MiscListeners
         
         DetectedEntity.clearLists();
         
-        scathaPro.variables.scathaStreak = 0;
-        
-        scathaPro.variables.regularWormKills = 0;
-        scathaPro.variables.scathaKills = 0;
-        
-        scathaPro.variables.lastWormSpawnTime = -1;
+        scathaPro.variables.lastWorldJoinTime = Util.getCurrentTime();
+        scathaPro.variables.currentAreaCheckTimeIndex = 0;
+        scathaPro.variables.currentArea = null;
         
         scathaPro.variables.inBedrockWallRange = false;
-        
         scathaPro.variables.previousScathaPets = null;
         
-        scathaPro.variables.lastWorldJoinTime = Util.getCurrentTime();
+        scathaPro.variables.lobbyRegularWormKills = 0;
+        scathaPro.variables.lobbyScathaKills = 0;
+        scathaPro.variables.scathaSpawnStreak = 0;
+        scathaPro.variables.lastWormSpawnTime = -1;
         
         // Update overlay
         
@@ -180,7 +179,7 @@ public class MiscListeners
             e.name.equals("mob.spider.step")
             &&
             (
-                e.sound.getPitch() == 2.0952382f && Util.inCrystalHollows()
+                e.sound.getPitch() == 2.0952382f && scathaPro.inCrystalHollows()
                 || e.sound.getPitch() >= 2f && scathaPro.config.getBoolean(Config.Key.devMode)
             )
         )
@@ -193,7 +192,7 @@ public class MiscListeners
         if
         (
             scathaPro.config.getBoolean(Config.Key.muteOtherSounds)
-            && Util.inCrystalHollows()
+            && scathaPro.inCrystalHollows()
             && !(e.sound instanceof ScathaProSound) && !e.name.equals("gui.button.press")
         )
         {

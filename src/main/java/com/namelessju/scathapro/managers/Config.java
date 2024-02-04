@@ -19,13 +19,15 @@ public class Config
         // Alerts
         mode("alerts", "mode", ""),
         customModeSubmode("alerts", "customModeSubmode", ""),
-        
-        wormAlert("alerts", "worms", true),
-        scathaAlert("alerts", "scathas", true),
-        wormPreAlert("alerts", "wormsPre", true),
-        petAlert("alerts", "pet", true),
-        wallAlert("alerts", "wall", true),
-        goblinAlert("alerts", "goblin", true),
+
+        bedrockWallAlert("alerts", "wall", true),
+        wormSpawnCooldownEndAlert("alerts", "wormSpawnCooldownEnd", false),
+        wormPrespawnAlert("alerts", "wormsPre", true),
+        regularWormSpawnAlert("alerts", "worms", true),
+        scathaSpawnAlert("alerts", "scathas", true),
+        scathaPetDropAlert("alerts", "pet", true),
+        goblinSpawnAlert("alerts", "goblinSpawn", true),
+        jerrySpawnAlert("alerts", "jerrySpawn", true),
         
         // Other
         showRotationAngles("other", "showRotationAngles", false),
@@ -105,7 +107,7 @@ public class Config
     
     public void loadFile()
     {
-        config = new Configuration(SaveManager.getModFile("config.cfg"));
+        config = new Configuration(FileManager.getModFile("config.cfg"));
         config.load();
     }
     

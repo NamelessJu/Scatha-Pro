@@ -1,4 +1,6 @@
-package com.namelessju.scathapro.alerts;
+package com.namelessju.scathapro.alerts.alertmodes;
+
+import com.namelessju.scathapro.alerts.AlertTitle;
 
 import net.minecraft.util.ResourceLocation;
 
@@ -19,7 +21,7 @@ public class AlertMode
     
     public String getIconPath()
     {
-        return "overlay/scatha_pet.png";
+        return "overlay/mode_icons/normal.png";
     }
 
     

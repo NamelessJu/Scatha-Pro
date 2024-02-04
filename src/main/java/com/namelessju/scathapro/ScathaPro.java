@@ -1,31 +1,34 @@
 package com.namelessju.scathapro;
 
+import java.util.List;
+
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.achievements.AchievementManager;
-import com.namelessju.scathapro.alerts.AlertModeManager;
-import com.namelessju.scathapro.alerts.customalertmode.CustomAlertModeManager;
+import com.namelessju.scathapro.alerts.alertmodes.AlertModeManager;
+import com.namelessju.scathapro.alerts.alertmodes.customalertmode.CustomAlertModeManager;
 import com.namelessju.scathapro.commands.ChancesCommand;
 import com.namelessju.scathapro.commands.MainCommand;
-import com.namelessju.scathapro.entitydetection.detectedentities.DetectedGoblin;
 import com.namelessju.scathapro.eventlisteners.GuiListeners;
 import com.namelessju.scathapro.eventlisteners.LoopListeners;
 import com.namelessju.scathapro.eventlisteners.MiscListeners;
 import com.namelessju.scathapro.eventlisteners.ScathaProListeners;
-import com.namelessju.scathapro.events.GoblinSpawnEvent;
 import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.managers.OverlayManager;
 import com.namelessju.scathapro.managers.PersistentData;
-import com.namelessju.scathapro.managers.SaveManager;
+import com.namelessju.scathapro.miscellaneous.SkyblockArea;
+import com.namelessju.scathapro.managers.FileManager;
 import com.namelessju.scathapro.util.MessageUtil;
 import com.namelessju.scathapro.commands.DevCommand;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.SimpleReloadableResourceManager;
+import net.minecraft.command.CommandBase;
+import net.minecraft.command.CommandException;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
@@ -38,14 +41,14 @@ public class ScathaPro
 {
     public static final String MODNAME = "Scatha-Pro";
     public static final String MODID = "scathapro";
-    public static final String VERSION = "1.3-DEV";
+    public static final String VERSION = "1.3.pre-release.1";
     
     public static final String CHATPREFIX = EnumChatFormatting.GRAY + MODNAME + ": " + EnumChatFormatting.RESET;
     
     
     private static ScathaPro instance;
     
-    public final Variables variables;
+    public final GlobalVariables variables;
     
     public final Minecraft minecraft;
     
@@ -71,17 +74,17 @@ public class ScathaPro
         logger = LogManager.getLogger(MODID);
         minecraft = Minecraft.getMinecraft();
         
-        variables = new Variables();
+        variables = new GlobalVariables();
 
         config = new Config();
-        SaveManager.updateOldSaveLocations();
+        FileManager.updateOldSaveLocations();
         config.init();
         
         persistentData = new PersistentData(this);
         achievementManager = new AchievementManager(this);
         overlayManager = new OverlayManager(this);
         alertModeManager = new AlertModeManager(config);
-        customAlertModeManager = new CustomAlertModeManager();
+        customAlertModeManager = new CustomAlertModeManager(this);
     }
     
     @EventHandler
@@ -104,30 +107,33 @@ public class ScathaPro
         }
         else
         {
-            logger.log(Level.ERROR, "Couldn't register resource reload listener - resource manager of unexpected type " + resourceManager.getClass().getCanonicalName() + " (expected " + SimpleReloadableResourceManager.class.getCanonicalName() + ")");
+            logger.log(Level.ERROR, "Couldn't register resource reload listener for custom alert mode - resource manager of unexpected type " + resourceManager.getClass().getCanonicalName() + " (expected " + SimpleReloadableResourceManager.class.getCanonicalName() + ")");
         }
     }
     
-    
-    public boolean devTrigger(String trigger, String[] arguments)
+    public boolean inCrystalHollows()
     {
-        if (trigger.equalsIgnoreCase("goblin"))
+        return variables.currentArea == SkyblockArea.CRYSTAL_HOLLOWS;
+    }
+    
+    
+    public boolean devTrigger(String trigger, String[] arguments) throws CommandException
+    {
+        if (trigger.equalsIgnoreCase("overlayToggle"))
         {
             if (arguments.length > 0)
             {
-                try
+                List<OverlayManager.ToggleableOverlayElement> elements = overlayManager.toggleableOverlayElements;
+                
+                int index = CommandBase.parseInt(arguments[0]);
+                if (index >= 0 && index < elements.size())
                 {
-                    DetectedGoblin.Type type = DetectedGoblin.Type.valueOf(arguments[0]);
-                    MinecraftForge.EVENT_BUS.post(new GoblinSpawnEvent(new DetectedGoblin(null, type)));
-                    
-                    MessageUtil.sendModChatMessage("Goblin spawn triggered");
+                    elements.get(index).toggle();
+                    MessageUtil.sendModChatMessage("Overlay element toggled");
                 }
-                catch (IllegalArgumentException e)
-                {
-                    MessageUtil.sendModErrorMessage("Invalid goblin type");
-                }
+                else MessageUtil.sendModErrorMessage("Index not in range of toggleable elements");
             }
-            else MessageUtil.sendModErrorMessage("Goblin type argument missing");
+            else MessageUtil.sendModErrorMessage("Index argument missing");
             
             return true;
         }
@@ -136,16 +142,16 @@ public class ScathaPro
     }
     
     
-    // These should be moved into another class...
+    // These should probably be moved into another class...
     
     public void updateKillAchievements()
     {
-        int lobbyWormKills = variables.regularWormKills + variables.scathaKills;
+        int lobbyWormKills = variables.lobbyRegularWormKills + variables.lobbyScathaKills;
         Achievement.lobby_kills_1.setProgress(lobbyWormKills);
         Achievement.lobby_kills_2.setProgress(lobbyWormKills);
         Achievement.lobby_kills_3.setProgress(lobbyWormKills);
         
-        int highestRegularWormKills = Math.max(lobbyWormKills, variables.overallRegularWormKills + variables.overallScathaKills);
+        int highestRegularWormKills = Math.max(lobbyWormKills, variables.regularWormKills + variables.scathaKills);
         Achievement.worm_kills_1.setProgress(highestRegularWormKills);
         Achievement.worm_kills_2.setProgress(highestRegularWormKills);
         Achievement.worm_kills_3.setProgress(highestRegularWormKills);
@@ -153,7 +159,7 @@ public class ScathaPro
         Achievement.worm_kills_5.setProgress(highestRegularWormKills);
         Achievement.worm_kills_6.setProgress(highestRegularWormKills);
         
-        int highestScathaKills = Math.max(variables.scathaKills, variables.overallScathaKills);
+        int highestScathaKills = Math.max(variables.lobbyScathaKills, variables.scathaKills);
         Achievement.scatha_kills_1.setProgress(highestScathaKills);
         Achievement.scatha_kills_2.setProgress(highestScathaKills);
         Achievement.scatha_kills_3.setProgress(highestScathaKills);
@@ -164,13 +170,13 @@ public class ScathaPro
     
     public void updateSpawnAchievements()
     {
-        int scathaStreak = Math.max(0, variables.scathaStreak);
+        int scathaStreak = Math.max(0, variables.scathaSpawnStreak);
         Achievement.scatha_streak_1.setProgress(scathaStreak);
         Achievement.scatha_streak_2.setProgress(scathaStreak);
         Achievement.scatha_streak_3.setProgress(scathaStreak);
         Achievement.scatha_streak_4.setProgress(scathaStreak);
         
-        int regularWormStreak = Math.max(0, -variables.scathaStreak);
+        int regularWormStreak = Math.max(0, -variables.scathaSpawnStreak);
         Achievement.regular_worm_streak_1.setProgress(regularWormStreak);
         Achievement.regular_worm_streak_2.setProgress(regularWormStreak);
         Achievement.regular_worm_streak_3.setProgress(regularWormStreak);
@@ -205,22 +211,24 @@ public class ScathaPro
     
     public void updateProgressAchievements()
     {
-        int nonHiddenAchievements = 0;
-        int unlockedNonHiddenAchievements = 0;
+        int achievementsCount = 0;
+        int unlockedAchievementsCount = 0;
         
         Achievement[] achievements = AchievementManager.getAllAchievements();
         
-        for (int i = 0; i < achievements.length; i ++) {
+        for (int i = 0; i < achievements.length; i ++)
+        {
             Achievement a = achievements[i];
-            if (a.type.visibility != Achievement.Type.Visibility.HIDDEN) {
-                nonHiddenAchievements ++;
-                if (achievementManager.isAchievementUnlocked(a)) unlockedNonHiddenAchievements ++;
+            if (a.type.visibility == Achievement.Type.Visibility.VISIBLE)
+            {
+                achievementsCount ++;
+                if (achievementManager.isAchievementUnlocked(a)) unlockedAchievementsCount ++;
             }
         }
         
-        float unlockedNonHiddenAchievementsPercentage = (float) unlockedNonHiddenAchievements / nonHiddenAchievements;
-        if (unlockedNonHiddenAchievementsPercentage >= 1f) Achievement.achievements_unlocked_all.setProgress(Achievement.achievements_unlocked_all.goal);
-        else if (unlockedNonHiddenAchievementsPercentage >= 0.5f) Achievement.achievements_unlocked_half.setProgress(Achievement.achievements_unlocked_half.goal);
+        float unlockedAchievementsPercentage = (float) unlockedAchievementsCount / achievementsCount;
+        if (unlockedAchievementsPercentage >= 1f) Achievement.achievements_unlocked_all.setProgress(Achievement.achievements_unlocked_all.goal);
+        else if (unlockedAchievementsPercentage >= 0.5f) Achievement.achievements_unlocked_half.setProgress(Achievement.achievements_unlocked_half.goal);
     }
     
 }

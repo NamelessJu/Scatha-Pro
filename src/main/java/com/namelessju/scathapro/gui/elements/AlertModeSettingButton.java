@@ -1,8 +1,8 @@
 package com.namelessju.scathapro.gui.elements;
 
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.alerts.AlertMode;
-import com.namelessju.scathapro.alerts.AlertModeManager;
+import com.namelessju.scathapro.alerts.alertmodes.AlertMode;
+import com.namelessju.scathapro.alerts.alertmodes.AlertModeManager;
 import com.namelessju.scathapro.managers.Config;
 
 import net.minecraft.client.gui.GuiButton;
