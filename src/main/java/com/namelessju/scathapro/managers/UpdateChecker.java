@@ -24,7 +24,9 @@ import net.minecraft.util.EnumChatFormatting;
 
 public class UpdateChecker
 {
-    private final static String releasesApiUrl = "https://api.github.com/repos/NamelessJu/Scatha-Pro/releases/latest";
+    private static final String GITHUB_API_RELEASES_LATEST_URL = "https://api.github.com/repos/NamelessJu/Scatha-Pro/releases/latest";
+    private static final String MODRINTH_VERSIONS_URL = "https://modrinth.com/mod/scatha-pro/version/";
+    
     
     public static void checkForUpdate(final boolean showAllResults)
     {
@@ -33,7 +35,7 @@ public class UpdateChecker
             {
                 try
                 {
-                    URL url = new URL(releasesApiUrl);
+                    URL url = new URL(GITHUB_API_RELEASES_LATEST_URL);
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                     connection.setRequestMethod("GET");
                     connection.connect();
@@ -60,45 +62,47 @@ public class UpdateChecker
                             JsonObject versionObject = json.getAsJsonObject();
                             
                             String versionTag = JsonUtil.getString(versionObject, "tag_name");
-                            String updateUrl = JsonUtil.getString(versionObject, "html_url");
+                            if (versionTag == null) return;
                             
-                            if (versionTag != null)
+                            int comparison = compareVersions(ScathaPro.VERSION, versionTag);
+                            if (comparison > 0)
                             {
-                                int comparison = compareVersions(ScathaPro.VERSION, versionTag);
+                                // String updateLink = JsonUtil.getString(versionObject, "html_url");
+                                String updateLink = MODRINTH_VERSIONS_URL + versionTag;
                                 
-                                if (comparison > 0)
+                                ChatComponentText updateNotice = new ChatComponentText(EnumChatFormatting.GOLD.toString() + EnumChatFormatting.ITALIC + "A new version (" + versionTag + ") is available. You can download it ");
+                                
+                                ChatComponentText downloadLink = new ChatComponentText(EnumChatFormatting.BLUE.toString() + EnumChatFormatting.ITALIC + EnumChatFormatting.UNDERLINE + "here");
+                                if (updateLink != null)
                                 {
-                                    ChatComponentText updateNotice = new ChatComponentText(EnumChatFormatting.GOLD.toString() + EnumChatFormatting.ITALIC + "A new version (" + versionTag + ") is available. You can download it ");
-                                    
-                                    ChatComponentText downloadLink = new ChatComponentText(EnumChatFormatting.BLUE.toString() + EnumChatFormatting.ITALIC + EnumChatFormatting.UNDERLINE + "here");
-                                    if (updateUrl != null)
-                                    {
-                                        ChatStyle style = new ChatStyle()
-                                                .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.GRAY + updateUrl)))
-                                                .setChatClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, updateUrl));
-                                        downloadLink.setChatStyle(style);
-                                    }
-                                    else
-                                    {
-                                        ChatStyle style = new ChatStyle().setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.RED + "No download found")));
-                                        downloadLink.setChatStyle(style);
-                                    }
-                                    updateNotice.appendSibling(downloadLink);
-                                    
-                                    updateNotice.appendText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GOLD + EnumChatFormatting.ITALIC + ".");
-                                    
-                                    MessageUtil.sendModChatMessage(updateNotice);
+                                    ChatStyle style = new ChatStyle()
+                                            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.GRAY + updateLink)))
+                                            .setChatClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, updateLink));
+                                    downloadLink.setChatStyle(style);
                                 }
+                                /*
                                 else
                                 {
-                                    if (showAllResults)
-                                    {
-                                        if (comparison < 0) MessageUtil.sendModChatMessage("Your version is newer than the latest public release");
-                                        else MessageUtil.sendModChatMessage(EnumChatFormatting.GREEN + "You're using the newest version!");
-                                    }
+                                    ChatStyle style = new ChatStyle().setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.RED + "No download link found")));
+                                    downloadLink.setChatStyle(style);
+                                }
+                                */
+                                updateNotice.appendSibling(downloadLink);
+                                
+                                updateNotice.appendText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GOLD + EnumChatFormatting.ITALIC + ".");
+                                
+                                MessageUtil.sendModChatMessage(updateNotice);
+                            }
+                            else
+                            {
+                                if (showAllResults)
+                                {
+                                    if (comparison < 0) MessageUtil.sendModChatMessage("Your version is newer than the latest public release");
+                                    else MessageUtil.sendModChatMessage(EnumChatFormatting.GREEN + "You're using the newest version!");
                                 }
                             }
-                            return; // Return with no error
+                            
+                            return;
                         }
                         else ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't check for update (response is not an object)");
                     }

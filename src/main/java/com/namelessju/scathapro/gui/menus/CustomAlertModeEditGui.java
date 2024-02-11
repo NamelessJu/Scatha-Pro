@@ -26,6 +26,8 @@ public class CustomAlertModeEditGui extends ScathaProGui
     private String currentModeName;
     private ScathaProTextField nameTextField;
     
+    private String editModeName = null;
+    
     public CustomAlertModeEditGui(ScathaPro scathaPro, GuiScreen parentGui, String customAlertModeId)
     {
         super(scathaPro, parentGui);
@@ -33,6 +35,9 @@ public class CustomAlertModeEditGui extends ScathaProGui
         this.customAlertModeManager = scathaPro.customAlertModeManager;
         this.customAlertModeId = customAlertModeId;
         modeFolder = CustomAlertModeManager.getSubModeFile(customAlertModeId);
+
+        currentModeName = customAlertModeManager.getSubmodeName(customAlertModeId);
+        if (currentModeName == null) currentModeName = "";
     }
     
     @Override
@@ -56,16 +61,15 @@ public class CustomAlertModeEditGui extends ScathaProGui
     public void initGui()
     {
         super.initGui();
-        
 
-        currentModeName = customAlertModeManager.getSubmodeName(customAlertModeId);
-        if (currentModeName == null) currentModeName = "";
+        
+        if (editModeName == null) editModeName = currentModeName;
         
         GuiLabel customModeNameLabel = new GuiLabel(fontRendererObj, 0, width / 2 - 155, 35, 310, 10, Util.Color.GRAY.getValue());
         customModeNameLabel.func_175202_a("Mode Name");
         labelList.add(customModeNameLabel);
         nameTextField = new ScathaProTextField(0, mc.fontRendererObj, width / 2 - 155, 45, 310, 20);
-        nameTextField.setText(currentModeName);
+        nameTextField.setText(editModeName);
         nameTextField.setPlaceholder("<unnamed>");
         textFieldList.add(nameTextField);
         
@@ -121,6 +125,15 @@ public class CustomAlertModeEditGui extends ScathaProGui
         }
 
         super.actionPerformed(button);
+    }
+    
+    @Override
+    protected void textFieldTyped(ScathaProTextField textField)
+    {
+        if (textField == nameTextField)
+        {
+            editModeName = textField.getText();
+        }
     }
 
     @Override

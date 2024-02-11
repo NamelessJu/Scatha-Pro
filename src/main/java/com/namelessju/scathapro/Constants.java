@@ -14,6 +14,10 @@ public class Constants
     
     public static final int crystalHollowsBoundsMin = 202;
     public static final int crystalHollowsBoundsMax = 824;
+    public static final int crystalHollowsCloseDay = 20;
+    
+    
+    public static final int maxLegitPetDropsAmount = 9999;
     
     
     private Constants() {}

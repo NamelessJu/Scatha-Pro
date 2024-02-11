@@ -14,6 +14,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import com.namelessju.scathapro.Constants;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.achievements.AchievementManager;
@@ -37,7 +38,7 @@ public class PersistentData
     private static final String wormKillsKey = "wormKills";
     
 
-    public final ScathaPro scathaPro;
+    private final ScathaPro scathaPro;
     
     private JsonObject data = new JsonObject();
     
@@ -252,9 +253,9 @@ public class PersistentData
                 
                 if
                 (
-                    scathaPro.variables.rarePetDrops > 9999 || scathaPro.variables.rarePetDrops < 0
-                    || scathaPro.variables.epicPetDrops > 9999 || scathaPro.variables.epicPetDrops < 0
-                    || scathaPro.variables.legendaryPetDrops > 9999 || scathaPro.variables.legendaryPetDrops < 0
+                    scathaPro.variables.rarePetDrops > Constants.maxLegitPetDropsAmount || scathaPro.variables.rarePetDrops < 0
+                    || scathaPro.variables.epicPetDrops > Constants.maxLegitPetDropsAmount || scathaPro.variables.epicPetDrops < 0
+                    || scathaPro.variables.legendaryPetDrops > Constants.maxLegitPetDropsAmount || scathaPro.variables.legendaryPetDrops < 0
                 )
                 {
                     scathaPro.variables.cheaterDetected = true;

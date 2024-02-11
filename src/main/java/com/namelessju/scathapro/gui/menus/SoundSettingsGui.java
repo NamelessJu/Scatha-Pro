@@ -39,7 +39,7 @@ public class SoundSettingsGui extends ScathaProGui implements GuiSlider.ISlider
         {
             switch (slider.id)
             {
-                case 504704014:
+                case 504704701:
                     double volume = (double) slider.getValueInt() / 100;
                     
                     Config config = scathaPro.config;

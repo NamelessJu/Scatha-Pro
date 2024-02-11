@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Level;
 
 import com.google.common.base.Predicate;
 import com.google.gson.JsonObject;
+import com.mojang.authlib.GameProfile;
 import com.namelessju.scathapro.Constants;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.alerts.Alert;
@@ -63,6 +64,7 @@ import net.minecraft.util.StringUtils;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
+import net.minecraftforge.client.event.RenderWorldEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -81,7 +83,7 @@ public class LoopListeners
     private boolean firstIngameFrame = true;
     
     private long lastDeveloperCheckTime = -1;
-    private boolean developerFoundBefore = false;
+    
     private long lastBedrockWallDetectionTime = -1;
 
     private List<PetDrop> receivedPets = new ArrayList<PetDrop>();
@@ -114,31 +116,55 @@ public class LoopListeners
                 scathaPro.overlayManager.drawOverlay();
             }
             
-            // Rotation angles display
             
-            if (scathaPro.config.getBoolean(Config.Key.showRotationAngles))
+            EntityPlayer player = mc.thePlayer;
+            if (player != null)
             {
-                EntityPlayer player = mc.thePlayer;
-                if (player != null)
+                if (scathaPro.config.getBoolean(Config.Key.showRotationAngles))
                 {
-                    ScaledResolution scaledResolution = new ScaledResolution(mc);
-                    FontRenderer fontRenderer = mc.fontRendererObj;
-                    
-                    GlStateManager.pushMatrix();
-                    GlStateManager.translate(Math.round(scaledResolution.getScaledWidth() / 2), Math.round(scaledResolution.getScaledHeight() / 2), 0);
-                    GlStateManager.scale(0.75f, 0.75f, 1f);
-                    
-                    float yaw = player.rotationYaw % 360;
-                    if (yaw < 0) yaw += 360;
-                    fontRenderer.drawString(EnumChatFormatting.GRAY + Util.numberToString(yaw, 1, true), 10, -4, Util.Color.WHITE.getValue(), true);
-                    
-                    String pitchString = EnumChatFormatting.GRAY + Util.numberToString(player.rotationPitch, 1, true);
-                    fontRenderer.drawString(pitchString, Math.round(-fontRenderer.getStringWidth(pitchString) * 0.5f), 10, Util.Color.WHITE.getValue(), true);
-                    
-                    GlStateManager.popMatrix();
+                    renderRotationAngles(player);
                 }
             }
         }
+    }
+    
+    private void renderRotationAngles(EntityPlayer player)
+    {
+        ScaledResolution scaledResolution = new ScaledResolution(mc);
+        FontRenderer fontRenderer = mc.fontRendererObj;
+        
+        int decimalDigits = scathaPro.config.getInt(Config.Key.rotationAnglesDecimalDigits);
+        
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(Math.round(scaledResolution.getScaledWidth() / 2), Math.round(scaledResolution.getScaledHeight() / 2), 0);
+        GlStateManager.scale(0.75f, 0.75f, 1f);
+        
+        float yaw = player.rotationYaw % 360;
+        if (yaw < 0) yaw += 360;
+        fontRenderer.drawString(EnumChatFormatting.GRAY + Util.numberToString(yaw, decimalDigits, true), 10, -4, Util.Color.WHITE.getValue(), true);
+        
+        String pitchString = EnumChatFormatting.GRAY + Util.numberToString(player.rotationPitch, decimalDigits, true);
+        fontRenderer.drawString(pitchString, Math.round(-fontRenderer.getStringWidth(pitchString) * 0.5f), 10, Util.Color.WHITE.getValue(), true);
+        
+        GlStateManager.popMatrix();
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void onRenderWorldPost(RenderWorldEvent.Post event)
+    {
+        renderTunnelMarkers();
+    }
+    
+    private void renderTunnelMarkers()
+    {
+        /*
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(0, 0, 0);
+        
+        // TODO
+        
+        GlStateManager.popMatrix();
+        */
     }
 
     @SubscribeEvent
@@ -435,19 +461,20 @@ public class LoopListeners
                     
                     // Worm spawn cooldown
                     
-                    if (scathaPro.variables.lastWormSpawnTime >= 0 && now - scathaPro.variables.lastWormSpawnTime < Constants.wormSpawnCooldown)
+                    if (scathaPro.variables.wormSpawnCooldownStartTime >= 0)
                     {
-                        wormSpawnCooldownRunningBefore = true;
-                    }
-                    else
-                    {
-                        if (now - scathaPro.variables.lastWorldJoinTime > 1000 && wormSpawnCooldownRunningBefore)
+                        if (now - scathaPro.variables.wormSpawnCooldownStartTime < Constants.wormSpawnCooldown)
                         {
-                            Alert.wormSpawnCooldownEnd.play();
+                            wormSpawnCooldownRunningBefore = true;
                         }
-                        
-                        wormSpawnCooldownRunningBefore = false;
+                        else
+                        {
+                            if (wormSpawnCooldownRunningBefore) Alert.wormSpawnCooldownEnd.play();
+                            wormSpawnCooldownRunningBefore = false;
+                            scathaPro.variables.wormSpawnCooldownStartTime = -1;
+                        }
                     }
+                    else wormSpawnCooldownRunningBefore = false;
                     
                 }
                 
@@ -456,26 +483,47 @@ public class LoopListeners
                 
                 if (now - lastDeveloperCheckTime >= 3000)
                 {
-                    NetHandlerPlayClient netHandler = Minecraft.getMinecraft().getNetHandler();
+                    NetHandlerPlayClient netHandler = mc.getNetHandler();
                     if (netHandler != null)
                     {
                         Collection<NetworkPlayerInfo> playerInfos = netHandler.getPlayerInfoMap();
                         
-                        boolean developerFound = false;
+                        List<String> detectedDevs = new ArrayList<String>();
                         
                         for (Iterator<NetworkPlayerInfo> iterator = playerInfos.iterator(); iterator.hasNext();)
                         {
                             NetworkPlayerInfo networkPlayerInfo = iterator.next();
+                            GameProfile gameProfile = networkPlayerInfo.getGameProfile();
+                            String uuid = gameProfile.getId().toString();
                             
-                            if (Util.isDeveloper(networkPlayerInfo))
+                            if (Util.isDeveloper(gameProfile))
                             {
-                                if (!developerFoundBefore) MinecraftForge.EVENT_BUS.post(new MeetDeveloperEvent(networkPlayerInfo));
-                                developerFound = true;
-                                break;
+                                detectedDevs.add(uuid);
+                                
+                                if (!scathaPro.variables.devsInLobby.contains(uuid))
+                                {
+                                    scathaPro.variables.devsInLobby.add(uuid);
+
+                                    /*
+                                    MessageUtil.sendModChatMessage("Developer detected: " + gameProfile.getName() + EnumChatFormatting.RESET + ", " + networkPlayerInfo.getDisplayName() + EnumChatFormatting.RESET + ", " + gameProfile.toString());
+                                    
+                                    String devSuffix = EnumChatFormatting.RESET + " " + EnumChatFormatting.GRAY + "[" + EnumChatFormatting.GREEN + "Scatha-Pro Dev" + EnumChatFormatting.GRAY + "]";
+                                    IChatComponent displayName = networkPlayerInfo.getDisplayName();
+                                    if (displayName != null) networkPlayerInfo.setDisplayName(new ChatComponentText(displayName.getFormattedText() + devSuffix));
+                                    else networkPlayerInfo.setDisplayName(new ChatComponentText(gameProfile.getName() + devSuffix));
+                                    */
+                                    
+                                    MinecraftForge.EVENT_BUS.post(new MeetDeveloperEvent(gameProfile));
+                                    break;
+                                }
                             }
                         }
                         
-                        developerFoundBefore = developerFound;
+                        // Remove devs that were previously in lobby but aren't detected anymore
+                        for (int i = scathaPro.variables.devsInLobby.size() - 1; i >= 0; i --)
+                        {
+                            if (!detectedDevs.contains(scathaPro.variables.devsInLobby.get(i))) scathaPro.variables.devsInLobby.remove(i);
+                        }
                     }
                     
                     lastDeveloperCheckTime = now;

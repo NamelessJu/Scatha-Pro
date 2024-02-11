@@ -53,7 +53,7 @@ public class ChancesCommand extends CommandBase
         if (args.length > 0 && args[0].equalsIgnoreCase("help"))
         {
             MessageUtil.sendModChatMessage(
-                    EnumChatFormatting.GOLD + "Scatha chances calculator:\n"
+                    EnumChatFormatting.YELLOW + "Scatha chances calculator:\n"
                     + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " (alias /scacha)" + EnumChatFormatting.WHITE + ":" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Shows the base Scatha pet drop chances\n"
                     + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " <magic find> [pet luck]: " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "Calculates specific Scatha pet drop chances\n"
                     + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " <magic find> <pet luck> <Scatha kills>: " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "Calculates the chances for dropping at least one Scatha pet during the process of killing X Scathas"

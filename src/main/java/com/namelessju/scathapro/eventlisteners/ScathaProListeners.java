@@ -45,8 +45,6 @@ public class ScathaProListeners
     private boolean lastKillIsScatha = false;
     private boolean droppedPetAtLastScatha = false;
     
-    private long lastPreAlertTime = -1;
-    
     private boolean sneakingBefore = false;
     private long lastSneakStartTime = -1;
     
@@ -57,7 +55,7 @@ public class ScathaProListeners
         this.scathaPro = scathaPro;
         mc = scathaPro.minecraft;
     }
-
+    
     @SubscribeEvent(priority = EventPriority.HIGH)
     public void onUpdate(ModUpdateEvent e)
     {
@@ -125,40 +123,33 @@ public class ScathaProListeners
     @SubscribeEvent(priority = EventPriority.HIGH)
     public void onWormPreSpawn(WormPreSpawnEvent e)
     {
-        long now = Util.getCurrentTime();
-        if (now - lastPreAlertTime > 3000)
-        {
-            Alert.wormPrespawn.play();
-            lastPreAlertTime = now;
-        }
+        scathaPro.variables.startWormSpawnCooldown();
+        Alert.wormPrespawn.play();
     }
     
     @SubscribeEvent(priority = EventPriority.HIGH)
     public void onWormSpawn(WormSpawnEvent e)
     {
+        long now = Util.getCurrentTime();
+        
         // Scatha spawn
         if (e.worm.isScatha)
         {
             if (scathaPro.variables.scathaSpawnStreak < 0) scathaPro.variables.scathaSpawnStreak = 0;
             scathaPro.variables.scathaSpawnStreak ++;
             
-            if (Util.getCurrentTime() - scathaPro.variables.lastWorldJoinTime <= Achievement.scatha_spawn_time.goal * 60 * 1000)
+            if (now - scathaPro.variables.lastWorldJoinTime <= Achievement.scatha_spawn_time.goal * 60 * 1000)
             {
                 Achievement.scatha_spawn_time.unlock();
             }
-            if (e.worm.getEntity().posY > 186)
-            {
-                Achievement.scatha_spawn_chtop.unlock();
-            }
-            else if (e.worm.getEntity().posY < 32.5)
-            {
-                Achievement.scatha_spawn_chbottom.unlock();
-            }
+            
+            if (e.worm.getEntity().posY > 186) Achievement.scatha_spawn_chtop.unlock();
+            else if (e.worm.getEntity().posY < 32.5) Achievement.scatha_spawn_chbottom.unlock();
             
             Alert.scathaSpawn.play();
         }
         
-        // Worm spawn
+        // Regular worm spawn
         else
         {
             if (scathaPro.variables.scathaSpawnStreak > 0) scathaPro.variables.scathaSpawnStreak = 0;
@@ -167,7 +158,6 @@ public class ScathaProListeners
             Alert.regularWormSpawn.play();
         }
         
-        long now = Util.getCurrentTime();
         
         if (scathaPro.config.getBoolean(Config.Key.wormSpawnTimer) && scathaPro.variables.lastWormSpawnTime >= 0L)
         {
@@ -187,10 +177,10 @@ public class ScathaProListeners
             MessageUtil.sendModChatMessage(EnumChatFormatting.GRAY + "Worm spawned " + timeString + " after previous worm");
         }
         
-        scathaPro.variables.lastWormSpawnTime = now;
-
-        scathaPro.updateSpawnAchievements();
         
+        scathaPro.variables.lastWormSpawnTime = now;
+        scathaPro.variables.startWormSpawnCooldown(); // in case pre-spawn doesn't trigger when master volume is 0
+        scathaPro.updateSpawnAchievements();
         scathaPro.overlayManager.updateWormStreak();
     }
 
@@ -207,8 +197,7 @@ public class ScathaProListeners
         DetectedWorm worm = e.worm;
         if (worm.isScatha)
         {
-            scathaPro.variables.lobbyScathaKills ++;
-            if (scathaPro.variables.scathaKills >= 0) scathaPro.variables.scathaKills ++;
+            scathaPro.variables.addScathaKill();
             
             if (worm.getHitWeaponsCount() >= Achievement.kill_weapons_scatha.goal) Achievement.kill_weapons_scatha.unlock();
             if (worm.getHitWeaponsCount() > 0 && worm.getHitWeapons()[worm.getHitWeaponsCount() - 1].equals("TERMINATOR")) Achievement.scatha_kill_terminator.unlock();
@@ -222,8 +211,7 @@ public class ScathaProListeners
         }
         else
         {
-            scathaPro.variables.lobbyRegularWormKills ++;
-            if (scathaPro.variables.regularWormKills >= 0) scathaPro.variables.regularWormKills ++;
+            scathaPro.variables.addRegularWormKill();
             
             if (worm.getHitWeaponsCount() >= Achievement.kill_weapons_regular_worm.goal) Achievement.kill_weapons_regular_worm.unlock();
             
@@ -256,17 +244,20 @@ public class ScathaProListeners
         switch (e.petDrop.rarity)
         {
             case RARE:
-                scathaPro.variables.rarePetDrops ++;
+                scathaPro.variables.rarePetDrops = Math.min(scathaPro.variables.rarePetDrops + 1, Constants.maxLegitPetDropsAmount);
                 rarityTitle = EnumChatFormatting.BLUE + "Rare";
                 break;
+                
             case EPIC:
-                scathaPro.variables.epicPetDrops ++;
+                scathaPro.variables.epicPetDrops = Math.min(scathaPro.variables.epicPetDrops + 1, Constants.maxLegitPetDropsAmount);
                 rarityTitle = EnumChatFormatting.DARK_PURPLE + "Epic";
                 break;
+                
             case LEGENDARY:
-                scathaPro.variables.legendaryPetDrops ++;
+                scathaPro.variables.legendaryPetDrops = Math.min(scathaPro.variables.legendaryPetDrops + 1, Constants.maxLegitPetDropsAmount);
                 rarityTitle = EnumChatFormatting.GOLD + "Legendary";
                 break;
+                
             default:
                 rarityTitle = EnumChatFormatting.GRAY.toString() + EnumChatFormatting.ITALIC + "Unknown Rarity";
         }

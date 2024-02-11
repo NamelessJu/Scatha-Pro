@@ -9,6 +9,7 @@ import com.google.common.collect.Lists;
 import com.namelessju.scathapro.Constants;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.events.OverlayInitEvent;
+import com.namelessju.scathapro.miscellaneous.SecondaryKillCounterType;
 import com.namelessju.scathapro.overlay.DynamicOverlayContainer;
 import com.namelessju.scathapro.overlay.DynamicOverlayContainer.Direction;
 import com.namelessju.scathapro.overlay.OverlayContainer;
@@ -50,15 +51,15 @@ public class OverlayManager
     
     private final DynamicOverlayContainer overlay;
     
-    private final OverlayImage scathaPetImage;
+    private final OverlayImage scathaIcon;
     private final OverlayContainer killsContainer;
-    private final OverlayText overallWormKillsText;
     private final OverlayText regularWormKillsText;
-    private final OverlayText overallScathaKillsText;
+    private final OverlayText secondaryRegularWormKillsText;
     private final OverlayText scathaKillsText;
+    private final OverlayText secondaryScathaKillsText;
     private final OverlayProgressBar spawnCooldownProgressBar;
-    private final OverlayText overallTotalKillsText;
     private final OverlayText totalKillsText;
+    private final OverlayText secondaryTotalKillsText;
     private final OverlayText wormStreakText;
     private final OverlayText coordsText;
     private final OverlayText dayText;
@@ -70,11 +71,25 @@ public class OverlayManager
     
     public final List<ToggleableOverlayElement> toggleableOverlayElements = Lists.<ToggleableOverlayElement>newArrayList();
     
+    private SecondaryKillCounterType secondaryKillCounterType = null;
+    
     
     public OverlayManager(ScathaPro scathaPro)
     {
         this.scathaPro = scathaPro;
         mc = scathaPro.minecraft;
+        
+        
+        String currentTypeId = scathaPro.config.getString(Config.Key.secondaryKillCounterType);
+        if (!currentTypeId.replace("", " ").isEmpty())
+        {
+            for (SecondaryKillCounterType type : SecondaryKillCounterType.values())
+            {
+                if (type.getValue().equals(currentTypeId)) secondaryKillCounterType = type;
+            }
+        }
+        if (secondaryKillCounterType == null) secondaryKillCounterType = SecondaryKillCounterType.values()[0];
+        
         
         overlay = new DynamicOverlayContainer(0, 0, 1f, Direction.VERTICAL);
         overlay.padding = 5;
@@ -85,7 +100,7 @@ public class OverlayManager
         
         
         OverlayContainer titleContainer = new OverlayContainer(0, 0, 1f);
-        titleContainer.add(scathaPetImage = new OverlayImage(null, 256, 256, 0, 0, 0.043f));
+        titleContainer.add(scathaIcon = new OverlayImage(null, 256, 256, 0, 0, 0.043f));
         titleContainer.add(new OverlayText(new Random().nextFloat() < 0.001f ? "Scathing:" : "Scatha Farming:", Util.Color.GOLD.getValue(), 16, 0, 1.3f));
         overlay.add(titleContainer);
         toggleableOverlayElements.add(new ToggleableOverlayElement(titleContainer));
@@ -120,25 +135,25 @@ public class OverlayManager
         
         killsContainer.add(new OverlayImage("overlay/worm.png", 512, 256, -2, 10, 0.08f));
         killsContainer.add(new OverlayImage("overlay/scatha.png", 512, 256, 41, 10, 0.08f));
-
+        
         killsContainer.add(spawnCooldownProgressBar = new OverlayProgressBar(2, 10, 79, 21, 1f, 0x50FFFFFF, -1));
         
-        killsContainer.add(overallWormKillsText = new OverlayText(null, Util.Color.WHITE.getValue(), 18, 11, 1f));
-        overallWormKillsText.setAlignment(Alignment.CENTER);
-        
-        killsContainer.add(regularWormKillsText = new OverlayText(null, Util.Color.GRAY.getValue(), 18, 22, 1f));
+        killsContainer.add(regularWormKillsText = new OverlayText(null, Util.Color.WHITE.getValue(), 18, 11, 1f));
         regularWormKillsText.setAlignment(Alignment.CENTER);
         
-        killsContainer.add(overallScathaKillsText = new OverlayText(null, Util.Color.WHITE.getValue(), 61, 11, 1f));
-        overallScathaKillsText.setAlignment(Alignment.CENTER);
+        killsContainer.add(secondaryRegularWormKillsText = new OverlayText(null, Util.Color.GRAY.getValue(), 18, 22, 1f));
+        secondaryRegularWormKillsText.setAlignment(Alignment.CENTER);
         
-        killsContainer.add(scathaKillsText = new OverlayText(null, Util.Color.GRAY.getValue(), 61, 22, 1f));
+        killsContainer.add(scathaKillsText = new OverlayText(null, Util.Color.WHITE.getValue(), 61, 11, 1f));
         scathaKillsText.setAlignment(Alignment.CENTER);
+        
+        killsContainer.add(secondaryScathaKillsText = new OverlayText(null, Util.Color.GRAY.getValue(), 61, 22, 1f));
+        secondaryScathaKillsText.setAlignment(Alignment.CENTER);
 
         killsContainer.add(new OverlayText("Total", Util.Color.WHITE.getValue(), 89, 0, 1f));
         
-        killsContainer.add(overallTotalKillsText = new OverlayText(null, Util.Color.WHITE.getValue(), 89, 11, 1f));
-        killsContainer.add(totalKillsText = new OverlayText(null, Util.Color.GRAY.getValue(), 89, 22, 1f));
+        killsContainer.add(totalKillsText = new OverlayText(null, Util.Color.WHITE.getValue(), 89, 11, 1f));
+        killsContainer.add(secondaryTotalKillsText = new OverlayText(null, Util.Color.GRAY.getValue(), 89, 22, 1f));
         
         killsContainer.add(wormStreakText = new OverlayText(null, Util.Color.GRAY.getValue(), 3, 33, 1f));
         
@@ -165,6 +180,15 @@ public class OverlayManager
         updateVisibility();
     }
     
+    public void setSecondaryKillCounterType(SecondaryKillCounterType secondaryKillCounterType)
+    {
+        this.secondaryKillCounterType = secondaryKillCounterType;
+        
+        updateWormKills();
+        updateScathaKills();
+        updateTotalKills();
+    }
+    
     public void drawOverlay()
     {
         if (overlay.isVisible())
@@ -184,6 +208,7 @@ public class OverlayManager
 
         updateWormKills();
         updateScathaKills();
+        updateTotalKills();
 
         updateSpawnCooldownProgressBar();
 
@@ -232,7 +257,7 @@ public class OverlayManager
     
     public void updateScathaPetImage()
     {
-        scathaPetImage.setImage(scathaPro.alertModeManager.getCurrentMode().getIconPath(), 256, 256);
+        scathaIcon.setImage(scathaPro.alertModeManager.getCurrentMode().getIconPath(), 256, 256);
     }
     
     public void updatePetDrops()
@@ -246,8 +271,8 @@ public class OverlayManager
     {
         World world = mc.theWorld;
         
-        regularWormKillsText.setText(Util.numberToString(world != null ? scathaPro.variables.lobbyRegularWormKills : 0));
-        overallWormKillsText.setText(scathaPro.variables.regularWormKills >= 0 ? Util.numberToString(scathaPro.variables.regularWormKills) : EnumChatFormatting.OBFUSCATED + "?");
+        secondaryRegularWormKillsText.setText(Util.numberToString(world != null ? secondaryKillCounterType.getRegularWormKills() : 0));
+        regularWormKillsText.setText(scathaPro.variables.regularWormKills >= 0 ? Util.numberToString(scathaPro.variables.regularWormKills) : EnumChatFormatting.OBFUSCATED + "?");
 
         updateTotalKills();
     }
@@ -256,25 +281,27 @@ public class OverlayManager
     {
         World world = mc.theWorld;
         
-        scathaKillsText.setText(Util.numberToString(world != null ? scathaPro.variables.lobbyScathaKills : 0));
-        overallScathaKillsText.setText(scathaPro.variables.scathaKills >= 0 ? Util.numberToString(scathaPro.variables.scathaKills) : EnumChatFormatting.OBFUSCATED + "?");
-
+        secondaryScathaKillsText.setText(Util.numberToString(world != null ? secondaryKillCounterType.getScathaKills() : 0));
+        scathaKillsText.setText(scathaPro.variables.scathaKills >= 0 ? Util.numberToString(scathaPro.variables.scathaKills) : EnumChatFormatting.OBFUSCATED + "?");
+        
         updateTotalKills();
         updateScathaKillsSinceLastDrop();
     }
     
-    private void updateTotalKills()
+    public void updateTotalKills()
     {
         World world = mc.theWorld;
-
-        int totalKills = world != null ? scathaPro.variables.lobbyRegularWormKills + scathaPro.variables.lobbyScathaKills : 0;
-        int overallTotalKills = scathaPro.variables.regularWormKills >= 0 && scathaPro.variables.scathaKills >= 0 ? scathaPro.variables.regularWormKills + scathaPro.variables.scathaKills : -1;
         
-        float percentage = totalKills > 0 ? ((float) scathaPro.variables.lobbyScathaKills / totalKills) * 100 : -1f;
-        float overallPercentage = overallTotalKills > 0 ? ((float) scathaPro.variables.scathaKills / overallTotalKills) * 100 : -1f;
-
-        totalKillsText.setText(EnumChatFormatting.RESET + Util.numberToString(totalKills) + (percentage >= 0 ? EnumChatFormatting.GRAY.toString() + EnumChatFormatting.ITALIC + " (" + Util.numberToString(percentage, 1, true) + "%)" : ""));
-        overallTotalKillsText.setText(overallTotalKills >= 0 ? EnumChatFormatting.RESET + Util.numberToString(overallTotalKills) + (overallPercentage >= 0 ? EnumChatFormatting.GRAY.toString() + EnumChatFormatting.ITALIC + " (" + Util.numberToString(overallPercentage, 1, true) + "%)" : "") : EnumChatFormatting.OBFUSCATED + "?");
+        int secondaryTotalKills = world != null ? secondaryKillCounterType.getRegularWormKills() + secondaryKillCounterType.getScathaKills() : 0;
+        int totalKills = scathaPro.variables.regularWormKills >= 0 && scathaPro.variables.scathaKills >= 0 ? scathaPro.variables.regularWormKills + scathaPro.variables.scathaKills : -1;
+        
+        float secondaryScathaPercentage = secondaryTotalKills > 0 ? ((float) secondaryKillCounterType.getScathaKills() / secondaryTotalKills) * 100 : -1f;
+        float scathaPercentage = totalKills > 0 ? ((float) scathaPro.variables.scathaKills / totalKills) * 100 : -1f;
+        
+        int scathaPercentageDecimalDigits = scathaPro.config.getInt(Config.Key.scathaPercentageDecimalDigits);
+        
+        secondaryTotalKillsText.setText(EnumChatFormatting.RESET + Util.numberToString(secondaryTotalKills) + (secondaryScathaPercentage >= 0 ? EnumChatFormatting.GRAY + " (" + Util.numberToString(secondaryScathaPercentage, scathaPercentageDecimalDigits, true) + "%)" : ""));
+        totalKillsText.setText(totalKills >= 0 ? EnumChatFormatting.RESET + Util.numberToString(totalKills) + (scathaPercentage >= 0 ? EnumChatFormatting.GRAY + " (" + Util.numberToString(scathaPercentage, scathaPercentageDecimalDigits, true) + "%)" : "") : EnumChatFormatting.OBFUSCATED + "?");
     }
     
     public void updateWormStreak()
@@ -305,13 +332,13 @@ public class OverlayManager
         int worldTimeMinutes = (int) Math.floor((worldTimeDay - worldTimeHours * 1000f) / 1000f * 60f);
         
         EnumChatFormatting dayColor = EnumChatFormatting.WHITE;
-        if (worldDay >= 29 && scathaPro.inCrystalHollows())
+        if (worldDay >= Constants.crystalHollowsCloseDay - 1 && scathaPro.inCrystalHollows())
         {
-            if (worldDay >= 30) dayColor = EnumChatFormatting.DARK_RED;
+            if (worldDay >= Constants.crystalHollowsCloseDay) dayColor = EnumChatFormatting.DARK_RED;
             else dayColor = EnumChatFormatting.RED;
         }
         
-        dayText.setText(EnumChatFormatting.RESET.toString() + dayColor + "Day " + worldDay + " " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "(" + String.format("%02d:%02d", worldTimeHours, worldTimeMinutes) + ")" + EnumChatFormatting.RESET + EnumChatFormatting.GRAY + " / " + timerFormat.format(lobbyTime));
+        dayText.setText(EnumChatFormatting.RESET.toString() + dayColor + "Day " + worldDay + " " + EnumChatFormatting.GRAY + "(" + String.format("%02d:%02d", worldTimeHours, worldTimeMinutes) + ") | " + timerFormat.format(lobbyTime));
     }
     
     public void updateCoords()
@@ -334,19 +361,19 @@ public class OverlayManager
             switch (facing)
             {
                 case 0:
-                    facingAxis = "-Z";
+                    facingAxis = "-z";
                     wallDistance = Constants.crystalHollowsBoundsMax - player.posZ;
                     break;
                 case 1:
-                    facingAxis = "+X";
+                    facingAxis = "+x";
                     wallDistance = player.posX - Constants.crystalHollowsBoundsMin;
                     break;
                 case 2:
-                    facingAxis = "+Z";
+                    facingAxis = "+z";
                     wallDistance = player.posZ - Constants.crystalHollowsBoundsMin;
                     break;
                 case 3:
-                    facingAxis = "-X";
+                    facingAxis = "-x";
                     wallDistance = Constants.crystalHollowsBoundsMax - player.posX;
                     break;
                 default:
@@ -363,7 +390,9 @@ public class OverlayManager
             wallProgress = 0D;
         }
         
-        coordsText.setText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.WHITE + coordinatesString + " " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + facingAxis + " (" + Util.numberToString(Math.floor(wallProgress * 1000D) / 10D, 1) + "% to wall)");
+        String wallProgressString = wallProgress >= 1f ? "100" : (wallProgress <= 0f ? "0" : Util.numberToString(Math.floor(wallProgress * 1000D) / 10D, 1, true));
+        
+        coordsText.setText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.WHITE + coordinatesString + EnumChatFormatting.GRAY + " | " + facingAxis + " (" + wallProgressString + "% to wall)");
     }
     
     public void updateScathaKillsSinceLastDrop()
@@ -385,14 +414,11 @@ public class OverlayManager
     
     public void updateSpawnCooldownProgressBar()
     {
-        if (scathaPro.variables.lastWormSpawnTime >= 0f)
+        if (scathaPro.variables.wormSpawnCooldownStartTime >= 0f)
         {
-            spawnCooldownProgressBar.setProgress(1f - ((float) (Util.getCurrentTime() - scathaPro.variables.lastWormSpawnTime) / Constants.wormSpawnCooldown));
+            spawnCooldownProgressBar.setProgress(1f - ((float) (Util.getCurrentTime() - scathaPro.variables.wormSpawnCooldownStartTime) / Constants.wormSpawnCooldown));
         }
-        else
-        {
-            spawnCooldownProgressBar.setProgress(0f);
-        }
+        else spawnCooldownProgressBar.setProgress(0f);
     }
 
 }

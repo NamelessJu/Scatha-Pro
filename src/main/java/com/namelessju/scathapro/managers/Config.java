@@ -31,8 +31,11 @@ public class Config
         
         // Other
         showRotationAngles("other", "showRotationAngles", false),
+        rotationAnglesDecimalDigits("other", "rotationAnglesDecimalDigits", 1),
+        scathaPercentageDecimalDigits("other", "scathaPercentageDecimalDigits", 1),
         wormSpawnTimer("other", "wormSpawnTimer", false),
         dryStreakMessage("other", "dryStreakMessage", true),
+        secondaryKillCounterType("other", "secondaryKillCounterType", ""),
         chatCopy("other", "chatCopy", false),
         automaticBackups("other", "automaticBackups", true),
         automaticUpdateChecks("other", "automaticUpdateChecks", true),

@@ -13,6 +13,7 @@ public class AlertsGuiList extends ScathaProGuiList
         Alert[] alerts = Alert.values();
         for (Alert alert : alerts)
         {
+            if (alert.configKey == null) continue;
             this.listEntries.add(new AlertEntry(alert));
         }
     }

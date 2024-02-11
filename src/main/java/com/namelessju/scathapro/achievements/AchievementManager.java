@@ -31,6 +31,17 @@ public class AchievementManager
         }
     }
     
+    public void revokeAchievement(Achievement achievement)
+    {
+        if (isAchievementUnlocked(achievement))
+        {
+            unlockedAchievements.remove(getUnlockedAchievement(achievement));
+            achievement.setProgress(0f);
+            
+            scathaPro.persistentData.saveAchievements();
+        }
+    }
+    
     public boolean isAchievementUnlocked(Achievement achievement)
     {
         return getUnlockedAchievement(achievement) != null;

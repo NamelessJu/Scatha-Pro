@@ -12,9 +12,10 @@ import java.util.Date;
 import java.util.UUID;
 
 import com.mojang.authlib.GameProfile;
+import com.namelessju.scathapro.ScathaPro;
+import com.namelessju.scathapro.managers.Config;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.BlockPos;
@@ -77,13 +78,12 @@ public class Util
         return null;
     }
     
-    public static boolean isDeveloper(NetworkPlayerInfo playerInfo)
+    public static boolean isDeveloper(GameProfile profile)
     {
-        if (playerInfo != null)
-        {
-            UUID uuid = playerInfo.getGameProfile().getId();
-            if (uuid != null) return getUUIDString(uuid).equals("e9be3984b09740c98fb4d8aaeb2b4838");
-        }
+        if (ScathaPro.getInstance().config.getBoolean(Config.Key.devMode) && profile.getName().equals("JuCraft")) return true;
+        
+        UUID uuid = profile.getId();
+        if (uuid != null) return getUUIDString(uuid).equals("e9be3984b09740c98fb4d8aaeb2b4838");
         
         return false;
     }

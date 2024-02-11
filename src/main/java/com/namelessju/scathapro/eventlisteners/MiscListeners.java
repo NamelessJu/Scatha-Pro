@@ -42,6 +42,7 @@ public class MiscListeners
     private final Minecraft mc;
 
     private boolean persistentDataLoaded = false;
+    private long lastPreAlertTime = -1;
     
     public MiscListeners(ScathaPro scathaPro)
     {
@@ -79,16 +80,7 @@ public class MiscListeners
         DetectedEntity.clearLists();
         
         scathaPro.variables.lastWorldJoinTime = Util.getCurrentTime();
-        scathaPro.variables.currentAreaCheckTimeIndex = 0;
-        scathaPro.variables.currentArea = null;
-        
-        scathaPro.variables.inBedrockWallRange = false;
-        scathaPro.variables.previousScathaPets = null;
-        
-        scathaPro.variables.lobbyRegularWormKills = 0;
-        scathaPro.variables.lobbyScathaKills = 0;
-        scathaPro.variables.scathaSpawnStreak = 0;
-        scathaPro.variables.lastWormSpawnTime = -1;
+        scathaPro.variables.resetForNewLobby();
         
         // Update overlay
         
@@ -174,9 +166,12 @@ public class MiscListeners
     public void onSound(PlaySoundEvent e)
     {
         // Detect worm pre-spawn
+        
+        long now = Util.getCurrentTime();
+        
         if
         (
-            e.name.equals("mob.spider.step")
+            now - lastPreAlertTime > 3000 && e.name.equals("mob.spider.step")
             &&
             (
                 e.sound.getPitch() == 2.0952382f && scathaPro.inCrystalHollows()
@@ -185,6 +180,8 @@ public class MiscListeners
         )
         {
             MinecraftForge.EVENT_BUS.post(new WormPreSpawnEvent());
+            
+            lastPreAlertTime = now;
         }
         
         

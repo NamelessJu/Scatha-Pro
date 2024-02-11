@@ -118,6 +118,17 @@ public class DevCommand extends CommandBase
             }
         }
         
+        else if (subCommand.equalsIgnoreCase("achievementsRevokeAll"))
+        {
+            Achievement[] achievements = AchievementManager.getAllAchievements();
+            for (int i = 0; i < achievements.length; i ++)
+            {
+                ScathaPro.getInstance().achievementManager.revokeAchievement(achievements[i]);
+            }
+            
+            MessageUtil.sendModChatMessage("All achievements revoked");
+        }
+        
         else if (subCommand.equalsIgnoreCase("trigger"))
         {
             if (args.length < 2) throw new CommandException("Missing trigger argument: /" + COMMAND_NAME + " trigger <trigger name>");

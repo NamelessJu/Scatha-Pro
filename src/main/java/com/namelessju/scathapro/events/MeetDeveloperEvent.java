@@ -1,14 +1,15 @@
 package com.namelessju.scathapro.events;
 
-import net.minecraft.client.network.NetworkPlayerInfo;
+import com.mojang.authlib.GameProfile;
+
 import net.minecraftforge.fml.common.eventhandler.Event;
 
 public class MeetDeveloperEvent extends Event
 {
-    public final NetworkPlayerInfo developer;
+    public final GameProfile gameProfile;
     
-    public MeetDeveloperEvent(NetworkPlayerInfo developer)
+    public MeetDeveloperEvent(GameProfile gameProfile)
     {
-        this.developer = developer;
+        this.gameProfile = gameProfile;
     }
 }

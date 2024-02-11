@@ -147,7 +147,7 @@ public class AchievementsList extends Gui
         int unlockedHiddenAchievements = getNullableInteger(unlockedAchievementCount.get(Achievement.Type.HIDDEN));
         
         unlockedAchievementsString = EnumChatFormatting.GREEN.toString() + EnumChatFormatting.BOLD + "Unlocked: " + EnumChatFormatting.GREEN + EnumChatFormatting.BOLD + getNullableInteger(unlockedAchievementCount.get(Achievement.Type.NORMAL)) + "/" + getNullableInteger(achievementCount.get(Achievement.Type.NORMAL))
-                + EnumChatFormatting.GRAY + " (+ " + EnumChatFormatting.AQUA + getNullableInteger(unlockedAchievementCount.get(Achievement.Type.SECRET)) + "/" + getNullableInteger(achievementCount.get(Achievement.Type.SECRET)) + " Secret" + (unlockedHiddenAchievements > 0 ? EnumChatFormatting.GRAY + " & " + EnumChatFormatting.RED + EnumChatFormatting.ITALIC + unlockedHiddenAchievements + " HIDDEN" : "") + EnumChatFormatting.GRAY + ")";
+                + EnumChatFormatting.GRAY + " (+ " + EnumChatFormatting.AQUA + getNullableInteger(unlockedAchievementCount.get(Achievement.Type.SECRET)) + "/" + getNullableInteger(achievementCount.get(Achievement.Type.SECRET)) + " Secret" + (unlockedHiddenAchievements > 0 ? EnumChatFormatting.GRAY + " & " + EnumChatFormatting.RED + unlockedHiddenAchievements + " HIDDEN" : "") + EnumChatFormatting.GRAY + ")";
         
         achievementCards = new AchievementCard[visibleAchievements.size()];
         

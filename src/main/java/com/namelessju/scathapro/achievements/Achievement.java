@@ -17,10 +17,11 @@ public enum Achievement
     
     worm_kills_1("Long boi", "Kill a worm", 1),
     worm_kills_2("Two digits", "Kill 10 worms", 10),
-    worm_kills_3("Scatha farming byproduct", "Kill 100 worms", 100),
+    worm_kills_3("---WIP---", "Kill 100 worms", 100), // TODO: names
+    worm_bestiary_max("Worm expert", "Complete the worm bestiary (400 worm kills)", 400),
     worm_kills_4("There's a comma now", "Kill 1,000 worms", 1000),
-    worm_kills_5("Free bestiary magic find", "Kill 10,000 worms", 10000),
-    worm_kills_6("No life", "Kill 100,000 worms", 100000),
+    worm_kills_5("---WIP---", "Kill 10,000 worms", 10000),
+    worm_kills_6("No life", "Kill 100,000 worms", 100000), // TODO: reduce these last achievements (for both worms and Scathas)?
     
     scatha_kills_1("Scatha Farmer", "Become a Scatha farmer by killing your first Scatha", 1),
     scatha_kills_2("No pet yet?!", "Kill 10 Scathas", 10),
@@ -92,7 +93,7 @@ public enum Achievement
     
     scatha_pet_drop_b2b("Sold your soul to RNGesus", "Drop two Scatha pets back to back", 2, Type.HIDDEN),
     
-    meet_developer("The Creator", "Be in a lobby with Scatha-Pro's developer", 1, Type.HIDDEN),
+    meet_developer("The Creator", "Be in a lobby with Scatha-Pro's developer (JuCraft)", 1, Type.HIDDEN),
     
     cheat("Cheater", "Put impossible values into the Scatha-Pro savefile", 1, Type.HIDDEN);
     
@@ -101,7 +102,7 @@ public enum Achievement
     {
         NORMAL(null, Visibility.VISIBLE),
         SECRET(EnumChatFormatting.AQUA + "Secret", Visibility.TITLE_ONLY),
-        HIDDEN(EnumChatFormatting.RED.toString() + EnumChatFormatting.ITALIC + "HIDDEN", Visibility.HIDDEN),
+        HIDDEN(EnumChatFormatting.RED + "HIDDEN", Visibility.HIDDEN),
         LEGACY(EnumChatFormatting.DARK_PURPLE.toString() + EnumChatFormatting.BOLD + "LEGACY", Visibility.HIDDEN);
         
         public enum Visibility
@@ -152,9 +153,18 @@ public enum Achievement
     
     public void setProgress(float progress)
     {
-        if (progress < goal && ScathaPro.getInstance().achievementManager.isAchievementUnlocked(this)) this.progress = goal;
+        if (ScathaPro.getInstance().achievementManager.isAchievementUnlocked(this))
+        {
+            this.progress = goal;
+            return;
+        }
+        
+        if (progress >= goal)
+        {
+            this.progress = goal;
+            ScathaPro.getInstance().achievementManager.unlockAchievement(this);
+        }
         else this.progress = progress;
-        if (this.progress >= goal) ScathaPro.getInstance().achievementManager.unlockAchievement(this);
     }
     
     public float getProgress()

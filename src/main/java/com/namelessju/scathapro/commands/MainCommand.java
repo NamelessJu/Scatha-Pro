@@ -3,6 +3,7 @@ package com.namelessju.scathapro.commands;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.namelessju.scathapro.Constants;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.gui.menus.AchievementsGui;
 import com.namelessju.scathapro.gui.menus.SettingsGui;
@@ -60,9 +61,9 @@ public class MainCommand extends CommandBase
         if (args.length <= 0 || args[0].equalsIgnoreCase("help"))
         {
             MessageUtil.sendModChatMessage(
-                    EnumChatFormatting.GOLD + "All commands:\n"
+                    EnumChatFormatting.YELLOW + "All commands:\n"
                     + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "(alias /sp)" + EnumChatFormatting.WHITE + " [\"help\"]:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Shows this help message\n"
-                    + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/" + ChancesCommand.COMMAND_NAME + " " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "(alias /scacha)" + EnumChatFormatting.WHITE + " [magic find] [pet luck] [Scatha kills]:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Check/calculate Scatha pet drop chances\n"
+                    + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/" + ChancesCommand.COMMAND_NAME + " " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "(alias /scacha)" + EnumChatFormatting.WHITE + " [\"help\"]:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Check/calculate Scatha pet drop chances\n"
                     + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " settings:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Opens the settings menu\n"
                     + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " achievements:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Opens the achievements menu\n"
                     + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " setPetDrops <rare amount> <epic amount> <legendary amount>:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Add pets you dropped previously to your counter\n"
@@ -92,22 +93,22 @@ public class MainCommand extends CommandBase
                 int rare = CommandBase.parseInt(args[1]);
                 int epic = CommandBase.parseInt(args[2]);
                 int legendary = CommandBase.parseInt(args[3]);
+
+                if (rare < 0 || epic < 0 || legendary < 0) throw new CommandException("Scatha pet drop amount cannot be negative!");
                 
-                if (rare > 9999 || epic > 9999 || legendary > 9999) throw new CommandException("Pet drop amount too large! Maximum allowed amount is 9999.");
-                if (rare < 0 || epic < 0 || legendary < 0) throw new CommandException("Pet drop amount cannot be negative!");
+                if (rare > Constants.maxLegitPetDropsAmount || epic > Constants.maxLegitPetDropsAmount || legendary > Constants.maxLegitPetDropsAmount)
+                {
+                    throw new CommandException("Scatha pet drop amount too large! Maximum allowed amount is \"" + Constants.maxLegitPetDropsAmount + "\".");
+                }
                 
                 scathaPro.variables.rarePetDrops = rare;
                 scathaPro.variables.epicPetDrops = epic;
                 scathaPro.variables.legendaryPetDrops = legendary;
                 
-                scathaPro.variables.scathaKillsAtLastDrop = -1;
-                
-                MessageUtil.sendModChatMessage("Pet drops changed");
-                
                 scathaPro.persistentData.savePetDrops();
                 scathaPro.overlayManager.updatePetDrops();
-                scathaPro.overlayManager.updateScathaKillsSinceLastDrop();
-                scathaPro.updatePetDropAchievements();
+
+                MessageUtil.sendModChatMessage(EnumChatFormatting.RESET + "Scatha pet drop amounts changed\n" + EnumChatFormatting.GRAY + "(Achievements will update on next game start or Scatha pet drop)");
             }
             else throw new CommandException("Missing values: /" + COMMAND_NAME + " setPetDrops <rare> <epic> <legendary>");
         }
