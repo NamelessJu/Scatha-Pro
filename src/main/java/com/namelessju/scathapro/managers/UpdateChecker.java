@@ -7,8 +7,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.apache.logging.log4j.Level;
-
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -104,17 +102,17 @@ public class UpdateChecker
                             
                             return;
                         }
-                        else ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't check for update (response is not an object)");
+                        else ScathaPro.getInstance().logError("Couldn't check for update (response is not an object)");
                     }
-                    else ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't check for update (response code " + code + ")");
+                    else ScathaPro.getInstance().logError("Couldn't check for update (response code " + code + ")");
                 }
                 catch (MalformedURLException e)
                 {
-                    ScathaPro.getInstance().logger.log(Level.ERROR, "Update checker URL is malformed");
+                    ScathaPro.getInstance().logError("Update checker URL is malformed");
                 }
                 catch (IOException e)
                 {
-                    ScathaPro.getInstance().logger.log(Level.ERROR, "Couldn't read API response while checking for update");
+                    ScathaPro.getInstance().logError("Couldn't read API response while checking for update");
                 }
                 
                 MessageUtil.sendModErrorMessage("Error while checking for update!");

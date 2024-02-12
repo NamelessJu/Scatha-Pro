@@ -21,11 +21,17 @@ public class DetectedJerry extends DetectedEntity
         super(entity);
         this.type = type;
     }
+
+    @Override
+    public long getMaxLifetime()
+    {
+        return -1;
+    }
     
     @Override
     protected void onRegistration()
     {
-        if (!ScathaPro.getInstance().config.getBoolean(Config.Key.goblinSpawnAlert)) return;
+        if (!ScathaPro.getInstance().getConfig().getBoolean(Config.Key.goblinSpawnAlert)) return;
         
         String typeText = EnumChatFormatting.GRAY.toString() + EnumChatFormatting.ITALIC + "Unknown type";
         if (type != null)

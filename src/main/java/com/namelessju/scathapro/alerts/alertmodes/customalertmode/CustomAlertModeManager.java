@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
-import org.apache.logging.log4j.Level;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -106,7 +105,7 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
     @Override
     public void onResourceManagerReload(IResourceManager resourceManager)
     {
-        if (resourceManager != scathaPro.minecraft.getResourceManager()) return;
+        if (resourceManager != scathaPro.getMinecraft().getResourceManager()) return;
         
         if (resourceManager instanceof SimpleReloadableResourceManager)
         {
@@ -114,7 +113,7 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
         }
         else
         {
-            scathaPro.logger.log(Level.ERROR, "Couldn't load custom alert mode resource pack - resource manager of unexpected type " + resourceManager.getClass().getCanonicalName() + " (expected " + SimpleReloadableResourceManager.class.getCanonicalName() + ")");
+            scathaPro.logError("Couldn't load custom alert mode resource pack - resource manager of unexpected type " + resourceManager.getClass().getCanonicalName() + " (expected " + SimpleReloadableResourceManager.class.getCanonicalName() + ")");
         }
     }
     
@@ -122,14 +121,14 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
     {
         // Haven't found a good way to reload just a single resource pack
         // Reloading all resources is slow, but it does the job
-        scathaPro.minecraft.refreshResources();
+        scathaPro.getMinecraft().refreshResources();
     }
     
     public void changeSubmode(String submodeId)
     {
         if (submodeId == null) submodeId = "";
         
-        Config config = scathaPro.config;
+        Config config = scathaPro.getConfig();
         config.set(Config.Key.customModeSubmode, submodeId);
         config.save();
         setCurrentSubmode(submodeId);
@@ -139,7 +138,7 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
     
     private void loadCurrentSubmode()
     {
-        String loadedSubmode = scathaPro.config.getString(Config.Key.customModeSubmode);
+        String loadedSubmode = scathaPro.getConfig().getString(Config.Key.customModeSubmode);
         if (!doesSubmodeExist(loadedSubmode)) loadedSubmode = null;
         setCurrentSubmode(loadedSubmode);
         loadCurrentSubmodeProperties();
@@ -156,7 +155,7 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
         
         loadCurrentSubmodeProperties();
         
-        scathaPro.logger.log(Level.INFO, "Custom alert mode resource pack loaded");
+        scathaPro.log("Custom alert mode resource pack loaded");
     }
     
     
@@ -181,7 +180,7 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
         File modeFolder = getSubModeFile(customModeId);
         if (!FileManager.deleteDirectoryRecursive(modeFolder))
         {
-            scathaPro.logger.log(Level.ERROR, "Couldn't delete custom alert mode - recursively deleting the directory failed");
+            scathaPro.logError("Couldn't delete custom alert mode - recursively deleting the directory failed");
         }
     }
     
@@ -249,7 +248,7 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
         
         if (!FileManager.writeFile(getMetaFile(submodeId), metaJson.toString()))
         {
-            scathaPro.logger.log(Level.ERROR, "Failed to write custom alert mode meta file (" + submodeId + ")");
+            scathaPro.logError("Failed to write custom alert mode meta file (" + submodeId + ")");
         }
     }
 
@@ -309,7 +308,7 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
         propertiesFile.getParentFile().mkdirs();
         if (!FileManager.writeFile(propertiesFile, properties.toString()))
         {
-            scathaPro.logger.log(Level.ERROR, "Failed to write custom alert mode properties file (" + submodeId + ")");
+            scathaPro.logError("Failed to write custom alert mode properties file (" + submodeId + ")");
         }
     }
     

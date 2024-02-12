@@ -10,12 +10,9 @@ import com.namelessju.scathapro.events.WormSpawnEvent;
 import com.namelessju.scathapro.util.NBTUtil;
 import com.namelessju.scathapro.util.Util;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.item.EntityArmorStand;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.AxisAlignedBB;
 import net.minecraftforge.common.MinecraftForge;
 
 public class DetectedWorm extends DetectedEntity
@@ -45,6 +42,12 @@ public class DetectedWorm extends DetectedEntity
     }
 
     @Override
+    public long getMaxLifetime()
+    {
+        return Constants.wormLifetime;
+    }
+
+    @Override
     protected void onRegistration()
     {
         MinecraftForge.EVENT_BUS.post(new WormSpawnEvent(this));
@@ -54,33 +57,26 @@ public class DetectedWorm extends DetectedEntity
     protected void onRemoved()
     {
         long now = Util.getCurrentTime();
+        /*
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
         AxisAlignedBB wormDetectionAABB = new AxisAlignedBB(player.posX, player.posY, player.posZ, player.posX, player.posY, player.posZ).expand(20f, 10f, 20f);
+        && getEntity().getEntityBoundingBox().intersectsWith(wormDetectionAABB)
+        */
         
         int entityID = getEntity().getEntityId();
         
         // Kill
         if (getLastAttackTime() >= 0 && now - getLastAttackTime() < Constants.pingTreshold || isFireAspectActive())
         {
-            registeredEntityIds.remove((Integer) entityID);
-            
+            registeredEntities.remove((Integer) entityID);
             MinecraftForge.EVENT_BUS.post(new WormKillEvent(this));
         }
-        
-        // Despawn (or when a worm leaves render distance)
-        else
-        {
-            // if the worm is close to the player, it is safe to assume the worm
-            // didn't despawn by leaving the render distance -> unregister
-            // if a worm leaves the render distance, it might come back so it
-            // shouldn't be unregistered
-            if (getEntity().getEntityBoundingBox().intersectsWith(wormDetectionAABB))
-            {
-                registeredEntityIds.remove((Integer) entityID);
-                
-                MinecraftForge.EVENT_BUS.post(new WormDespawnEvent(this));
-            }
-        }
+    }
+    
+    @Override
+    protected void onDespawn()
+    {
+        MinecraftForge.EVENT_BUS.post(new WormDespawnEvent(this));
     }
     
     public void attack(ItemStack weapon)

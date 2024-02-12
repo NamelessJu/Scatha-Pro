@@ -1,4 +1,4 @@
-package com.namelessju.scathapro.overlay;
+package com.namelessju.scathapro.overlay.elements;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +11,7 @@ public class OverlayContainer extends OverlayElement
     protected List<OverlayElement> elements = new ArrayList<OverlayElement>();
     public int backgroundColor = -1;
     public int padding = 0;
+    protected Alignment contentAlignment = Alignment.AUTOMATIC;
 
     public OverlayContainer(int x, int y, float scale)
     {
@@ -36,6 +37,11 @@ public class OverlayContainer extends OverlayElement
     public void add(OverlayElement element)
     {
         elements.add(element);
+    }
+    
+    public void addAtIndex(OverlayElement element, int index)
+    {
+        elements.add(index, element);
     }
     
     @Override
@@ -68,5 +74,10 @@ public class OverlayContainer extends OverlayElement
         }
         
         return Math.round((height + padding * 2) * (scaled ? scale : 1));
+    }
+    
+    public void setContentAlignment(Alignment alignment)
+    {
+        this.contentAlignment = alignment;
     }
 }

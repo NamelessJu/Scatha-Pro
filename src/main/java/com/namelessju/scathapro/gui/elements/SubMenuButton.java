@@ -2,8 +2,6 @@ package com.namelessju.scathapro.gui.elements;
 
 import java.lang.reflect.Constructor;
 
-import org.apache.logging.log4j.Level;
-
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.gui.menus.ScathaProGui;
 
@@ -38,7 +36,7 @@ public class SubMenuButton extends GuiButton implements IClickActionButton
         }
         catch (Exception e)
         {
-            ScathaPro.getInstance().logger.log(Level.ERROR, "Error while trying to open menu from SubMenuButton");
+            ScathaPro.getInstance().logError("Error while trying to open menu from SubMenuButton");
             e.printStackTrace();
         }
     }

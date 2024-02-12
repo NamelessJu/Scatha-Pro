@@ -2,7 +2,9 @@ package com.namelessju.scathapro.entitydetection.detectedentities;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Hashtable;
 
+import com.namelessju.scathapro.Constants;
 import com.namelessju.scathapro.events.DetectedEntityRegisteredEvent;
 import com.namelessju.scathapro.util.Util;
 
@@ -13,13 +15,13 @@ import net.minecraftforge.common.MinecraftForge;
 public abstract class DetectedEntity
 {
     // These have been detected and are remembered even if the actual entity is unloaded
-    protected static final List<Integer> registeredEntityIds = new ArrayList<Integer>();
+    protected static final Hashtable<Integer, Long> registeredEntities = new Hashtable<Integer, Long>();
     // These are currently loaded in the world
     private static final List<DetectedEntity> detectedEntities = new ArrayList<DetectedEntity>();
     
     public static void clearLists()
     {
-        registeredEntityIds.clear();
+        registeredEntities.clear();
         detectedEntities.clear();
     }
     
@@ -29,10 +31,10 @@ public abstract class DetectedEntity
         
         detectedEntities.add(detectedEntity);
         
-        int id = detectedEntity.entity.getEntityId();
-        if (!registeredEntityIds.contains(id))
+        int entityId = detectedEntity.entity.getEntityId();
+        if (!registeredEntities.contains(entityId))
         {
-            registeredEntityIds.add(id);
+            registeredEntities.put(entityId, detectedEntity.spawnTime);
             detectedEntity.onRegistration();
             MinecraftForge.EVENT_BUS.post(new DetectedEntityRegisteredEvent(detectedEntity));
         }
@@ -60,10 +62,15 @@ public abstract class DetectedEntity
                 continue;
             }
             
-            if (!world.loadedEntityList.contains(detectedEntity.getEntity()))
+            if (!world.loadedEntityList.contains(detectedEntity.entity))
             {
+                if (detectedEntity.getCurrentLifetime() >= detectedEntity.getMaxLifetime() - Constants.pingTreshold)
+                {
+                    registeredEntities.remove(detectedEntity.entity.getEntityId());
+                    detectedEntity.onDespawn();
+                }
+                
                 detectedEntities.remove(i).onRemoved();
-                continue;
             }
         }
     }
@@ -75,16 +82,23 @@ public abstract class DetectedEntity
     public DetectedEntity(EntityArmorStand entity)
     {
         this.entity = entity;
-        spawnTime = Util.getCurrentTime();
+        
+        Long registeredSpawnTime = registeredEntities.get(entity.getEntityId());
+        if (registeredSpawnTime != null) spawnTime = registeredSpawnTime;
+        else spawnTime = Util.getCurrentTime();
     }
     
-    public long getLifetime()
-    {
-        return Util.getCurrentTime() - spawnTime;
-    }
+    public abstract long getMaxLifetime();
     
     protected void onRegistration() {}
     protected void onRemoved() {}
+    protected void onDespawn() {}
+    
+    
+    public long getCurrentLifetime()
+    {
+        return Util.getCurrentTime() - spawnTime;
+    }
     
     public EntityArmorStand getEntity()
     {

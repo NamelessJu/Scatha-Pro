@@ -27,7 +27,7 @@ public class CustomAlertMode extends AlertMode
     
     public AlertTitle getTitle(String alertId)
     {
-        JsonElement titlesJson = ScathaPro.getInstance().customAlertModeManager.getCurrentSubmodePropertyJsonElement("titles");
+        JsonElement titlesJson = ScathaPro.getInstance().getCustomAlertModeManager().getCurrentSubmodePropertyJsonElement("titles");
         if (titlesJson == null) return null;
         String title = JsonUtil.getString(titlesJson, alertId + "/title");
         String subtitle = JsonUtil.getString(titlesJson, alertId + "/subtitle");

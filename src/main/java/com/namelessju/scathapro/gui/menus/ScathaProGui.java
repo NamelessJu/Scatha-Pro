@@ -24,7 +24,7 @@ public abstract class ScathaProGui extends GuiScreen
     {
         slider.displayString = slider.dispString + "default";
     }
-
+    
     
     public final ScathaPro scathaPro;
     

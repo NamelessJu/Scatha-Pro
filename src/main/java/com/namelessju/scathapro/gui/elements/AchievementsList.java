@@ -35,7 +35,7 @@ public class AchievementsList extends Gui
     private Minecraft mc = Minecraft.getMinecraft();
     private FontRenderer fontRenderer = mc.fontRendererObj;
     private ScaledResolution scaledResolution = new ScaledResolution(mc);
-    private AchievementManager achievementManager = ScathaPro.getInstance().achievementManager;
+    private AchievementManager achievementManager = ScathaPro.getInstance().getAchievementManager();
     
     private AchievementCard[] achievementCards;
     private String unlockedAchievementsString;
@@ -76,12 +76,15 @@ public class AchievementsList extends Gui
             
             if (unlocked)
             {
-                fontRenderer.drawString(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + EnumChatFormatting.BOLD + achievement.name + (achievement.type.string != null ? EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + " [" + achievement.type.string + EnumChatFormatting.RESET + EnumChatFormatting.GREEN + "]" : ""), cardX + cardPadding, cardY + cardPadding, Util.Color.WHITE.getValue(), true);
+                fontRenderer.drawString((achievement.type.string != null ? EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + "[" + EnumChatFormatting.RESET + achievement.type.string + EnumChatFormatting.RESET + EnumChatFormatting.GREEN + "] " : "") + EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + EnumChatFormatting.BOLD + achievement.name, cardX + cardPadding, cardY + cardPadding, Util.Color.WHITE.getValue(), true);
                 
                 String unlockedString = EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + Util.formatTime(achievementManager.getUnlockedAchievement(achievement).unlockedAtTimestamp);
                 fontRenderer.drawString(unlockedString, cardX + width - cardPadding - fontRenderer.getStringWidth(unlockedString), cardY + cardPadding, Util.Color.WHITE.getValue(), true);
             }
-            else fontRenderer.drawString(EnumChatFormatting.RESET + achievement.name + (achievement.type.string != null ? " [" + achievement.type.string + EnumChatFormatting.RESET + "]" : ""), cardX + cardPadding, cardY + cardPadding, Util.Color.WHITE.getValue(), true);
+            else
+            {
+                fontRenderer.drawString((achievement.type.string != null ? "[" + achievement.type.string + EnumChatFormatting.RESET + "] " : "") + EnumChatFormatting.RESET + achievement.name, cardX + cardPadding, cardY + cardPadding, Util.Color.WHITE.getValue(), true);
+            }
             fontRenderer.drawString(EnumChatFormatting.GRAY + (detailsHidden ? EnumChatFormatting.OBFUSCATED.toString() : "") + achievement.description, cardX + cardPadding, cardY + cardPadding + 12, Util.Color.WHITE.getValue(), true);
 
             GlStateManager.color(1f, 1f, 1f, 1f);
@@ -93,7 +96,7 @@ public class AchievementsList extends Gui
             int progress = Math.round(barWidth * Math.min(achievement.getProgress() / achievement.goal, 1));
             if (progress >= barWidth) drawModalRectWithCustomSizedTexture(cardX + cardPadding, cardY + cardPadding + 24, 0, 8, barWidth, 3, 512, 16);
             else if (progress > 0) drawModalRectWithCustomSizedTexture(cardX + cardPadding, cardY + cardPadding + 24, 0, 4, progress, 3, 512, 16);
-
+            
             String progressString;
             if (detailsHidden) progressString = EnumChatFormatting.YELLOW.toString() + EnumChatFormatting.OBFUSCATED + "?" + EnumChatFormatting.RESET + EnumChatFormatting.YELLOW + "/" + EnumChatFormatting.OBFUSCATED + "?";
             else
@@ -118,13 +121,13 @@ public class AchievementsList extends Gui
         this.yPosition = y;
         this.width = width;
         this.height = height;
-
+        
         Achievement[] achievementList = AchievementManager.getAllAchievements();
         ArrayList<Achievement> visibleAchievements = new ArrayList<Achievement>();
         
         Hashtable<Achievement.Type, Integer> achievementCount = new Hashtable<Type, Integer>();
         Hashtable<Achievement.Type, Integer> unlockedAchievementCount = new Hashtable<Type, Integer>();
-
+        
         for (int i = 0; i < achievementList.length; i ++)
         {
             Achievement achievement = achievementList[i];
@@ -134,7 +137,7 @@ public class AchievementsList extends Gui
             if (achievement.type.visibility != Achievement.Type.Visibility.HIDDEN || unlocked) visibleAchievements.add(achievement);
             
             Integer currentTypeCount = achievementCount.get(achievement.type);
-            achievementCount.put(achievement.type, getNullableInteger(currentTypeCount) + 1);
+            achievementCount.put(achievement.type, intOrZero(currentTypeCount) + 1);
             
             if (unlocked)
             {
@@ -144,10 +147,13 @@ public class AchievementsList extends Gui
         }
         
         
-        int unlockedHiddenAchievements = getNullableInteger(unlockedAchievementCount.get(Achievement.Type.HIDDEN));
+        int unlockedHiddenAchievements = intOrZero(unlockedAchievementCount.get(Achievement.Type.HIDDEN));
         
-        unlockedAchievementsString = EnumChatFormatting.GREEN.toString() + EnumChatFormatting.BOLD + "Unlocked: " + EnumChatFormatting.GREEN + EnumChatFormatting.BOLD + getNullableInteger(unlockedAchievementCount.get(Achievement.Type.NORMAL)) + "/" + getNullableInteger(achievementCount.get(Achievement.Type.NORMAL))
-                + EnumChatFormatting.GRAY + " (+ " + EnumChatFormatting.AQUA + getNullableInteger(unlockedAchievementCount.get(Achievement.Type.SECRET)) + "/" + getNullableInteger(achievementCount.get(Achievement.Type.SECRET)) + " Secret" + (unlockedHiddenAchievements > 0 ? EnumChatFormatting.GRAY + " & " + EnumChatFormatting.RED + unlockedHiddenAchievements + " HIDDEN" : "") + EnumChatFormatting.GRAY + ")";
+        unlockedAchievementsString = EnumChatFormatting.GREEN + "Unlocked: " + intOrZero(unlockedAchievementCount.get(Achievement.Type.NORMAL)) + "/" + intOrZero(achievementCount.get(Achievement.Type.NORMAL))
+            + EnumChatFormatting.GRAY + " (+ "
+                + EnumChatFormatting.AQUA + intOrZero(unlockedAchievementCount.get(Achievement.Type.SECRET)) + "/" + intOrZero(achievementCount.get(Achievement.Type.SECRET))+ " Secret"
+                + (unlockedHiddenAchievements > 0 ? EnumChatFormatting.GRAY + " & " + EnumChatFormatting.RED + unlockedHiddenAchievements + " HIDDEN" : "")
+            + EnumChatFormatting.GRAY + ")";
         
         achievementCards = new AchievementCard[visibleAchievements.size()];
         
@@ -258,7 +264,7 @@ public class AchievementsList extends Gui
     }
     
     
-    private int getNullableInteger(Integer integer)
+    private int intOrZero(Integer integer)
     {
         return integer != null ? integer.intValue() : 0;
     }

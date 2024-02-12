@@ -16,7 +16,6 @@ public class GlobalVariables
     public int currentAreaCheckTimeIndex = 0;
     public SkyblockArea currentArea = null;
     
-    public boolean inBedrockWallRange = false;
     public HashMap<Integer, Integer> previousScathaPets = null;
     public ItemStack lastProjectileWeaponUsed = null;
     
@@ -70,7 +69,6 @@ public class GlobalVariables
         currentArea = null;
         devsInLobby.clear();
         
-        inBedrockWallRange = false;
         previousScathaPets = null;
         
         lobbyRegularWormKills = 0;

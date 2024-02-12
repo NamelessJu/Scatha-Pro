@@ -1,5 +1,7 @@
 package com.namelessju.scathapro.managers;
 
+import com.namelessju.scathapro.ScathaPro;
+
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 
@@ -68,6 +70,8 @@ public class Config
     {
         loadFile();
         convertOldConfigEntries();
+        
+        ScathaPro.getInstance().log("Config loaded");
     }
     
     private void convertOldConfigEntries()

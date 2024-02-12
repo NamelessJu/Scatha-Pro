@@ -68,19 +68,12 @@ public class Util
 
     public static String getPlayerUUIDString()
     {
-        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-        if (player != null)
-        {
-            GameProfile gameProfile = player.getGameProfile();
-            if (gameProfile != null) return getUUIDString(gameProfile.getId());
-        }
-        
-        return null;
+        return getUUIDString(Minecraft.getMinecraft().getSession().getProfile().getId());
     }
     
     public static boolean isDeveloper(GameProfile profile)
     {
-        if (ScathaPro.getInstance().config.getBoolean(Config.Key.devMode) && profile.getName().equals("JuCraft")) return true;
+        if (ScathaPro.getInstance().getConfig().getBoolean(Config.Key.devMode) && profile.getName().equals("JuCraft")) return true;
         
         UUID uuid = profile.getId();
         if (uuid != null) return getUUIDString(uuid).equals("e9be3984b09740c98fb4d8aaeb2b4838");

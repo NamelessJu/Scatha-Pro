@@ -17,18 +17,17 @@ public enum Achievement
     
     worm_kills_1("Long boi", "Kill a worm", 1),
     worm_kills_2("Two digits", "Kill 10 worms", 10),
-    worm_kills_3("---WIP---", "Kill 100 worms", 100), // TODO: names
+    worm_kills_3("Bestiary magic find", "Kill 120 worms", 120), // TODO: name
     worm_bestiary_max("Worm expert", "Complete the worm bestiary (400 worm kills)", 400),
     worm_kills_4("There's a comma now", "Kill 1,000 worms", 1000),
     worm_kills_5("---WIP---", "Kill 10,000 worms", 10000),
-    worm_kills_6("No life", "Kill 100,000 worms", 100000), // TODO: reduce these last achievements (for both worms and Scathas)?
+    worm_kills_6("No life", "Kill 25,000 worms", 25000),
     
     scatha_kills_1("Scatha Farmer", "Become a Scatha farmer by killing your first Scatha", 1),
     scatha_kills_2("No pet yet?!", "Kill 10 Scathas", 10),
     scatha_kills_3("Continuing the grind...", "Kill 100 Scathas", 100),
     scatha_kills_4("k", "Kill 1,000 Scathas", 1000),
-    scatha_kills_5("Over 9000", "Kill 9,001 Scathas", 9001),
-    scatha_kills_6("Scatha Pro", "Kill 20,000 Scathas", 20000),
+    scatha_kills_5("Scatha-Pro", "Kill 5,000 Scathas", 5000),
     
     worm_kill_time_1("No time to waste", "Kill a worm less than one second after it spawned", 1, Type.SECRET),
     worm_kill_time_2("Yeah, I've got time!", "Kill a worm less than a second before it despawns", 1, Type.SECRET),
@@ -43,7 +42,7 @@ public enum Achievement
     hard_stone_mined_3("Crystal hollowed", "Mine 100,000,000 hard stone", 100000000, Type.LEGACY),
     
     crystal_hollows_time_1("Time flies", "Spend 1 hour in a single Crystal Hollows lobby", 1),
-    crystal_hollows_time_2("New Home", "Spend 3 hours in a single Crystal Hollows lobby", 3),
+    crystal_hollows_time_2("New home", "Spend 3 hours in a single Crystal Hollows lobby", 3),
     crystal_hollows_time_3("Go touch some grass", "Spend 5 hours in a single Crystal Hollows lobby", 5),
     
     scatha_spawn_time("Any%", "Spawn a Scatha in the 1st minute after joining a lobby", 1, Type.SECRET),
@@ -65,8 +64,10 @@ public enum Achievement
     scatha_streak_2("Oh baby a triple!", "Get 3 Scatha spawns back to back", 3),
     scatha_streak_3("Four Scatha clover", "Get 4 Scatha spawns back to back", 4),
     scatha_streak_4("Scatha Magnet", "Get 5 Scatha spawns back to back", 5),
-    
+
     scatha_spawn_chbottom("Hot Scatha farming place", "Spawn a Scatha at the bottom of the Crystal Hollows", 1),
+    // TODO:
+    scatha_spawn_heat("This is fine.", "Spawn a Scatha while at 100% heat", 1, Type.SECRET),
     scatha_spawn_chtop("Reach for the sky", "Spawn a Scatha at the top of the Crystal Hollows", 1, Type.SECRET),
     
     scatha_pet_drop_1_rare("Better than nothing", "Get a rare Scatha pet drop", 1),
@@ -103,7 +104,7 @@ public enum Achievement
         NORMAL(null, Visibility.VISIBLE),
         SECRET(EnumChatFormatting.AQUA + "Secret", Visibility.TITLE_ONLY),
         HIDDEN(EnumChatFormatting.RED + "HIDDEN", Visibility.HIDDEN),
-        LEGACY(EnumChatFormatting.DARK_PURPLE.toString() + EnumChatFormatting.BOLD + "LEGACY", Visibility.HIDDEN);
+        LEGACY(EnumChatFormatting.DARK_PURPLE + "LEGACY", Visibility.HIDDEN);
         
         public enum Visibility
         {
@@ -153,7 +154,7 @@ public enum Achievement
     
     public void setProgress(float progress)
     {
-        if (ScathaPro.getInstance().achievementManager.isAchievementUnlocked(this))
+        if (ScathaPro.getInstance().getAchievementManager().isAchievementUnlocked(this))
         {
             this.progress = goal;
             return;
@@ -162,7 +163,7 @@ public enum Achievement
         if (progress >= goal)
         {
             this.progress = goal;
-            ScathaPro.getInstance().achievementManager.unlockAchievement(this);
+            ScathaPro.getInstance().getAchievementManager().unlockAchievement(this);
         }
         else this.progress = progress;
     }

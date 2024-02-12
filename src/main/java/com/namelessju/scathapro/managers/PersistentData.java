@@ -7,8 +7,6 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import org.apache.logging.log4j.Level;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -54,7 +52,7 @@ public class PersistentData
             String jsonString = FileManager.readFile(saveFile);
             if (jsonString == null)
             {
-                scathaPro.logger.log(Level.ERROR, "Couldn't load persistent data (failed to read file)");
+                scathaPro.logError("Couldn't load persistent data (failed to read file)");
                 return;
             }
             
@@ -74,10 +72,12 @@ public class PersistentData
                 loadAchievements();
                 loadPetDrops();
                 loadWormKills();
+                
+                scathaPro.log("Persistent data loaded");
             }
             else
             {
-                scathaPro.logger.log(Level.ERROR, "Couldn't load persistent data (JSON root is not an object)");
+                scathaPro.logError("Couldn't load persistent data (JSON root is not an object)");
                 onLoadError();
             }
         }
@@ -89,7 +89,7 @@ public class PersistentData
         {
             if (!FileManager.writeFile(saveFile, data.toString()))
             {
-                scathaPro.logger.log(Level.ERROR, "Error while trying to save persistent data");
+                scathaPro.logError("Error while trying to save persistent data");
             }
         }
         else MessageUtil.sendModErrorMessage("Persistent data can't be saved, your session is offline!");
@@ -182,7 +182,7 @@ public class PersistentData
             JsonArray achievementsJsonArray = JsonUtil.getJsonArray(getCurrentPlayerObject(), unlockedAchievementsKey);
             if (achievementsJsonArray != null)
             {
-                AchievementManager achievementManager = scathaPro.achievementManager;
+                AchievementManager achievementManager = scathaPro.getAchievementManager();
                 achievementManager.unlockedAchievements.clear();
                 
                 long now = Util.getCurrentTime();
@@ -212,7 +212,7 @@ public class PersistentData
         }
         catch (Exception e)
         {
-            scathaPro.logger.log(Level.ERROR, "Error while trying to load achievements data:");
+            scathaPro.logError("Error while trying to load achievements data:");
             e.printStackTrace();
             onLoadError();
         }
@@ -222,7 +222,7 @@ public class PersistentData
     {
         JsonArray unlockedAchievementsJson = new JsonArray();
         
-        for (UnlockedAchievement unlockedAchievement : scathaPro.achievementManager.unlockedAchievements)
+        for (UnlockedAchievement unlockedAchievement : scathaPro.getAchievementManager().unlockedAchievements)
         {
             JsonObject achievementObject = new JsonObject();
             achievementObject.add("achievementID", new JsonPrimitive(unlockedAchievement.achievement.getID()));
@@ -267,13 +267,14 @@ public class PersistentData
                 {
                     scathaPro.variables.scathaKillsAtLastDrop = scathaKillsAtLastDrop;
                 }
-                
-                scathaPro.overlayManager.updateScathaKillsSinceLastDrop();
+
+                scathaPro.getOverlay().updatePetDrops();
+                scathaPro.getOverlay().updateScathaKillsSinceLastDrop();
             }
         }
         catch (Exception e)
         {
-            scathaPro.logger.log(Level.ERROR, "Error while trying to load pet drops data:");
+            scathaPro.logError("Error while trying to load pet drops data:");
             e.printStackTrace();
             onLoadError();
         }
@@ -308,18 +309,18 @@ public class PersistentData
                 if (regularWormKills != null) scathaPro.variables.regularWormKills = regularWormKills;
                 if (scathaKills != null) scathaPro.variables.scathaKills = scathaKills;
                 
-                if ((regularWormKills == null || scathaKills == null) && scathaPro.config.getBoolean(Config.Key.automaticStatsParsing))
+                if ((regularWormKills == null || scathaKills == null) && scathaPro.getConfig().getBoolean(Config.Key.automaticStatsParsing))
                 {
                     MessageUtil.sendModChatMessage(EnumChatFormatting.YELLOW + "Open \"/be worms\" to load previous worm kills into the overlay!");
                 }
                 
-                scathaPro.overlayManager.updateWormKills();
-                scathaPro.overlayManager.updateScathaKills();
+                scathaPro.getOverlay().updateWormKills();
+                scathaPro.getOverlay().updateScathaKills();
             }
         }
         catch (Exception e)
         {
-            scathaPro.logger.log(Level.ERROR, "Error while trying to load worm kills data:");
+            scathaPro.logError("Error while trying to load worm kills data:");
             e.printStackTrace();
             onLoadError();
         }

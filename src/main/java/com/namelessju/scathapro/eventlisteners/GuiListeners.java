@@ -23,7 +23,7 @@ public class GuiListeners
     public GuiListeners(ScathaPro scathaPro)
     {
         this.scathaPro = scathaPro;
-        mc = scathaPro.minecraft;
+        mc = scathaPro.getMinecraft();
     }
     
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -33,7 +33,8 @@ public class GuiListeners
         
         if (event.gui instanceof GuiOptions)
         {
-            GuiButton modMenuButton = new GuiButton(504703000, event.gui.width / 2 - 155, event.gui.height / 6 + 24 - 6, 150, 20, ScathaPro.MODNAME + " Settings");
+            GuiButton modMenuButton = new GuiButton(504703001, event.gui.width / 2 - 155, event.gui.height / 6 + 24 - 6, 150, 20, ScathaPro.MODNAME + " Settings");
+            event.buttonList.add(modMenuButton);
             
             if (isButtonOverlapping(modMenuButton, event.buttonList))
             {
@@ -43,18 +44,15 @@ public class GuiListeners
                 {
                     modMenuButton.xPosition = 5;
                     modMenuButton.yPosition = 5;
-                    modMenuButton.width = 100;
                 }
             }
-            
-            event.buttonList.add(modMenuButton);
         }
         
         // Achievements Menu Button
         
         else if (event.gui instanceof GuiIngameMenu)
         {
-            GuiButton achievementMenuButton = new ImageButton(504703001, event.gui.width / 2 - 100 - 24, event.gui.height / 4 + 48 - 16, 20, 20, "gui/achievements/button_icon.png", 64, 64, 0.2f);
+            GuiButton achievementMenuButton = new ImageButton(504703002, event.gui.width / 2 - 100 - 24, event.gui.height / 4 + 48 - 16, 20, 20, "gui/achievements/button_icon.png", 64, 64, 0.2f);
             
             if (isButtonOverlapping(achievementMenuButton, event.buttonList))
             {
@@ -78,11 +76,11 @@ public class GuiListeners
     {
         switch (event.button.id)
         {
-            case 504703000:
+            case 504703001:
                 mc.displayGuiScreen(new SettingsGui(scathaPro, event.gui));
                 break;
-                
-            case 504703001:
+            
+            case 504703002:
                 mc.displayGuiScreen(new AchievementsGui(scathaPro, event.gui));
                 break;
         }

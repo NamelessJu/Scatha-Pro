@@ -1,4 +1,4 @@
-package com.namelessju.scathapro.overlay;
+package com.namelessju.scathapro.overlay.elements;
 
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
@@ -104,7 +104,7 @@ public class DynamicOverlayContainer extends OverlayContainer
         OverlayContainer container = (OverlayContainer) element;
         for (OverlayElement child : container.elements)
         {
-            if (!(child instanceof OverlaySpacing) && child.isVisible() && !(isElementEmptyContainer(child))) return false;
+            if (child.isVisible() && !(isElementEmptyContainer(child))) return false;
         }
         
         return true;

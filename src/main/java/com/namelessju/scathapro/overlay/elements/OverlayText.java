@@ -1,4 +1,4 @@
-package com.namelessju.scathapro.overlay;
+package com.namelessju.scathapro.overlay.elements;
 
 import net.minecraft.client.Minecraft;
 

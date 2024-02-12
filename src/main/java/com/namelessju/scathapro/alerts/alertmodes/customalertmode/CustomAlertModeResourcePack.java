@@ -9,8 +9,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
-import org.apache.logging.log4j.Level;
-
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -68,7 +66,7 @@ public class CustomAlertModeResourcePack implements IResourcePack
     @Override
     public boolean resourceExists(ResourceLocation location)
     {
-        String subMode = ScathaPro.getInstance().customAlertModeManager.getCurrentSubmodeId();
+        String subMode = ScathaPro.getInstance().getCustomAlertModeManager().getCurrentSubmodeId();
         if (subMode == null) return false;
         
         if (location.getResourcePath().equals("sounds.json"))
@@ -86,11 +84,11 @@ public class CustomAlertModeResourcePack implements IResourcePack
     @Override
     public InputStream getInputStream(ResourceLocation location) throws IOException
     {
-        String subMode = ScathaPro.getInstance().customAlertModeManager.getCurrentSubmodeId();
+        String subMode = ScathaPro.getInstance().getCustomAlertModeManager().getCurrentSubmodeId();
         
         if (subMode == null)
         {
-            ScathaPro.getInstance().logger.log(Level.WARN, "Tried to get input stream for custom alert mode resource, but no custom mode is set!");
+            ScathaPro.getInstance().logWarning("Tried to get input stream for custom alert mode resource, but no custom mode is set!");
             return null;
         }
         

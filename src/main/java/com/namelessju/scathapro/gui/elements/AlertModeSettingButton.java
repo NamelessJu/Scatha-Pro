@@ -10,7 +10,7 @@ import net.minecraft.client.gui.GuiButton;
 public class AlertModeSettingButton extends GuiButton implements IClickActionButton
 {
     private ScathaPro scathaPro = ScathaPro.getInstance();
-    private AlertModeManager alertModeManager = scathaPro.alertModeManager;
+    private AlertModeManager alertModeManager = scathaPro.getAlertModeManager();
     
     public String text;
     
@@ -42,11 +42,11 @@ public class AlertModeSettingButton extends GuiButton implements IClickActionBut
         
         if (nextModeIndex >= allModes.length) nextModeIndex = 0;
         
-        Config config = scathaPro.config;
+        Config config = scathaPro.getConfig();
         config.set(Config.Key.mode, allModes[nextModeIndex].id);
         config.save();
         
-        scathaPro.overlayManager.updateScathaPetImage();
+        scathaPro.getOverlay().updateScathaPetImage();
         
         updateText();
     }

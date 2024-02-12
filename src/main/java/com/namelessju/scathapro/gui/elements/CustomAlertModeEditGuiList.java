@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.logging.log4j.Level;
-
 import com.google.common.io.Files;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -36,7 +34,7 @@ public class CustomAlertModeEditGuiList extends ScathaProGuiList
     {
         super(gui, 75, gui.height - 40, 110);
         
-        customAlertModeManager = ScathaPro.getInstance().customAlertModeManager;
+        customAlertModeManager = ScathaPro.getInstance().getCustomAlertModeManager();
         
         this.customModeId = customModeId;
         modeProperties = customAlertModeManager.loadSubmodeProperties(customModeId);
@@ -324,7 +322,7 @@ public class CustomAlertModeEditGuiList extends ScathaProGuiList
                     if (!newSoundFile.getName().endsWith(".ogg"))
                     {
                         // TODO: add .mp3 to .ogg converter
-                        ScathaPro.getInstance().logger.log(Level.WARN, alert.alertName + " audio file is not an .ogg file!");
+                        ScathaPro.getInstance().logWarning("Custom alert mode: Couldn't save " + alert.alertName + " audio - new file is not an .ogg file!");
                         return false;
                     }
                     

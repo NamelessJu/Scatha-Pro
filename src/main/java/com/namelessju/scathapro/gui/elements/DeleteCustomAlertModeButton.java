@@ -27,7 +27,7 @@ public class DeleteCustomAlertModeButton extends GuiButton implements IClickActi
         this.customModeId = customModeId;
         this.returnGui = returnGui;
         
-        this.customAlertModeManager = ScathaPro.getInstance().customAlertModeManager;
+        this.customAlertModeManager = ScathaPro.getInstance().getCustomAlertModeManager();
     }
 
     @Override

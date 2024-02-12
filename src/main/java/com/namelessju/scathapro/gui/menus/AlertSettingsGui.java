@@ -79,7 +79,7 @@ public class AlertSettingsGui extends ScathaProGui
     
     private void updateModeButtons()
     {
-        if (scathaPro.alertModeManager.getCurrentMode() instanceof CustomAlertMode)
+        if (scathaPro.getAlertModeManager().getCurrentMode() instanceof CustomAlertMode)
         {
             alertModeSettingButton.width = 150;
             customAlertModeEditButton.visible = true;

@@ -7,8 +7,6 @@ import net.minecraft.util.EnumChatFormatting;
 import java.util.Arrays;
 import java.util.Comparator;
 
-import org.apache.logging.log4j.Level;
-
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.alerts.alertmodes.customalertmode.CustomAlertModeManager;
 import com.namelessju.scathapro.gui.menus.CustomAlertModeEditGui;
@@ -28,7 +26,7 @@ public class CustomAlertModeGuiList extends ScathaProGuiList
 
         this.listEntries.add(new CreateCustomModeEntry());
         
-        customAlertModeManager = scathaPro.customAlertModeManager;
+        customAlertModeManager = scathaPro.getCustomAlertModeManager();
         customAlertModeManager.loadAllMeta();
         
         String[] customModeIds = CustomAlertModeManager.getAllSubmodeIds();
@@ -68,7 +66,7 @@ public class CustomAlertModeGuiList extends ScathaProGuiList
                     String newModeId = CustomAlertModeManager.getNewSubmodeId();
                     if (newModeId == null)
                     {
-                        scathaPro.logger.log(Level.ERROR, "Couldn't create new custom alert mode - generating a new unique ID failed");
+                        scathaPro.logError("Couldn't create new custom alert mode - generating a new unique ID failed");
                         break;
                     }
                     

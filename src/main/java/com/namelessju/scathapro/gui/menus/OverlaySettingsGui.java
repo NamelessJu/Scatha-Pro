@@ -5,8 +5,10 @@ import java.io.IOException;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.gui.elements.BooleanSettingButton;
 import com.namelessju.scathapro.gui.elements.DoneButton;
+import com.namelessju.scathapro.gui.elements.MultiOptionButton;
 import com.namelessju.scathapro.managers.Config;
-import com.namelessju.scathapro.managers.OverlayManager;
+import com.namelessju.scathapro.miscellaneous.SecondaryKillCounterType;
+import com.namelessju.scathapro.overlay.Overlay;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
@@ -15,15 +17,15 @@ import net.minecraftforge.fml.client.config.GuiSlider;
 
 public class OverlaySettingsGui extends ScathaProGui implements GuiSlider.ISlider
 {
-    private final OverlayManager overlayManager;
     private final Config config;
+    private final Overlay overlay;
     
     public OverlaySettingsGui(ScathaPro scathaPro, GuiScreen parentGui)
     {
         super(scathaPro, parentGui);
         
-        overlayManager = scathaPro.overlayManager;
-        config = scathaPro.config;
+        config = scathaPro.getConfig();
+        overlay = scathaPro.getOverlay();
     }
     
     @Override
@@ -31,7 +33,7 @@ public class OverlaySettingsGui extends ScathaProGui implements GuiSlider.ISlide
     {
         return "Overlay Settings";
     }
-
+    
     @Override
     public boolean hasBackground()
     {
@@ -58,16 +60,35 @@ public class OverlaySettingsGui extends ScathaProGui implements GuiSlider.ISlide
         buttonList.add(overlayYSlider);
         
         buttonList.add(new GuiSlider(504704104, width / 2 - 155, height - 64 - 6, 150, 20, "Overlay Scale: ", "%", 50, 150, config.getDouble(Config.Key.overlayScale) * 100, false, true, this));
+
+        buttonList.add(new MultiOptionButton<String>(504704105, width / 2 - 155, height - 112 - 12, 150, 20, "2. Kill Counter", SecondaryKillCounterType.values(), config.getString(Config.Key.secondaryKillCounterType), new MultiOptionButton.IOptionChangedListener<String>() {
+            @Override
+            public void onChange(MultiOptionButton<String> button)
+            {
+                config.set(Config.Key.secondaryKillCounterType, button.getSelectedValue());
+                config.save();
+                scathaPro.getOverlay().setSecondaryKillCounterType((SecondaryKillCounterType) button.getSelectedOption());
+            }
+        }));
+        buttonList.add(new MultiOptionButton<Integer>(504704106, width / 2 + 5, height - 112 - 12, 150, 20, "Scatha % Dec. Places", MultiOptionButton.IntegerOption.range(0, 3), config.getInt(Config.Key.scathaPercentageDecimalDigits), new MultiOptionButton.IOptionChangedListener<Integer>() {
+            @Override
+            public void onChange(MultiOptionButton<Integer> button)
+            {
+                config.set(Config.Key.scathaPercentageDecimalDigits, button.getSelectedValue());
+                config.save();
+                scathaPro.getOverlay().updateTotalKills();
+            }
+        }));
         
         buttonList.add(new DoneButton(504704199, width / 2 - 100, height - 40, 200, 20, "Done", this));
         
-        overlayManager.updateOverlayFull();
+        overlay.updateOverlayFull();
     }
     
     @Override
     protected void drawCustomBackground()
     {
-        overlayManager.drawOverlay();
+        overlay.drawOverlay();
     }
     
 
@@ -81,7 +102,7 @@ public class OverlaySettingsGui extends ScathaProGui implements GuiSlider.ISlide
             switch (button.id)
             {
                 case 504704101:
-                    overlayManager.updateVisibility();
+                    overlay.updateVisibility();
                     break;
             }
         }
@@ -100,7 +121,7 @@ public class OverlaySettingsGui extends ScathaProGui implements GuiSlider.ISlide
                     config.set(Config.Key.overlayX, overlayX >= 0 ? overlayX : -1);
                     config.save();
                     
-                    overlayManager.updatePosition();
+                    overlay.updatePosition();
                     
                     if (overlayX < 0) setSliderTextDefault(slider);
                     break;
@@ -111,7 +132,7 @@ public class OverlaySettingsGui extends ScathaProGui implements GuiSlider.ISlide
                     config.set(Config.Key.overlayY, overlayY >= 0 ? overlayY : -1);
                     config.save();
                     
-                    overlayManager.updatePosition();
+                    overlay.updatePosition();
                     
                     if (overlayY < 0) setSliderTextDefault(slider);
                     break;
@@ -120,8 +141,8 @@ public class OverlaySettingsGui extends ScathaProGui implements GuiSlider.ISlide
                     config.set(Config.Key.overlayScale, (double) slider.getValueInt() / 100);
                     config.save();
                     
-                    overlayManager.updateScale();
-                    overlayManager.updatePosition();
+                    overlay.updateScale();
+                    overlay.updatePosition();
                     break;
             }
         }

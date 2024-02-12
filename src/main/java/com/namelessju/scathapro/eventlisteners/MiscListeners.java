@@ -3,18 +3,14 @@ package com.namelessju.scathapro.eventlisteners;
 import java.util.List;
 
 import com.google.common.base.Predicate;
-import com.google.gson.JsonPrimitive;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.entitydetection.detectedentities.DetectedEntity;
 import com.namelessju.scathapro.entitydetection.detectedentities.DetectedWorm;
-import com.namelessju.scathapro.events.ModUpdateEvent;
 import com.namelessju.scathapro.events.WormPreSpawnEvent;
 import com.namelessju.scathapro.managers.Config;
-import com.namelessju.scathapro.managers.PersistentData;
 import com.namelessju.scathapro.miscellaneous.ScathaProSound;
 import com.namelessju.scathapro.util.MessageUtil;
-import com.namelessju.scathapro.util.JsonUtil;
 import com.namelessju.scathapro.util.NBTUtil;
 import com.namelessju.scathapro.util.Util;
 
@@ -40,14 +36,13 @@ public class MiscListeners
 {
     private final ScathaPro scathaPro;
     private final Minecraft mc;
-
-    private boolean persistentDataLoaded = false;
+    
     private long lastPreAlertTime = -1;
     
     public MiscListeners(ScathaPro scathaPro)
     {
         this.scathaPro = scathaPro;
-        mc = scathaPro.minecraft;
+        mc = scathaPro.getMinecraft();
     }
     
     @SubscribeEvent
@@ -55,25 +50,6 @@ public class MiscListeners
     {
         Entity entity = e.entity;
         if (entity != mc.thePlayer) return;
-            
-        // Load data
-        
-        if (!persistentDataLoaded)
-        {
-            PersistentData persistentData = scathaPro.persistentData;
-            persistentData.loadData();
-            
-            String lastUsedVersion = JsonUtil.getString(persistentData.getData(), "global/lastUsedVersion");
-            if (lastUsedVersion == null || !lastUsedVersion.equals(ScathaPro.VERSION))
-            {
-                MinecraftForge.EVENT_BUS.post(new ModUpdateEvent(lastUsedVersion, ScathaPro.VERSION));
-                
-                JsonUtil.set(persistentData.getData(), "global/lastUsedVersion", new JsonPrimitive(ScathaPro.VERSION));
-                persistentData.saveData();
-            }
-            
-            persistentDataLoaded = true;
-        }
         
         // Reset
         
@@ -84,7 +60,7 @@ public class MiscListeners
         
         // Update overlay
         
-        scathaPro.overlayManager.updateOverlayFull();
+        scathaPro.getOverlay().updateOverlayFull();
         
         // Update achievements
         
@@ -113,7 +89,7 @@ public class MiscListeners
         if (worm == null)
         {
             ItemStack helmetItem = attackedArmorStand.getEquipmentInSlot(4);
-            if (helmetItem != null && NBTUtil.isWormSkull(helmetItem) || scathaPro.config.getBoolean(Config.Key.devMode))
+            if (helmetItem != null && NBTUtil.isWormSkull(helmetItem) || scathaPro.getConfig().getBoolean(Config.Key.devMode))
             {
                 World world = attackedArmorStand.worldObj;
                 List<EntityArmorStand> nearbyArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(attackedArmorStand.posX, attackedArmorStand.posY, attackedArmorStand.posZ, attackedArmorStand.posX, attackedArmorStand.posY, attackedArmorStand.posZ).expand(8f, 2f, 8f), new Predicate<EntityArmorStand>() {
@@ -174,8 +150,8 @@ public class MiscListeners
             now - lastPreAlertTime > 3000 && e.name.equals("mob.spider.step")
             &&
             (
-                e.sound.getPitch() == 2.0952382f && scathaPro.inCrystalHollows()
-                || e.sound.getPitch() >= 2f && scathaPro.config.getBoolean(Config.Key.devMode)
+                e.sound.getPitch() == 2.0952382f && scathaPro.isInCrystalHollows()
+                || e.sound.getPitch() >= 2f && scathaPro.getConfig().getBoolean(Config.Key.devMode)
             )
         )
         {
@@ -185,11 +161,12 @@ public class MiscListeners
         }
         
         
-        // Mute other sounds option
+        // Mute non-mod sounds in Crystal Hollows
+        
         if
         (
-            scathaPro.config.getBoolean(Config.Key.muteOtherSounds)
-            && scathaPro.inCrystalHollows()
+            scathaPro.getConfig().getBoolean(Config.Key.muteOtherSounds)
+            && scathaPro.isInCrystalHollows()
             && !(e.sound instanceof ScathaProSound) && !e.name.equals("gui.button.press")
         )
         {
@@ -200,7 +177,7 @@ public class MiscListeners
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onTooltip(ItemTooltipEvent e)
     {
-        if (!scathaPro.config.getBoolean(Config.Key.devMode)) return;
+        if (!scathaPro.getConfig().getBoolean(Config.Key.devMode)) return;
         
         String skyblockItemID = NBTUtil.getSkyblockItemID(e.itemStack);
         if (skyblockItemID != null)

@@ -105,8 +105,8 @@ public class MainCommand extends CommandBase
                 scathaPro.variables.epicPetDrops = epic;
                 scathaPro.variables.legendaryPetDrops = legendary;
                 
-                scathaPro.persistentData.savePetDrops();
-                scathaPro.overlayManager.updatePetDrops();
+                scathaPro.getPersistentData().savePetDrops();
+                scathaPro.getOverlay().updatePetDrops();
 
                 MessageUtil.sendModChatMessage(EnumChatFormatting.RESET + "Scatha pet drop amounts changed\n" + EnumChatFormatting.GRAY + "(Achievements will update on next game start or Scatha pet drop)");
             }
@@ -115,7 +115,7 @@ public class MainCommand extends CommandBase
         
         else if (subCommand.equalsIgnoreCase("backup"))
         {
-            PersistentData persistentData = scathaPro.persistentData;
+            PersistentData persistentData = scathaPro.getPersistentData();
             persistentData.saveData();
             persistentData.backup();
         }
@@ -128,7 +128,7 @@ public class MainCommand extends CommandBase
         
         else if (subCommand.equalsIgnoreCase("resetSettings"))
         {
-            Config config = scathaPro.config;
+            Config config = scathaPro.getConfig();
             for (Config.Key key : Config.Key.values())
             {
                 config.reset(key);
@@ -158,7 +158,7 @@ public class MainCommand extends CommandBase
             {
                 boolean enabled = CommandBase.parseBoolean(args[1]);
 
-                Config config = scathaPro.config;
+                Config config = scathaPro.getConfig();
                 config.set(Config.Key.devMode, enabled);
                 config.save();
                 

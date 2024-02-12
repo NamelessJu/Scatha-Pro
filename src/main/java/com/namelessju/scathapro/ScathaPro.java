@@ -1,7 +1,5 @@
 package com.namelessju.scathapro;
 
-import java.util.List;
-
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,19 +14,19 @@ import com.namelessju.scathapro.eventlisteners.GuiListeners;
 import com.namelessju.scathapro.eventlisteners.LoopListeners;
 import com.namelessju.scathapro.eventlisteners.MiscListeners;
 import com.namelessju.scathapro.eventlisteners.ScathaProListeners;
+import com.namelessju.scathapro.events.ModUpdateEvent;
 import com.namelessju.scathapro.managers.Config;
-import com.namelessju.scathapro.managers.OverlayManager;
 import com.namelessju.scathapro.managers.PersistentData;
+import com.namelessju.scathapro.managers.UpdateChecker;
 import com.namelessju.scathapro.miscellaneous.SkyblockArea;
+import com.namelessju.scathapro.overlay.Overlay;
 import com.namelessju.scathapro.managers.FileManager;
-import com.namelessju.scathapro.util.MessageUtil;
+import com.namelessju.scathapro.util.JsonUtil;
 import com.namelessju.scathapro.commands.DevCommand;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.SimpleReloadableResourceManager;
-import net.minecraft.command.CommandBase;
-import net.minecraft.command.CommandException;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
@@ -49,16 +47,16 @@ public class ScathaPro
     private static ScathaPro instance;
     
     public final GlobalVariables variables;
+
+    private Logger logger;
+    private Minecraft minecraft;
     
-    public final Minecraft minecraft;
-    
-    public final Logger logger;
-    public final Config config;
-    public final PersistentData persistentData;
-    public final AchievementManager achievementManager;
-    public final OverlayManager overlayManager;
-    public final AlertModeManager alertModeManager;
-    public final CustomAlertModeManager customAlertModeManager;
+    private Config config;
+    private PersistentData persistentData;
+    private Overlay overlay;
+    private AlertModeManager alertModeManager;
+    private CustomAlertModeManager customAlertModeManager;
+    private AchievementManager achievementManager;
     
     
     public static ScathaPro getInstance()
@@ -66,25 +64,47 @@ public class ScathaPro
         return instance;
     }
     
+    public Minecraft getMinecraft() { return minecraft; }
+    
+    public Config getConfig() { return config; }
+    public PersistentData getPersistentData() { return persistentData; }
+    public Overlay getOverlay() { return overlay; }
+    public AlertModeManager getAlertModeManager() { return alertModeManager; }
+    public CustomAlertModeManager getCustomAlertModeManager() { return customAlertModeManager; }
+    public AchievementManager getAchievementManager() { return achievementManager; }
+    
     
     public ScathaPro()
     {
         instance = this;
         
+        variables = new GlobalVariables();
+        
         logger = LogManager.getLogger(MODID);
         minecraft = Minecraft.getMinecraft();
         
-        variables = new GlobalVariables();
 
-        config = new Config();
         FileManager.updateOldSaveLocations();
+        
+        config = new Config();
         config.init();
         
-        persistentData = new PersistentData(this);
+        
         achievementManager = new AchievementManager(this);
-        overlayManager = new OverlayManager(this);
+        overlay = new Overlay(this);
         alertModeManager = new AlertModeManager(config);
         customAlertModeManager = new CustomAlertModeManager(this);
+        
+        
+        persistentData = new PersistentData(this);
+        persistentData.loadData();
+        
+        
+        String lastUsedVersion = JsonUtil.getString(persistentData.getData(), "global/lastUsedVersion");
+        if (UpdateChecker.compareVersions(lastUsedVersion, ScathaPro.VERSION) != 0)
+        {
+            MinecraftForge.EVENT_BUS.post(new ModUpdateEvent(lastUsedVersion, ScathaPro.VERSION));
+        }
     }
     
     @EventHandler
@@ -99,7 +119,8 @@ public class ScathaPro
         ClientCommandHandler.instance.registerCommand(new ChancesCommand());
         ClientCommandHandler.instance.registerCommand(new DevCommand(this));
         
-        IResourceManager resourceManager = Minecraft.getMinecraft().getResourceManager();
+        
+        IResourceManager resourceManager = minecraft.getResourceManager();
         if (resourceManager instanceof SimpleReloadableResourceManager)
         {
             SimpleReloadableResourceManager simpleReloadableResourceManager = (SimpleReloadableResourceManager) resourceManager;
@@ -107,38 +128,29 @@ public class ScathaPro
         }
         else
         {
-            logger.log(Level.ERROR, "Couldn't register resource reload listener for custom alert mode - resource manager of unexpected type " + resourceManager.getClass().getCanonicalName() + " (expected " + SimpleReloadableResourceManager.class.getCanonicalName() + ")");
+            logError("Couldn't register resource reload listener for custom alert mode - resource manager of unexpected type " + resourceManager.getClass().getCanonicalName() + " (expected " + SimpleReloadableResourceManager.class.getCanonicalName() + ")");
         }
     }
     
-    public boolean inCrystalHollows()
+    
+    public boolean isInCrystalHollows()
     {
         return variables.currentArea == SkyblockArea.CRYSTAL_HOLLOWS;
     }
     
-    
-    public boolean devTrigger(String trigger, String[] arguments) throws CommandException
+    public void log(String message)
     {
-        if (trigger.equalsIgnoreCase("overlayToggle"))
-        {
-            if (arguments.length > 0)
-            {
-                List<OverlayManager.ToggleableOverlayElement> elements = overlayManager.toggleableOverlayElements;
-                
-                int index = CommandBase.parseInt(arguments[0]);
-                if (index >= 0 && index < elements.size())
-                {
-                    elements.get(index).toggle();
-                    MessageUtil.sendModChatMessage("Overlay element toggled");
-                }
-                else MessageUtil.sendModErrorMessage("Index not in range of toggleable elements");
-            }
-            else MessageUtil.sendModErrorMessage("Index argument missing");
-            
-            return true;
-        }
-        
-        return false;
+        logger.log(Level.INFO, message);
+    }
+    
+    public void logWarning(String message)
+    {
+        logger.log(Level.WARN, message);
+    }
+    
+    public void logError(String message)
+    {
+        logger.log(Level.ERROR, message);
     }
     
     
@@ -152,10 +164,10 @@ public class ScathaPro
         Achievement.lobby_kills_3.setProgress(lobbyWormKills);
         
         int highestRegularWormKills = Math.max(lobbyWormKills, variables.regularWormKills + variables.scathaKills);
+        Achievement.worm_bestiary_max.setProgress(highestRegularWormKills);
         Achievement.worm_kills_1.setProgress(highestRegularWormKills);
         Achievement.worm_kills_2.setProgress(highestRegularWormKills);
         Achievement.worm_kills_3.setProgress(highestRegularWormKills);
-        Achievement.worm_bestiary_max.setProgress(highestRegularWormKills);
         Achievement.worm_kills_4.setProgress(highestRegularWormKills);
         Achievement.worm_kills_5.setProgress(highestRegularWormKills);
         Achievement.worm_kills_6.setProgress(highestRegularWormKills);
@@ -166,7 +178,6 @@ public class ScathaPro
         Achievement.scatha_kills_3.setProgress(highestScathaKills);
         Achievement.scatha_kills_4.setProgress(highestScathaKills);
         Achievement.scatha_kills_5.setProgress(highestScathaKills);
-        Achievement.scatha_kills_6.setProgress(highestScathaKills);
     }
     
     public void updateSpawnAchievements()

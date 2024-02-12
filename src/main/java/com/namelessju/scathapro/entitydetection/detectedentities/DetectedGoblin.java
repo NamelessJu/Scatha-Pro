@@ -23,9 +23,15 @@ public class DetectedGoblin extends DetectedEntity
     }
 
     @Override
+    public long getMaxLifetime()
+    {
+        return 30000;
+    }
+
+    @Override
     protected void onRegistration()
     {
-        if (!ScathaPro.getInstance().config.getBoolean(Config.Key.goblinSpawnAlert)) return;
+        if (!ScathaPro.getInstance().getConfig().getBoolean(Config.Key.goblinSpawnAlert)) return;
         
         String typeText = EnumChatFormatting.GRAY.toString() + EnumChatFormatting.ITALIC + "Unknown type";
         if (type != null)

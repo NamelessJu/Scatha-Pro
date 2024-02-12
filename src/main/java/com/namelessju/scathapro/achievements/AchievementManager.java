@@ -25,7 +25,7 @@ public class AchievementManager
         {
             unlockedAchievements.add(new UnlockedAchievement(achievement, Util.getCurrentTime()));
             
-            scathaPro.persistentData.saveAchievements();
+            scathaPro.getPersistentData().saveAchievements();
             
             MinecraftForge.EVENT_BUS.post(new AchievementUnlockedEvent(achievement));
         }
@@ -38,7 +38,7 @@ public class AchievementManager
             unlockedAchievements.remove(getUnlockedAchievement(achievement));
             achievement.setProgress(0f);
             
-            scathaPro.persistentData.saveAchievements();
+            scathaPro.getPersistentData().saveAchievements();
         }
     }
     

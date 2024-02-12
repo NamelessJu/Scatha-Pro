@@ -7,6 +7,7 @@ import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.achievements.AchievementManager;
 import com.namelessju.scathapro.managers.Config;
+import com.namelessju.scathapro.overlay.Overlay;
 import com.namelessju.scathapro.util.MessageUtil;
 import com.namelessju.scathapro.util.Util;
 
@@ -45,7 +46,31 @@ public class DevCommand extends CommandBase
     @Override
     public int getRequiredPermissionLevel()
     {
-        return scathaPro.config.getBoolean(Config.Key.devMode) ? 0 : 9;
+        return scathaPro.getConfig().getBoolean(Config.Key.devMode) ? 0 : 9;
+    }
+    
+    private boolean devTrigger(String trigger, String[] arguments) throws CommandException
+    {
+        if (trigger.equalsIgnoreCase("overlayToggle"))
+        {
+            if (arguments.length > 0)
+            {
+                List<Overlay.ToggleableOverlayElement> elements = ScathaPro.getInstance().getOverlay().toggleableOverlayElements;
+                
+                int index = CommandBase.parseInt(arguments[0]);
+                if (index >= 0 && index < elements.size())
+                {
+                    elements.get(index).toggle();
+                    MessageUtil.sendModChatMessage("Overlay element toggled");
+                }
+                else MessageUtil.sendModErrorMessage("Index not in range of toggleable elements");
+            }
+            else MessageUtil.sendModErrorMessage("Index argument missing");
+            
+            return true;
+        }
+        
+        return false;
     }
 
     @Override
@@ -123,7 +148,7 @@ public class DevCommand extends CommandBase
             Achievement[] achievements = AchievementManager.getAllAchievements();
             for (int i = 0; i < achievements.length; i ++)
             {
-                ScathaPro.getInstance().achievementManager.revokeAchievement(achievements[i]);
+                ScathaPro.getInstance().getAchievementManager().revokeAchievement(achievements[i]);
             }
             
             MessageUtil.sendModChatMessage("All achievements revoked");
@@ -135,7 +160,7 @@ public class DevCommand extends CommandBase
             String trigger = args[1];
             String[] triggerArguments = Arrays.copyOfRange(args, 2, args.length);
             
-            if (scathaPro.devTrigger(trigger, triggerArguments))
+            if (devTrigger(trigger, triggerArguments))
             {
                 sender.addChatMessage(new ChatComponentText("Triggered \"" + trigger + "\""));
             }

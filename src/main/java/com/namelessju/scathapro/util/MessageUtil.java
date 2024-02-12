@@ -51,7 +51,7 @@ public abstract class MessageUtil
     {
         String unformattedText = StringUtils.stripControlCodes(message.getUnformattedText());
         
-        if (ScathaPro.getInstance().config.getBoolean(Config.Key.chatCopy) && !unformattedText.replace(" ", "").isEmpty())
+        if (ScathaPro.getInstance().getConfig().getBoolean(Config.Key.chatCopy) && !unformattedText.replace(" ", "").isEmpty())
         {
             ChatComponentText copyText = new ChatComponentText(EnumChatFormatting.DARK_GRAY + Util.getUnicodeString("270D"));
             ChatStyle style = new ChatStyle()

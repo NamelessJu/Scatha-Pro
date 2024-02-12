@@ -32,7 +32,7 @@ public class CustomAlertModeEditGui extends ScathaProGui
     {
         super(scathaPro, parentGui);
         
-        this.customAlertModeManager = scathaPro.customAlertModeManager;
+        this.customAlertModeManager = scathaPro.getCustomAlertModeManager();
         this.customAlertModeId = customAlertModeId;
         modeFolder = CustomAlertModeManager.getSubModeFile(customAlertModeId);
 
@@ -86,7 +86,7 @@ public class CustomAlertModeEditGui extends ScathaProGui
         buttonList.add(new DoneButton(504704698, this.width / 2 - 155, this.height - 30, 150, 20, "Save", this));
         buttonList.add(new DoneButton(504704699, this.width / 2 + 5, this.height - 30, 150, 20, "Cancel", this));
         
-        if (scathaPro.config.getBoolean(Config.Key.devMode))
+        if (scathaPro.getConfig().getBoolean(Config.Key.devMode))
         {
             buttonList.add(new GuiButton(504704697, this.width / 2 + 170, this.height - 30, 50, 20, EnumChatFormatting.ITALIC + "Folder"));
         }
@@ -113,7 +113,7 @@ public class CustomAlertModeEditGui extends ScathaProGui
                 
                 if (scrollList instanceof CustomAlertModeEditGuiList && ((CustomAlertModeEditGuiList) scrollList).saveChanges())
                 {
-                    CustomAlertModeManager customAlertModeManager = ScathaPro.getInstance().customAlertModeManager;
+                    CustomAlertModeManager customAlertModeManager = ScathaPro.getInstance().getCustomAlertModeManager();
                     if (customAlertModeManager.isSubmodeActive(customAlertModeId)) customAlertModeManager.reloadResourcePack();
                 }
                 
