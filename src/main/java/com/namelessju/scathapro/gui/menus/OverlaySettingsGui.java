@@ -7,7 +7,7 @@ import com.namelessju.scathapro.gui.elements.BooleanSettingButton;
 import com.namelessju.scathapro.gui.elements.DoneButton;
 import com.namelessju.scathapro.gui.elements.MultiOptionButton;
 import com.namelessju.scathapro.managers.Config;
-import com.namelessju.scathapro.miscellaneous.SecondaryKillCounterType;
+import com.namelessju.scathapro.miscellaneous.OverlayStatsType;
 import com.namelessju.scathapro.overlay.Overlay;
 
 import net.minecraft.client.Minecraft;
@@ -61,13 +61,13 @@ public class OverlaySettingsGui extends ScathaProGui implements GuiSlider.ISlide
         
         buttonList.add(new GuiSlider(504704104, width / 2 - 155, height - 64 - 6, 150, 20, "Overlay Scale: ", "%", 50, 150, config.getDouble(Config.Key.overlayScale) * 100, false, true, this));
 
-        buttonList.add(new MultiOptionButton<String>(504704105, width / 2 - 155, height - 112 - 12, 150, 20, "2. Kill Counter", SecondaryKillCounterType.values(), config.getString(Config.Key.secondaryKillCounterType), new MultiOptionButton.IOptionChangedListener<String>() {
+        buttonList.add(new MultiOptionButton<String>(504704105, width / 2 - 155, height - 112 - 12, 150, 20, "Stats per", OverlayStatsType.values(), config.getString(Config.Key.statsType), new MultiOptionButton.IOptionChangedListener<String>() {
             @Override
             public void onChange(MultiOptionButton<String> button)
             {
-                config.set(Config.Key.secondaryKillCounterType, button.getSelectedValue());
+                config.set(Config.Key.statsType, button.getSelectedValue());
                 config.save();
-                scathaPro.getOverlay().setSecondaryKillCounterType((SecondaryKillCounterType) button.getSelectedOption());
+                scathaPro.getOverlay().setStatsType((OverlayStatsType) button.getSelectedOption());
             }
         }));
         buttonList.add(new MultiOptionButton<Integer>(504704106, width / 2 + 5, height - 112 - 12, 150, 20, "Scatha % Dec. Places", MultiOptionButton.IntegerOption.range(0, 3), config.getInt(Config.Key.scathaPercentageDecimalDigits), new MultiOptionButton.IOptionChangedListener<Integer>() {

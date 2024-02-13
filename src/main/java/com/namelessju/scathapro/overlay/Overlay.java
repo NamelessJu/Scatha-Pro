@@ -10,7 +10,7 @@ import com.namelessju.scathapro.Constants;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.events.OverlayInitEvent;
 import com.namelessju.scathapro.managers.Config;
-import com.namelessju.scathapro.miscellaneous.SecondaryKillCounterType;
+import com.namelessju.scathapro.miscellaneous.OverlayStatsType;
 import com.namelessju.scathapro.overlay.elements.DynamicOverlayContainer;
 import com.namelessju.scathapro.overlay.elements.OverlayContainer;
 import com.namelessju.scathapro.overlay.elements.OverlayElement;
@@ -71,7 +71,7 @@ public class Overlay
     
     public final List<ToggleableOverlayElement> toggleableOverlayElements = Lists.<ToggleableOverlayElement>newArrayList();
     
-    private SecondaryKillCounterType secondaryKillCounterType = null;
+    private OverlayStatsType statsType = null;
     
     
     public Overlay(ScathaPro scathaPro)
@@ -80,15 +80,15 @@ public class Overlay
         mc = scathaPro.getMinecraft();
         
         
-        String currentTypeId = scathaPro.getConfig().getString(Config.Key.secondaryKillCounterType);
+        String currentTypeId = scathaPro.getConfig().getString(Config.Key.statsType);
         if (!currentTypeId.replace("", " ").isEmpty())
         {
-            for (SecondaryKillCounterType type : SecondaryKillCounterType.values())
+            for (OverlayStatsType type : OverlayStatsType.values())
             {
-                if (type.getValue().equals(currentTypeId)) secondaryKillCounterType = type;
+                if (type.getValue().equals(currentTypeId)) statsType = type;
             }
         }
-        if (secondaryKillCounterType == null) secondaryKillCounterType = SecondaryKillCounterType.values()[0];
+        if (statsType == null) statsType = OverlayStatsType.values()[0];
         
         
         mainContainer = new DynamicOverlayContainer(0, 0, 1f, Direction.VERTICAL);
@@ -172,13 +172,14 @@ public class Overlay
         updateVisibility();
     }
     
-    public void setSecondaryKillCounterType(SecondaryKillCounterType secondaryKillCounterType)
+    public void setStatsType(OverlayStatsType statsType)
     {
-        this.secondaryKillCounterType = secondaryKillCounterType;
+        this.statsType = statsType;
         
         updateWormKills();
         updateScathaKills();
         updateTotalKills();
+        updateWormStreak();
     }
     
     public void drawOverlay()
@@ -201,10 +202,11 @@ public class Overlay
         updateWormKills();
         updateScathaKills();
         updateTotalKills();
+        
+        updateWormStreak();
 
         updateSpawnCooldownProgressBar();
-
-        updateWormStreak();
+        
         updateCoords();
         updateDay();
         
@@ -261,7 +263,7 @@ public class Overlay
     {
         World world = mc.theWorld;
         
-        secondaryRegularWormKillsText.setText(Util.numberToString(world != null ? secondaryKillCounterType.getRegularWormKills() : 0));
+        secondaryRegularWormKillsText.setText(Util.numberToString(world != null ? statsType.getRegularWormKills() : 0));
         regularWormKillsText.setText(scathaPro.variables.regularWormKills >= 0 ? Util.numberToString(scathaPro.variables.regularWormKills) : EnumChatFormatting.OBFUSCATED + "?");
 
         updateTotalKills();
@@ -271,7 +273,7 @@ public class Overlay
     {
         World world = mc.theWorld;
         
-        secondaryScathaKillsText.setText(Util.numberToString(world != null ? secondaryKillCounterType.getScathaKills() : 0));
+        secondaryScathaKillsText.setText(Util.numberToString(world != null ? statsType.getScathaKills() : 0));
         scathaKillsText.setText(scathaPro.variables.scathaKills >= 0 ? Util.numberToString(scathaPro.variables.scathaKills) : EnumChatFormatting.OBFUSCATED + "?");
         
         updateTotalKills();
@@ -282,10 +284,10 @@ public class Overlay
     {
         World world = mc.theWorld;
         
-        int secondaryTotalKills = world != null ? secondaryKillCounterType.getRegularWormKills() + secondaryKillCounterType.getScathaKills() : 0;
+        int secondaryTotalKills = world != null ? statsType.getRegularWormKills() + statsType.getScathaKills() : 0;
         int totalKills = scathaPro.variables.regularWormKills >= 0 && scathaPro.variables.scathaKills >= 0 ? scathaPro.variables.regularWormKills + scathaPro.variables.scathaKills : -1;
         
-        float secondaryScathaPercentage = secondaryTotalKills > 0 ? ((float) secondaryKillCounterType.getScathaKills() / secondaryTotalKills) * 100 : -1f;
+        float secondaryScathaPercentage = secondaryTotalKills > 0 ? ((float) statsType.getScathaKills() / secondaryTotalKills) * 100 : -1f;
         float scathaPercentage = totalKills > 0 ? ((float) scathaPro.variables.scathaKills / totalKills) * 100 : -1f;
         
         int scathaPercentageDecimalDigits = scathaPro.getConfig().getInt(Config.Key.scathaPercentageDecimalDigits);
@@ -296,14 +298,15 @@ public class Overlay
     
     public void updateWormStreak()
     {
+        int scathaSpawnStreak = statsType.getScathaSpawnStreak();
         wormStreakText.setText(
-                scathaPro.variables.scathaSpawnStreak != 0
-                ? (
-                        scathaPro.variables.scathaSpawnStreak > 0
-                        ? "Scatha spawn streak: " + Util.numberToString(scathaPro.variables.scathaSpawnStreak)
-                        : "No Scatha for " + Util.numberToString(-scathaPro.variables.scathaSpawnStreak) + " " + (-scathaPro.variables.scathaSpawnStreak == 1 ? "spawn" : "spawns")
-                )
-                : "No worms spawned yet"
+            scathaSpawnStreak != 0
+            ? (
+                scathaSpawnStreak > 0
+                ? "Scatha spawn streak: " + Util.numberToString(scathaSpawnStreak)
+                : "No Scatha for " + Util.numberToString(-scathaSpawnStreak) + " " + (-scathaSpawnStreak == 1 ? "spawn" : "spawns")
+            )
+            : "No worms spawned yet"
         );
     }
     

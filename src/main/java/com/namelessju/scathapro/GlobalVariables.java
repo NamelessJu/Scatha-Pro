@@ -21,21 +21,25 @@ public class GlobalVariables
     
     public int regularWormKills = 0;
     public int scathaKills = 0;
+    
     public int sessionRegularWormKills = 0;
     public int sessionScathaKills = 0;
     public int lobbyRegularWormKills = 0;
     public int lobbyScathaKills = 0;
-    public int scathaSpawnStreak = 0; // positive -> Scatha streak / negative -> regular worm streak
-    public long lastWormSpawnTime = -1;
+    
+    public int sessionScathaSpawnStreak = 0; // positive = Scatha streak; negative = regular worm streak
+    public int lobbyScathaSpawnStreak = 0; // same as above
+
     public long wormSpawnCooldownStartTime = -1;
+    
+    public long lastWormSpawnTime = -1;
     public long lastScathaKillTime = -1;
     
     public int rarePetDrops = 0;
     public int epicPetDrops = 0;
     public int legendaryPetDrops = 0;
-    public int scathaKillsAtLastDrop = -1;
     
-    public int hardstoneMined = 0;
+    public int scathaKillsAtLastDrop = -1;
     
     public GuiScreen openGuiNextTick = null;
     public boolean cheaterDetected = false;
@@ -47,6 +51,24 @@ public class GlobalVariables
     {
         if (wormSpawnCooldownStartTime >= Constants.pingTreshold) return;
         wormSpawnCooldownStartTime = Util.getCurrentTime();
+    }
+    
+    public void addRegularWormSpawn()
+    {
+        if (sessionScathaSpawnStreak > 0) sessionScathaSpawnStreak = 0;
+        sessionScathaSpawnStreak --;
+        
+        if (lobbyScathaSpawnStreak > 0) lobbyScathaSpawnStreak = 0;
+        lobbyScathaSpawnStreak --;
+    }
+    
+    public void addScathaSpawn()
+    {
+        if (sessionScathaSpawnStreak < 0) sessionScathaSpawnStreak = 0;
+        sessionScathaSpawnStreak ++;
+        
+        if (lobbyScathaSpawnStreak < 0) lobbyScathaSpawnStreak = 0;
+        lobbyScathaSpawnStreak ++;
     }
     
     public void addRegularWormKill()
@@ -73,7 +95,7 @@ public class GlobalVariables
         
         lobbyRegularWormKills = 0;
         lobbyScathaKills = 0;
-        scathaSpawnStreak = 0;
+        lobbyScathaSpawnStreak = 0;
         lastWormSpawnTime = -1;
         wormSpawnCooldownStartTime = -1;
     }

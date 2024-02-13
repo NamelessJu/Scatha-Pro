@@ -3,7 +3,7 @@ package com.namelessju.scathapro.miscellaneous;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.gui.elements.MultiOptionButton;
 
-public enum SecondaryKillCounterType implements MultiOptionButton.IOption<String>
+public enum OverlayStatsType implements MultiOptionButton.IOption<String>
 {
     PER_LOBBY("Lobby", "lobby")
     {
@@ -17,6 +17,12 @@ public enum SecondaryKillCounterType implements MultiOptionButton.IOption<String
         public int getScathaKills()
         {
             return ScathaPro.getInstance().variables.lobbyScathaKills;
+        }
+
+        @Override
+        public int getScathaSpawnStreak()
+        {
+            return ScathaPro.getInstance().variables.lobbyScathaSpawnStreak;
         }
     },
     
@@ -33,13 +39,19 @@ public enum SecondaryKillCounterType implements MultiOptionButton.IOption<String
         {
             return ScathaPro.getInstance().variables.sessionScathaKills;
         }
+
+        @Override
+        public int getScathaSpawnStreak()
+        {
+            return ScathaPro.getInstance().variables.sessionScathaSpawnStreak;
+        }
     };
     
     
     private String displayString;
     private String id;
     
-    SecondaryKillCounterType(String displayString, String id)
+    OverlayStatsType(String displayString, String id)
     {
         this.displayString = displayString;
         this.id = id;
@@ -48,6 +60,8 @@ public enum SecondaryKillCounterType implements MultiOptionButton.IOption<String
     public abstract int getRegularWormKills();
     
     public abstract int getScathaKills();
+
+    public abstract int getScathaSpawnStreak();
     
     @Override
     public String getName()

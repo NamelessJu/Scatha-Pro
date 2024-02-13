@@ -138,8 +138,7 @@ public class ScathaProListeners
         // Scatha spawn
         if (e.worm.isScatha)
         {
-            if (scathaPro.variables.scathaSpawnStreak < 0) scathaPro.variables.scathaSpawnStreak = 0;
-            scathaPro.variables.scathaSpawnStreak ++;
+            scathaPro.variables.addScathaSpawn();
             
             if (now - scathaPro.variables.lastWorldJoinTime <= Achievement.scatha_spawn_time.goal * 60 * 1000)
             {
@@ -155,8 +154,7 @@ public class ScathaProListeners
         // Regular worm spawn
         else
         {
-            if (scathaPro.variables.scathaSpawnStreak > 0) scathaPro.variables.scathaSpawnStreak = 0;
-            scathaPro.variables.scathaSpawnStreak --;
+            scathaPro.variables.addRegularWormSpawn();
             
             Alert.regularWormSpawn.play();
         }

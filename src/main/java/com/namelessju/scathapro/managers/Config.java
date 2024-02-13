@@ -13,6 +13,8 @@ public class Config
         overlay("overlay", "enabled", true),
         overlayX("overlay", "x", -1D), overlayY("overlay", "y", -1D),
         overlayScale("overlay", "scale", 1D),
+        statsType("overlay", "statsType", ""),
+        scathaPercentageDecimalDigits("overlay", "scathaPercentageDecimalPlaces", 1),
         
         // Sounds
         soundsVolume("sounds", "volume", 1D),
@@ -33,11 +35,9 @@ public class Config
         
         // Other
         showRotationAngles("other", "showRotationAngles", false),
-        rotationAnglesDecimalDigits("other", "rotationAnglesDecimalDigits", 1),
-        scathaPercentageDecimalDigits("other", "scathaPercentageDecimalDigits", 1),
+        rotationAnglesDecimalDigits("other", "rotationAnglesDecimalPlaces", 1),
         wormSpawnTimer("other", "wormSpawnTimer", false),
         dryStreakMessage("other", "dryStreakMessage", true),
-        secondaryKillCounterType("other", "secondaryKillCounterType", ""),
         chatCopy("other", "chatCopy", false),
         automaticBackups("other", "automaticBackups", true),
         automaticUpdateChecks("other", "automaticUpdateChecks", true),

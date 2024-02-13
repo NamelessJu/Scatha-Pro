@@ -133,11 +133,6 @@ public class ScathaPro
     }
     
     
-    public boolean isInCrystalHollows()
-    {
-        return variables.currentArea == SkyblockArea.CRYSTAL_HOLLOWS;
-    }
-    
     public void log(String message)
     {
         logger.log(Level.INFO, message);
@@ -151,6 +146,11 @@ public class ScathaPro
     public void logError(String message)
     {
         logger.log(Level.ERROR, message);
+    }
+    
+    public boolean isInCrystalHollows()
+    {
+        return variables.currentArea == SkyblockArea.CRYSTAL_HOLLOWS;
     }
     
     
@@ -182,13 +182,13 @@ public class ScathaPro
     
     public void updateSpawnAchievements()
     {
-        int scathaStreak = Math.max(0, variables.scathaSpawnStreak);
+        int scathaStreak = Math.max(0, variables.lobbyScathaSpawnStreak);
         Achievement.scatha_streak_1.setProgress(scathaStreak);
         Achievement.scatha_streak_2.setProgress(scathaStreak);
         Achievement.scatha_streak_3.setProgress(scathaStreak);
         Achievement.scatha_streak_4.setProgress(scathaStreak);
         
-        int regularWormStreak = Math.max(0, -variables.scathaSpawnStreak);
+        int regularWormStreak = Math.max(0, -variables.lobbyScathaSpawnStreak);
         Achievement.regular_worm_streak_1.setProgress(regularWormStreak);
         Achievement.regular_worm_streak_2.setProgress(regularWormStreak);
         Achievement.regular_worm_streak_3.setProgress(regularWormStreak);
