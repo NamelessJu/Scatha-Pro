@@ -6,7 +6,7 @@ import net.minecraft.util.ResourceLocation;
 
 public class AlertMode
 {
-    public static final AlertMode DEFAULT_MODE = new AlertMode("normal", "Normal");
+    public static final AlertMode DEFAULT_MODE = new AlertMode("normal", "Vanilla");
     
     
     public final String id;

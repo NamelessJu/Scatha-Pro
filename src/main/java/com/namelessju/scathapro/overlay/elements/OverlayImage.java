@@ -30,15 +30,15 @@ public class OverlayImage extends OverlayElement
     }
     
     @Override
-    public int getWidth(boolean scaled)
+    public int getWidth()
     {
-        return (int) Math.round(textureWidth * (scaled ? scale : 1));
+        return textureWidth;
     }
     
     @Override
-    public int getHeight(boolean scaled)
+    public int getHeight()
     {
-        return (int) Math.round(textureHeight * (scaled ? scale : 1));
+        return textureHeight;
     }
     
     public void setImage(String texturePath, int textureWidth, int textureHeight)

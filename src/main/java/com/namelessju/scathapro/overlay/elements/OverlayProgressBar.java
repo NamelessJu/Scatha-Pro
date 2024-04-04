@@ -28,15 +28,15 @@ public class OverlayProgressBar extends OverlayElement
     }
 
     @Override
-    public int getWidth(boolean scaled)
+    public int getWidth()
     {
-        return (int) Math.round(width * (scaled ? scale : 1));
+        return width;
     }
 
     @Override
-    public int getHeight(boolean scaled)
+    public int getHeight()
     {
-        return (int) Math.round(height * (scaled ? scale : 1));
+        return height;
     }
     
     public void setProgress(float progress)

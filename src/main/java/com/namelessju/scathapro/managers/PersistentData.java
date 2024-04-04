@@ -73,7 +73,7 @@ public class PersistentData
                 loadPetDrops();
                 loadWormKills();
                 
-                scathaPro.log("Persistent data loaded");
+                scathaPro.logDebug("Persistent data loaded");
             }
             else
             {
@@ -183,7 +183,7 @@ public class PersistentData
             if (achievementsJsonArray != null)
             {
                 AchievementManager achievementManager = scathaPro.getAchievementManager();
-                achievementManager.unlockedAchievements.clear();
+                achievementManager.clearUnlockedAchievements();
                 
                 long now = Util.getCurrentTime();
                 
@@ -203,7 +203,7 @@ public class PersistentData
                                 scathaPro.variables.cheaterDetected = true;
                             }
                             
-                            achievementManager.unlockedAchievements.add(new UnlockedAchievement(achievement, unlockedAtTimestamp));
+                            achievementManager.addUnlockedAchievement(new UnlockedAchievement(achievement, unlockedAtTimestamp));
                             achievement.setProgress(achievement.goal);
                         }
                     }
@@ -222,7 +222,8 @@ public class PersistentData
     {
         JsonArray unlockedAchievementsJson = new JsonArray();
         
-        for (UnlockedAchievement unlockedAchievement : scathaPro.getAchievementManager().unlockedAchievements)
+        UnlockedAchievement[] unlockedAchievements = scathaPro.getAchievementManager().getAllUnlockedAchievements();
+        for (UnlockedAchievement unlockedAchievement : unlockedAchievements)
         {
             JsonObject achievementObject = new JsonObject();
             achievementObject.add("achievementID", new JsonPrimitive(unlockedAchievement.achievement.getID()));

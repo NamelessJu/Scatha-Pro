@@ -54,29 +54,16 @@ public class DetectedWorm extends DetectedEntity
     }
     
     @Override
-    protected void onRemoved()
+    protected void onLeaveWorld(boolean despawned)
     {
-        long now = Util.getCurrentTime();
-        /*
-        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-        AxisAlignedBB wormDetectionAABB = new AxisAlignedBB(player.posX, player.posY, player.posZ, player.posX, player.posY, player.posZ).expand(20f, 10f, 20f);
-        && getEntity().getEntityBoundingBox().intersectsWith(wormDetectionAABB)
-        */
-        
-        int entityID = getEntity().getEntityId();
-        
-        // Kill
-        if (getLastAttackTime() >= 0 && now - getLastAttackTime() < Constants.pingTreshold || isFireAspectActive())
+        if (getLastAttackTime() >= 0 && Util.getCurrentTime() - getLastAttackTime() < Constants.pingTreshold || isFireAspectActive() && (getMaxLifetime() < 0 || getCurrentLifetime() < getMaxLifetime()))
         {
-            registeredEntities.remove((Integer) entityID);
             MinecraftForge.EVENT_BUS.post(new WormKillEvent(this));
         }
-    }
-    
-    @Override
-    protected void onDespawn()
-    {
-        MinecraftForge.EVENT_BUS.post(new WormDespawnEvent(this));
+        else if (despawned)
+        {
+            MinecraftForge.EVENT_BUS.post(new WormDespawnEvent(this));
+        }
     }
     
     public void attack(ItemStack weapon)

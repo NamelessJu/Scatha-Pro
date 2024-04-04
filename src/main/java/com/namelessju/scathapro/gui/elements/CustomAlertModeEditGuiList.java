@@ -29,6 +29,7 @@ public class CustomAlertModeEditGuiList extends ScathaProGuiList
     private final JsonObject modeProperties;
     
     private FileDialog activeFileDialog = null;
+    private Alert lastAlertSoundPlayed = null;
     
     public CustomAlertModeEditGuiList(GuiScreen gui, String customModeId)
     {
@@ -189,8 +190,15 @@ public class CustomAlertModeEditGuiList extends ScathaProGuiList
             {
                 case 0:
                     if (alert.isSoundPlaying()) alert.stopSound();
-                    else if (customAlertModeManager.isSubmodeActive(customModeId)) alert.playSound();
-                    else alert.playDefaultSound();
+                    else
+                    {
+                        if (lastAlertSoundPlayed != null) lastAlertSoundPlayed.stopSound();
+                        
+                        if (customAlertModeManager.isSubmodeActive(customModeId)) alert.playSound();
+                        else alert.playDefaultSound();
+                        
+                        lastAlertSoundPlayed = alert;
+                    }
                     break;
                 
                 case 1:

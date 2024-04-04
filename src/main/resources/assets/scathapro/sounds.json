@@ -29,6 +29,14 @@
         "category": "master",
         "sounds": [{"name": "alert_modes/meme/scatha_pet_drop", "stream": true}]
     },
+    "alert_modes.meme.jerry_spawn": {
+        "category": "master",
+        "sounds": [{"name": "alert_modes/meme/jerry_spawn", "stream": true}]
+    },
+    "alert_modes.meme.goblin_spawn": {
+        "category": "master",
+        "sounds": [{"name": "alert_modes/meme/goblin_spawn", "stream": true}]
+    },
 
     "alert_modes.anime.bedrock_wall": {
         "category": "master",

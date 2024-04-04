@@ -50,9 +50,14 @@ public class AlertModeSettingButton extends GuiButton implements IClickActionBut
         
         updateText();
     }
-    
+
     private void updateText()
     {
-        displayString = text + ": " + alertModeManager.getCurrentMode().name;
+        updateText(alertModeManager.getCurrentMode());
+    }
+    
+    private void updateText(AlertMode mode)
+    {
+        displayString = text + ": " + mode.name + (mode == AlertMode.DEFAULT_MODE ? " (default)" : "");
     }
 }

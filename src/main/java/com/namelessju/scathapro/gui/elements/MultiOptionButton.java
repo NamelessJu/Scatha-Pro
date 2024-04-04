@@ -25,7 +25,7 @@ public class MultiOptionButton<T> extends GuiButton implements IClickActionButto
         
         for (int i = 0; i < options.length; i++)
         {
-            if (options[i].getValue().equals(startValue))
+            if (options[i].getOptionValue().equals(startValue))
             {
                 selectedOptionIndex = i;
                 break;
@@ -62,20 +62,20 @@ public class MultiOptionButton<T> extends GuiButton implements IClickActionButto
     public String getSelectedOptionName()
     {
         if (options.length <= 0) return null;
-        return options[selectedOptionIndex].getName();
+        return options[selectedOptionIndex].getOptionName();
     }
     
     public T getSelectedValue()
     {
         if (options.length <= 0) return null;
-        return options[selectedOptionIndex].getValue();
+        return options[selectedOptionIndex].getOptionValue();
     }
     
     
     public static interface IOption<U>
     {
-        public String getName();
-        public U getValue();
+        public String getOptionName();
+        public U getOptionValue();
     }
     
     public static class IntegerOption implements IOption<Integer>
@@ -111,13 +111,13 @@ public class MultiOptionButton<T> extends GuiButton implements IClickActionButto
         }
 
         @Override
-        public String getName()
+        public String getOptionName()
         {
             return String.valueOf(value);
         }
 
         @Override
-        public Integer getValue()
+        public Integer getOptionValue()
         {
             return value;
         }

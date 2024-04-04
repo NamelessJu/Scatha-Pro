@@ -1,9 +1,8 @@
 package com.namelessju.scathapro;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
+import com.namelessju.scathapro.miscellaneous.OverlayStats;
 import com.namelessju.scathapro.miscellaneous.SkyblockArea;
 import com.namelessju.scathapro.util.Util;
 
@@ -21,14 +20,6 @@ public class GlobalVariables
     
     public int regularWormKills = 0;
     public int scathaKills = 0;
-    
-    public int sessionRegularWormKills = 0;
-    public int sessionScathaKills = 0;
-    public int lobbyRegularWormKills = 0;
-    public int lobbyScathaKills = 0;
-    
-    public int sessionScathaSpawnStreak = 0; // positive = Scatha streak; negative = regular worm streak
-    public int lobbyScathaSpawnStreak = 0; // same as above
 
     public long wormSpawnCooldownStartTime = -1;
     
@@ -43,59 +34,34 @@ public class GlobalVariables
     
     public GuiScreen openGuiNextTick = null;
     public boolean cheaterDetected = false;
-
-    public List<String> devsInLobby = new ArrayList<String>();
     
     
-    public void startWormSpawnCooldown()
+    public void startWormSpawnCooldown(boolean forceRestart)
     {
-        if (wormSpawnCooldownStartTime >= Constants.pingTreshold) return;
+        if (!forceRestart && wormSpawnCooldownStartTime >= Constants.pingTreshold) return;
         wormSpawnCooldownStartTime = Util.getCurrentTime();
-    }
-    
-    public void addRegularWormSpawn()
-    {
-        if (sessionScathaSpawnStreak > 0) sessionScathaSpawnStreak = 0;
-        sessionScathaSpawnStreak --;
-        
-        if (lobbyScathaSpawnStreak > 0) lobbyScathaSpawnStreak = 0;
-        lobbyScathaSpawnStreak --;
-    }
-    
-    public void addScathaSpawn()
-    {
-        if (sessionScathaSpawnStreak < 0) sessionScathaSpawnStreak = 0;
-        sessionScathaSpawnStreak ++;
-        
-        if (lobbyScathaSpawnStreak < 0) lobbyScathaSpawnStreak = 0;
-        lobbyScathaSpawnStreak ++;
     }
     
     public void addRegularWormKill()
     {
         if (regularWormKills >= 0) regularWormKills ++;
-        sessionRegularWormKills ++;
-        lobbyRegularWormKills ++;
+        OverlayStats.addRegularWormKill();
     }
     
     public void addScathaKill()
     {
         if (scathaKills >= 0) scathaKills ++;
-        sessionScathaKills ++;
-        lobbyScathaKills ++;
+        OverlayStats.addScathaKill();
     }
     
     public void resetForNewLobby()
     {
         currentAreaCheckTimeIndex = 0;
         currentArea = null;
-        devsInLobby.clear();
         
         previousScathaPets = null;
         
-        lobbyRegularWormKills = 0;
-        lobbyScathaKills = 0;
-        lobbyScathaSpawnStreak = 0;
+        OverlayStats.resetForNewLobby();
         lastWormSpawnTime = -1;
         wormSpawnCooldownStartTime = -1;
     }

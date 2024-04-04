@@ -6,13 +6,14 @@ public abstract class OverlayElement
 {
     public static enum Alignment
     {
-        AUTOMATIC, LEFT, CENTER, RIGHT;
+        LEFT, CENTER, RIGHT;
     }
     
     protected int x, y;
     protected float scale;
-    protected Alignment alignment = Alignment.AUTOMATIC;
+    protected Alignment alignment = Alignment.LEFT;
     protected boolean visible = true;
+    protected int marginRight = 0, marginBottom = 0;
     
     public OverlayElement(int x, int y, float scale)
     {
@@ -21,13 +22,32 @@ public abstract class OverlayElement
         this.scale = scale;
     }
     
-    public OverlayElement setAlignment(Alignment alignment)
+    @SuppressWarnings("unchecked")
+    public <T extends OverlayElement> T setMargin(int right, int bottom)
+    {
+        this.marginRight = right;
+        this.marginBottom = bottom;
+        return (T) this;
+    }
+    
+    @SuppressWarnings("unchecked")
+    public <T extends OverlayElement> T setAlignment(Alignment alignment)
     {
         this.alignment = alignment;
-        return this;
+        return (T) this;
     }
     
     public void draw()
+    {
+        draw(true, this.alignment);
+    }
+    
+    public void drawUnaligned()
+    {
+        draw(false, null);
+    }
+    
+    public void draw(boolean positioned, Alignment alignment)
     {
         if (!visible) return;
 
@@ -36,25 +56,27 @@ public abstract class OverlayElement
         
         GlStateManager.pushMatrix();
         
-        switch (alignment)
-        {
-            case CENTER:
-                GlStateManager.translate(x - getWidth(false) / 2, y, 0);
-                break;
-            case RIGHT:
-                GlStateManager.translate(x - getWidth(false), y, 0);
-                break;
-            default:
-                GlStateManager.translate(x, y, 0);
-                break;
-        }
+        if (positioned) GlStateManager.translate(x, y, 0);
         
         GlStateManager.scale(scale, scale, scale);
+        
+        if (alignment != null)
+        {
+            switch (alignment)
+            {
+                case CENTER:
+                    GlStateManager.translate(-getWidth() / 2, 0, 0);
+                    break;
+                case RIGHT:
+                    GlStateManager.translate(-getWidth(), 0, 0);
+                    break;
+                default: break;
+            }
+        }
         
         drawSpecific();
         
         GlStateManager.popMatrix();
-        // Reset color to white, otherwise Minecraft's rendering might incorrectly color something as it doesn't always reset the color itself
         GlStateManager.color(1f, 1f, 1f);
     }
     
@@ -86,18 +108,18 @@ public abstract class OverlayElement
         return y;
     }
     
-    public int getWidth()
+    public int getScaledWidth()
     {
-        return getWidth(true);
+        return (int) Math.ceil(getWidth() * scale);
     }
     
-    public int getHeight()
+    public int getScaledHeight()
     {
-        return getHeight(true);
+        return (int) Math.ceil(getHeight() * scale);
     }
     
-    public abstract int getWidth(boolean scaled);
-    public abstract int getHeight(boolean scaled);
+    public abstract int getWidth();
+    public abstract int getHeight();
 
     public boolean isVisible()
     {

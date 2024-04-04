@@ -36,8 +36,9 @@ public class CustomAlertModeResourcePack implements IResourcePack
             if (resourceExists(new ResourceLocation(CustomAlertModeManager.getResourceName("sounds/" + soundName + ".ogg"))))
             {
                 addSoundToJson(soundName, soundsJson);
-                // ScathaPro.getInstance().logger.log(Level.INFO, "Added sound to custom mode sound JSON: " + soundName);
+                ScathaPro.getInstance().logDebug("Added sound \"" + soundName + "\" to custom mode sound JSON");
             }
+            else ScathaPro.getInstance().logDebug("Skipped sound \"" + soundName+ "\" while generating custom mode sound JSON (sound file doesn't exist)");
         }
         return soundsJson;
     }
@@ -66,19 +67,27 @@ public class CustomAlertModeResourcePack implements IResourcePack
     @Override
     public boolean resourceExists(ResourceLocation location)
     {
+        ScathaPro.getInstance().logDebug("Checking for resource \"" + location.toString() + "\"...");
+        
         String subMode = ScathaPro.getInstance().getCustomAlertModeManager().getCurrentSubmodeId();
-        if (subMode == null) return false;
+        if (subMode == null)
+        {
+            ScathaPro.getInstance().logDebug("No custom mode submode is set, so resource cannot be found");
+            return false;
+        }
         
         if (location.getResourcePath().equals("sounds.json"))
         {
+            ScathaPro.getInstance().logDebug("Resource is custom mode sounds.json, always exists (dynamically generated)");
             return true;
         }
         
         String path = location.getResourcePath();
         
         File file = CustomAlertModeManager.getSubModeFile(subMode + "/assets/" + path);
-        // ScathaPro.getInstance().logger.log(Level.INFO, "Checking for resource file \"" + file.getAbsolutePath() + "\" (" + (file != null && file.isFile() ? "exists" : "not found") + ")");
-        return file != null && file.isFile();
+        boolean exists = file != null && file.isFile();
+        ScathaPro.getInstance().logDebug("Checking for resource file \"" + file.getAbsolutePath() + "\": " + (exists ? "exists" : "not found"));
+        return exists;
     }
     
     @Override

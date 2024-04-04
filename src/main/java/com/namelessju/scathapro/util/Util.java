@@ -5,15 +5,12 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
-
-import com.mojang.authlib.GameProfile;
-import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.managers.Config;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -70,34 +67,27 @@ public class Util
     {
         return getUUIDString(Minecraft.getMinecraft().getSession().getProfile().getId());
     }
-    
-    public static boolean isDeveloper(GameProfile profile)
-    {
-        if (ScathaPro.getInstance().getConfig().getBoolean(Config.Key.devMode) && profile.getName().equals("JuCraft")) return true;
-        
-        UUID uuid = profile.getId();
-        if (uuid != null) return getUUIDString(uuid).equals("e9be3984b09740c98fb4d8aaeb2b4838");
-        
-        return false;
-    }
 
     public static String numberToString(int number)
     {
-        return numberToString(number, 0, false);
+        return numberToString(number, 0);
     }
-    
     public static String numberToString(double number, int maxDecimalPlaces)
     {
         return numberToString(number, maxDecimalPlaces, false);
     }
-    
     public static String numberToString(double number, int maxDecimalPlaces, boolean showTrailingDecimalZeros)
+    {
+        return numberToString(number, maxDecimalPlaces, showTrailingDecimalZeros, RoundingMode.HALF_EVEN);
+    }
+    public static String numberToString(double number, int maxDecimalPlaces, boolean showTrailingDecimalZeros, RoundingMode roundingMode)
     {
         DecimalFormatSymbols decimalSymbols = new DecimalFormatSymbols();
         decimalSymbols.setDecimalSeparator('.');
         decimalSymbols.setGroupingSeparator(',');
         DecimalFormat decimalFormat = new DecimalFormat("#,###.#", decimalSymbols);
         decimalFormat.setMaximumFractionDigits(maxDecimalPlaces);
+        decimalFormat.setRoundingMode(roundingMode);
         if (showTrailingDecimalZeros) decimalFormat.setMinimumFractionDigits(maxDecimalPlaces);
         return decimalFormat.format(number);
     }

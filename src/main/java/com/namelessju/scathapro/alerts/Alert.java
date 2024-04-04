@@ -18,9 +18,9 @@ public enum Alert
     wormPrespawn("worm_prespawn", "Worm Pre-Spawn Alert", "Triggers when either type of worm is about to spawn", new DefaultAlertSound("random.orb", 1f, 0.5f), new AlertTitle(null, "Worm about to spawn...", null, EnumChatFormatting.YELLOW.toString(), 0, 20, 5), Config.Key.wormPrespawnAlert),
     regularWormSpawn("regular_worm_spawn", "Regular Worm Spawn Alert", "Triggers when a regular worm spawns around you", new DefaultAlertSound("random.levelup", 1f, 0.5f), new AlertTitle("Worm", "Just a regular worm...", EnumChatFormatting.YELLOW.toString(), EnumChatFormatting.GRAY.toString(), 5, 20, 5), Config.Key.regularWormSpawnAlert),
     scathaSpawn("scatha_spawn", "Scatha Spawn Alert", "Triggers when a Scatha spawns around you", new DefaultAlertSound("random.levelup", 1f, 0.8f), new AlertTitle("Scatha", "Pray to RNGesus!", EnumChatFormatting.RED.toString(), EnumChatFormatting.GRAY.toString(), 0, 40, 10), Config.Key.scathaSpawnAlert),
-    wormSpawnCooldownEnd("worm_spawn_cooldown_end", "Worm Spawn Cooldown End Alert", "Triggers when the worm spawn cooldown runs out", new DefaultAlertSound("note.pling", 1f, 0.75f), new AlertTitle(null, "Worm spawn cooldown ended", null, EnumChatFormatting.GREEN.toString(), 5, 30, 5), Config.Key.wormSpawnCooldownEndAlert),
+    wormSpawnCooldownEnd("worm_spawn_cooldown_end", "Worm Spawn Cooldown Alert", "Triggers when the worm spawn cooldown runs out", new DefaultAlertSound("note.pling", 1f, 0.75f), new AlertTitle(null, "Worm spawn cooldown ended", null, EnumChatFormatting.GREEN.toString(), 5, 30, 5), Config.Key.wormSpawnCooldownEndAlert),
     
-    scathaPetDrop("scatha_pet_drop", "Scatha Pet Drop Alert", "Triggers when you get a Scatha pet drop", new DefaultAlertSound("mob.wither.death", 0.75f, 0.8f), new AlertTitle("SCATHA PET DROP!", AlertTitle.SubtitleType.VARIABLE, EnumChatFormatting.YELLOW.toString(), null, 0, 130, 20), Config.Key.scathaPetDropAlert),
+    scathaPetDrop("scatha_pet_drop", "Scatha Pet Drop Alert", "Triggers when you get a Scatha pet drop", new DefaultAlertSound("mob.wither.death", 0.75f, 0.8f), new AlertTitle("Scatha Pet!", AlertTitle.SubtitleType.VARIABLE, EnumChatFormatting.YELLOW.toString(), null, 0, 130, 20), Config.Key.scathaPetDropAlert),
     
     goblinSpawn("goblin_spawn", "Goblin Spawn Alert", "Triggers when a golden/diamond goblin spawns", new DefaultAlertSound("random.levelup", 1f, 1.25f), new AlertTitle("Goblin", AlertTitle.SubtitleType.VARIABLE, EnumChatFormatting.DARK_GREEN.toString(), null, 3, 30, 5), Config.Key.goblinSpawnAlert),
     jerrySpawn("jerry_spawn", "Jerry Spawn Alert", "Triggers when a hidden Jerry (mayor perk) spawns", new DefaultAlertSound("random.levelup", 1f, 1.5f), new AlertTitle("Jerry", AlertTitle.SubtitleType.VARIABLE, EnumChatFormatting.AQUA.toString(), null, 5, 40, 10), Config.Key.jerrySpawnAlert);
@@ -84,11 +84,13 @@ public enum Alert
         if (soundParentLocation != null)
         {
             String soundPath = soundParentLocation.toString() + (soundParentLocation.getResourcePath().isEmpty() ? "" : ".") + alertId;
+            
             if (SoundUtil.soundExists(soundPath))
             {
                 lastSound = SoundUtil.playSound(soundPath);
                 return;
             }
+            else ScathaPro.getInstance().logDebug("Couldn't play alert sound \"" + soundPath + "\": Sound not found");
         }
         
         playDefaultSound();

@@ -5,7 +5,9 @@ import java.io.IOException;
 import org.lwjgl.input.Mouse;
 
 import com.namelessju.scathapro.ScathaPro;
+import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.gui.elements.AchievementsList;
+import com.namelessju.scathapro.gui.elements.BooleanSettingButton;
 import com.namelessju.scathapro.gui.elements.DoneButton;
 
 import net.minecraft.client.gui.GuiButton;
@@ -14,6 +16,7 @@ import net.minecraft.client.gui.ScaledResolution;
 
 public class AchievementsGui extends ScathaProGui
 {
+    private float heightFactor = 1f;
     private AchievementsList achievementsList;
     
     @Override
@@ -31,18 +34,25 @@ public class AchievementsGui extends ScathaProGui
     public void initGui()
     {
         super.initGui();
-        
-        ScaledResolution scaledResolution = new ScaledResolution(mc);
-        float heightFactor = (height * scaledResolution.getScaleFactor()) / 1080f;
+        initializeAchievementsList();
 
+        ScaledResolution scaledResolution = new ScaledResolution(mc);
+        heightFactor = (height * scaledResolution.getScaleFactor()) / 1080f;
         
+        initializeAchievementsList();
+        
+        buttonList.add(new BooleanSettingButton(504704301, width / 2 - 100, Math.round(height - 24 - 50 * heightFactor), 200, 20, "Show Bonus Achievements", Config.Key.bonusAchievementsShown));
+        
+        buttonList.add(new DoneButton(504704399, width / 2 - 100, Math.round(height - 50 * heightFactor), 200, 20, "Close", this));
+    }
+    
+    private void initializeAchievementsList()
+    {
         int achievementsListWidth = 310;
         int achievementsListX = width / 2 - achievementsListWidth / 2;
         int achievementsListY = 41;
         int achievementsListHeight = Math.round(height - achievementsListY - 20 - 50 * heightFactor - 10);
         achievementsList = new AchievementsList(achievementsListX, achievementsListY, achievementsListWidth, achievementsListHeight);
-        
-        buttonList.add(new DoneButton(504704399, width / 2 - 100, Math.round(height - 20 - 50 * heightFactor), 200, 20, "Close", this));
     }
     
     @Override
@@ -50,9 +60,10 @@ public class AchievementsGui extends ScathaProGui
     {
         super.actionPerformed(button);
         
-        if (button.enabled && button.id == 504704399)
+        if (button.enabled && button.id == 504704301)
         {
-            openParentGui();
+            scathaPro.getAchievementManager().updateBonusTypeVisibility();
+            initializeAchievementsList();
         }
     }
     

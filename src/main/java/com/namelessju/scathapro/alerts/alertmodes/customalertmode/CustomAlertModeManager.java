@@ -16,13 +16,10 @@ import com.namelessju.scathapro.managers.FileManager;
 import com.namelessju.scathapro.util.JsonUtil;
 import com.namelessju.scathapro.util.Util;
 
-import net.minecraft.client.resources.IResourceManager;
-import net.minecraft.client.resources.IResourceManagerReloadListener;
-import net.minecraft.client.resources.SimpleReloadableResourceManager;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StringUtils;
 
-public class CustomAlertModeManager implements IResourceManagerReloadListener
+public class CustomAlertModeManager
 {
     public static final String resourceDomain = "scathapro_customalertmode";
     public static final File submodesDirectory = FileManager.getModFile("customAlertModes");
@@ -51,7 +48,7 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
     {
         return getSubModeFile(submodeId + "/assets/sounds/" + alert.alertId + ".ogg");
     }
-
+    
     public static String[] getAllSubmodeIds()
     {
         if (!submodesDirectory.exists()) return new String[0];
@@ -85,6 +82,7 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
     
     
     public final CustomAlertModeResourcePack resourcePack;
+    public boolean resourcePackInjected = false;
     
     private final ScathaPro scathaPro;
     
@@ -99,22 +97,6 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
         
         resourcePack = new CustomAlertModeResourcePack();
         loadCurrentSubmode();
-    }
-    
-    
-    @Override
-    public void onResourceManagerReload(IResourceManager resourceManager)
-    {
-        if (resourceManager != scathaPro.getMinecraft().getResourceManager()) return;
-        
-        if (resourceManager instanceof SimpleReloadableResourceManager)
-        {
-            loadResourcePack((SimpleReloadableResourceManager) resourceManager);
-        }
-        else
-        {
-            scathaPro.logError("Couldn't load custom alert mode resource pack - resource manager of unexpected type " + resourceManager.getClass().getCanonicalName() + " (expected " + SimpleReloadableResourceManager.class.getCanonicalName() + ")");
-        }
     }
     
     public void reloadResourcePack()
@@ -147,15 +129,6 @@ public class CustomAlertModeManager implements IResourceManagerReloadListener
     private void setCurrentSubmode(String submodeId)
     {
         currentSubmodeId = (submodeId != null && (submodeId.replace(" ", "").isEmpty())) ? null : submodeId;
-    }
-    
-    private void loadResourcePack(SimpleReloadableResourceManager resourceManager)
-    {
-        resourceManager.reloadResourcePack(resourcePack);
-        
-        loadCurrentSubmodeProperties();
-        
-        scathaPro.log("Custom alert mode resource pack loaded");
     }
     
     

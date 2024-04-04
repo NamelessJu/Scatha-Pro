@@ -8,6 +8,7 @@ import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.entitydetection.detectedentities.DetectedEntity;
 import com.namelessju.scathapro.entitydetection.detectedentities.DetectedWorm;
 import com.namelessju.scathapro.events.WormPreSpawnEvent;
+import com.namelessju.scathapro.gui.menus.FakeBanGui;
 import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.miscellaneous.ScathaProSound;
 import com.namelessju.scathapro.util.MessageUtil;
@@ -15,7 +16,6 @@ import com.namelessju.scathapro.util.NBTUtil;
 import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
@@ -23,6 +23,7 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
+import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.client.event.sound.PlaySoundEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
@@ -31,6 +32,7 @@ import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.InputEvent;
 
 public class MiscListeners
 {
@@ -48,8 +50,7 @@ public class MiscListeners
     @SubscribeEvent
     public void onWorldJoin(EntityJoinWorldEvent e)
     {
-        Entity entity = e.entity;
-        if (entity != mc.thePlayer) return;
+        if (e.entity != mc.thePlayer) return;
         
         // Reset
         
@@ -57,6 +58,8 @@ public class MiscListeners
         
         scathaPro.variables.lastWorldJoinTime = Util.getCurrentTime();
         scathaPro.variables.resetForNewLobby();
+
+        scathaPro.getInputManager().unlockCameraRotation();
         
         // Update overlay
         
@@ -165,12 +168,22 @@ public class MiscListeners
         
         if
         (
-            scathaPro.getConfig().getBoolean(Config.Key.muteOtherSounds)
+            scathaPro.getConfig().getBoolean(Config.Key.muteCrystalHollowsSounds)
             && scathaPro.isInCrystalHollows()
             && !(e.sound instanceof ScathaProSound) && !e.name.equals("gui.button.press")
         )
         {
             e.result = null;
+            return;
+        }
+        
+        
+        // Mute sounds in fake ban screen
+        
+        if (mc.currentScreen != null && mc.currentScreen instanceof FakeBanGui && !e.name.equals("gui.button.press"))
+        {
+            e.result = null;
+            return;
         }
     }
     
@@ -183,8 +196,20 @@ public class MiscListeners
         if (skyblockItemID != null)
         {
             e.toolTip.add("");
-            e.toolTip.add(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + skyblockItemID + EnumChatFormatting.RESET);
+            e.toolTip.add(EnumChatFormatting.RESET.toString() + EnumChatFormatting.DARK_GRAY + "Skyblock ID: " + skyblockItemID + EnumChatFormatting.RESET);
         }
+    }
+    
+    @SubscribeEvent
+    public void onKeyInput(InputEvent.KeyInputEvent event)
+    {
+        scathaPro.getInputManager().onKeyInput();
+    }
+    
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void onMouseInput(MouseEvent event)
+    {
+        // scathaPro.getInputManager().onMouseEvent(event);
     }
 
 }

@@ -1,9 +1,10 @@
 package com.namelessju.scathapro.achievements;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.events.AchievementUnlockedEvent;
+import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.util.Util;
 
 import net.minecraftforge.common.MinecraftForge;
@@ -12,34 +13,34 @@ public class AchievementManager
 {
     private final ScathaPro scathaPro;
     
-    public ArrayList<UnlockedAchievement> unlockedAchievements = new ArrayList<UnlockedAchievement>();
+    private HashMap<String, UnlockedAchievement> unlockedAchievements = new HashMap<String, UnlockedAchievement>();
     
     public AchievementManager(ScathaPro scathaPro)
     {
         this.scathaPro = scathaPro;
+        
+        updateBonusTypeVisibility();
     }
     
     public void unlockAchievement(Achievement achievement)
     {
-        if (!isAchievementUnlocked(achievement))
-        {
-            unlockedAchievements.add(new UnlockedAchievement(achievement, Util.getCurrentTime()));
-            
-            scathaPro.getPersistentData().saveAchievements();
-            
-            MinecraftForge.EVENT_BUS.post(new AchievementUnlockedEvent(achievement));
-        }
+        if (isAchievementUnlocked(achievement)) return;
+        
+        unlockedAchievements.put(achievement.getID(), new UnlockedAchievement(achievement, Util.getCurrentTime()));
+        scathaPro.getPersistentData().saveAchievements();
+        
+        MinecraftForge.EVENT_BUS.post(new AchievementUnlockedEvent(achievement));
     }
     
-    public void revokeAchievement(Achievement achievement)
+    public boolean revokeAchievement(Achievement achievement)
     {
-        if (isAchievementUnlocked(achievement))
+        if (unlockedAchievements.remove(achievement.getID()) != null)
         {
-            unlockedAchievements.remove(getUnlockedAchievement(achievement));
             achievement.setProgress(0f);
-            
             scathaPro.getPersistentData().saveAchievements();
+            return true;
         }
+        return false;
     }
     
     public boolean isAchievementUnlocked(Achievement achievement)
@@ -49,16 +50,38 @@ public class AchievementManager
     
     public UnlockedAchievement getUnlockedAchievement(Achievement achievement)
     {
-        for (UnlockedAchievement unlockedAchievement : unlockedAchievements)
+        return unlockedAchievements.get(achievement.getID());
+    }
+    
+    public void clearUnlockedAchievements()
+    {
+        unlockedAchievements.clear();
+    }
+    
+    public void addUnlockedAchievement(UnlockedAchievement unlockedAchievement)
+    {
+        unlockedAchievements.put(unlockedAchievement.achievement.getID(), unlockedAchievement);
+    }
+    
+    public UnlockedAchievement[] getAllUnlockedAchievements()
+    {
+        String[] ids = unlockedAchievements.keySet().toArray(new String[0]);
+        UnlockedAchievement[] achievements = new UnlockedAchievement[ids.length];
+        for (int i = 0; i < ids.length; i ++)
         {
-            if (unlockedAchievement.achievement == achievement) return unlockedAchievement;
+            achievements[i] = unlockedAchievements.get(ids[i]);
         }
-        
-        return null;
+        return achievements;
     }
     
     public static Achievement[] getAllAchievements()
     {
         return Achievement.values();
+    }
+    
+    public void updateBonusTypeVisibility()
+    {
+        boolean visible = scathaPro.getConfig().getBoolean(Config.Key.bonusAchievementsShown);
+        Achievement.Type.BONUS.visibility = visible ? Achievement.Type.Visibility.VISIBLE : Achievement.Type.Visibility.HIDDEN;
     }
 }

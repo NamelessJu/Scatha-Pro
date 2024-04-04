@@ -7,6 +7,7 @@ import com.namelessju.scathapro.managers.Config;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.util.EnumChatFormatting;
 
+// Note: this doesn't detect the Jerry itself, but the box that the hidden Jerry spawns from
 public class DetectedJerry extends DetectedEntity
 {
     public static enum Type
@@ -25,7 +26,7 @@ public class DetectedJerry extends DetectedEntity
     @Override
     public long getMaxLifetime()
     {
-        return -1;
+        return 3500;
     }
     
     @Override

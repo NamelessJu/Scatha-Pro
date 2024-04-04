@@ -125,6 +125,8 @@ public class UpdateChecker
      */
     public static int compareVersions(String from, String to)
     {
+        if (from == null || to == null) throw new NullPointerException("Versions cannot be null");
+        
         from = getComparableVersion(from);
         to = getComparableVersion(to);
         

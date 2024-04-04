@@ -19,17 +19,17 @@ public class OverlayText extends OverlayElement
     {
         if (text != null && !text.isEmpty()) Minecraft.getMinecraft().fontRendererObj.drawString(text, 0, 0, color, true);
     }
-
+    
     @Override
-    public int getWidth(boolean scaled)
+    public int getWidth()
     {
-        return text != null ? (int) Math.round(Minecraft.getMinecraft().fontRendererObj.getStringWidth(text) * (scaled ? scale : 1)) : 0;
+        return text != null ? Minecraft.getMinecraft().fontRendererObj.getStringWidth(text) : 0;
     }
-
+    
     @Override
-    public int getHeight(boolean scaled)
+    public int getHeight()
     {
-        return (int) Math.round(8 * (scaled ? scale : 1));
+        return Minecraft.getMinecraft().fontRendererObj.FONT_HEIGHT;
     }
 
     public void setText(String text)

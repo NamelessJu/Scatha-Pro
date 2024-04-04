@@ -1,6 +1,8 @@
 package com.namelessju.scathapro.eventlisteners;
 
-import com.google.gson.JsonPrimitive;
+import java.math.RoundingMode;
+import java.util.Collection;
+
 import com.namelessju.scathapro.Constants;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.achievements.Achievement;
@@ -9,7 +11,6 @@ import com.namelessju.scathapro.entitydetection.detectedentities.DetectedWorm;
 import com.namelessju.scathapro.events.AchievementUnlockedEvent;
 import com.namelessju.scathapro.events.BedrockDetectedEvent;
 import com.namelessju.scathapro.events.CrystalHollowsTickEvent;
-import com.namelessju.scathapro.events.MeetDeveloperEvent;
 import com.namelessju.scathapro.events.ScathaPetDropEvent;
 import com.namelessju.scathapro.events.SkyblockAreaDetectedEvent;
 import com.namelessju.scathapro.events.ModUpdateEvent;
@@ -19,6 +20,7 @@ import com.namelessju.scathapro.events.WormKillEvent;
 import com.namelessju.scathapro.events.WormPreSpawnEvent;
 import com.namelessju.scathapro.events.WormSpawnEvent;
 import com.namelessju.scathapro.managers.Config;
+import com.namelessju.scathapro.miscellaneous.OverlayStats;
 import com.namelessju.scathapro.miscellaneous.SkyblockArea;
 import com.namelessju.scathapro.util.JsonUtil;
 import com.namelessju.scathapro.util.MessageUtil;
@@ -27,11 +29,19 @@ import com.namelessju.scathapro.util.SoundUtil;
 import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.scoreboard.Score;
+import net.minecraft.scoreboard.ScoreObjective;
+import net.minecraft.scoreboard.ScorePlayerTeam;
+import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StringUtils;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -60,9 +70,6 @@ public class ScathaProListeners
     @SubscribeEvent(priority = EventPriority.HIGH)
     public void onUpdate(ModUpdateEvent e)
     {
-        JsonUtil.set(scathaPro.getPersistentData().getData(), "global/lastUsedVersion", new JsonPrimitive(ScathaPro.VERSION));
-        scathaPro.getPersistentData().saveData();
-        
         if (scathaPro.getConfig().getBoolean(Config.Key.automaticBackups) && scathaPro.getPersistentData().getData().entrySet().size() > 0)
         {
             scathaPro.getPersistentData().backup("Update_" + (e.previousVersion != null ? "v" + e.previousVersion : "unknown") + "_to_v" + e.newVersion, true);
@@ -74,11 +81,11 @@ public class ScathaProListeners
     {
         if (e.area != SkyblockArea.CRYSTAL_HOLLOWS) return;
         
-        if (scathaPro.getConfig().getBoolean(Config.Key.muteOtherSounds))
+        if (scathaPro.getConfig().getBoolean(Config.Key.muteCrystalHollowsSounds))
         {
-            ChatComponentText chatComponent = new ChatComponentText(EnumChatFormatting.GRAY + "Note: You've muted sounds in the Crystal Hollows! Only Scatha-Pro sounds will play - you can unmute other sounds again in ");
+            ChatComponentText chatComponent = new ChatComponentText(EnumChatFormatting.GRAY + "You've muted sounds in the Crystal Hollows! Only Scatha-Pro sounds will play - you can unmute other sounds again in ");
             
-            ChatComponentText commandComponent = new ChatComponentText(EnumChatFormatting.GRAY.toString() + EnumChatFormatting.ITALIC + "/scathapro settings");
+            ChatComponentText commandComponent = new ChatComponentText(EnumChatFormatting.GRAY.toString() + EnumChatFormatting.UNDERLINE + "/scathapro settings");
             commandComponent.setChatStyle(
                     new ChatStyle()
                     .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/scathapro settings"))
@@ -126,7 +133,7 @@ public class ScathaProListeners
     @SubscribeEvent(priority = EventPriority.HIGH)
     public void onWormPreSpawn(WormPreSpawnEvent e)
     {
-        scathaPro.variables.startWormSpawnCooldown();
+        scathaPro.variables.startWormSpawnCooldown(true);
         Alert.wormPrespawn.play();
     }
     
@@ -138,23 +145,17 @@ public class ScathaProListeners
         // Scatha spawn
         if (e.worm.isScatha)
         {
-            scathaPro.variables.addScathaSpawn();
-            
-            if (now - scathaPro.variables.lastWorldJoinTime <= Achievement.scatha_spawn_time.goal * 60 * 1000)
-            {
-                Achievement.scatha_spawn_time.unlock();
-            }
-            
-            if (e.worm.getEntity().posY > 186) Achievement.scatha_spawn_chtop.unlock();
-            else if (e.worm.getEntity().posY < 32.5) Achievement.scatha_spawn_chbottom.unlock();
+            OverlayStats.addScathaSpawn();
             
             Alert.scathaSpawn.play();
+            
+            handleScathaSpawnAchievements(now, e.worm);
         }
         
         // Regular worm spawn
         else
         {
-            scathaPro.variables.addRegularWormSpawn();
+            OverlayStats.addRegularWormSpawn();
             
             Alert.regularWormSpawn.play();
         }
@@ -166,23 +167,115 @@ public class ScathaProListeners
             
             String timeString;
             
-            if (secondsSinceLastSpawn < 60)
-            {
-                timeString = secondsSinceLastSpawn + " seconds";
-            }
-            else
-            {
-                timeString = Util.numberToString(secondsSinceLastSpawn / 60D, 1) + " minutes";
-            }
+            if (secondsSinceLastSpawn < 60) timeString = secondsSinceLastSpawn + " seconds";
+            else timeString = Util.numberToString(secondsSinceLastSpawn / 60D, 1, true, RoundingMode.FLOOR) + " minutes";
             
             MessageUtil.sendModChatMessage(EnumChatFormatting.GRAY + "Worm spawned " + timeString + " after previous worm");
         }
         
         
         scathaPro.variables.lastWormSpawnTime = now;
-        scathaPro.variables.startWormSpawnCooldown(); // in case pre-spawn doesn't trigger when master volume is 0
+        scathaPro.variables.startWormSpawnCooldown(false); // in case pre-spawn doesn't trigger when master volume is 0
         scathaPro.updateSpawnAchievements();
         scathaPro.getOverlay().updateWormStreak();
+    }
+    
+    private void handleScathaSpawnAchievements(long now, DetectedWorm worm)
+    {
+        // Time achievements
+        
+        if (now - scathaPro.variables.lastWorldJoinTime <= Achievement.scatha_spawn_time.goal * 60 * 1000)
+        {
+            Achievement.scatha_spawn_time.unlock();
+        }
+        
+        // Height achievements
+        
+        if (worm.getEntity().posY > 186) Achievement.scatha_spawn_chtop.unlock();
+        else if (worm.getEntity().posY < 32.5) Achievement.scatha_spawn_chbottom.unlock();
+        
+        // Scoreboard achievements
+        
+        if (!scathaPro.getAchievementManager().isAchievementUnlocked(Achievement.scatha_spawn_heat_burning))
+        {
+            scathaPro.logDebug("Checking for scoreboard heat value...");
+            
+            Scoreboard scoreboard = Minecraft.getMinecraft().theWorld.getScoreboard();
+            ScoreObjective sidebarObjective = scoreboard.getObjectiveInDisplaySlot(1);
+            if (sidebarObjective != null)
+            {
+                scathaPro.logDebug("Scoreboard objective found in sidebar: \"" + sidebarObjective.getDisplayName() + "\"");
+                
+                Collection<Score> scores = scoreboard.getSortedScores(sidebarObjective);
+                for (Score score : scores)
+                {
+                    String playerName = score.getPlayerName();
+                    ScorePlayerTeam playerTeam = scoreboard.getPlayersTeam(playerName);
+                    String formattedScoreText = ScorePlayerTeam.formatPlayerName(playerTeam, playerName);
+                    String unformattedText = StringUtils.stripControlCodes(formattedScoreText.replace(playerName, ""));
+                    
+                    scathaPro.logDebug("Scoreboard line: \"" + unformattedText + "\"");
+                    
+                    if (unformattedText.startsWith("Heat:"))
+                    {
+                        String valueString = unformattedText.substring(5).trim();
+                        
+                        while (valueString.length() > 0)
+                        {
+                            char firstChar = valueString.charAt(0);
+                            if (firstChar >= '0' && firstChar <= '9' || firstChar == '-') break;
+                            if (valueString.startsWith("IMMUNE"))
+                            {
+                                valueString = null;
+                                break;
+                            }
+                            valueString = valueString.substring(1).trim();
+                        }
+                        
+                        if (valueString != null && !valueString.isEmpty())
+                        {
+                            int heat = -1;
+                            try
+                            {
+                                heat = Integer.parseInt(valueString);
+                            }
+                            catch (NumberFormatException exception)
+                            {
+                                scathaPro.logError("Error while parsing scoreboard heat value: \"" + unformattedText + "\" couldn't be parsed to an int");
+                            }
+                            scathaPro.logDebug("Scoreboard heat entry found - value: " + heat);
+                            
+                            if (heat >= 90) Achievement.scatha_spawn_heat_burning.unlock();
+                        }
+                        else
+                        {
+                            scathaPro.logDebug("Scoreboard heat entry found, but entry has no int value");
+                        }
+                        
+                        break;
+                    }
+                }
+            }
+            else scathaPro.logDebug("No scoreboard objective in sidebar found");
+        }
+        
+        // Player dependent achievements
+        
+        EntityPlayer player = mc.thePlayer;
+        if (player != null)
+        {
+            ItemStack helmetItem = mc.thePlayer.getCurrentArmor(3);
+            String skyblockItemID = NBTUtil.getSkyblockItemID(helmetItem);
+            if (skyblockItemID != null && skyblockItemID.equals("PET"))
+            {
+                NBTTagCompound skyblockNbt = NBTUtil.getSkyblockTagCompound(helmetItem);
+                String petType = JsonUtil.getString(JsonUtil.parseObject(skyblockNbt.getString("petInfo")), "type");
+                if (petType != null && petType.equals("SCATHA"))
+                {
+                    Achievement.scatha_spawn_scatha_helmet.unlock();
+                }
+            }
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
@@ -200,12 +293,18 @@ public class ScathaProListeners
         {
             scathaPro.variables.addScathaKill();
             
-            if (worm.getHitWeaponsCount() >= Achievement.kill_weapons_scatha.goal) Achievement.kill_weapons_scatha.unlock();
-            if (worm.getHitWeaponsCount() > 0 && worm.getHitWeapons()[worm.getHitWeaponsCount() - 1].equals("TERMINATOR")) Achievement.scatha_kill_terminator.unlock();
-            if (mc.thePlayer.isSneaking() && lastSneakStartTime >= 0 && worm.spawnTime >= lastSneakStartTime) Achievement.scatha_kill_sneak.unlock();
-
             scathaPro.variables.lastScathaKillTime = Util.getCurrentTime();
             lastKillIsScatha = true;
+            
+            if (worm.getHitWeaponsCount() >= Achievement.kill_weapons_scatha.goal) Achievement.kill_weapons_scatha.unlock();
+            if (worm.getHitWeaponsCount() > 0)
+            {
+                String lastHitWeapon = worm.getHitWeapons()[worm.getHitWeaponsCount() - 1];
+                if (lastHitWeapon.equals("TERMINATOR")) Achievement.scatha_kill_terminator.unlock();
+                else if (lastHitWeapon.equals("JUJU_SHORTBOW")) Achievement.scatha_kill_juju.unlock();
+            }
+            if (mc.thePlayer.isSneaking() && lastSneakStartTime >= 0 && worm.spawnTime >= lastSneakStartTime) Achievement.scatha_kill_sneak.unlock();
+            if (mc.thePlayer.posY - worm.getEntity().posY >= 0) Achievement.scatha_kill_highground.unlock(); // note: this armor stand (= Scatha name tag) is a little above the worm visuals already
             
             scathaPro.getOverlay().updateScathaKills();
             scathaPro.getOverlay().updateScathaKillsSinceLastDrop();
@@ -226,7 +325,7 @@ public class ScathaProListeners
         scathaPro.updateKillAchievements();
         
         if (worm.getCurrentLifetime() <= 1000) Achievement.worm_kill_time_1.unlock();
-        else if (worm.getCurrentLifetime() >= Constants.wormLifetime - 1000) Achievement.worm_kill_time_2.unlock();
+        else if (worm.getCurrentLifetime() >= Constants.wormLifetime - 3000) Achievement.worm_kill_time_2.unlock();
         
         lastKillTime = Util.getCurrentTime();
     }
@@ -246,17 +345,17 @@ public class ScathaProListeners
         {
             case RARE:
                 scathaPro.variables.rarePetDrops = Math.min(scathaPro.variables.rarePetDrops + 1, Constants.maxLegitPetDropsAmount);
-                rarityTitle = EnumChatFormatting.BLUE + "Rare";
+                rarityTitle = EnumChatFormatting.BLUE + "RARE";
                 break;
                 
             case EPIC:
                 scathaPro.variables.epicPetDrops = Math.min(scathaPro.variables.epicPetDrops + 1, Constants.maxLegitPetDropsAmount);
-                rarityTitle = EnumChatFormatting.DARK_PURPLE + "Epic";
+                rarityTitle = EnumChatFormatting.DARK_PURPLE + "EPIC";
                 break;
                 
             case LEGENDARY:
                 scathaPro.variables.legendaryPetDrops = Math.min(scathaPro.variables.legendaryPetDrops + 1, Constants.maxLegitPetDropsAmount);
-                rarityTitle = EnumChatFormatting.GOLD + "Legendary";
+                rarityTitle = EnumChatFormatting.GOLD + "LEGENDARY";
                 break;
                 
             default:
@@ -334,15 +433,15 @@ public class ScathaProListeners
         
         ChatComponentText chatMessage = new ChatComponentText(
                 (
-                        achievement.type.string != null
-                        ? achievement.type.string + EnumChatFormatting.RESET + EnumChatFormatting.GREEN + " achievement"
+                        achievement.type.typeName != null
+                        ? achievement.type.getFormattedName() + EnumChatFormatting.RESET + EnumChatFormatting.GREEN + " achievement"
                         : EnumChatFormatting.GREEN + "Achievement"
                 )
                 + " unlocked" + EnumChatFormatting.GRAY + " - "
         );
         
-        ChatComponentText achievementComponent = new ChatComponentText(EnumChatFormatting.GOLD.toString() + EnumChatFormatting.ITALIC + achievement.name);
-        ChatStyle achievementStyle = new ChatStyle().setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(achievement.name + "\n" + EnumChatFormatting.GRAY + achievement.description)));
+        ChatComponentText achievementComponent = new ChatComponentText(EnumChatFormatting.GOLD.toString() + EnumChatFormatting.ITALIC + achievement.achievementName);
+        ChatStyle achievementStyle = new ChatStyle().setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.GOLD + achievement.achievementName + "\n" + EnumChatFormatting.GRAY + achievement.description)));
         achievementComponent.setChatStyle(achievementStyle);
         
         chatMessage.appendSibling(achievementComponent);
@@ -356,13 +455,16 @@ public class ScathaProListeners
             switch (achievement.type)
             {
                 case SECRET:
-                    SoundUtil.playModSound("achievements.unlock", 1f, 0.75f);
+                    SoundUtil.playModSound("achievements.unlock", 0.9f, 0.749154f);
+                    break;
+                case BONUS:
+                    SoundUtil.playModSound("achievements.unlock_hidden", 0.75f, 1.259921f);
                     break;
                 case HIDDEN:
-                    SoundUtil.playModSound("achievements.unlock_hidden", 0.75f, 0.75f);
+                    SoundUtil.playModSound("achievements.unlock_hidden", 0.75f, 0.749154f);
                     break;
                 default:
-                    SoundUtil.playModSound("achievements.unlock", 1f, 1f);
+                    SoundUtil.playModSound("achievements.unlock", 0.9f, 1f);
             }
         }
         
@@ -371,12 +473,6 @@ public class ScathaProListeners
 
         
         lastAchievementUnlockTime = now;
-    }
-
-    @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onMeetDeveloper(MeetDeveloperEvent e)
-    {
-        Achievement.meet_developer.unlock();
     }
     
 }

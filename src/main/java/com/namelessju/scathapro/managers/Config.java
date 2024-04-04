@@ -15,10 +15,11 @@ public class Config
         overlayScale("overlay", "scale", 1D),
         statsType("overlay", "statsType", ""),
         scathaPercentageDecimalDigits("overlay", "scathaPercentageDecimalPlaces", 1),
+        overlayElementStates("overlay", "overlayElementStates", ""),
         
         // Sounds
         soundsVolume("sounds", "volume", 1D),
-        muteOtherSounds("sounds", "muteOtherSounds", false),
+        muteCrystalHollowsSounds("sounds", "muteCrystalHollowsSounds", false),
         
         // Alerts
         mode("alerts", "mode", ""),
@@ -33,6 +34,10 @@ public class Config
         goblinSpawnAlert("alerts", "goblinSpawn", true),
         jerrySpawnAlert("alerts", "jerrySpawn", true),
         
+        // Achievements
+        playAchievementAlerts("achievements", "playAchievementAlerts", 1D),
+        bonusAchievementsShown("achievements", "bonusAchievementsShown", false),
+        
         // Other
         showRotationAngles("other", "showRotationAngles", false),
         rotationAnglesDecimalDigits("other", "rotationAnglesDecimalPlaces", 1),
@@ -43,7 +48,8 @@ public class Config
         automaticUpdateChecks("other", "automaticUpdateChecks", true),
         automaticStatsParsing("other", "automaticStatsParsing", true),
         
-        devMode("other", "devMode", false);
+        devMode("dev", "devMode", false),
+        debugLogs("dev", "debugLogs", false);
         
         
         private String category;
@@ -71,7 +77,7 @@ public class Config
         loadFile();
         convertOldConfigEntries();
         
-        ScathaPro.getInstance().log("Config loaded");
+        ScathaPro.getInstance().logDebug("Config loaded");
     }
     
     private void convertOldConfigEntries()

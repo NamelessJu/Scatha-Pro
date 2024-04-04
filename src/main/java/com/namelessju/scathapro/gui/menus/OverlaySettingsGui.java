@@ -6,11 +6,11 @@ import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.gui.elements.BooleanSettingButton;
 import com.namelessju.scathapro.gui.elements.DoneButton;
 import com.namelessju.scathapro.gui.elements.MultiOptionButton;
+import com.namelessju.scathapro.gui.elements.SubMenuButton;
 import com.namelessju.scathapro.managers.Config;
-import com.namelessju.scathapro.miscellaneous.OverlayStatsType;
+import com.namelessju.scathapro.miscellaneous.OverlayStats;
 import com.namelessju.scathapro.overlay.Overlay;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraftforge.fml.client.config.GuiSlider;
@@ -19,6 +19,8 @@ public class OverlaySettingsGui extends ScathaProGui implements GuiSlider.ISlide
 {
     private final Config config;
     private final Overlay overlay;
+    
+    private boolean debugInfoShownBefore = false;
     
     public OverlaySettingsGui(ScathaPro scathaPro, GuiScreen parentGui)
     {
@@ -45,7 +47,29 @@ public class OverlaySettingsGui extends ScathaProGui implements GuiSlider.ISlide
     {
         super.initGui();
         
-        Minecraft.getMinecraft().gameSettings.showDebugInfo = false;
+        debugInfoShownBefore = scathaPro.getMinecraft().gameSettings.showDebugInfo;
+        scathaPro.getMinecraft().gameSettings.showDebugInfo = false;
+        
+        buttonList.add(new SubMenuButton(504704150, width / 2 - 100, height - 136 - 12, 200, 20, "Components... (WIP)", this, OverlayElementsSettingsGui.class));
+        
+        buttonList.add(new MultiOptionButton<String>(504704105, width / 2 - 155, height - 112 - 12, 150, 20, "Worm Stats per", OverlayStats.values(), config.getString(Config.Key.statsType), new MultiOptionButton.IOptionChangedListener<String>() {
+            @Override
+            public void onChange(MultiOptionButton<String> button)
+            {
+                config.set(Config.Key.statsType, button.getSelectedValue());
+                config.save();
+                scathaPro.getOverlay().setStatsType((OverlayStats) button.getSelectedOption());
+            }
+        }));
+        buttonList.add(new MultiOptionButton<Integer>(504704106, width / 2 + 5, height - 112 - 12, 150, 20, "Scatha % Dec. Places", MultiOptionButton.IntegerOption.range(0, 3), config.getInt(Config.Key.scathaPercentageDecimalDigits), new MultiOptionButton.IOptionChangedListener<Integer>() {
+            @Override
+            public void onChange(MultiOptionButton<Integer> button)
+            {
+                config.set(Config.Key.scathaPercentageDecimalDigits, button.getSelectedValue());
+                config.save();
+                scathaPro.getOverlay().updateTotalKills();
+            }
+        }));
         
         buttonList.add(new BooleanSettingButton(504704101, width / 2 - 155, height - 88 - 6, 150, 20, "UI Overlay", Config.Key.overlay));
         
@@ -60,29 +84,16 @@ public class OverlaySettingsGui extends ScathaProGui implements GuiSlider.ISlide
         buttonList.add(overlayYSlider);
         
         buttonList.add(new GuiSlider(504704104, width / 2 - 155, height - 64 - 6, 150, 20, "Overlay Scale: ", "%", 50, 150, config.getDouble(Config.Key.overlayScale) * 100, false, true, this));
-
-        buttonList.add(new MultiOptionButton<String>(504704105, width / 2 - 155, height - 112 - 12, 150, 20, "Stats per", OverlayStatsType.values(), config.getString(Config.Key.statsType), new MultiOptionButton.IOptionChangedListener<String>() {
-            @Override
-            public void onChange(MultiOptionButton<String> button)
-            {
-                config.set(Config.Key.statsType, button.getSelectedValue());
-                config.save();
-                scathaPro.getOverlay().setStatsType((OverlayStatsType) button.getSelectedOption());
-            }
-        }));
-        buttonList.add(new MultiOptionButton<Integer>(504704106, width / 2 + 5, height - 112 - 12, 150, 20, "Scatha % Dec. Places", MultiOptionButton.IntegerOption.range(0, 3), config.getInt(Config.Key.scathaPercentageDecimalDigits), new MultiOptionButton.IOptionChangedListener<Integer>() {
-            @Override
-            public void onChange(MultiOptionButton<Integer> button)
-            {
-                config.set(Config.Key.scathaPercentageDecimalDigits, button.getSelectedValue());
-                config.save();
-                scathaPro.getOverlay().updateTotalKills();
-            }
-        }));
         
         buttonList.add(new DoneButton(504704199, width / 2 - 100, height - 40, 200, 20, "Done", this));
         
         overlay.updateOverlayFull();
+    }
+    
+    @Override
+    public void onGuiClosed()
+    {
+        scathaPro.getMinecraft().gameSettings.showDebugInfo = debugInfoShownBefore;
     }
     
     @Override

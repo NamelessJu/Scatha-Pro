@@ -27,7 +27,7 @@ public class SoundSettingsGui extends ScathaProGui implements GuiSlider.ISlider
         super.initGui();
         
         buttonList.add(new GuiSlider(504704701, width / 2 - 155, height / 6 - 12, 310, 20, ScathaPro.MODNAME + " Sounds Volume: ", "%", 0, 100, scathaPro.getConfig().getDouble(Config.Key.soundsVolume) * 100, false, true, this));
-        buttonList.add(new BooleanSettingButton(504704702, width / 2 - 155, height / 6 + 24 - 12, 310, 20, "Mute Crystal Hollows sounds", Config.Key.muteOtherSounds));
+        buttonList.add(new BooleanSettingButton(504704702, width / 2 - 155, height / 6 + 24 - 12, 310, 20, "Mute Crystal Hollows sounds", Config.Key.muteCrystalHollowsSounds));
         
         buttonList.add(new DoneButton(504704799, width / 2 - 100, height / 6 + 168, 200, 20, "Done", this));
     }

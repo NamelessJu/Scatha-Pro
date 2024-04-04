@@ -16,11 +16,17 @@ public class FakeBanGui extends GuiDisconnected
     {
         super(null, "connect.failed", new ChatComponentText(
                 EnumChatFormatting.RESET.toString() + EnumChatFormatting.RED + "You are permanently banned from this server!\n\n"
-                + EnumChatFormatting.GRAY + "Reason: " + EnumChatFormatting.WHITE + "Scatha-Pro Savefile Manipulation\n"
-                + EnumChatFormatting.GRAY + "Find out more: " + EnumChatFormatting.AQUA + EnumChatFormatting.UNDERLINE + "https://www.hypixel.net/scatha-pro\n\n"
-                + EnumChatFormatting.GRAY + "Ban ID: " + EnumChatFormatting.WHITE + "#1CH34T3R\n"
+                + EnumChatFormatting.GRAY + "Reason: " + EnumChatFormatting.WHITE + "Savefile Manipulation\n"
+                + EnumChatFormatting.GRAY + "Find out more: " + EnumChatFormatting.AQUA + EnumChatFormatting.UNDERLINE + "https://hypixel.net/rules\n\n"
+                + EnumChatFormatting.GRAY + "Ban ID: " + EnumChatFormatting.WHITE + "#UCH34T3R\n"
                 + EnumChatFormatting.GRAY + "Sharing your Ban ID may affect the processing of your appeal!"
         ));
+    }
+    
+    @Override
+    public boolean doesGuiPauseGame()
+    {
+        return false;
     }
     
     // Always draw dirt background

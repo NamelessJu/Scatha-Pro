@@ -3,6 +3,7 @@ package com.namelessju.scathapro.commands;
 import java.util.Arrays;
 import java.util.List;
 
+import com.namelessju.scathapro.Constants;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.achievements.AchievementManager;
@@ -30,19 +31,19 @@ public class DevCommand extends CommandBase
     {
         this.scathaPro = scathaPro;
     }
-
+    
     @Override
     public String getCommandName()
     {
         return COMMAND_NAME;
     }
-
+    
     @Override
     public String getCommandUsage(ICommandSender sender)
     {
-        return "/" + COMMAND_NAME + " <subcommand> [parameters...]";
+        return "/" + COMMAND_NAME + " <sub-command> (parameters...)";
     }
-
+    
     @Override
     public int getRequiredPermissionLevel()
     {
@@ -55,12 +56,13 @@ public class DevCommand extends CommandBase
         {
             if (arguments.length > 0)
             {
-                List<Overlay.ToggleableOverlayElement> elements = ScathaPro.getInstance().getOverlay().toggleableOverlayElements;
+                List<Overlay.ToggleableOverlayElement> elements = scathaPro.getOverlay().toggleableOverlayElements;
                 
                 int index = CommandBase.parseInt(arguments[0]);
                 if (index >= 0 && index < elements.size())
                 {
                     elements.get(index).toggle();
+                    scathaPro.getOverlay().saveToggleableElementStates();
                     MessageUtil.sendModChatMessage("Overlay element toggled");
                 }
                 else MessageUtil.sendModErrorMessage("Index not in range of toggleable elements");
@@ -72,11 +74,11 @@ public class DevCommand extends CommandBase
         
         return false;
     }
-
+    
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException
     {
-        if (args.length <= 0) throw new CommandException("Missing subcommand: " + getCommandUsage(null));
+        if (args.length <= 0) throw new CommandException("Missing sub-command: " + getCommandUsage(null));
         
         String subCommand = args[0];
         
@@ -127,36 +129,71 @@ public class DevCommand extends CommandBase
                     
                     Util.copyToClipboard(itemString);
     
-                    sender.addChatMessage(new ChatComponentText(ScathaPro.CHATPREFIX + "Held item copied to clipboard"));
+                    sender.addChatMessage(new ChatComponentText(Constants.chatPrefix + "Held item copied to clipboard"));
                 }
                 else throw new CommandException("You are not holding an item");
             }
             else throw new CommandException("Command sender is not a player");
         }
         
-        else if (subCommand.equalsIgnoreCase("achievementsUnlockAll"))
+        else if (subCommand.equalsIgnoreCase("unlockAchievement"))
         {
-            Achievement[] achievements = AchievementManager.getAllAchievements();
-            for (int i = 0; i < achievements.length; i ++)
+            if (args.length < 2) throw new CommandException("Missing argument: /" + COMMAND_NAME + " unlockAchievement <achievement ID>");
+            
+            if (args[1].equals("*"))
             {
-                achievements[i].unlock();
+                Achievement[] achievements = AchievementManager.getAllAchievements();
+                for (int i = 0; i < achievements.length; i ++)
+                {
+                    achievements[i].unlock();
+                }
+                
+                MessageUtil.sendModChatMessage("All achievements unlocked");
+            }
+            else
+            {
+                Achievement achievement = Achievement.getByID(args[1]);
+                if (achievement == null) throw new CommandException("No achievement with the ID \"" + args[1] + "\" exists");
+                
+                if (!ScathaPro.getInstance().getAchievementManager().isAchievementUnlocked(achievement))
+                {
+                    achievement.unlock();
+                    MessageUtil.sendModChatMessage("Achievement \"" + achievement.achievementName + "\" unlocked");
+                }
+                else throw new CommandException("Achievement \"" + achievement.achievementName + "\" is already unlocked");
             }
         }
         
-        else if (subCommand.equalsIgnoreCase("achievementsRevokeAll"))
+        else if (subCommand.equalsIgnoreCase("revokeAchievement"))
         {
-            Achievement[] achievements = AchievementManager.getAllAchievements();
-            for (int i = 0; i < achievements.length; i ++)
-            {
-                ScathaPro.getInstance().getAchievementManager().revokeAchievement(achievements[i]);
-            }
+            if (args.length < 2) throw new CommandException("Missing argument: /" + COMMAND_NAME + " revokeAchievement <achievement ID>");
             
-            MessageUtil.sendModChatMessage("All achievements revoked");
+            if (args[1].equals("*"))
+            {
+                Achievement[] achievements = AchievementManager.getAllAchievements();
+                for (int i = 0; i < achievements.length; i ++)
+                {
+                    ScathaPro.getInstance().getAchievementManager().revokeAchievement(achievements[i]);
+                }
+                
+                MessageUtil.sendModChatMessage("All achievements revoked");
+            }
+            else
+            {
+                Achievement achievement = Achievement.getByID(args[1]);
+                if (achievement == null) throw new CommandException("No achievement with the ID \"" + args[1] + "\" exists");
+                
+                if (ScathaPro.getInstance().getAchievementManager().revokeAchievement(achievement))
+                {
+                    MessageUtil.sendModChatMessage("Achievement \"" + achievement.achievementName + "\" revoked");
+                }
+                else throw new CommandException("Achievement \"" + achievement.achievementName + "\" isn't unlocked");
+            }
         }
         
         else if (subCommand.equalsIgnoreCase("trigger"))
         {
-            if (args.length < 2) throw new CommandException("Missing trigger argument: /" + COMMAND_NAME + " trigger <trigger name>");
+            if (args.length < 2) throw new CommandException("Missing argument: /" + COMMAND_NAME + " trigger <trigger name>");
             String trigger = args[1];
             String[] triggerArguments = Arrays.copyOfRange(args, 2, args.length);
             
@@ -170,7 +207,7 @@ public class DevCommand extends CommandBase
             }
         }
         
-        else throw new CommandException("Invalid subcommand");
+        else throw new CommandException("Invalid sub-command");
     }
 
     

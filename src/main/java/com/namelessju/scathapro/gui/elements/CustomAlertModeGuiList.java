@@ -54,7 +54,7 @@ public class CustomAlertModeGuiList extends ScathaProGuiList
     {
         public CreateCustomModeEntry()
         {
-            addButton(new GuiButton(0, getListWidth() / 2 - 100, 5, 200, 20, "Create new custom alert mode..."));
+            addButton(new GuiButton(0, getListWidth() / 2 - 100, 5, 200, 20, "New custom alert mode..."));
         }
         
         @Override

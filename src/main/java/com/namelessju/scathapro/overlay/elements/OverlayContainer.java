@@ -8,11 +8,10 @@ import net.minecraft.client.renderer.GlStateManager;
 
 public class OverlayContainer extends OverlayElement
 {
-    protected List<OverlayElement> elements = new ArrayList<OverlayElement>();
+    protected List<OverlayElement> children = new ArrayList<OverlayElement>();
     public int backgroundColor = -1;
     public int padding = 0;
-    protected Alignment contentAlignment = Alignment.AUTOMATIC;
-
+    
     public OverlayContainer(int x, int y, float scale)
     {
         super(x, y, scale);
@@ -21,12 +20,12 @@ public class OverlayContainer extends OverlayElement
     @Override
     protected void drawSpecific()
     {
-        if (backgroundColor >= 0) Gui.drawRect(0, 0, getWidth(false), getHeight(false), backgroundColor);
-
-        GlStateManager.pushMatrix();
-        GlStateManager.translate(padding, padding, 0);
+        if (backgroundColor >= 0) Gui.drawRect(0, 0, getWidth(), getHeight(), backgroundColor);
         
-        for (OverlayElement element : elements)
+        GlStateManager.pushMatrix();
+        if (padding != 0) GlStateManager.translate(padding, padding, 0);
+        
+        for (OverlayElement element : children)
         {
             element.draw();
         }
@@ -36,48 +35,59 @@ public class OverlayContainer extends OverlayElement
     
     public void add(OverlayElement element)
     {
-        elements.add(element);
+        children.add(element);
     }
     
     public void addAtIndex(OverlayElement element, int index)
     {
-        elements.add(index, element);
+        children.add(index, element);
     }
     
     @Override
-    public int getWidth(boolean scaled)
+    public int getWidth()
     {
         int width = 0;
         
-        for (OverlayElement element : elements)
+        for (OverlayElement child : children)
         {
-            if (!element.isVisible()) continue;
+            if (!child.isVisible() || isElementEmptyContainer(child)) continue;
             
-            int elementWidth = element.getWidth();
-            int elementRequiredWidth = element.getX() + elementWidth;
+            int elementRequiredWidth = child.getX() + child.getScaledWidth() + child.marginRight;
             if (elementRequiredWidth > width) width = elementRequiredWidth;
         }
         
-        return Math.round((width + padding * 2) * (scaled ? scale : 1));
+        return width + padding * 2;
     }
-
+    
     @Override
-    public int getHeight(boolean scaled)
+    public int getHeight()
     {
         int height = 0;
         
-        for (OverlayElement element : elements)
+        for (OverlayElement child : children)
         {
-            if (!element.isVisible()) continue;
-            int elementRequiredHeight = element.getY() + element.getHeight();
+            if (!child.isVisible() || isElementEmptyContainer(child)) continue;
+            
+            int elementRequiredHeight = child.getY() + child.getScaledHeight() + child.marginBottom;
             if (elementRequiredHeight > height) height = elementRequiredHeight;
         }
         
-        return Math.round((height + padding * 2) * (scaled ? scale : 1));
+        return height + padding * 2;
     }
     
-    public void setContentAlignment(Alignment alignment)
+    public static boolean isElementEmptyContainer(OverlayElement element)
     {
-        this.contentAlignment = alignment;
+        if (!(element instanceof OverlayContainer)) return false;
+        
+        OverlayContainer container = (OverlayContainer) element;
+        
+        if (container.children.size() == 0) return true;
+        
+        for (OverlayElement child : container.children)
+        {
+            if (child.isVisible() && !(isElementEmptyContainer(child))) return false;
+        }
+        
+        return true;
     }
 }
