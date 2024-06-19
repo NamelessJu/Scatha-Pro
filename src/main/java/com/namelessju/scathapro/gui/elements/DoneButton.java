@@ -2,12 +2,11 @@ package com.namelessju.scathapro.gui.elements;
 
 import com.namelessju.scathapro.gui.menus.ScathaProGui;
 
-import net.minecraft.client.gui.GuiButton;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
-public class DoneButton extends GuiButton implements IClickActionButton
+public class DoneButton extends ScathaProButton implements IClickActionButton
 {
     public ScathaProGui gui;
     

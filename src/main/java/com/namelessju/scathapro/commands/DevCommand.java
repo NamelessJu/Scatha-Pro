@@ -1,5 +1,6 @@
 package com.namelessju.scathapro.commands;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -8,7 +9,7 @@ import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.achievements.AchievementManager;
 import com.namelessju.scathapro.managers.Config;
-import com.namelessju.scathapro.overlay.Overlay;
+import com.namelessju.scathapro.managers.UpdateChecker;
 import com.namelessju.scathapro.util.MessageUtil;
 import com.namelessju.scathapro.util.Util;
 
@@ -39,6 +40,14 @@ public class DevCommand extends CommandBase
     }
     
     @Override
+    public List<String> getCommandAliases()
+    {
+        List<String> aliases = new ArrayList<String>();
+        aliases.add("spdev");
+        return aliases;
+    }
+    
+    @Override
     public String getCommandUsage(ICommandSender sender)
     {
         return "/" + COMMAND_NAME + " <sub-command> (parameters...)";
@@ -52,26 +61,6 @@ public class DevCommand extends CommandBase
     
     private boolean devTrigger(String trigger, String[] arguments) throws CommandException
     {
-        if (trigger.equalsIgnoreCase("overlayToggle"))
-        {
-            if (arguments.length > 0)
-            {
-                List<Overlay.ToggleableOverlayElement> elements = scathaPro.getOverlay().toggleableOverlayElements;
-                
-                int index = CommandBase.parseInt(arguments[0]);
-                if (index >= 0 && index < elements.size())
-                {
-                    elements.get(index).toggle();
-                    scathaPro.getOverlay().saveToggleableElementStates();
-                    MessageUtil.sendModChatMessage("Overlay element toggled");
-                }
-                else MessageUtil.sendModErrorMessage("Index not in range of toggleable elements");
-            }
-            else MessageUtil.sendModErrorMessage("Index argument missing");
-            
-            return true;
-        }
-        
         return false;
     }
     
@@ -136,7 +125,7 @@ public class DevCommand extends CommandBase
             else throw new CommandException("Command sender is not a player");
         }
         
-        else if (subCommand.equalsIgnoreCase("unlockAchievement"))
+        else if (subCommand.equalsIgnoreCase("unlockAchievement") || subCommand.equalsIgnoreCase("unlockAch"))
         {
             if (args.length < 2) throw new CommandException("Missing argument: /" + COMMAND_NAME + " unlockAchievement <achievement ID>");
             
@@ -164,7 +153,7 @@ public class DevCommand extends CommandBase
             }
         }
         
-        else if (subCommand.equalsIgnoreCase("revokeAchievement"))
+        else if (subCommand.equalsIgnoreCase("revokeAchievement") || subCommand.equalsIgnoreCase("revokeAch"))
         {
             if (args.length < 2) throw new CommandException("Missing argument: /" + COMMAND_NAME + " revokeAchievement <achievement ID>");
             
@@ -189,6 +178,15 @@ public class DevCommand extends CommandBase
                 }
                 else throw new CommandException("Achievement \"" + achievement.achievementName + "\" isn't unlocked");
             }
+        }
+        
+        else if (subCommand.equalsIgnoreCase("compVer"))
+        {
+            if (args.length < 3) throw new CommandException("Missing arguments: /" + COMMAND_NAME + " compVer <version 1> <version 2>");
+            int comp = UpdateChecker.compareVersions(args[1], args[2]);
+            if (comp > 0) MessageUtil.sendModChatMessage(args[1] + " < " + args[2]);
+            else if (comp < 0) MessageUtil.sendModChatMessage(args[1] + " > " + args[2]);
+            else MessageUtil.sendModChatMessage(args[1] + " = " + args[2]);
         }
         
         else if (subCommand.equalsIgnoreCase("trigger"))

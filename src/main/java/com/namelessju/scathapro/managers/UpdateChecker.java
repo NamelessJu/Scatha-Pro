@@ -181,8 +181,18 @@ public class UpdateChecker
             else if (fromIsPreRelease && toIsPreRelease) continue;
             
             // both ints or both strings
-            else if (fromInt >= 0 && toInt >= 0 && fromInt != toInt) return (int) Math.signum(toInt - fromInt);
-            else if (fromString != null && toString != null) return (int) Math.signum(toString.compareTo(fromString));
+            else if (fromInt >= 0 && toInt >= 0 && fromInt != toInt)
+            {
+                int comparison = (int) Math.signum(toInt - fromInt);
+                if (comparison == 0) continue;
+                else return comparison;
+            }
+            else if (fromString != null && toString != null)
+            {
+                int comparison = (int) Math.signum(toString.compareTo(fromString));
+                if (comparison == 0) continue;
+                else return comparison;
+            }
             
             // string and int mixed
             else if (fromString == null && toString != null) return -1;

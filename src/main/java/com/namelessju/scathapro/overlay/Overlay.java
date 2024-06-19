@@ -2,6 +2,7 @@ package com.namelessju.scathapro.overlay;
 
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Random;
 import java.util.TimeZone;
@@ -12,6 +13,7 @@ import com.google.gson.JsonPrimitive;
 import com.namelessju.scathapro.Constants;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.events.OverlayInitEvent;
+import com.namelessju.scathapro.gui.menus.OverlaySettingsGui;
 import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.miscellaneous.OverlayStats;
 import com.namelessju.scathapro.overlay.elements.DynamicOverlayContainer;
@@ -23,6 +25,8 @@ import com.namelessju.scathapro.overlay.elements.OverlayText;
 import com.namelessju.scathapro.overlay.elements.DynamicOverlayContainer.Direction;
 import com.namelessju.scathapro.overlay.elements.OverlayElement.Alignment;
 import com.namelessju.scathapro.util.JsonUtil;
+import com.namelessju.scathapro.util.MessageUtil;
+import com.namelessju.scathapro.util.TimeUtil;
 import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.client.Minecraft;
@@ -73,6 +77,8 @@ public class Overlay
     private final Minecraft mc;
     
     
+    private static final int BACKGROUND_COLOR = 0x50000000;
+    
     private final DynamicOverlayContainer mainContainer;
     
     private final OverlayImage scathaIcon;
@@ -92,6 +98,7 @@ public class Overlay
     private final OverlayText scathaKillsSinceLastDropText;
     private final OverlayText spawnCooldownTimerText;
     private final OverlayText wormSpawnTimerText;
+    private final OverlayText realTimeClockText;
     
     
     public final List<ToggleableOverlayElement> toggleableOverlayElements = Lists.<ToggleableOverlayElement>newArrayList();
@@ -117,12 +124,12 @@ public class Overlay
         }
         if (statsType == null) statsType = OverlayStats.values()[0];
         
+        
         easterEggTitleActive = new Random().nextFloat() < 0.005f;
         
         
         mainContainer = new DynamicOverlayContainer(0, 0, 1f, Direction.VERTICAL);
         mainContainer.padding = 5;
-        mainContainer.backgroundColor = 0x50000000;
         
         
         OverlayContainer headerContainer = new OverlayContainer(0, 0, 1f).setMargin(0, 5);
@@ -172,28 +179,32 @@ public class Overlay
         
         
         mainContainer.add(countersContainer);
-        
-        
-        mainContainer.add(wormSpawnTimerText = new OverlayText(null, Util.Color.GRAY.getValue(), 0, 2, 1f));
-        addToggleableElement("timeSinceWormSpawn", "Time Since Last Spawn", wormSpawnTimerText, false);
-        
-        mainContainer.add(spawnCooldownTimerText = new OverlayText(null, Util.Color.GRAY.getValue(), 0, 2, 1f));
-        addToggleableElement("spawnCooldownTimer", "Spawn Cooldown Timer", spawnCooldownTimerText, false);
+
         
         mainContainer.add(scathaKillsSinceLastDropText = new OverlayText(null, Util.Color.WHITE.getValue(), 0, 2, 1f));
         addToggleableElement("scathaKillsSinceLastPetDrop", "Scathas Since Pet Drop", scathaKillsSinceLastDropText);
         
+        mainContainer.add(spawnCooldownTimerText = new OverlayText(null, Util.Color.WHITE.getValue(), 0, 2, 1f));
+        addToggleableElement("spawnCooldownTimer", "Spawn Cooldown Timer", spawnCooldownTimerText, false);
+        
+        mainContainer.add(wormSpawnTimerText = new OverlayText(null, Util.Color.GRAY.getValue(), 0, 2, 1f));
+        addToggleableElement("timeSinceWormSpawn", "Time Since Last Spawn", wormSpawnTimerText, false);
+        
         mainContainer.add(timeText = new OverlayText(null, Util.Color.WHITE.getValue(), 0, 2, 1f));
-        addToggleableElement("time", "Time Display", timeText);
+        addToggleableElement("time", "Lobby Time", timeText);
         
         mainContainer.add(coordsText = new OverlayText(null, Util.Color.WHITE.getValue(), 0, 2, 1f));
-        addToggleableElement("coords", "Coordinates Display", coordsText);
+        addToggleableElement("coords", "Coordinates/Orientation", coordsText);
+
+        mainContainer.add(realTimeClockText = new OverlayText(null, Util.Color.WHITE.getValue(), 0, 2, 1f));
+        addToggleableElement("realTimeClock", "Real Time Clock", realTimeClockText, false);
         
 
         MinecraftForge.EVENT_BUS.post(new OverlayInitEvent(mainContainer));
         
         
         updateVisibility();
+        updateContrast();
         
         loadToggleableElementStates();
     }
@@ -236,8 +247,8 @@ public class Overlay
     
     public boolean toggleVisibility()
     {
-        boolean overlayVisible = scathaPro.getConfig().getBoolean(Config.Key.overlay);
-        scathaPro.getConfig().set(Config.Key.overlay, !overlayVisible);
+        boolean overlayVisible = scathaPro.getConfig().getBoolean(Config.Key.overlayEnabled);
+        scathaPro.getConfig().set(Config.Key.overlayEnabled, !overlayVisible);
         scathaPro.getConfig().save();
         updateVisibility();
         return !overlayVisible;
@@ -252,8 +263,18 @@ public class Overlay
         updateTotalKills();
         updateWormStreak();
     }
+    
+    public boolean isOverlayDrawAllowed()
+    {
+        return scathaPro.isInCrystalHollows() && !mc.gameSettings.showDebugInfo && !Util.isPlayerListOpened() && !(mc.currentScreen instanceof OverlaySettingsGui);
+    }
+    
+    public void tryDrawOverlay()
+    {
+        if (isOverlayDrawAllowed()) forceDrawOverlay();
+    }
 
-    public void drawOverlay()
+    public void forceDrawOverlay()
     {
         updateRealtimeElements();
         mainContainer.draw();
@@ -271,14 +292,34 @@ public class Overlay
         GlStateManager.popMatrix();
     }
     
+    public void updateContrast()
+    {
+        int color = (scathaPro.getConfig().getBoolean(Config.Key.highContrastColors) ? Util.Color.WHITE : Util.Color.GRAY).getValue();
+        
+        secondaryRegularWormKillsText.setColor(color);
+        secondaryScathaKillsText.setColor(color);
+        secondaryTotalKillsText.setColor(color);
+        wormStreakText.setColor(color);
+        scathaKillsSinceLastDropText.setColor(color);
+        wormSpawnTimerText.setColor(color);
+        
+        updateTotalKills();
+        updateLobbyTime();
+        updateCoords();
+        updateRealTimeClock();
+    }
+    
     public void updateRealtimeElements()
     {
         if (!mainContainer.isVisible()) return;
+        
+        mainContainer.backgroundColor = scathaPro.getConfig().getBoolean(Config.Key.overlayBackgroundEnabled) ? BACKGROUND_COLOR : -1;
 
         updateTimeSinceLastWormSpawn();
         updateSpawnCooldown();
         updateCoords();
-        updateTime();
+        updateLobbyTime();
+        updateRealTimeClock();
         updatePosition();
     }
     
@@ -296,7 +337,7 @@ public class Overlay
         updateTimeSinceLastWormSpawn();
         
         updateCoords();
-        updateTime();
+        updateLobbyTime();
         
         updatePetDrops();
         
@@ -332,11 +373,17 @@ public class Overlay
     
     public void updateVisibility()
     {
-        mainContainer.setVisible(scathaPro.getConfig().getBoolean(Config.Key.overlay));
+        mainContainer.setVisible(scathaPro.getConfig().getBoolean(Config.Key.overlayEnabled));
     }
     
     public void updateScathaPetImage()
     {
+        if (easterEggTitleActive)
+        {
+            scathaIcon.setImage("overlay/scatha_icons/easter_egg_scappa.png", 256, 256);
+            return;
+        }
+        
         scathaIcon.setImage(scathaPro.getAlertModeManager().getCurrentMode().getIconPath(), 256, 256);
     }
     
@@ -379,9 +426,10 @@ public class Overlay
         float scathaPercentage = totalKills > 0 ? ((float) scathaPro.variables.scathaKills / totalKills) * 100 : -1f;
         
         int scathaPercentageDecimalDigits = scathaPro.getConfig().getInt(Config.Key.scathaPercentageDecimalDigits);
-        
-        secondaryTotalKillsText.setText(EnumChatFormatting.RESET + Util.numberToString(secondaryTotalKills) + (secondaryScathaPercentage >= 0 ? EnumChatFormatting.GRAY + " (" + Util.numberToString(secondaryScathaPercentage, scathaPercentageDecimalDigits, true) + "%)" : ""));
-        totalKillsText.setText(totalKills >= 0 ? EnumChatFormatting.RESET + Util.numberToString(totalKills) + (scathaPercentage >= 0 ? EnumChatFormatting.GRAY + " (" + Util.numberToString(scathaPercentage, scathaPercentageDecimalDigits, true) + "%)" : "") : EnumChatFormatting.OBFUSCATED + "?");
+
+        EnumChatFormatting contrastableGray = MessageUtil.contrastableGray();
+        secondaryTotalKillsText.setText(EnumChatFormatting.RESET + Util.numberToString(secondaryTotalKills) + (secondaryScathaPercentage >= 0 ? contrastableGray + " (" + Util.numberToString(secondaryScathaPercentage, scathaPercentageDecimalDigits, true) + "%)" : ""));
+        totalKillsText.setText(totalKills >= 0 ? EnumChatFormatting.RESET + Util.numberToString(totalKills) + (scathaPercentage >= 0 ? contrastableGray + " (" + Util.numberToString(scathaPercentage, scathaPercentageDecimalDigits, true) + "%)" : "") : EnumChatFormatting.OBFUSCATED + "?");
     }
     
     public void updateWormStreak()
@@ -398,30 +446,20 @@ public class Overlay
         );
     }
     
-    public void updateTime()
+    public void updateLobbyTime()
     {
         World world = mc.theWorld;
         
-        long worldTime = world != null ? world.getWorldTime() : 0;
-        int worldDay = world != null ? (int) Math.floor(worldTime / 24000f) : 0;
-        long lobbyTime = world != null && scathaPro.isInCrystalHollows() ? Util.getCurrentTime() - scathaPro.variables.lastWorldJoinTime : 0L;
+        long worldTime = world != null ? world.getWorldTime() : -1L;
+        int worldDay = worldTime >= 0L ? (int) Math.floor(worldTime / 24000f) : -1;
+        float worldDayProgress = worldTime >= 0L ? (worldTime % 24000f) / 24000f : -1f;
+        
+        long lobbyTime = world != null && scathaPro.isInCrystalHollows() ? TimeUtil.now() - scathaPro.variables.lastWorldJoinTime : 0L;
         SimpleDateFormat timerFormat = new SimpleDateFormat("HH:mm:ss");
         timerFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
         
-        int worldTimeDay = (int) ((worldTime % 24000f) % 24000f);
-        int worldTimeHours = (int) Math.floor(worldTimeDay / 1000f);
-        int worldTimeMinutes = (int) Math.floor((worldTimeDay - worldTimeHours * 1000f) / 1000f * 60f);
-        
-        /*
-        EnumChatFormatting dayColor = EnumChatFormatting.WHITE;
-        if (worldDay >= Constants.crystalHollowsCloseDay - 1 && scathaPro.isInCrystalHollows())
-        {
-            if (worldDay >= Constants.crystalHollowsCloseDay) dayColor = EnumChatFormatting.DARK_RED;
-            else dayColor = EnumChatFormatting.RED;
-        }
-        */
-        
-        timeText.setText(EnumChatFormatting.RESET.toString() + "Day " + worldDay + " " + EnumChatFormatting.GRAY + "(" + String.format("%02d:%02d", worldTimeHours, worldTimeMinutes) + ") / " + timerFormat.format(lobbyTime));
+        EnumChatFormatting contrastableGray = MessageUtil.contrastableGray();
+        timeText.setText(EnumChatFormatting.RESET.toString() + "Day " + (worldDay >= 0 ? worldDay : EnumChatFormatting.OBFUSCATED + "0") + EnumChatFormatting.RESET + " " + contrastableGray + "(" + (worldDayProgress >= 0 ? Util.numberToString(worldDayProgress * 100f, 0, false, RoundingMode.DOWN) : EnumChatFormatting.OBFUSCATED + "0") + EnumChatFormatting.RESET + contrastableGray + "%) / " + timerFormat.format(lobbyTime));
     }
     
     public void updateCoords()
@@ -470,13 +508,19 @@ public class Overlay
         {
             coordinatesString = "0 0 0";
             facingAxis = "+Z";
-            wallProgress = 0D;
+            wallProgress = -1D;
         }
         
-        float roundedWallProgress = (float) (Math.floor(wallProgress * 100 * 10) / 10f);
-        String wallProgressString = roundedWallProgress >= 100f ? "100" : (roundedWallProgress <= 0f ? "0" : Util.numberToString(roundedWallProgress, 1, true));
-        
-        coordsText.setText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.WHITE + coordinatesString + EnumChatFormatting.GRAY + " / " + EnumChatFormatting.WHITE + facingAxis + EnumChatFormatting.GRAY + " (" + wallProgressString + "% to wall)");
+        String wallProgressString;
+        if (wallProgress >= 0D)
+        {
+            float roundedWallProgress = (float) (Math.floor(wallProgress * 100 * 10) / 10f);
+            wallProgressString = roundedWallProgress >= 100f ? "100" : (roundedWallProgress <= 0f ? "0" : Util.numberToString(roundedWallProgress, 1, true));
+        }
+        else wallProgressString = EnumChatFormatting.OBFUSCATED + "0";
+
+        EnumChatFormatting contrastableGray = MessageUtil.contrastableGray();
+        coordsText.setText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.WHITE + coordinatesString + contrastableGray + " / " + EnumChatFormatting.WHITE + facingAxis + contrastableGray + " (" + wallProgressString + EnumChatFormatting.RESET + contrastableGray + "% to wall)");
     }
     
     public void updateScathaKillsSinceLastDrop()
@@ -489,39 +533,48 @@ public class Overlay
             {
                 killsText = Integer.toString(scathaKillsSinceLastDrop);
             }
-            else killsText = EnumChatFormatting.OBFUSCATED + "???"; // 3 obfuscated characters to indicate that the difference is negative
+            else killsText = "-" + EnumChatFormatting.OBFUSCATED + "?";
         }
         else killsText = EnumChatFormatting.OBFUSCATED + "?";
         
-        scathaKillsSinceLastDropText.setText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + "Scathas since last pet drop: " + killsText);
+        scathaKillsSinceLastDropText.setText(EnumChatFormatting.RESET + "Scathas since last pet drop: " + killsText);
     }
     
     public void updateSpawnCooldown()
     {
-        double cooldownTimer = Util.getCurrentTime() - scathaPro.variables.wormSpawnCooldownStartTime;
+        double cooldownTimer = TimeUtil.now() - scathaPro.variables.wormSpawnCooldownStartTime;
         
         if (scathaPro.variables.wormSpawnCooldownStartTime >= 0f)
         {
             spawnCooldownProgressBar.setProgress(1f - ((float) cooldownTimer / Constants.wormSpawnCooldown));
-            spawnCooldownTimerText.setText("Spawn cooldown: " + Util.numberToString((Constants.wormSpawnCooldown - cooldownTimer) / 1000D, 1, true, RoundingMode.CEILING) + "s");
+            spawnCooldownTimerText.setText(EnumChatFormatting.YELLOW + "Spawn cooldown: " + Util.numberToString((Constants.wormSpawnCooldown - cooldownTimer) / 1000D, 1, true, RoundingMode.CEILING) + "s");
         }
         else
         {
             spawnCooldownProgressBar.setProgress(0f);
-            spawnCooldownTimerText.setText("Worms ready to spawn");
+            spawnCooldownTimerText.setText(EnumChatFormatting.GREEN + "Worms ready to spawn");
         }
     }
     
     public void updateTimeSinceLastWormSpawn()
     {
         String timeString;
-        if (scathaPro.variables.lastWormSpawnTime >= 0L)
+        if (scathaPro.variables.lastWormSpawnTime >= 0L && mc.theWorld != null)
         {
-            double timeSinceLastWormSpawn = (Util.getCurrentTime() - scathaPro.variables.lastWormSpawnTime) / 1000D;
-            timeString = Util.numberToString(timeSinceLastWormSpawn, 1, true, RoundingMode.FLOOR) + "s";
+            float secondsSinceLastWormSpawn = (TimeUtil.now() - scathaPro.variables.lastWormSpawnTime) / 1000f;
+            float minutesSinceLastWormSpawn = secondsSinceLastWormSpawn / 60f;
+            secondsSinceLastWormSpawn %= 60f;
+            timeString = (minutesSinceLastWormSpawn >= 1f ? Util.numberToString(minutesSinceLastWormSpawn, 0, true, RoundingMode.FLOOR) + "m " : "") + Util.numberToString(secondsSinceLastWormSpawn, 0, true, RoundingMode.FLOOR) + "s";
         }
-        else timeString = "-";
+        else timeString = "N/A";
         wormSpawnTimerText.setText("Time since last spawn: " + timeString);
+    }
+    
+    public void updateRealTimeClock()
+    {
+        LocalTime now = LocalTime.now();
+        EnumChatFormatting contrastableGray = MessageUtil.contrastableGray();
+        realTimeClockText.setText(EnumChatFormatting.WHITE + "IRL Clock: " + TimeUtil.padZero(now.getHour()) + ":" + TimeUtil.padZero(now.getMinute()) + contrastableGray + ":" + TimeUtil.padZero(now.getSecond()));
     }
 
 }

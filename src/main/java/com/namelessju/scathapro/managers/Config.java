@@ -1,6 +1,7 @@
 package com.namelessju.scathapro.managers;
 
 import com.namelessju.scathapro.ScathaPro;
+import com.namelessju.scathapro.util.FileUtil;
 
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
@@ -10,12 +11,14 @@ public class Config
     public static enum Key
     {
         // Overlay
-        overlay("overlay", "enabled", true),
-        overlayX("overlay", "x", -1D), overlayY("overlay", "y", -1D),
+        overlayEnabled("overlay", "enabled", true),
+        overlayX("overlay", "x", -1D),
+        overlayY("overlay", "y", -1D),
         overlayScale("overlay", "scale", 1D),
         statsType("overlay", "statsType", ""),
         scathaPercentageDecimalDigits("overlay", "scathaPercentageDecimalPlaces", 1),
         overlayElementStates("overlay", "overlayElementStates", ""),
+        overlayBackgroundEnabled("overlay", "backgroundEnabled", true),
         
         // Sounds
         soundsVolume("sounds", "volume", 1D),
@@ -39,6 +42,7 @@ public class Config
         bonusAchievementsShown("achievements", "bonusAchievementsShown", false),
         
         // Other
+        shortChatPrefix("other", "shortChatPrefix", false),
         showRotationAngles("other", "showRotationAngles", false),
         rotationAnglesDecimalDigits("other", "rotationAnglesDecimalPlaces", 1),
         wormSpawnTimer("other", "wormSpawnTimer", false),
@@ -47,7 +51,12 @@ public class Config
         automaticBackups("other", "automaticBackups", true),
         automaticUpdateChecks("other", "automaticUpdateChecks", true),
         automaticStatsParsing("other", "automaticStatsParsing", true),
+        dailyScathaFarmingStreakMessage("other", "dailyScathaFarmingStreakMessage", false),
         
+        // Accessibility
+        highContrastColors("accessibility", "highContrastColors", false),
+        
+        // Dev
         devMode("dev", "devMode", false),
         debugLogs("dev", "debugLogs", false);
         
@@ -120,7 +129,7 @@ public class Config
     
     public void loadFile()
     {
-        config = new Configuration(FileManager.getModFile("config.cfg"));
+        config = new Configuration(FileUtil.getModFile("config.cfg"));
         config.load();
     }
     

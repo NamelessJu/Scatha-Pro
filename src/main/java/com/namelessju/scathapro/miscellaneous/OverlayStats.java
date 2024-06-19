@@ -5,8 +5,8 @@ import com.namelessju.scathapro.gui.elements.MultiOptionButton;
 public enum OverlayStats implements MultiOptionButton.IOption<String>
 {
     PER_LOBBY("Lobby", "lobby"),
-    PER_SESSION("Session", "session");
-    // PER_DAY("Day", "day");
+    PER_SESSION("Session", "session"),
+    PER_DAY("IRL Day", "day");
     
     
     public static void addRegularWormSpawn()

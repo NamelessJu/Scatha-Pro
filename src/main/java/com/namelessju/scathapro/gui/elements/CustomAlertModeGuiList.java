@@ -9,8 +9,8 @@ import java.util.Comparator;
 
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.alerts.alertmodes.customalertmode.CustomAlertModeManager;
+import com.namelessju.scathapro.gui.menus.InfoMessageGui;
 import com.namelessju.scathapro.gui.menus.CustomAlertModeEditGui;
-import com.namelessju.scathapro.util.Util;
 
 public class CustomAlertModeGuiList extends ScathaProGuiList
 {
@@ -36,9 +36,12 @@ public class CustomAlertModeGuiList extends ScathaProGuiList
             {
                 long lastUsedTime1 = customAlertModeManager.getSubmodeLastUsed(customModeId1);
                 long lastUsedTime2 = customAlertModeManager.getSubmodeLastUsed(customModeId2);
+
+                if (customAlertModeManager.isSubmodeActive(customModeId2)) return 1;
+                if (customAlertModeManager.isSubmodeActive(customModeId1)) return -1;
                 
                 if (lastUsedTime2 > lastUsedTime1) return 1;
-                else if (lastUsedTime2 < lastUsedTime1) return -1;
+                if (lastUsedTime2 < lastUsedTime1) return -1;
                 return 0;
             }
         });
@@ -54,7 +57,7 @@ public class CustomAlertModeGuiList extends ScathaProGuiList
     {
         public CreateCustomModeEntry()
         {
-            addButton(new GuiButton(0, getListWidth() / 2 - 100, 5, 200, 20, "New custom alert mode..."));
+            addButton(new GuiButton(0, getListWidth() / 2 - 100, 5, 200, 20, "Create New Custom Alert Mode..."));
         }
         
         @Override
@@ -66,7 +69,7 @@ public class CustomAlertModeGuiList extends ScathaProGuiList
                     String newModeId = CustomAlertModeManager.getNewSubmodeId();
                     if (newModeId == null)
                     {
-                        scathaPro.logError("Couldn't create new custom alert mode - generating a new unique ID failed");
+                        mc.displayGuiScreen(new InfoMessageGui(CustomAlertModeGuiList.this.gui, EnumChatFormatting.RED + "Failed to set up new custom alert mode", "Generating a new unique ID failed!\n(Exceeded maximum number of tries)"));
                         break;
                     }
                     
@@ -88,14 +91,13 @@ public class CustomAlertModeGuiList extends ScathaProGuiList
             
             customModeName = customAlertModeManager.getSubmodeDisplayName(customModeId);
             boolean isModeActive = customAlertModeManager.isSubmodeActive(customModeId);
-            long lastUsed = customAlertModeManager.getSubmodeLastUsed(customModeId);
+
+            addLabel(customModeName, 0, isModeActive ? 5 : 10, getListWidth(), 10);
             
-            addLabel(customModeName, 0, 5, getListWidth(), 10);
-            
-            String detailsString;
-            if (isModeActive) detailsString = EnumChatFormatting.GREEN.toString() + EnumChatFormatting.ITALIC + "Selected";
-            else detailsString = EnumChatFormatting.DARK_GRAY + "Last selected: " + (lastUsed >= 0L ? Util.formatTime(lastUsed) : EnumChatFormatting.ITALIC + "never");
-            addLabel(detailsString, 0, 15, getListWidth(), 10);
+            if (isModeActive)
+            {
+                addLabel(EnumChatFormatting.GREEN + "Selected", 0, 15, getListWidth(), 10);
+            }
             
             GuiButton btnSelect = new GuiButton(0, getListWidth() - 160, 5, 50, 20, "Select");
             btnSelect.enabled = !isModeActive;
@@ -114,6 +116,7 @@ public class CustomAlertModeGuiList extends ScathaProGuiList
                     customAlertModeManager.changeSubmode(customModeId);
                     gui.initGui();
                     break;
+                
                 case 1:
                     mc.displayGuiScreen(new CustomAlertModeEditGui(scathaPro, gui, customModeId));
                     break;

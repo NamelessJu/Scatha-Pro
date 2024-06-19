@@ -11,6 +11,7 @@ import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.managers.PersistentData;
 import com.namelessju.scathapro.managers.UpdateChecker;
 import com.namelessju.scathapro.util.MessageUtil;
+import com.namelessju.scathapro.util.TimeUtil;
 import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.command.CommandBase;
@@ -62,17 +63,18 @@ public class MainCommand extends CommandBase
         {
             MessageUtil.sendChatDivider();
             MessageUtil.sendModChatMessage(
-                Constants.msgHighlightingStyle + "All commands:\n"
+                Constants.msgHighlightingColor + "All commands:\n"
                 + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "(alias: /sp)" + EnumChatFormatting.WHITE + " (\"help\"):" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Shows this help message\n"
                 + EnumChatFormatting.WHITE + "/" + ChancesCommand.COMMAND_NAME + " " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "(alias: /scacha)" + EnumChatFormatting.WHITE + " (\"help\"):" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Check/calculate Scatha pet drop chances\n"
                 + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " settings:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Opens the settings menu\n"
                 + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " achievements:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Opens the achievements menu\n"
+                + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " dailyStreak:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Shows information about your daily Scatha farming streak\n"
                 + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " setPetDrops <rare> <epic> <legendary>:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Add pets you dropped previously to your counter\n"
                 + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " toggleOverlay " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "(alias: /sp to)" + EnumChatFormatting.WHITE + ":" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Toggles the overlay visibility\n"
                 + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " backup:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Creates a backup of your persistent data\n"
                 + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " checkUpdate:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Check for an update\n"
                 + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " resetSettings:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Reset all settings\n"
-                + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " persistentDataFile:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Open the persistent data file in the file explorer"
+                + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " persistentDataFile:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Open the persistent data file path in the file explorer"
             );
             MessageUtil.sendChatDivider();
             return;
@@ -88,6 +90,19 @@ public class MainCommand extends CommandBase
         else if (subCommand.equalsIgnoreCase("achievements"))
         {
             scathaPro.variables.openGuiNextTick = new AchievementsGui(scathaPro, null);
+        }
+        
+        else if (subCommand.equalsIgnoreCase("dailyStreak"))
+        {
+            boolean farmedToday = scathaPro.variables.lastScathaFarmedDate != null && scathaPro.variables.lastScathaFarmedDate.equals(TimeUtil.today());
+            
+            MessageUtil.sendChatDivider();
+            MessageUtil.sendModChatMessage(
+                Constants.msgHighlightingColor + "Daily Scatha farming streak:\n"
+                + EnumChatFormatting.RESET + EnumChatFormatting.WHITE + "Current Streak: " + EnumChatFormatting.GREEN + scathaPro.variables.scathaFarmingStreak + " day" + (scathaPro.variables.scathaFarmingStreak != 1 ? "s" : "") + "\n"
+                + EnumChatFormatting.RESET + (farmedToday ? EnumChatFormatting.GREEN + MessageUtil.getUnicodeString("2714") + " You have farmed Scathas today" : EnumChatFormatting.RED + MessageUtil.getUnicodeString("2716") + " You haven't farmed Scathas today yet")
+            );
+            MessageUtil.sendChatDivider();
         }
         
         else if (subCommand.equalsIgnoreCase("setPetDrops"))

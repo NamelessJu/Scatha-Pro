@@ -1,4 +1,4 @@
-package com.namelessju.scathapro.managers;
+package com.namelessju.scathapro.util;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -18,7 +18,7 @@ import com.namelessju.scathapro.ScathaPro;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.Loader;
 
-public class FileManager
+public class FileUtil
 {
     public static String readFile(File file)
     {
@@ -114,6 +114,15 @@ public class FileManager
         }
     }
     
+    private static void move(File source, File destination)
+    {
+        File directory = destination.getParentFile();
+        if (!directory.exists()) directory.mkdirs();
+        
+        source.renameTo(destination);
+    }
+    
+    
     public static void updateOldSaveLocations()
     {
         File saveLocationV1 = new File(Loader.instance().getConfigDir(), "scathapro.cfg");
@@ -124,14 +133,6 @@ public class FileManager
         if (saveLocationV2.exists() && !saveLocationV3.exists()) move(saveLocationV2, saveLocationV3);
     }
     
-    private static void move(File source, File destination)
-    {
-        File directory = destination.getParentFile();
-        if (!directory.exists()) directory.mkdirs();
-        
-        source.renameTo(destination);
-    }
     
-    
-    private FileManager() {}
+    private FileUtil() {}
 }

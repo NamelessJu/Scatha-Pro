@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -17,7 +18,11 @@ import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.achievements.AchievementManager;
 import com.namelessju.scathapro.achievements.UnlockedAchievement;
+import com.namelessju.scathapro.events.DailyScathaFarmingStreakChangedEvent;
+import com.namelessju.scathapro.miscellaneous.OverlayStats;
 import com.namelessju.scathapro.util.MessageUtil;
+import com.namelessju.scathapro.util.TimeUtil;
+import com.namelessju.scathapro.util.FileUtil;
 import com.namelessju.scathapro.util.JsonUtil;
 import com.namelessju.scathapro.util.Util;
 
@@ -26,14 +31,16 @@ import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraftforge.common.MinecraftForge;
 
 public class PersistentData
 {
-    public static final File saveFile = FileManager.getModFile("persistentData.json");
+    public static final File saveFile = FileUtil.getModFile("persistentData.json");
     
     private static final String unlockedAchievementsKey = "unlockedAchievements";
     private static final String petDropsKey = "petDrops";
     private static final String wormKillsKey = "wormKills";
+    private static final String dayKey = "daily";
     
 
     private final ScathaPro scathaPro;
@@ -49,14 +56,27 @@ public class PersistentData
     {
         if (saveFile.exists() && saveFile.canRead())
         {
-            String jsonString = FileManager.readFile(saveFile);
+            String jsonString = FileUtil.readFile(saveFile);
             if (jsonString == null)
             {
                 scathaPro.logError("Couldn't load persistent data (failed to read file)");
+                onLoadError();
                 return;
             }
             
-            JsonElement dataJson = new JsonParser().parse(jsonString);
+            JsonElement dataJson;
+            
+            try
+            {
+                dataJson = new JsonParser().parse(jsonString);
+            }
+            catch (Exception E)
+            {
+                scathaPro.logError("Couldn't load persistent data (invalid JSON format)");
+                onLoadError();
+                return;
+            }
+                
             if (dataJson.isJsonObject())
             {
                 data = dataJson.getAsJsonObject();
@@ -72,6 +92,7 @@ public class PersistentData
                 loadAchievements();
                 loadPetDrops();
                 loadWormKills();
+                loadDayData();
                 
                 scathaPro.logDebug("Persistent data loaded");
             }
@@ -87,7 +108,7 @@ public class PersistentData
     {
         if (Util.getPlayerUUIDString() != null)
         {
-            if (!FileManager.writeFile(saveFile, data.toString()))
+            if (!FileUtil.writeFile(saveFile, data.toString()))
             {
                 scathaPro.logError("Error while trying to save persistent data");
             }
@@ -109,7 +130,7 @@ public class PersistentData
     
     public void backup(String name, boolean overwrite)
     {
-        File backupFile = FileManager.getModFile("backups/persistentData_" + name + ".json");
+        File backupFile = FileUtil.getModFile("backups/persistentData_" + name + ".json");
 
         File backupFolder = backupFile.getParentFile();
         if (!backupFolder.exists()) backupFolder.mkdirs();
@@ -159,7 +180,7 @@ public class PersistentData
         return data;
     }
 
-    public boolean set(String path, JsonElement value)
+    public boolean setInCurrentPlayer(String path, JsonElement value)
     {
         String uuid = Util.getPlayerUUIDString();
         if (uuid == null) return false;
@@ -185,7 +206,7 @@ public class PersistentData
                 AchievementManager achievementManager = scathaPro.getAchievementManager();
                 achievementManager.clearUnlockedAchievements();
                 
-                long now = Util.getCurrentTime();
+                long now = TimeUtil.now();
                 
                 for (JsonElement achievementJsonElement : achievementsJsonArray)
                 {
@@ -231,7 +252,7 @@ public class PersistentData
             unlockedAchievementsJson.add(achievementObject);
         }
         
-        set(unlockedAchievementsKey, unlockedAchievementsJson);
+        setInCurrentPlayer(unlockedAchievementsKey, unlockedAchievementsJson);
         saveData();
     }
     
@@ -241,37 +262,36 @@ public class PersistentData
         try
         {
             JsonObject playerJson = getCurrentPlayerObject();
-            if (playerJson != null)
+            if (playerJson == null) return;
+            
+            Integer rarePetDrops = JsonUtil.getInt(playerJson, petDropsKey + "/rare");
+            Integer epicPetDrops = JsonUtil.getInt(playerJson, petDropsKey + "/epic");
+            Integer legendaryPetDrops = JsonUtil.getInt(playerJson, petDropsKey + "/legendary");
+            
+            if (rarePetDrops != null) scathaPro.variables.rarePetDrops = rarePetDrops;
+            if (epicPetDrops != null) scathaPro.variables.epicPetDrops = epicPetDrops;
+            if (legendaryPetDrops != null) scathaPro.variables.legendaryPetDrops = legendaryPetDrops;
+            
+            
+            if
+            (
+                scathaPro.variables.rarePetDrops > Constants.maxLegitPetDropsAmount || scathaPro.variables.rarePetDrops < 0
+                || scathaPro.variables.epicPetDrops > Constants.maxLegitPetDropsAmount || scathaPro.variables.epicPetDrops < 0
+                || scathaPro.variables.legendaryPetDrops > Constants.maxLegitPetDropsAmount || scathaPro.variables.legendaryPetDrops < 0
+            )
             {
-                Integer rarePetDrops = JsonUtil.getInt(playerJson, petDropsKey + "/rare");
-                Integer epicPetDrops = JsonUtil.getInt(playerJson, petDropsKey + "/epic");
-                Integer legendaryPetDrops = JsonUtil.getInt(playerJson, petDropsKey + "/legendary");
-                
-                if (rarePetDrops != null) scathaPro.variables.rarePetDrops = rarePetDrops;
-                if (epicPetDrops != null) scathaPro.variables.epicPetDrops = epicPetDrops;
-                if (legendaryPetDrops != null) scathaPro.variables.legendaryPetDrops = legendaryPetDrops;
-                
-                
-                if
-                (
-                    scathaPro.variables.rarePetDrops > Constants.maxLegitPetDropsAmount || scathaPro.variables.rarePetDrops < 0
-                    || scathaPro.variables.epicPetDrops > Constants.maxLegitPetDropsAmount || scathaPro.variables.epicPetDrops < 0
-                    || scathaPro.variables.legendaryPetDrops > Constants.maxLegitPetDropsAmount || scathaPro.variables.legendaryPetDrops < 0
-                )
-                {
-                    scathaPro.variables.cheaterDetected = true;
-                }
-                
-                
-                Integer scathaKillsAtLastDrop = JsonUtil.getInt(playerJson, petDropsKey + "/scathaKillsAtLastDrop");
-                if (scathaKillsAtLastDrop != null)
-                {
-                    scathaPro.variables.scathaKillsAtLastDrop = scathaKillsAtLastDrop;
-                }
-
-                scathaPro.getOverlay().updatePetDrops();
-                scathaPro.getOverlay().updateScathaKillsSinceLastDrop();
+                scathaPro.variables.cheaterDetected = true;
             }
+            
+            
+            Integer scathaKillsAtLastDrop = JsonUtil.getInt(playerJson, petDropsKey + "/scathaKillsAtLastDrop");
+            if (scathaKillsAtLastDrop != null)
+            {
+                scathaPro.variables.scathaKillsAtLastDrop = scathaKillsAtLastDrop;
+            }
+
+            scathaPro.getOverlay().updatePetDrops();
+            scathaPro.getOverlay().updateScathaKillsSinceLastDrop();
         }
         catch (Exception e)
         {
@@ -293,7 +313,7 @@ public class PersistentData
             petDropsJsonObject.add("scathaKillsAtLastDrop", new JsonPrimitive(scathaPro.variables.scathaKillsAtLastDrop));
         }
         
-        set(petDropsKey, petDropsJsonObject);
+        setInCurrentPlayer(petDropsKey, petDropsJsonObject);
         saveData();
     }
     
@@ -302,22 +322,21 @@ public class PersistentData
         try
         {
             JsonObject playerJson = getCurrentPlayerObject();
-            if (playerJson != null)
+            if (playerJson == null) return;
+            
+            Integer regularWormKills = JsonUtil.getInt(playerJson, wormKillsKey + "/regularWorms");
+            Integer scathaKills = JsonUtil.getInt(playerJson, wormKillsKey + "/scathas");
+            
+            if (regularWormKills != null) scathaPro.variables.regularWormKills = regularWormKills;
+            if (scathaKills != null) scathaPro.variables.scathaKills = scathaKills;
+            
+            if ((regularWormKills == null || scathaKills == null) && scathaPro.getConfig().getBoolean(Config.Key.automaticStatsParsing))
             {
-                Integer regularWormKills = JsonUtil.getInt(playerJson, wormKillsKey + "/regularWorms");
-                Integer scathaKills = JsonUtil.getInt(playerJson, wormKillsKey + "/scathas");
-                
-                if (regularWormKills != null) scathaPro.variables.regularWormKills = regularWormKills;
-                if (scathaKills != null) scathaPro.variables.scathaKills = scathaKills;
-                
-                if ((regularWormKills == null || scathaKills == null) && scathaPro.getConfig().getBoolean(Config.Key.automaticStatsParsing))
-                {
-                    MessageUtil.sendModChatMessage(EnumChatFormatting.YELLOW + "Open \"/be worms\" to load previous worm kills into the overlay!");
-                }
-                
-                scathaPro.getOverlay().updateWormKills();
-                scathaPro.getOverlay().updateScathaKills();
+                MessageUtil.sendModChatMessage(EnumChatFormatting.YELLOW + "Open \"/be worms\" to load previous worm kills into the overlay!");
             }
+            
+            scathaPro.getOverlay().updateWormKills();
+            scathaPro.getOverlay().updateScathaKills();
         }
         catch (Exception e)
         {
@@ -334,8 +353,119 @@ public class PersistentData
         wormKillsJsonObject.add("regularWorms", new JsonPrimitive(scathaPro.variables.regularWormKills));
         wormKillsJsonObject.add("scathas", new JsonPrimitive(scathaPro.variables.scathaKills));
         
-        set(wormKillsKey, wormKillsJsonObject);
+        setInCurrentPlayer(wormKillsKey, wormKillsJsonObject);
         saveData();
+    }
+    
+    private void loadDayData()
+    {
+        try
+        {
+            JsonObject dayData = JsonUtil.getJsonObject(getCurrentPlayerObject(), dayKey);
+            
+            scathaPro.variables.lastPlayedDate = TimeUtil.parseDate(JsonUtil.getString(dayData, "lastPlayed"));
+            OverlayStats.PER_DAY.regularWormKills = Util.intOrZero(JsonUtil.getInt(dayData, "stats/wormKills/regularWorms"));
+            OverlayStats.PER_DAY.scathaKills = Util.intOrZero(JsonUtil.getInt(dayData, "stats/wormKills/scathas"));
+            OverlayStats.PER_DAY.scathaSpawnStreak = Util.intOrZero(JsonUtil.getInt(dayData, "stats/scathaSpawnStreak"));
+            
+            Integer scathaFarmingStreak = JsonUtil.getInt(dayData, "scathaFarming/streak");
+            scathaPro.variables.scathaFarmingStreak = scathaFarmingStreak != null ? scathaFarmingStreak : 0;
+            
+            scathaPro.variables.lastScathaFarmedDate = TimeUtil.parseDate(JsonUtil.getString(dayData, "scathaFarming/lastFarmed"));
+        }
+        catch (Exception e)
+        {
+            scathaPro.logError("Error while trying to load day data:");
+            e.printStackTrace();
+            onLoadError();
+        }
+    }
+    
+    public void saveDailyStatsData()
+    {
+        JsonObject dayData = getDayData();
+        JsonUtil.set(dayData, "stats/wormKills/regularWorms", new JsonPrimitive(OverlayStats.PER_DAY.regularWormKills));
+        JsonUtil.set(dayData, "stats/wormKills/scathas", new JsonPrimitive(OverlayStats.PER_DAY.scathaKills));
+        JsonUtil.set(dayData, "stats/scathaSpawnStreak", new JsonPrimitive(OverlayStats.PER_DAY.scathaSpawnStreak));
+        saveData();
+    }
+    
+    public void resetDailyStats()
+    {
+        scathaPro.variables.lastPlayedDate = TimeUtil.today();
+        setInCurrentPlayer(dayKey + "/lastPlayed", new JsonPrimitive(TimeUtil.formatDate(scathaPro.variables.lastPlayedDate)));
+        
+        OverlayStats.PER_DAY.regularWormKills = 0;
+        OverlayStats.PER_DAY.scathaKills = 0;
+        OverlayStats.PER_DAY.scathaSpawnStreak = 0;
+        
+        saveDailyStatsData();
+
+        scathaPro.getOverlay().updateWormKills();
+        scathaPro.getOverlay().updateScathaKills();
+        scathaPro.getOverlay().updateTotalKills();
+
+        scathaPro.logDebug("Daily stats reset");
+        
+        if (MessageUtil.getPlayerInWorld() != null)
+        {
+            MessageUtil.sendModChatMessage("New IRL day started - per day stats reset");
+        }
+    }
+    
+    public void updateScathaFarmingStreak()
+    {
+        LocalDate today = TimeUtil.today();
+        
+        boolean streakUpdated = false;
+        
+        if (today.minusDays(1).equals(scathaPro.variables.lastScathaFarmedDate))
+        {
+            scathaPro.variables.scathaFarmingStreak ++;
+            streakUpdated = true;
+            
+            if (scathaPro.getConfig().getBoolean(Config.Key.dailyScathaFarmingStreakMessage))
+            {
+                MessageUtil.sendModChatMessage(EnumChatFormatting.RESET + "Reached a daily Scatha farming streak of " + EnumChatFormatting.GREEN + scathaPro.variables.scathaFarmingStreak + " days");
+            }
+        }
+        else if (scathaPro.variables.lastScathaFarmedDate == null || !scathaPro.variables.lastScathaFarmedDate.equals(today))
+        {
+            scathaPro.variables.scathaFarmingStreak = 1;
+            streakUpdated = true;
+            
+            if (scathaPro.getConfig().getBoolean(Config.Key.dailyScathaFarmingStreakMessage) && scathaPro.variables.lastScathaFarmedDate != null)
+            {
+                // TODO: do this when loading
+                MessageUtil.sendModChatMessage(EnumChatFormatting.RESET + "Daily Scatha farming streak was broken and " + EnumChatFormatting.YELLOW + "starts back from 1");
+            }
+        }
+        
+        if (streakUpdated)
+        {
+            scathaPro.variables.lastScathaFarmedDate = today;
+            
+            JsonObject dayData = getDayData();
+            JsonUtil.set(dayData, "scathaFarming/streak", new JsonPrimitive(scathaPro.variables.scathaFarmingStreak));
+            JsonUtil.set(dayData, "scathaFarming/lastFarmed", new JsonPrimitive(TimeUtil.formatDate(scathaPro.variables.lastScathaFarmedDate)));
+            saveData();
+            
+            MinecraftForge.EVENT_BUS.post(new DailyScathaFarmingStreakChangedEvent());
+        }
+    }
+    
+    /**
+     * Returns a non-null reference to the day data object that can be modified without having to overwrite the whole object again
+     */
+    private JsonObject getDayData()
+    {
+        JsonObject dayData = JsonUtil.getJsonObject(getCurrentPlayerObject(), dayKey);
+        if (dayData == null)
+        {
+            dayData = new JsonObject();
+            setInCurrentPlayer(dayKey, dayData);
+        }
+        return dayData;
     }
     
     

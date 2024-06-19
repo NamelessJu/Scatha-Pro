@@ -5,7 +5,9 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 import com.namelessju.scathapro.ScathaPro;
+import com.namelessju.scathapro.gui.elements.DoneButton;
 import com.namelessju.scathapro.gui.elements.IClickActionButton;
+import com.namelessju.scathapro.gui.elements.ScathaProButton;
 import com.namelessju.scathapro.gui.elements.ScathaProGuiList;
 import com.namelessju.scathapro.gui.elements.ScathaProTextField;
 import com.namelessju.scathapro.util.Util;
@@ -38,9 +40,14 @@ public abstract class ScathaProGui extends GuiScreen
     protected void drawCustomBackground() {}
     
     
+    public ScathaProButton hoveredButton = null; // Currently only used to render the button tooltip
+    
     protected final List<ScathaProTextField> textFieldList = Lists.<ScathaProTextField>newArrayList();
     protected final List<GuiLabel> labelList = Lists.<GuiLabel>newArrayList();
     protected ScathaProGuiList scrollList;
+    
+    private int currentGridPositionY;
+    private boolean isCurrentGridPositionRightColumn;
     
     private GuiScreen parentGui;
 
@@ -75,6 +82,9 @@ public abstract class ScathaProGui extends GuiScreen
         textFieldList.clear();
         labelList.clear();
         
+        currentGridPositionY = -1;
+        isCurrentGridPositionRightColumn = false;
+        
         String title = getTitle();
         if (title != null && !title.replace(" ", "").isEmpty())
         {
@@ -87,6 +97,8 @@ public abstract class ScathaProGui extends GuiScreen
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
+        hoveredButton = null;
+        
         if (hasBackground())
         {
             drawDefaultBackground();   
@@ -111,6 +123,16 @@ public abstract class ScathaProGui extends GuiScreen
         for (GuiLabel label : labelList)
         {
             label.drawLabel(mc, mouseX, mouseY);
+        }
+        
+        
+        if (hoveredButton != null)
+        {
+            List<String> tooltipLines = hoveredButton.getTooltipLines();
+            if (tooltipLines != null && tooltipLines.size() > 0)
+            {
+                net.minecraftforge.fml.client.config.GuiUtils.drawHoveringText(tooltipLines, mouseX, mouseY, width, height, -1, fontRendererObj);
+            }
         }
     }
     
@@ -185,5 +207,52 @@ public abstract class ScathaProGui extends GuiScreen
     public boolean doesGuiPauseGame()
     {
         return true;
+    }
+    
+    protected void addDoneButton()
+    {
+        addDoneButton(width / 2 - 100, height / 6 + 168, 200, 20);
+    }
+    
+    protected void addDoneButton(int x, int y, int width, int height)
+    {
+        addDoneButton("Done", x, y, width, height);
+    }
+    
+    protected void addDoneButton(String text, int x, int y, int width, int height)
+    {
+        buttonList.add(new DoneButton(999, x, y, width, height, text, this));
+    }
+    
+    protected void addGridButton(GuiButton button)
+    {
+        addGridButton(button, false);
+    }
+    
+    protected void addGridButton(GuiButton button, boolean doubleWidth)
+    {
+        if (currentGridPositionY < 0) currentGridPositionY = height / 6 - 12;
+        if (doubleWidth && isCurrentGridPositionRightColumn)
+        {
+            currentGridPositionY += 24;
+            isCurrentGridPositionRightColumn = false;
+        }
+        int currentGridPositionX = width / 2 + (isCurrentGridPositionRightColumn ? 5 : -155);
+        
+        button.xPosition = currentGridPositionX;
+        button.yPosition = currentGridPositionY;
+        button.width = doubleWidth ? 310 : 150;
+        button.height = 20;
+        buttonList.add(button);
+        
+        if (isCurrentGridPositionRightColumn || doubleWidth) currentGridPositionY += 24;
+        if (!doubleWidth) isCurrentGridPositionRightColumn = !isCurrentGridPositionRightColumn;
+    }
+    
+    protected void addGridGap()
+    {
+        if (currentGridPositionY < 0) return;
+        currentGridPositionY += 6;
+        isCurrentGridPositionRightColumn = false;
     }
 }

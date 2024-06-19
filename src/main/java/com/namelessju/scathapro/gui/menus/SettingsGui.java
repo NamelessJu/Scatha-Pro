@@ -2,7 +2,6 @@ package com.namelessju.scathapro.gui.menus;
 
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.gui.elements.BooleanSettingButton;
-import com.namelessju.scathapro.gui.elements.DoneButton;
 import com.namelessju.scathapro.gui.elements.SubMenuButton;
 import com.namelessju.scathapro.managers.Config;
 
@@ -26,14 +25,14 @@ public class SettingsGui extends ScathaProGui
     {
         super.initGui();
         
-        buttonList.add(new SubMenuButton(504704003, width / 2 - 155, height / 6 - 12, 150, 20, "Overlay...", this, OverlaySettingsGui.class));
-        buttonList.add(new SubMenuButton(504704004, width / 2 + 5, height / 6 - 12, 150, 20, "Alerts...", this, AlertSettingsGui.class));
-        buttonList.add(new SubMenuButton(504704005, width / 2 - 155, height / 6 + 24 - 12, 150, 20, "Sounds...", this, SoundSettingsGui.class));
-        buttonList.add(new SubMenuButton(504704006, width / 2 + 5, height / 6 + 24 - 12, 150, 20, "Miscellaneous...", this, MiscSettingsGui.class));
-
-        buttonList.add(new BooleanSettingButton(504704001, width / 2 - 155, height / 6 + 48 - 6, 150, 20, "Autom. Update Checks", Config.Key.automaticUpdateChecks));
-        buttonList.add(new BooleanSettingButton(504704002, width / 2 + 5, height / 6 + 48 - 6, 150, 20, "Automatic Backups", Config.Key.automaticBackups));
+        addGridButton(new SubMenuButton(1, 0, 0, 0, 0, "Overlay...", this, OverlayGeneralSettingsGui.class));
+        addGridButton(new SubMenuButton(2, 0, 0, 0, 0, "Alerts...", this, AlertSettingsGui.class));
+        addGridButton(new SubMenuButton(3, 0, 0, 0, 0, "Sounds...", this, SoundSettingsGui.class));
+        addGridButton(new SubMenuButton(4, 0, 0, 0, 0, "Miscellaneous...", this, MiscSettingsGui.class));
+        addGridGap();
+        addGridButton(new BooleanSettingButton(5, 0, 0, 0, 0, "Autom. Update Checks", Config.Key.automaticUpdateChecks));
+        addGridButton(new BooleanSettingButton(6, 0, 0, 0, 0, "Automatic Backups", Config.Key.automaticBackups));
         
-        buttonList.add(new DoneButton(504704099, width / 2 - 100, height / 6 + 168, 200, 20, "Done", this));
+        addDoneButton();
     }
 }

@@ -11,7 +11,7 @@ import com.namelessju.scathapro.entitydetection.entitydetectors.GoblinDetector;
 import com.namelessju.scathapro.entitydetection.entitydetectors.JerryDetector;
 import com.namelessju.scathapro.entitydetection.entitydetectors.WormDetector;
 import com.namelessju.scathapro.events.DetectedEntityRegisteredEvent;
-import com.namelessju.scathapro.util.Util;
+import com.namelessju.scathapro.util.TimeUtil;
 
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayer;
@@ -49,7 +49,7 @@ public abstract class DetectedEntity
     public static void update(EntityPlayer player)
     {
         AxisAlignedBB playerPositionAABB = new AxisAlignedBB(player.posX, player.posY, player.posZ, player.posX, player.posY, player.posZ);
-        AxisAlignedBB entityDetectionAABB = playerPositionAABB.expand(20f, 5f, 20f);
+        AxisAlignedBB entityDetectionAABB = playerPositionAABB.expand(30f, 5f, 30f);
         AxisAlignedBB killAABB = playerPositionAABB.expand(10f, 255f, 10f);
         
         // Remove detected entities when the entity isn't in the world anymore
@@ -174,7 +174,7 @@ public abstract class DetectedEntity
         }
         else
         {
-            spawnTime = Util.getCurrentTime();
+            spawnTime = TimeUtil.now();
         }
     }
     
@@ -186,7 +186,7 @@ public abstract class DetectedEntity
     
     public long getCurrentLifetime()
     {
-        return Util.getCurrentTime() - spawnTime;
+        return TimeUtil.now() - spawnTime;
     }
     
     public EntityArmorStand getEntity()

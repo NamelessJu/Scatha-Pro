@@ -2,7 +2,6 @@ package com.namelessju.scathapro.gui.menus;
 
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.gui.elements.BooleanSettingButton;
-import com.namelessju.scathapro.gui.elements.DoneButton;
 import com.namelessju.scathapro.managers.Config;
 
 import net.minecraft.client.gui.GuiScreen;
@@ -26,10 +25,10 @@ public class SoundSettingsGui extends ScathaProGui implements GuiSlider.ISlider
     {
         super.initGui();
         
-        buttonList.add(new GuiSlider(504704701, width / 2 - 155, height / 6 - 12, 310, 20, ScathaPro.MODNAME + " Sounds Volume: ", "%", 0, 100, scathaPro.getConfig().getDouble(Config.Key.soundsVolume) * 100, false, true, this));
-        buttonList.add(new BooleanSettingButton(504704702, width / 2 - 155, height / 6 + 24 - 12, 310, 20, "Mute Crystal Hollows sounds", Config.Key.muteCrystalHollowsSounds));
+        addGridButton(new GuiSlider(1, 0, 0, 0, 0, ScathaPro.MODNAME + " Sounds Volume: ", "%", 0, 100, scathaPro.getConfig().getDouble(Config.Key.soundsVolume) * 100, false, true, this), true);
+        addGridButton(new BooleanSettingButton(2, 0, 0, 0, 0, "Mute Crystal Hollows Sounds", Config.Key.muteCrystalHollowsSounds), true);
         
-        buttonList.add(new DoneButton(504704799, width / 2 - 100, height / 6 + 168, 200, 20, "Done", this));
+        addDoneButton();
     }
 
     @Override
@@ -39,7 +38,7 @@ public class SoundSettingsGui extends ScathaProGui implements GuiSlider.ISlider
         {
             switch (slider.id)
             {
-                case 504704701:
+                case 1:
                     double volume = (double) slider.getValueInt() / 100;
                     
                     Config config = scathaPro.getConfig();

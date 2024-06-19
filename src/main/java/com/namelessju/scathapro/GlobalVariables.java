@@ -1,13 +1,17 @@
 package com.namelessju.scathapro;
 
+import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 
+import com.google.common.collect.Lists;
 import com.namelessju.scathapro.miscellaneous.OverlayStats;
 import com.namelessju.scathapro.miscellaneous.SkyblockArea;
-import com.namelessju.scathapro.util.Util;
+import com.namelessju.scathapro.util.TimeUtil;
 
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.IChatComponent;
 
 public class GlobalVariables
 {
@@ -31,15 +35,31 @@ public class GlobalVariables
     public int legendaryPetDrops = 0;
     
     public int scathaKillsAtLastDrop = -1;
+
+    public LocalDate lastPlayedDate = null;
+    public int scathaFarmingStreak = 0;
+    public LocalDate lastScathaFarmedDate = null;
+    
+    public long lastKillTime = -1;
+    public long lastPetDropTime = -1;
+    public boolean lastKillIsScatha = false;
+    public boolean droppedPetAtLastScatha = false;
+    
+    public boolean sneakingBefore = false;
+    public long lastSneakStartTime = -1;
     
     public GuiScreen openGuiNextTick = null;
+    public boolean firstWorldTickPending = true;
     public boolean cheaterDetected = false;
+
+    public List<IChatComponent> cachedChatMessages = Lists.newArrayList();
+    public boolean lastChatMessageIsDivider = false;
     
     
     public void startWormSpawnCooldown(boolean forceRestart)
     {
         if (!forceRestart && wormSpawnCooldownStartTime >= Constants.pingTreshold) return;
-        wormSpawnCooldownStartTime = Util.getCurrentTime();
+        wormSpawnCooldownStartTime = TimeUtil.now();
     }
     
     public void addRegularWormKill()
@@ -56,6 +76,8 @@ public class GlobalVariables
     
     public void resetForNewLobby()
     {
+        firstWorldTickPending = true;
+        
         currentAreaCheckTimeIndex = 0;
         currentArea = null;
         

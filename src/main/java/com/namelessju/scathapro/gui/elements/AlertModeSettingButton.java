@@ -5,9 +5,7 @@ import com.namelessju.scathapro.alerts.alertmodes.AlertMode;
 import com.namelessju.scathapro.alerts.alertmodes.AlertModeManager;
 import com.namelessju.scathapro.managers.Config;
 
-import net.minecraft.client.gui.GuiButton;
-
-public class AlertModeSettingButton extends GuiButton implements IClickActionButton
+public class AlertModeSettingButton extends ScathaProButton implements IClickActionButton
 {
     private ScathaPro scathaPro = ScathaPro.getInstance();
     private AlertModeManager alertModeManager = scathaPro.getAlertModeManager();

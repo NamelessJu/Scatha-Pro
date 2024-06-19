@@ -1,6 +1,5 @@
 package com.namelessju.scathapro.gui.menus;
 
-import com.namelessju.scathapro.gui.elements.DoneButton;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.gui.elements.CustomAlertModeGuiList;
 
@@ -30,6 +29,6 @@ public class CustomAlertModeGui extends ScathaProGui
         
         scrollList = new CustomAlertModeGuiList(scathaPro, this);
         
-        buttonList.add(new DoneButton(504704599, this.width / 2 - 100, this.height - 30, 200, 20, "Done", this));
+        addDoneButton(this.width / 2 - 100, this.height - 30, 200, 20);
     }
 }

@@ -17,7 +17,7 @@ public class CustomAlertMode extends AlertMode
     
     public String getIconPath()
     {
-        return "overlay/mode_icons/custom.png";
+        return "overlay/scatha_icons/mode_custom.png";
     }
     
     public ResourceLocation getSoundBaseResourceLocation()
@@ -31,6 +31,6 @@ public class CustomAlertMode extends AlertMode
         if (titlesJson == null) return null;
         String title = JsonUtil.getString(titlesJson, alertId + "/title");
         String subtitle = JsonUtil.getString(titlesJson, alertId + "/subtitle");
-        return new AlertTitle(title, subtitle);
+        return AlertTitle.createTextOnly(title, subtitle);
     }
 }

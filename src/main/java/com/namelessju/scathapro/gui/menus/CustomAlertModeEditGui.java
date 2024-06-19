@@ -43,7 +43,7 @@ public class CustomAlertModeEditGui extends ScathaProGui
     @Override
     public String getTitle()
     {
-        return (modeFolder.exists() ? "Editing" : "New") +" custom alert mode";
+        return (modeFolder.exists() ? "Edit" : "New") + " Custom Alert Mode";
     }
     
     @Override
@@ -52,8 +52,8 @@ public class CustomAlertModeEditGui extends ScathaProGui
         // Required as a bug fix to prevent stopped alert sounds from
         // stacking up and continuing to play after closing the GUI
         // (thanks, MC sound engine...)
-        // Doesn't matter on Hypixel anyways, since the game can't be paused there
-        // Regardless, I wanted to fix this as it is annoying in my singleplayer test world ;)
+        // Doesn't actually matter on Hypixel since the game can't be paused in multiplayer
+        // but I wanted to fix this as it is annoying in my singleplayer test world haha
         return false;
     }
     
@@ -68,9 +68,10 @@ public class CustomAlertModeEditGui extends ScathaProGui
         GuiLabel customModeNameLabel = new GuiLabel(fontRendererObj, 0, width / 2 - 155, 35, 310, 10, Util.Color.GRAY.getValue());
         customModeNameLabel.func_175202_a("Mode Name");
         labelList.add(customModeNameLabel);
-        nameTextField = new ScathaProTextField(0, mc.fontRendererObj, width / 2 - 155, 45, 310, 20);
+        
+        nameTextField = new ScathaProTextField(1, mc.fontRendererObj, width / 2 - 155, 45, 310, 20);
         nameTextField.setText(editModeName);
-        nameTextField.setPlaceholder("<unnamed>");
+        nameTextField.setPlaceholder(EnumChatFormatting.ITALIC + "(unnamed)");
         textFieldList.add(nameTextField);
         
         
@@ -82,13 +83,13 @@ public class CustomAlertModeEditGui extends ScathaProGui
         {
             ((CustomAlertModeEditGuiList) scrollList).resize();
         }
-
-        buttonList.add(new DoneButton(504704698, this.width / 2 - 155, this.height - 30, 150, 20, "Save", this));
-        buttonList.add(new DoneButton(504704699, this.width / 2 + 5, this.height - 30, 150, 20, "Cancel", this));
         
-        if (scathaPro.getConfig().getBoolean(Config.Key.devMode))
+        buttonList.add(new DoneButton(999, this.width / 2 - 155, this.height - 30, 150, 20, "Save", this));
+        buttonList.add(new DoneButton(998, this.width / 2 + 5, this.height - 30, 150, 20, "Cancel", this));
+        
+        if (scathaPro.getConfig().getBoolean(Config.Key.devMode) && modeFolder.exists())
         {
-            buttonList.add(new GuiButton(504704697, this.width / 2 + 170, this.height - 30, 50, 20, EnumChatFormatting.ITALIC + "Folder"));
+            buttonList.add(new GuiButton(997, this.width / 2 + 170, this.height - 30, 100, 20, EnumChatFormatting.GRAY + "Open Directory"));
         }
     }
     
@@ -97,7 +98,9 @@ public class CustomAlertModeEditGui extends ScathaProGui
     {
         switch (button.id)
         {
-            case 504704698:
+            case 999:
+                boolean isNewMode = !modeFolder.exists();
+                
                 modeFolder.mkdirs();
                 
                 String newName = nameTextField.getText();
@@ -105,21 +108,32 @@ public class CustomAlertModeEditGui extends ScathaProGui
                 else if (newName.replace(" ", "").isEmpty()) newName = "";
                 else newName = newName.trim();
                 
+                
+                boolean metaChanged = false;
+                
                 if (!newName.equals(currentModeName))
                 {
                     customAlertModeManager.setSubmodeName(customAlertModeId, newName);
-                    customAlertModeManager.saveMeta(customAlertModeId);
+                    metaChanged = true;
                 }
+                
+                if (isNewMode)
+                {
+                    customAlertModeManager.updateSubmodeLastUsed(customAlertModeId);
+                    metaChanged = true;
+                }
+                
+                if (metaChanged) customAlertModeManager.saveMeta(customAlertModeId);
+                
                 
                 if (scrollList instanceof CustomAlertModeEditGuiList && ((CustomAlertModeEditGuiList) scrollList).saveChanges())
                 {
-                    CustomAlertModeManager customAlertModeManager = ScathaPro.getInstance().getCustomAlertModeManager();
-                    if (customAlertModeManager.isSubmodeActive(customAlertModeId)) customAlertModeManager.reloadResourcePack();
+                    ScathaPro.getInstance().getCustomAlertModeManager().reloadResourcePack();
                 }
                 
                 break;
 
-            case 504704697:
+            case 997:
                 Util.openFileInExplorer(CustomAlertModeManager.getSubModeFile(customAlertModeId));
                 break;
         }

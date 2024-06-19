@@ -7,7 +7,8 @@ import net.minecraft.util.EnumChatFormatting;
 public class Constants
 {
     public static final String chatPrefix = EnumChatFormatting.GRAY + "[" + ScathaPro.MODNAME + "] " + EnumChatFormatting.RESET;
-    public static final String msgHighlightingStyle = EnumChatFormatting.GREEN.toString();
+    public static final String chatPrefixShort = EnumChatFormatting.GRAY + "[SP] " + EnumChatFormatting.RESET;
+    public static final String msgHighlightingColor = EnumChatFormatting.YELLOW.toString();
     
     public static final int pingTreshold = 2000;
     
@@ -22,7 +23,6 @@ public class Constants
     
     public static final int crystalHollowsBoundsMin = 202;
     public static final int crystalHollowsBoundsMax = 824;
-    public static final int crystalHollowsCloseDay = 20;
     
     public static final int maxLegitPetDropsAmount = 9999;
     

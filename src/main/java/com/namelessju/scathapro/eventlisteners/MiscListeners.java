@@ -13,7 +13,7 @@ import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.miscellaneous.ScathaProSound;
 import com.namelessju.scathapro.util.MessageUtil;
 import com.namelessju.scathapro.util.NBTUtil;
-import com.namelessju.scathapro.util.Util;
+import com.namelessju.scathapro.util.TimeUtil;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.item.EntityArmorStand;
@@ -23,7 +23,6 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
-import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.client.event.sound.PlaySoundEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
@@ -56,7 +55,7 @@ public class MiscListeners
         
         DetectedEntity.clearLists();
         
-        scathaPro.variables.lastWorldJoinTime = Util.getCurrentTime();
+        scathaPro.variables.lastWorldJoinTime = TimeUtil.now();
         scathaPro.variables.resetForNewLobby();
 
         scathaPro.getInputManager().unlockCameraRotation();
@@ -67,10 +66,8 @@ public class MiscListeners
         
         // Update achievements
         
-        scathaPro.updateKillAchievements();
-        scathaPro.updateSpawnAchievements();
-        scathaPro.updatePetDropAchievements();
-        scathaPro.updateProgressAchievements();
+        scathaPro.getAchievementLogicManager().updateKillAchievements();
+        scathaPro.getAchievementLogicManager().updateSpawnAchievements();
         
         Achievement.crystal_hollows_time_1.setProgress(0);
         Achievement.crystal_hollows_time_2.setProgress(0);
@@ -138,6 +135,9 @@ public class MiscListeners
     public void onChatReceived(ClientChatReceivedEvent e)
     {
         if (e.type == 2) return;
+        
+        scathaPro.variables.lastChatMessageIsDivider = e.message.getUnformattedText().equals(MessageUtil.dividerComponent.getUnformattedText());
+        
         MessageUtil.addChatCopyButton(e.message);
     }
     
@@ -146,7 +146,7 @@ public class MiscListeners
     {
         // Detect worm pre-spawn
         
-        long now = Util.getCurrentTime();
+        long now = TimeUtil.now();
         
         if
         (
@@ -164,7 +164,7 @@ public class MiscListeners
         }
         
         
-        // Mute non-mod sounds in Crystal Hollows
+        // Mute non-Scatha-Pro sounds in Crystal Hollows
         
         if
         (
@@ -204,12 +204,6 @@ public class MiscListeners
     public void onKeyInput(InputEvent.KeyInputEvent event)
     {
         scathaPro.getInputManager().onKeyInput();
-    }
-    
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void onMouseInput(MouseEvent event)
-    {
-        // scathaPro.getInputManager().onMouseEvent(event);
     }
 
 }

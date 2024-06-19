@@ -8,7 +8,6 @@ import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.gui.elements.AchievementsList;
 import com.namelessju.scathapro.gui.elements.BooleanSettingButton;
-import com.namelessju.scathapro.gui.elements.DoneButton;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -41,9 +40,9 @@ public class AchievementsGui extends ScathaProGui
         
         initializeAchievementsList();
         
-        buttonList.add(new BooleanSettingButton(504704301, width / 2 - 100, Math.round(height - 24 - 50 * heightFactor), 200, 20, "Show Bonus Achievements", Config.Key.bonusAchievementsShown));
+        buttonList.add(new BooleanSettingButton(1, width / 2 - 100, Math.round(height - 24 - 50 * heightFactor), 200, 20, "Show Bonus Achievements", Config.Key.bonusAchievementsShown));
         
-        buttonList.add(new DoneButton(504704399, width / 2 - 100, Math.round(height - 50 * heightFactor), 200, 20, "Close", this));
+        addDoneButton("Close", width / 2 - 100, Math.round(height - 50 * heightFactor), 200, 20);
     }
     
     private void initializeAchievementsList()
@@ -60,7 +59,7 @@ public class AchievementsGui extends ScathaProGui
     {
         super.actionPerformed(button);
         
-        if (button.enabled && button.id == 504704301)
+        if (button.enabled && button.id == 1)
         {
             scathaPro.getAchievementManager().updateBonusTypeVisibility();
             initializeAchievementsList();

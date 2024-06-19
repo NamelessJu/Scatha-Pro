@@ -21,7 +21,7 @@ public class AlertMode
     
     public String getIconPath()
     {
-        return "overlay/mode_icons/normal.png";
+        return "overlay/scatha_icons/regular.png";
     }
 
     

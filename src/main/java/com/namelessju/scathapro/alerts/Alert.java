@@ -11,19 +11,17 @@ import net.minecraft.util.ResourceLocation;
 
 public enum Alert
 {
-    bedrockWall("bedrock_wall", "Bedrock Alert", "Triggers when you're < 10 blocks away from bedrock", new DefaultAlertSound("note.pling", 1f, 0.5f), new AlertTitle(null, "Close to bedrock", null, EnumChatFormatting.GRAY.toString(), 5, 20, 5), Config.Key.bedrockWallAlert),
-    // TODO:
-    bedrockHole("bedrock_hole", "Bedrock Hole Alert", "Triggers when there's a hole in the bedrock wall/floor", new DefaultAlertSound("note.pling", 1f, 0.75f), new AlertTitle("Hole in bedrock!", (String) null, EnumChatFormatting.DARK_RED.toString(), null, 0, 40, 10), null),
+    bedrockWall("bedrock_wall", "Bedrock Wall Alert", "Triggers when you're close to and walking towards the bedrock wall", new DefaultAlertSound("note.pling", 1f, 0.5f), AlertTitle.create(null, "Close to bedrock", null, EnumChatFormatting.GRAY.toString(), 5, 20, 5), Config.Key.bedrockWallAlert),
     
-    wormPrespawn("worm_prespawn", "Worm Pre-Spawn Alert", "Triggers when either type of worm is about to spawn", new DefaultAlertSound("random.orb", 1f, 0.5f), new AlertTitle(null, "Worm about to spawn...", null, EnumChatFormatting.YELLOW.toString(), 0, 20, 5), Config.Key.wormPrespawnAlert),
-    regularWormSpawn("regular_worm_spawn", "Regular Worm Spawn Alert", "Triggers when a regular worm spawns around you", new DefaultAlertSound("random.levelup", 1f, 0.5f), new AlertTitle("Worm", "Just a regular worm...", EnumChatFormatting.YELLOW.toString(), EnumChatFormatting.GRAY.toString(), 5, 20, 5), Config.Key.regularWormSpawnAlert),
-    scathaSpawn("scatha_spawn", "Scatha Spawn Alert", "Triggers when a Scatha spawns around you", new DefaultAlertSound("random.levelup", 1f, 0.8f), new AlertTitle("Scatha", "Pray to RNGesus!", EnumChatFormatting.RED.toString(), EnumChatFormatting.GRAY.toString(), 0, 40, 10), Config.Key.scathaSpawnAlert),
-    wormSpawnCooldownEnd("worm_spawn_cooldown_end", "Worm Spawn Cooldown Alert", "Triggers when the worm spawn cooldown runs out", new DefaultAlertSound("note.pling", 1f, 0.75f), new AlertTitle(null, "Worm spawn cooldown ended", null, EnumChatFormatting.GREEN.toString(), 5, 30, 5), Config.Key.wormSpawnCooldownEndAlert),
+    wormPrespawn("worm_prespawn", "Worm Pre-Spawn Alert", "Triggers when either type of worm is about to spawn", new DefaultAlertSound("random.orb", 1f, 0.5f), AlertTitle.create(null, "Worm about to spawn...", null, EnumChatFormatting.YELLOW.toString(), 0, 20, 5), Config.Key.wormPrespawnAlert),
+    regularWormSpawn("regular_worm_spawn", "Regular Worm Spawn Alert", null, new DefaultAlertSound("random.levelup", 1f, 0.5f), AlertTitle.create("Worm", "Just a regular worm...", EnumChatFormatting.YELLOW.toString(), EnumChatFormatting.GRAY.toString(), 5, 20, 5), Config.Key.regularWormSpawnAlert),
+    scathaSpawn("scatha_spawn", "Scatha Spawn Alert", null, new DefaultAlertSound("random.levelup", 1f, 0.8f), AlertTitle.create("Scatha", "Pray to RNGesus!", EnumChatFormatting.RED.toString(), EnumChatFormatting.GRAY.toString(), 0, 40, 10), Config.Key.scathaSpawnAlert),
+    wormSpawnCooldownEnd("worm_spawn_cooldown_end", "Worm Spawn Cooldown Alert", "Triggers when the worm spawn cooldown ends", new DefaultAlertSound("note.pling", 1f, 0.75f), AlertTitle.create(null, "Worm spawn cooldown ended", null, EnumChatFormatting.GREEN.toString(), 5, 30, 5), Config.Key.wormSpawnCooldownEndAlert),
     
-    scathaPetDrop("scatha_pet_drop", "Scatha Pet Drop Alert", "Triggers when you get a Scatha pet drop", new DefaultAlertSound("mob.wither.death", 0.75f, 0.8f), new AlertTitle("Scatha Pet!", AlertTitle.SubtitleType.VARIABLE, EnumChatFormatting.YELLOW.toString(), null, 0, 130, 20), Config.Key.scathaPetDropAlert),
+    scathaPetDrop("scatha_pet_drop", "Scatha Pet Drop Alert", null, new DefaultAlertSound("mob.wither.death", 0.75f, 0.8f), AlertTitle.createWithVariableSubtitle("Scatha Pet!", EnumChatFormatting.YELLOW.toString(), 0, 130, 20), Config.Key.scathaPetDropAlert),
     
-    goblinSpawn("goblin_spawn", "Goblin Spawn Alert", "Triggers when a golden/diamond goblin spawns", new DefaultAlertSound("random.levelup", 1f, 1.25f), new AlertTitle("Goblin", AlertTitle.SubtitleType.VARIABLE, EnumChatFormatting.DARK_GREEN.toString(), null, 3, 30, 5), Config.Key.goblinSpawnAlert),
-    jerrySpawn("jerry_spawn", "Jerry Spawn Alert", "Triggers when a hidden Jerry (mayor perk) spawns", new DefaultAlertSound("random.levelup", 1f, 1.5f), new AlertTitle("Jerry", AlertTitle.SubtitleType.VARIABLE, EnumChatFormatting.AQUA.toString(), null, 5, 40, 10), Config.Key.jerrySpawnAlert);
+    goblinSpawn("goblin_spawn", "Goblin Spawn Alert", "Triggers when a golden or diamond goblin spawns", new DefaultAlertSound("random.levelup", 1f, 1.25f), AlertTitle.createWithVariableSubtitle("Goblin", EnumChatFormatting.DARK_GREEN.toString(), 3, 30, 5), Config.Key.goblinSpawnAlert),
+    jerrySpawn("jerry_spawn", "Jerry Spawn Alert", "Triggers when a hidden Jerry (mayor perk) spawns", new DefaultAlertSound("random.levelup", 1f, 1.5f), AlertTitle.createWithVariableSubtitle("Jerry", EnumChatFormatting.AQUA.toString(), 5, 40, 10), Config.Key.jerrySpawnAlert);
     
     
     private static class DefaultAlertSound

@@ -6,14 +6,13 @@ import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.EnumChatFormatting;
 
-public class DeleteCustomAlertModeButton extends GuiButton implements IClickActionButton, GuiYesNoCallback {
+public class DeleteCustomAlertModeButton extends ScathaProButton implements IClickActionButton, GuiYesNoCallback {
 
     private final CustomAlertModeManager customAlertModeManager;
     
@@ -49,44 +48,45 @@ public class DeleteCustomAlertModeButton extends GuiButton implements IClickActi
         Minecraft.getMinecraft().displayGuiScreen(returnGui);
     }
     
-    
-    /**
-     * Draws this button to the screen.
-     */
     @Override
     public void drawButton(Minecraft mc, int mouseX, int mouseY)
     {
         if (this.visible)
         {
-            FontRenderer fontrenderer = mc.fontRendererObj;
-            mc.getTextureManager().bindTexture(buttonTextures);
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             this.hovered = mouseX >= this.xPosition && mouseY >= this.yPosition && mouseX < this.xPosition + this.width && mouseY < this.yPosition + this.height;
-            int i = this.getHoverState(this.hovered);
+            int hoverState = this.getHoverState(this.hovered);
+            
+            FontRenderer fontrenderer = mc.fontRendererObj;
+            
+            mc.getTextureManager().bindTexture(buttonTextures);
+
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             GlStateManager.enableBlend();
             GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
             GlStateManager.blendFunc(770, 771);
-            this.drawTexturedModalRect(this.xPosition, this.yPosition, 0, 46 + i * 20, this.width / 2, this.height);
-            this.drawTexturedModalRect(this.xPosition + this.width / 2, this.yPosition, 200 - this.width / 2, 46 + i * 20, this.width / 2, this.height);
+            
+            this.drawTexturedModalRect(this.xPosition, this.yPosition, 0, 46 + hoverState * 20, this.width / 2, this.height);
+            this.drawTexturedModalRect(this.xPosition + this.width / 2, this.yPosition, 200 - this.width / 2, 46 + hoverState * 20, this.width / 2, this.height);
+            
             this.mouseDragged(mc, mouseX, mouseY);
-            int j = 14737632;
-
+            
+            int color = 14737632;
             if (packedFGColour != 0)
             {
-                j = packedFGColour;
+                color = packedFGColour;
             }
-            else
-            if (!this.enabled)
+            else if (!this.enabled)
             {
-                j = 10526880;
+                color = 10526880;
             }
             else if (this.hovered)
             {
-                // j = 16777120;
-                j = Util.Color.RED.getValue();
+                color = Util.Color.RED.getValue();
             }
 
-            this.drawCenteredString(fontrenderer, this.displayString, this.xPosition + this.width / 2, this.yPosition + (this.height - 8) / 2, j);
+            this.drawCenteredString(fontrenderer, this.displayString, this.xPosition + this.width / 2, this.yPosition + (this.height - 8) / 2, color);
+            
+            handleTooltipRendering(mc);
         }
     }
 }

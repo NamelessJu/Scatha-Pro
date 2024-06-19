@@ -3,9 +3,7 @@ package com.namelessju.scathapro.gui.elements;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.managers.Config;
 
-import net.minecraft.client.gui.GuiButton;
-
-public class BooleanSettingButton extends GuiButton implements IClickActionButton
+public class BooleanSettingButton extends ScathaProButton implements IClickActionButton
 {
     public Config.Key configSetting;
     public String text;

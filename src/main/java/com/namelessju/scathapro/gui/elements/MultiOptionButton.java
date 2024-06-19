@@ -1,8 +1,6 @@
 package com.namelessju.scathapro.gui.elements;
 
-import net.minecraft.client.gui.GuiButton;
-
-public class MultiOptionButton<T> extends GuiButton implements IClickActionButton
+public class MultiOptionButton<T> extends ScathaProButton implements IClickActionButton
 {
     public static interface IOptionChangedListener<U>
     {

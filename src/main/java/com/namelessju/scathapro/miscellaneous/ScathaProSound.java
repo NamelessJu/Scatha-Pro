@@ -49,19 +49,19 @@ public class ScathaProSound implements ISound
     @Override
     public float getXPosF()
     {
-        return 0;
+        return 0f;
     }
 
     @Override
     public float getYPosF()
     {
-        return 0;
+        return 0f;
     }
 
     @Override
     public float getZPosF()
     {
-        return 0;
+        return 0f;
     }
 
     @Override

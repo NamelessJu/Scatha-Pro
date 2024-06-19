@@ -6,7 +6,6 @@ import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.alerts.alertmodes.customalertmode.CustomAlertMode;
 import com.namelessju.scathapro.gui.elements.AlertModeSettingButton;
 import com.namelessju.scathapro.gui.elements.AlertsGuiList;
-import com.namelessju.scathapro.gui.elements.DoneButton;
 import com.namelessju.scathapro.gui.elements.SubMenuButton;
 
 import net.minecraft.client.gui.GuiButton;
@@ -35,13 +34,13 @@ public class AlertSettingsGui extends ScathaProGui
     {
         super.initGui();
         
-        buttonList.add(alertModeSettingButton = new AlertModeSettingButton(504704401, width / 2 - 155, 35, 150, 20, "Alert Mode"));
-        buttonList.add(customAlertModeEditButton = new SubMenuButton(504704402, width / 2 + 5, 35, 150, 20, "Custom Alert Modes...", this, CustomAlertModeGui.class));
+        buttonList.add(alertModeSettingButton = new AlertModeSettingButton(1, width / 2 - 155, 35, 150, 20, "Alert Mode"));
+        buttonList.add(customAlertModeEditButton = new SubMenuButton(2, width / 2 + 5, 35, 150, 20, "Custom Alert Modes...", this, CustomAlertModeGui.class));
         updateModeButtons();
         
         scrollList = new AlertsGuiList(this);
         
-        buttonList.add(new DoneButton(504704499, this.width / 2 - 100, this.height - 30, 200, 20, "Done", this));
+        addDoneButton(this.width / 2 - 100, this.height - 30, 200, 20);
     }
     
     @Override
@@ -53,7 +52,7 @@ public class AlertSettingsGui extends ScathaProGui
         
         switch (button.id)
         {
-            case 504704401:
+            case 1:
                 modeChanged = true;
                 break;
         }

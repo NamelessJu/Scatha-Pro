@@ -9,7 +9,7 @@ public class AlertsGuiList extends ScathaProGuiList
 {
     public AlertsGuiList(GuiScreen gui)
     {
-        super(gui, 65, gui.height - 40, 40);
+        super(gui, 65, gui.height - 40, 27);
         
         Alert[] alerts = Alert.values();
         for (Alert alert : alerts)
@@ -24,8 +24,9 @@ public class AlertsGuiList extends ScathaProGuiList
     {
         public AlertEntry(Alert alert)
         {
-            addButton(new BooleanSettingButton(1, 0, 5, getListWidth(), 20, alert.alertName, alert.configKey));
-            addLabel(EnumChatFormatting.GRAY + alert.description, 2, 28, getListWidth() - 4, 10).setCentered();
+            BooleanSettingButton button = new BooleanSettingButton(1, 0, 2, getListWidth(), 20, alert.alertName, alert.configKey);
+            if (alert.description != null) button.setTooltip(EnumChatFormatting.GRAY + alert.description);
+            addButton(button);
         }
     }
 }

@@ -5,7 +5,7 @@ import java.util.HashMap;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.events.AchievementUnlockedEvent;
 import com.namelessju.scathapro.managers.Config;
-import com.namelessju.scathapro.util.Util;
+import com.namelessju.scathapro.util.TimeUtil;
 
 import net.minecraftforge.common.MinecraftForge;
 
@@ -26,7 +26,7 @@ public class AchievementManager
     {
         if (isAchievementUnlocked(achievement)) return;
         
-        unlockedAchievements.put(achievement.getID(), new UnlockedAchievement(achievement, Util.getCurrentTime()));
+        unlockedAchievements.put(achievement.getID(), new UnlockedAchievement(achievement, TimeUtil.now()));
         scathaPro.getPersistentData().saveAchievements();
         
         MinecraftForge.EVENT_BUS.post(new AchievementUnlockedEvent(achievement));

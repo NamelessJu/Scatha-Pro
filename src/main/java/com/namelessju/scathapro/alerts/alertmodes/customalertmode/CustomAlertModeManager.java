@@ -12,9 +12,9 @@ import com.google.gson.JsonPrimitive;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.alerts.Alert;
 import com.namelessju.scathapro.managers.Config;
-import com.namelessju.scathapro.managers.FileManager;
+import com.namelessju.scathapro.util.FileUtil;
 import com.namelessju.scathapro.util.JsonUtil;
-import com.namelessju.scathapro.util.Util;
+import com.namelessju.scathapro.util.TimeUtil;
 
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StringUtils;
@@ -22,7 +22,7 @@ import net.minecraft.util.StringUtils;
 public class CustomAlertModeManager
 {
     public static final String resourceDomain = "scathapro_customalertmode";
-    public static final File submodesDirectory = FileManager.getModFile("customAlertModes");
+    public static final File submodesDirectory = FileUtil.getModFile("customAlertModes");
     
     public static String getResourceName(String resourcePath)
     {
@@ -57,11 +57,14 @@ public class CustomAlertModeManager
     
     public static boolean doesSubmodeExist(String submodeId)
     {
+        if (submodeId == null) return false;
+        
         String[] submodeIds = getAllSubmodeIds();
         for (String id : submodeIds)
         {
             if (id.equals(submodeId)) return true;
         }
+        
         return false; 
     }
     
@@ -82,7 +85,6 @@ public class CustomAlertModeManager
     
     
     public final CustomAlertModeResourcePack resourcePack;
-    public boolean resourcePackInjected = false;
     
     private final ScathaPro scathaPro;
     
@@ -101,7 +103,7 @@ public class CustomAlertModeManager
     
     public void reloadResourcePack()
     {
-        // Haven't found a good way to reload just a single resource pack
+        // Haven't found a way to reload just a single resource pack
         // Reloading all resources is slow, but it does the job
         scathaPro.getMinecraft().refreshResources();
     }
@@ -113,8 +115,22 @@ public class CustomAlertModeManager
         Config config = scathaPro.getConfig();
         config.set(Config.Key.customModeSubmode, submodeId);
         config.save();
+        
+        // Update previous mode's last used timestamp
+        if (doesSubmodeExist(currentSubmodeId))
+        {
+            updateSubmodeLastUsed(currentSubmodeId);
+            saveMeta(currentSubmodeId);
+        }
+        
         setCurrentSubmode(submodeId);
-        updateCurrentSubmodeLastUsed();
+        
+        // Update new mode's last used timestamp
+        updateSubmodeLastUsed(submodeId);
+        saveMeta(submodeId);
+        
+        loadCurrentSubmodeProperties();
+        
         reloadResourcePack();
     }
     
@@ -140,7 +156,7 @@ public class CustomAlertModeManager
     public boolean isSubmodeActive(String submodeId)
     {
         if (currentSubmodeId == null) return false;
-        else return currentSubmodeId.equals(submodeId);
+        return currentSubmodeId.equals(submodeId);
     }
     
     public void deleteSubmode(String customModeId)
@@ -151,7 +167,7 @@ public class CustomAlertModeManager
         }
         
         File modeFolder = getSubModeFile(customModeId);
-        if (!FileManager.deleteDirectoryRecursive(modeFolder))
+        if (!FileUtil.deleteDirectoryRecursive(modeFolder))
         {
             scathaPro.logError("Couldn't delete custom alert mode - recursively deleting the directory failed");
         }
@@ -170,11 +186,11 @@ public class CustomAlertModeManager
     
     public String getSubmodeDisplayName(String submodeId)
     {
-        if (submodeId == null) return EnumChatFormatting.ITALIC + "<missing mode ID>";
-        if (!doesSubmodeExist(submodeId)) return EnumChatFormatting.ITALIC + "<mode not found>";
+        if (submodeId == null) return EnumChatFormatting.ITALIC + "(missing mode ID)";
+        if (!doesSubmodeExist(submodeId)) return EnumChatFormatting.ITALIC + "(mode not found)";
         
         String submodeName = getSubmodeName(submodeId);
-        if (submodeName == null || submodeName.replace(" ", "").isEmpty()) return EnumChatFormatting.ITALIC + "<unnamed>";
+        if (submodeName == null || submodeName.replace(" ", "").isEmpty()) return EnumChatFormatting.ITALIC + "(unnamed)";
         else submodeName = submodeName.trim();
         return StringUtils.stripControlCodes(submodeName);
     }
@@ -198,7 +214,7 @@ public class CustomAlertModeManager
     
     public void loadMeta(String submodeId)
     {
-        String propertiesString = FileManager.readFile(getMetaFile(submodeId));
+        String propertiesString = FileUtil.readFile(getMetaFile(submodeId));
         if (propertiesString != null) metas.put(submodeId, JsonUtil.parseObject(propertiesString));
     }
     
@@ -219,7 +235,7 @@ public class CustomAlertModeManager
         JsonObject metaJson = metas.get(submodeId);
         if (metaJson == null) metaJson = new JsonObject();
         
-        if (!FileManager.writeFile(getMetaFile(submodeId), metaJson.toString()))
+        if (!FileUtil.writeFile(getMetaFile(submodeId), metaJson.toString()))
         {
             scathaPro.logError("Failed to write custom alert mode meta file (" + submodeId + ")");
         }
@@ -236,17 +252,16 @@ public class CustomAlertModeManager
         return -1L;
     }
     
-    public void updateCurrentSubmodeLastUsed()
+    public void updateSubmodeLastUsed(String submodeId)
     {
-        if (currentSubmodeId == null) return;
-        setMeta(currentSubmodeId, "lastUsed", new JsonPrimitive(Util.getCurrentTime()));
-        saveMeta(currentSubmodeId);
+        if (submodeId == null || !doesSubmodeExist(submodeId)) return;
+        setMeta(submodeId, "lastUsed", new JsonPrimitive(TimeUtil.now()));
     }
     
     
     public JsonObject loadSubmodeProperties(String submodeId)
     {
-        String propertiesString = FileManager.readFile(getPropertiesFile(submodeId));
+        String propertiesString = FileUtil.readFile(getPropertiesFile(submodeId));
         if (propertiesString != null)
         {
             JsonObject properties = JsonUtil.parseObject(propertiesString);
@@ -279,7 +294,7 @@ public class CustomAlertModeManager
     {
         File propertiesFile = getPropertiesFile(submodeId);
         propertiesFile.getParentFile().mkdirs();
-        if (!FileManager.writeFile(propertiesFile, properties.toString()))
+        if (!FileUtil.writeFile(propertiesFile, properties.toString()))
         {
             scathaPro.logError("Failed to write custom alert mode properties file (" + submodeId + ")");
         }

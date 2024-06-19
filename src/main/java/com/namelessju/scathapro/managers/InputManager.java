@@ -34,12 +34,16 @@ public class InputManager
         if (lockRotationKeybinding.isPressed())
         {
             toggleCameraRotationLock();
-            // MessageUtil.sendModChatMessage(EnumChatFormatting.GRAY + "Camera rotation " + (rotationLocked ? "locked" : "unlocked"));
         }
+        
         else if (toggleOverlayKeybinding.isPressed())
         {
-            scathaPro.getOverlay().toggleVisibility();
+            if (scathaPro.getOverlay().isOverlayDrawAllowed())
+            {
+                scathaPro.getOverlay().toggleVisibility();
+            }
         }
+        
         else if (toggleRotationAnglesKeybinding.isPressed())
         {
             boolean enabled = scathaPro.getConfig().getBoolean(Config.Key.showRotationAngles);
@@ -71,10 +75,8 @@ public class InputManager
         rotationLocked = false;
         
         scathaPro.getMinecraft().mouseHelper = previousMouseHelper;
-        
         // Consume any stored mouse delta to prevent mouse snapping
         previousMouseHelper.mouseXYChange();
-        
         previousMouseHelper = null;
     }
     

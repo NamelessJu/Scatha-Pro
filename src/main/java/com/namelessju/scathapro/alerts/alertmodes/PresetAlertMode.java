@@ -13,7 +13,7 @@ public class PresetAlertMode extends AlertMode
     
     public String getIconPath()
     {
-        return "overlay/mode_icons/" + id + ".png";
+        return "overlay/scatha_icons/mode_" + id + ".png";
     }
 
     public ResourceLocation getSoundBaseResourceLocation()

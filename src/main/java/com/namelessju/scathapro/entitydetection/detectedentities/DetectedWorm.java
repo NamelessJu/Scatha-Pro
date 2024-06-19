@@ -8,7 +8,7 @@ import com.namelessju.scathapro.events.WormHitEvent;
 import com.namelessju.scathapro.events.WormKillEvent;
 import com.namelessju.scathapro.events.WormSpawnEvent;
 import com.namelessju.scathapro.util.NBTUtil;
-import com.namelessju.scathapro.util.Util;
+import com.namelessju.scathapro.util.TimeUtil;
 
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.item.ItemStack;
@@ -56,7 +56,7 @@ public class DetectedWorm extends DetectedEntity
     @Override
     protected void onLeaveWorld(boolean despawned)
     {
-        if (getLastAttackTime() >= 0 && Util.getCurrentTime() - getLastAttackTime() < Constants.pingTreshold || isFireAspectActive() && (getMaxLifetime() < 0 || getCurrentLifetime() < getMaxLifetime()))
+        if (getLastAttackTime() >= 0 && TimeUtil.now() - getLastAttackTime() < Constants.pingTreshold || isFireAspectActive() && (getMaxLifetime() < 0 || getCurrentLifetime() < getMaxLifetime()))
         {
             MinecraftForge.EVENT_BUS.post(new WormKillEvent(this));
         }
@@ -68,7 +68,7 @@ public class DetectedWorm extends DetectedEntity
     
     public void attack(ItemStack weapon)
     {
-        long now = Util.getCurrentTime();
+        long now = TimeUtil.now();
         lastAttackTime = now;
 
         String skyblockItemID = NBTUtil.getSkyblockItemID(weapon);
@@ -119,7 +119,7 @@ public class DetectedWorm extends DetectedEntity
                     break;
             }
             
-            return Util.getCurrentTime() - lastFireAspectAttackTime <= fireAspectDuration * 1000f + Constants.pingTreshold;
+            return TimeUtil.now() - lastFireAspectAttackTime <= fireAspectDuration * 1000f + Constants.pingTreshold;
         }
         return false;
     }

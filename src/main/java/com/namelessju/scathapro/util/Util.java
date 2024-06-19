@@ -8,13 +8,13 @@ import java.io.IOException;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.UUID;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.util.BlockPos;
 
 public class Util
@@ -52,11 +52,6 @@ public class Util
     }
 
     
-    public static long getCurrentTime()
-    {
-        return System.currentTimeMillis();
-    }
-    
     public static String getUUIDString(UUID uuid)
     {
         if (uuid != null) return uuid.toString().replace("-", "").toLowerCase();
@@ -92,16 +87,6 @@ public class Util
         return decimalFormat.format(number);
     }
     
-    public static String formatTime(long timestamp)
-    {
-        return new SimpleDateFormat().format(new Date(timestamp));
-    }
-    
-    public static String getUnicodeString(String hexValue)
-    {
-        return Character.toString((char) Integer.parseInt(hexValue, 16));
-    }
-    
     public static BlockPos entityBlockPos(Entity entity)
     {
         return new BlockPos(
@@ -116,6 +101,13 @@ public class Util
         int facing = (int) Math.floor(player.rotationYaw / 90 - 1.5f) % 4;
         if (facing < 0) facing += 4;
         return facing;
+    }
+    
+    public static boolean isPlayerListOpened()
+    {
+        ScoreObjective scoreobjective = Minecraft.getMinecraft().theWorld.getScoreboard().getObjectiveInDisplaySlot(0);
+        NetHandlerPlayClient handler = Minecraft.getMinecraft().thePlayer.sendQueue;
+        return Minecraft.getMinecraft().gameSettings.keyBindPlayerList.isKeyDown() && (!Minecraft.getMinecraft().isIntegratedServerRunning() || handler.getPlayerInfoMap().size() > 1 || scoreobjective != null);
     }
     
     public static void copyToClipboard(String str)
@@ -145,6 +137,15 @@ public class Util
         }
         
         return false;
+    }
+    
+    /**
+     * @param integer A nullable <code>Integer</code> object
+     * @return 0 if <code>integer</code> is <code>null</code>, otherwise returns <code>integer</code>
+     */
+    public static int intOrZero(Integer integer)
+    {
+        return integer == null ? 0 : integer;
     }
     
     

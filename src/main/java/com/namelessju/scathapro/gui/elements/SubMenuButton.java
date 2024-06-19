@@ -6,13 +6,12 @@ import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.gui.menus.ScathaProGui;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
-public class SubMenuButton extends GuiButton implements IClickActionButton
+public class SubMenuButton extends ScathaProButton implements IClickActionButton
 {
     public ScathaProGui parentMenu;
     public Class<? extends ScathaProGui> menuClass;

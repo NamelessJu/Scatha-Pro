@@ -4,14 +4,16 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 
 import com.namelessju.scathapro.ScathaPro;
+import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.overlay.Overlay.ToggleableOverlayElement;
 
-public class OverlayToggleableElementsGuiList extends ScathaProGuiList
+public class OverlayComponentsGuiList extends ScathaProGuiList
 {
-    public OverlayToggleableElementsGuiList(ScathaPro scathaPro, GuiScreen gui)
+    public OverlayComponentsGuiList(ScathaPro scathaPro, GuiScreen gui)
     {
-        // super(gui, 150, gui.height - 40, 25);
         super(gui, 25);
+        
+        this.listEntries.add(new OverlayBackgroundEntry());
         
         for (ToggleableOverlayElement toggleableElement : scathaPro.getOverlay().toggleableOverlayElements)
         {
@@ -19,6 +21,15 @@ public class OverlayToggleableElementsGuiList extends ScathaProGuiList
         }
     }
     
+    
+    private class OverlayBackgroundEntry extends ListEntry
+    {
+        public OverlayBackgroundEntry()
+        {
+            addLabel("Background", 0, 5, getListWidth() - 75, 10);
+            addButton(new BooleanSettingButton(0, getListWidth() - 70, 0, 70, 20, null, Config.Key.overlayBackgroundEnabled));
+        }
+    }
     
     private class OverlayToggleableElementEntry extends ListEntry
     {
@@ -29,8 +40,8 @@ public class OverlayToggleableElementsGuiList extends ScathaProGuiList
         {
             this.toggleableElement = toggleableElement;
             
-            addLabel(toggleableElement.elementName, 0, 5, getListWidth() - 100, 10);
-            addButton(button = new GuiButton(0, getListWidth() - 105, 0, 70, 20, "?"));
+            addLabel(toggleableElement.elementName, 0, 5, getListWidth() - 75, 10);
+            addButton(button = new GuiButton(0, getListWidth() - 70, 0, 70, 20, "?"));
             updateButtonText();
         }
         
