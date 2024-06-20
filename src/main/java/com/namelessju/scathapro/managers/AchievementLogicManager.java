@@ -1,13 +1,27 @@
 package com.namelessju.scathapro.managers;
 
 import java.time.LocalDate;
+import java.util.Collection;
 
 import com.namelessju.scathapro.GlobalVariables;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.achievements.AchievementManager;
+import com.namelessju.scathapro.entitydetection.detectedentities.DetectedWorm;
 import com.namelessju.scathapro.miscellaneous.OverlayStats;
+import com.namelessju.scathapro.util.JsonUtil;
+import com.namelessju.scathapro.util.NBTUtil;
 import com.namelessju.scathapro.util.TimeUtil;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.scoreboard.Score;
+import net.minecraft.scoreboard.ScoreObjective;
+import net.minecraft.scoreboard.ScorePlayerTeam;
+import net.minecraft.scoreboard.Scoreboard;
+import net.minecraft.util.StringUtils;
 
 public class AchievementLogicManager
 {
@@ -42,6 +56,8 @@ public class AchievementLogicManager
         Achievement.scatha_kills_3.setProgress(highestScathaKills);
         Achievement.scatha_kills_4.setProgress(highestScathaKills);
         Achievement.scatha_kills_5.setProgress(highestScathaKills);
+        
+        updateKillsTodayAchievements();
     }
     
     public void updateSpawnAchievements()
@@ -56,6 +72,113 @@ public class AchievementLogicManager
         Achievement.regular_worm_streak_1.setProgress(regularWormStreak);
         Achievement.regular_worm_streak_2.setProgress(regularWormStreak);
         Achievement.regular_worm_streak_3.setProgress(regularWormStreak);
+    }
+    
+    public void handleScathaSpawnAchievements(long now, DetectedWorm worm)
+    {
+        // Time achievements
+        
+        if (now - scathaPro.variables.lastWorldJoinTime <= Achievement.scatha_spawn_time.goal * 60 * 1000)
+        {
+            Achievement.scatha_spawn_time.unlock();
+        }
+        
+        // Height achievements
+        
+        if (worm.getEntity().posY > 186) Achievement.scatha_spawn_chtop.unlock();
+        else if (worm.getEntity().posY < 32.5) Achievement.scatha_spawn_chbottom.unlock();
+        
+        // Scoreboard achievements
+        
+        if (!scathaPro.getAchievementManager().isAchievementUnlocked(Achievement.scatha_spawn_heat_burning))
+        {
+            scathaPro.logDebug("Checking for scoreboard heat value...");
+            
+            Scoreboard scoreboard = Minecraft.getMinecraft().theWorld.getScoreboard();
+            ScoreObjective sidebarObjective = scoreboard.getObjectiveInDisplaySlot(1);
+            if (sidebarObjective != null)
+            {
+                scathaPro.logDebug("Scoreboard objective found in sidebar: \"" + sidebarObjective.getDisplayName() + "\"");
+                
+                Collection<Score> scores = scoreboard.getSortedScores(sidebarObjective);
+                for (Score score : scores)
+                {
+                    String playerName = score.getPlayerName();
+                    ScorePlayerTeam playerTeam = scoreboard.getPlayersTeam(playerName);
+                    String formattedScoreText = ScorePlayerTeam.formatPlayerName(playerTeam, playerName);
+                    String unformattedText = StringUtils.stripControlCodes(formattedScoreText.replace(playerName, ""));
+                    
+                    scathaPro.logDebug("Scoreboard line: \"" + unformattedText + "\"");
+                    
+                    if (unformattedText.startsWith("Heat:"))
+                    {
+                        String valueString = unformattedText.substring(5).trim();
+                        
+                        // remove non-digit characters from left
+                        while (valueString.length() > 0)
+                        {
+                            char firstChar = valueString.charAt(0);
+                            if (firstChar >= '0' && firstChar <= '9') break;
+                            if (valueString.startsWith("IMMUNE"))
+                            {
+                                valueString = null;
+                                break;
+                            }
+                            valueString = valueString.substring(1).trim();
+                        }
+                        
+                        // remove non-digit characters from right
+                        while (valueString != null && valueString.length() > 0)
+                        {
+                            char lastChar = valueString.charAt(valueString.length() - 1);
+                            if (lastChar >= '0' && lastChar <= '9') break;
+                            valueString = valueString.substring(0, valueString.length() - 1).trim();
+                        }
+                        
+                        if (valueString != null && !valueString.isEmpty())
+                        {
+                            int heat = -1;
+                            try
+                            {
+                                heat = Integer.parseInt(valueString);
+                                scathaPro.logDebug("Scoreboard heat entry found - value: " + heat);
+                            }
+                            catch (NumberFormatException exception)
+                            {
+                                scathaPro.logError("Error while parsing scoreboard heat value: \"" + unformattedText + "\" couldn't be parsed to an int");
+                            }
+                            
+                            if (heat >= 90) Achievement.scatha_spawn_heat_burning.unlock();
+                        }
+                        else
+                        {
+                            scathaPro.logDebug("Scoreboard heat entry found, but has no int value: \"" + unformattedText + "\"");
+                        }
+                        
+                        break;
+                    }
+                }
+            }
+            else scathaPro.logDebug("No scoreboard objective in sidebar found");
+        }
+        
+        // Player dependent achievements
+        
+        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+        if (player != null)
+        {
+            ItemStack helmetItem = Minecraft.getMinecraft().thePlayer.getCurrentArmor(3);
+            String skyblockItemID = NBTUtil.getSkyblockItemID(helmetItem);
+            if (skyblockItemID != null && skyblockItemID.equals("PET"))
+            {
+                NBTTagCompound skyblockNbt = NBTUtil.getSkyblockTagCompound(helmetItem);
+                String petType = JsonUtil.getString(JsonUtil.parseObject(skyblockNbt.getString("petInfo")), "type");
+                if (petType != null && petType.equals("SCATHA"))
+                {
+                    Achievement.scatha_spawn_scatha_helmet.unlock();
+                }
+            }
+        }
     }
     
     public void updatePetDropAchievements()
@@ -117,7 +240,6 @@ public class AchievementLogicManager
         Achievement.scatha_farming_streak_4.setProgress(variables.scathaFarmingStreak);
         Achievement.scatha_farming_streak_5.setProgress(variables.scathaFarmingStreak);
         
-        
         if (variables.lastScathaFarmedDate != null)
         {
             LocalDate today = TimeUtil.today();
@@ -145,5 +267,13 @@ public class AchievementLogicManager
             Achievement.scatha_farming_streak_business_days.setProgress(0);
             Achievement.scatha_farming_streak_weekend.setProgress(0);
         }
+    }
+    
+    public void updateKillsTodayAchievements()
+    {
+        int totalWormKillsToday = OverlayStats.PER_DAY.regularWormKills + OverlayStats.PER_DAY.scathaKills;
+        Achievement.day_kills_1.setProgress(totalWormKillsToday);
+        Achievement.day_kills_2.setProgress(totalWormKillsToday);
+        Achievement.day_kills_3.setProgress(totalWormKillsToday);
     }
 }

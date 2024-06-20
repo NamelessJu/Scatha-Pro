@@ -19,6 +19,7 @@ import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.achievements.AchievementManager;
 import com.namelessju.scathapro.achievements.UnlockedAchievement;
 import com.namelessju.scathapro.events.DailyScathaFarmingStreakChangedEvent;
+import com.namelessju.scathapro.events.DailyStatsResetEvent;
 import com.namelessju.scathapro.miscellaneous.OverlayStats;
 import com.namelessju.scathapro.util.MessageUtil;
 import com.namelessju.scathapro.util.TimeUtil;
@@ -400,11 +401,9 @@ public class PersistentData
         OverlayStats.PER_DAY.scathaSpawnStreak = 0;
         
         saveDailyStatsData();
-
-        scathaPro.getOverlay().updateWormKills();
-        scathaPro.getOverlay().updateScathaKills();
-        scathaPro.getOverlay().updateTotalKills();
-
+        
+        MinecraftForge.EVENT_BUS.post(new DailyStatsResetEvent());
+        
         scathaPro.logDebug("Daily stats reset");
         
         if (MessageUtil.getPlayerInWorld() != null)

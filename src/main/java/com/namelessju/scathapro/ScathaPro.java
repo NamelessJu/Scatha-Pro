@@ -46,8 +46,8 @@ public class ScathaPro
 {
     public static final String MODNAME = "Scatha-Pro";
     public static final String MODID = "scathapro";
-    // public static final String VERSION = "1.3.dev.3";
-    public static final String VERSION = "1.3.pre-release.3";
+    //public static final String VERSION = "1.3.dev.4";
+    public static final String VERSION = "1.3.pre-release.4";
     
     
     private static ScathaPro instance;
@@ -98,7 +98,6 @@ public class ScathaPro
         
         config = new Config();
         config.init();
-        
         
         achievementManager = new AchievementManager(this);
         achievementLogicManager = new AchievementLogicManager(this);

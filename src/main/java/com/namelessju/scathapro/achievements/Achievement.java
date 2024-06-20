@@ -29,14 +29,6 @@ public enum Achievement
     scatha_kills_4("Scatha-Pro", "Kill 1,000 Scathas", 1000),
     scatha_kills_5("The show must go on!", "Kill 10,000 Scathas", 10000, Type.BONUS),
     
-    scatha_farming_streak_1("Daily Scatha grind", "Farm Scathas for 3 days in a row", 3),
-    scatha_farming_streak_2("No day off", "Farm Scathas for 5 days in a row", 5),
-    scatha_farming_streak_3("Scatha week", "Farm Scathas for 7 days in a row", 7),
-    scatha_farming_streak_4("A fortnight of Scathas", "Farm Scathas for 14 days in a row", 14, Type.BONUS),
-    scatha_farming_streak_5("Scatha month", "Farm Scathas for 30 days in a row", 30, Type.BONUS),
-    scatha_farming_streak_business_days("Barry's business days", "Farm Scathas every day for a whole business week", 5),
-    scatha_farming_streak_weekend("Weekend well spent", "Farm Scathas on both days of a weekend", 2),
-    
     scatha_pet_drop_1_rare("Better than nothing", "Get a rare Scatha pet drop", 1),
     scatha_pet_drop_2_rare("Pocket money", "Get 3 rare Scatha pet drops", 3),
     scatha_pet_drop_3_rare("I'm blue da ba dee da ba di", "Get 10 rare Scatha pet drops", 10),
@@ -61,7 +53,7 @@ public enum Achievement
     scatha_pet_drop_mode_anime("Scatha-Chan", "Drop a Scatha pet in anime mode", 1),
     scatha_pet_drop_mode_custom("Scatha tinkerer", "Drop a Scatha pet in an active custom mode", 1),
 
-    scatha_pet_drop_super_secret_setting("Super Secret Scatha", "Drop a Scatha pet in a Super Secret Setting", 1, Type.BONUS),
+    scatha_pet_drop_super_secret_setting("Super Secret Scatha", "Drop a Scatha pet in a Super Secret Setting", 1, Type.HIDDEN),
     
     scatha_pet_drop_b2b("Sold your soul to RNGesus", "Drop two Scatha pets back to back", 2, Type.HIDDEN),
     
@@ -86,9 +78,22 @@ public enum Achievement
     lobby_kills_2("Scatha grinding session", "Kill 50 worms in a single lobby", 50),
     lobby_kills_3("Lobby cleared", "Kill 100 worms in a single lobby", 100, Type.BONUS),
     
+    day_kills_1("A good day for killing worms", "Kill 50 worms in a single (IRL) day", 50),
+    day_kills_2("On today's agenda: Scatha farming", "Kill 100 worms in a single (IRL) day", 100),
+    day_kills_3("Full time job", "Kill 250 worms in a single (IRL) day", 250, Type.BONUS),
+    
+    scatha_farming_streak_1("Daily Scatha grind", "Farm Scathas for 3 days in a row", 3),
+    scatha_farming_streak_2("Growing the streak", "Farm Scathas for 5 days in a row", 5),
+    scatha_farming_streak_3("Scathas for a week", "Farm Scathas for 7 days in a row", 7),
+    scatha_farming_streak_4("A fortnight of Scathas", "Farm Scathas for 14 days in a row", 14, Type.BONUS),
+    scatha_farming_streak_5("No day off", "Farm Scathas for 30 days in a row", 30, Type.BONUS),
+    scatha_farming_streak_business_days("Barry's business days", "Farm Scathas every day for a whole business week", 5),
+    scatha_farming_streak_weekend("Weekend well spent", "Farm Scathas on both days of a weekend", 2),
+    
     scatha_kill_sneak("Sneak 100", "Spawn and kill a Scatha while sneaking the entire time", 1, Type.SECRET),
     scatha_kill_highground("Obi Wan would be proud", "Kill a Scatha from high ground", 1, Type.SECRET),
     scatha_hit_dirt("Bully Maguire", "Put some dirt in a Scatha's eye", 1, Type.SECRET),
+    scatha_kill_gemstone("Return to sender", "Kill a Scatha with one of the gemstones they drop", 1, Type.SECRET),
     scatha_kill_juju("Juju Farmer", "Kill a Scatha with a Juju Shortbow", 1, Type.HIDDEN),
     scatha_kill_terminator("I'll be back!", "Kill a Scatha with a Terminator", 1, Type.HIDDEN),
     
@@ -107,9 +112,7 @@ public enum Achievement
     scatha_spawn_scatha_helmet("Scatha impostor", "Wear a Scatha pet on your head and spawn a Scatha", 1, Type.SECRET),
     
     easter_egg_overlay_title("Scappa", "Get the easter egg overlay title", 1, Type.HIDDEN),
-    
     meet_developer("The Creator", "Be in a lobby with " + ScathaPro.MODNAME + "'s developer", 1, Type.HIDDEN),
-    
     cheat("Cheater", "Put impossible values into the " + ScathaPro.MODNAME + " savefile", 1, Type.HIDDEN);
     
     

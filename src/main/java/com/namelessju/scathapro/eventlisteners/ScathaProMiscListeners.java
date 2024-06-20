@@ -4,6 +4,7 @@ import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.events.AchievementUnlockedEvent;
 import com.namelessju.scathapro.events.DailyScathaFarmingStreakChangedEvent;
+import com.namelessju.scathapro.events.DailyStatsResetEvent;
 import com.namelessju.scathapro.events.ModUpdateEvent;
 import com.namelessju.scathapro.events.SkyblockAreaDetectedEvent;
 import com.namelessju.scathapro.managers.Config;
@@ -113,5 +114,15 @@ public class ScathaProMiscListeners extends ScathaProListener
     public void onDailyScathaFarmingStreakChanged(DailyScathaFarmingStreakChangedEvent e)
     {
         scathaPro.getAchievementLogicManager().updateDailyScathaStreakAchievements();
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public void onDailyStatsReset(DailyStatsResetEvent e)
+    {
+        scathaPro.getOverlay().updateWormKills();
+        scathaPro.getOverlay().updateScathaKills();
+        scathaPro.getOverlay().updateTotalKills();
+        
+        scathaPro.getAchievementLogicManager().updateKillsTodayAchievements();
     }
 }
