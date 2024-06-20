@@ -70,13 +70,14 @@ public class DetectedWorm extends DetectedEntity
     {
         long now = TimeUtil.now();
         lastAttackTime = now;
-
+        
         String skyblockItemID = NBTUtil.getSkyblockItemID(weapon);
-        if (skyblockItemID != null && !hitWeapons.contains(skyblockItemID))
+        if (skyblockItemID != null)
         {
+            hitWeapons.remove(skyblockItemID);
             hitWeapons.add(skyblockItemID);
         }
-
+        
         NBTTagCompound enchantments = NBTUtil.getSkyblockTagCompound(weapon, "enchantments");
         if (enchantments != null)
         {
