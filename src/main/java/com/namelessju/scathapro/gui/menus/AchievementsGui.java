@@ -5,11 +5,9 @@ import java.io.IOException;
 import org.lwjgl.input.Mouse;
 
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.gui.elements.AchievementsList;
-import com.namelessju.scathapro.gui.elements.BooleanSettingButton;
+import com.namelessju.scathapro.gui.elements.SubMenuButton;
 
-import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 
@@ -33,14 +31,13 @@ public class AchievementsGui extends ScathaProGui
     public void initGui()
     {
         super.initGui();
-        initializeAchievementsList();
-
+        
         ScaledResolution scaledResolution = new ScaledResolution(mc);
         heightFactor = (height * scaledResolution.getScaleFactor()) / 1080f;
         
         initializeAchievementsList();
         
-        buttonList.add(new BooleanSettingButton(1, width / 2 - 100, Math.round(height - 24 - 50 * heightFactor), 200, 20, "Show Bonus Achievements", Config.Key.bonusAchievementsShown));
+        buttonList.add(new SubMenuButton(1, width / 2 - 100, Math.round(height - 24 - 50 * heightFactor), 200, 20, "Achievement Settings...", this, AchievementSettingsGui.class));
         
         addDoneButton("Close", width / 2 - 100, Math.round(height - 50 * heightFactor), 200, 20);
     }
@@ -49,21 +46,9 @@ public class AchievementsGui extends ScathaProGui
     {
         int achievementsListWidth = 310;
         int achievementsListX = width / 2 - achievementsListWidth / 2;
-        int achievementsListY = 41;
+        int achievementsListY = 42;
         int achievementsListHeight = Math.round(height - achievementsListY - 20 - 50 * heightFactor - 10);
         achievementsList = new AchievementsList(achievementsListX, achievementsListY, achievementsListWidth, achievementsListHeight);
-    }
-    
-    @Override
-    protected void actionPerformed(GuiButton button) throws IOException
-    {
-        super.actionPerformed(button);
-        
-        if (button.enabled && button.id == 1)
-        {
-            scathaPro.getAchievementManager().updateBonusTypeVisibility();
-            initializeAchievementsList();
-        }
     }
     
     @Override

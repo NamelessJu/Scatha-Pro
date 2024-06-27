@@ -19,7 +19,10 @@ public abstract class SoundUtil
     
     public static ISound playSound(String soundId, float volume, float pitch)
     {
-        ISound sound = new ScathaProSound(soundId, volume * (float) ScathaPro.getInstance().getConfig().getDouble(Config.Key.soundsVolume), pitch);
+        float scathaProVolume = Math.min((float) ScathaPro.getInstance().getConfig().getDouble(Config.Key.soundsVolume), 1f);
+        float totalVolume = volume * scathaProVolume;
+        ISound sound = new ScathaProSound(soundId, totalVolume, pitch);
+        ScathaPro.getInstance().logDebug("Playing sound \"" + soundId + "\" with volume " + volume + " and Scatha-Pro volume " + scathaProVolume + " -> total volume: " + totalVolume);
         Minecraft.getMinecraft().getSoundHandler().playSound(sound);
         return sound;
     }

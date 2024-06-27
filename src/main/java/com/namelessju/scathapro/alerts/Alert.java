@@ -13,7 +13,7 @@ public enum Alert
 {
     bedrockWall("bedrock_wall", "Bedrock Wall Alert", "Triggers when you're close to and walking towards the bedrock wall", new DefaultAlertSound("note.pling", 1f, 0.5f), AlertTitle.create(null, "Close to bedrock", null, EnumChatFormatting.GRAY.toString(), 5, 20, 5), Config.Key.bedrockWallAlert),
     
-    wormPrespawn("worm_prespawn", "Worm Pre-Spawn Alert", "Triggers when either type of worm is about to spawn", new DefaultAlertSound("random.orb", 1f, 0.5f), AlertTitle.create(null, "Worm about to spawn...", null, EnumChatFormatting.YELLOW.toString(), 0, 20, 5), Config.Key.wormPrespawnAlert),
+    wormPrespawn("worm_prespawn", "Worm Pre-Spawn Alert", "Triggers when either type of worm is about to spawn\n" + EnumChatFormatting.YELLOW + "(Requires hostile and master sound volumes to be above 0!)", new DefaultAlertSound("random.orb", 1f, 0.5f), AlertTitle.create(null, "Worm about to spawn...", null, EnumChatFormatting.YELLOW.toString(), 0, 20, 5), Config.Key.wormPrespawnAlert),
     regularWormSpawn("regular_worm_spawn", "Regular Worm Spawn Alert", null, new DefaultAlertSound("random.levelup", 1f, 0.5f), AlertTitle.create("Worm", "Just a regular worm...", EnumChatFormatting.YELLOW.toString(), EnumChatFormatting.GRAY.toString(), 5, 20, 5), Config.Key.regularWormSpawnAlert),
     scathaSpawn("scatha_spawn", "Scatha Spawn Alert", null, new DefaultAlertSound("random.levelup", 1f, 0.8f), AlertTitle.create("Scatha", "Pray to RNGesus!", EnumChatFormatting.RED.toString(), EnumChatFormatting.GRAY.toString(), 0, 40, 10), Config.Key.scathaSpawnAlert),
     wormSpawnCooldownEnd("worm_spawn_cooldown_end", "Worm Spawn Cooldown Alert", "Triggers when the worm spawn cooldown ends", new DefaultAlertSound("note.pling", 1f, 0.75f), AlertTitle.create(null, "Worm spawn cooldown ended", null, EnumChatFormatting.GREEN.toString(), 5, 30, 5), Config.Key.wormSpawnCooldownEndAlert),
@@ -88,7 +88,7 @@ public enum Alert
                 lastSound = SoundUtil.playSound(soundPath);
                 return;
             }
-            else ScathaPro.getInstance().logDebug("Couldn't play alert sound \"" + soundPath + "\": Sound not found");
+            else ScathaPro.getInstance().logDebug("Couldn't play alert sound \"" + soundPath + "\": Sound not found - playing default sound instead");
         }
         
         playDefaultSound();

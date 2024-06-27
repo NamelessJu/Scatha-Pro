@@ -46,8 +46,8 @@ public class ScathaPro
 {
     public static final String MODNAME = "Scatha-Pro";
     public static final String MODID = "scathapro";
-    //public static final String VERSION = "1.3.dev.4";
-    public static final String VERSION = "1.3.pre-release.4";
+    // public static final String VERSION = "1.3.dev.5";
+    public static final String VERSION = "1.3.pre-release.5";
     
     
     private static ScathaPro instance;

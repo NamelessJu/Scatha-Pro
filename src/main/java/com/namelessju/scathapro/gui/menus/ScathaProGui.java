@@ -237,9 +237,8 @@ public abstract class ScathaProGui extends GuiScreen
             currentGridPositionY += 24;
             isCurrentGridPositionRightColumn = false;
         }
-        int currentGridPositionX = width / 2 + (isCurrentGridPositionRightColumn ? 5 : -155);
         
-        button.xPosition = currentGridPositionX;
+        button.xPosition = width / 2 + (isCurrentGridPositionRightColumn ? 5 : -155);
         button.yPosition = currentGridPositionY;
         button.width = doubleWidth ? 310 : 150;
         button.height = 20;
@@ -253,6 +252,10 @@ public abstract class ScathaProGui extends GuiScreen
     {
         if (currentGridPositionY < 0) return;
         currentGridPositionY += 6;
-        isCurrentGridPositionRightColumn = false;
+        if (isCurrentGridPositionRightColumn)
+        {
+            currentGridPositionY += 24;
+            isCurrentGridPositionRightColumn = false;
+        }
     }
 }

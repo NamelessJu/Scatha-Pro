@@ -44,40 +44,38 @@ public class OverlayPositionSettingsGui extends OverlaySettingsGui implements Gu
     @Override
     public void onChangeSliderValue(GuiSlider slider)
     {
-        if (slider.enabled)
+        if (!slider.enabled) return;
+        switch (slider.id)
         {
-            switch (slider.id)
-            {
-                case 1:
-                    double overlayX = (double) slider.getValueInt() / 100;
-                    
-                    config.set(Config.Key.overlayX, overlayX >= 0 ? overlayX : -1);
-                    config.save();
-                    
-                    overlay.updatePosition();
-                    
-                    if (overlayX < 0) setSliderTextDefault(slider);
-                    break;
-                    
-                case 2:
-                    double overlayY = (double) slider.getValueInt() / 100;
-                    
-                    config.set(Config.Key.overlayY, overlayY >= 0 ? overlayY : -1);
-                    config.save();
-                    
-                    overlay.updatePosition();
-                    
-                    if (overlayY < 0) setSliderTextDefault(slider);
-                    break;
-                    
-                case 3:
-                    config.set(Config.Key.overlayScale, (double) slider.getValueInt() / 100);
-                    config.save();
-                    
-                    overlay.updateScale();
-                    overlay.updatePosition();
-                    break;
-            }
+            case 1:
+                double overlayX = (double) slider.getValueInt() / 100;
+
+                config.set(Config.Key.overlayX, overlayX >= 0 ? overlayX : -1);
+                config.save();
+
+                overlay.updatePosition();
+
+                if (overlayX < 0) setSliderTextDefault(slider);
+                break;
+
+            case 2:
+                double overlayY = (double) slider.getValueInt() / 100;
+
+                config.set(Config.Key.overlayY, overlayY >= 0 ? overlayY : -1);
+                config.save();
+
+                overlay.updatePosition();
+
+                if (overlayY < 0) setSliderTextDefault(slider);
+                break;
+
+            case 3:
+                config.set(Config.Key.overlayScale, (double) slider.getValueInt() / 100);
+                config.save();
+
+                overlay.updateScale();
+                overlay.updatePosition();
+                break;
         }
     }
     

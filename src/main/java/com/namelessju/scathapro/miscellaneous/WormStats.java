@@ -2,7 +2,7 @@ package com.namelessju.scathapro.miscellaneous;
 
 import com.namelessju.scathapro.gui.elements.MultiOptionButton;
 
-public enum OverlayStats implements MultiOptionButton.IOption<String>
+public enum WormStats implements MultiOptionButton.IOption<String>
 {
     PER_LOBBY("Lobby", "lobby"),
     PER_SESSION("Session", "session"),
@@ -11,25 +11,31 @@ public enum OverlayStats implements MultiOptionButton.IOption<String>
     
     public static void addRegularWormSpawn()
     {
-        for (OverlayStats stats : getAllStats())
-            stats._addRegularWormSpawn();
+        for (WormStats stats : WormStats.values())
+        {
+            if (stats.scathaSpawnStreak > 0) stats.scathaSpawnStreak = 0;
+            stats.scathaSpawnStreak --;
+        }
     }
     
     public static void addScathaSpawn()
     {
-        for (OverlayStats stats : getAllStats())
-            stats._addScathaSpawn();
+        for (WormStats stats : WormStats.values())
+        {
+            if (stats.scathaSpawnStreak < 0) stats.scathaSpawnStreak = 0;
+            stats.scathaSpawnStreak ++;
+        }
     }
     
     public static void addRegularWormKill()
     {
-        for (OverlayStats stats : getAllStats())
+        for (WormStats stats : WormStats.values())
             stats.regularWormKills ++;
     }
     
     public static void addScathaKill()
     {
-        for (OverlayStats stats : getAllStats())
+        for (WormStats stats : WormStats.values())
             stats.scathaKills ++;
     }
     
@@ -40,16 +46,11 @@ public enum OverlayStats implements MultiOptionButton.IOption<String>
         PER_LOBBY.scathaSpawnStreak = 0;
     }
     
-    private static OverlayStats[] getAllStats()
-    {
-        return OverlayStats.values();
-    }
-    
     
     private String displayString;
     private String id;
     
-    OverlayStats(String displayString, String id)
+    WormStats(String displayString, String id)
     {
         this.displayString = displayString;
         this.id = id;
@@ -69,18 +70,5 @@ public enum OverlayStats implements MultiOptionButton.IOption<String>
     public String getOptionValue()
     {
         return id;
-    }
-    
-    
-    private void _addRegularWormSpawn()
-    {
-        if (scathaSpawnStreak > 0) scathaSpawnStreak = 0;
-        scathaSpawnStreak --;
-    }
-    
-    private void _addScathaSpawn()
-    {
-        if (scathaSpawnStreak < 0) scathaSpawnStreak = 0;
-        scathaSpawnStreak ++;
     }
 }

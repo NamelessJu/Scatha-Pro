@@ -47,9 +47,9 @@ public class MiscListeners
     }
     
     @SubscribeEvent
-    public void onWorldJoin(EntityJoinWorldEvent e)
+    public void onWorldJoin(EntityJoinWorldEvent event)
     {
-        if (e.entity != mc.thePlayer) return;
+        if (event.isCanceled() || event.entity != mc.thePlayer) return;
         
         // Reset
         
@@ -67,7 +67,7 @@ public class MiscListeners
         // Update achievements
         
         scathaPro.getAchievementLogicManager().updateKillAchievements();
-        scathaPro.getAchievementLogicManager().updateSpawnAchievements();
+        scathaPro.getAchievementLogicManager().updateSpawnAchievements(null);
         
         Achievement.crystal_hollows_time_1.setProgress(0);
         Achievement.crystal_hollows_time_2.setProgress(0);
@@ -75,12 +75,14 @@ public class MiscListeners
     }
     
     @SubscribeEvent
-    public void onAttack(AttackEntityEvent e)
+    public void onAttack(AttackEntityEvent event)
     {
+        if (event.isCanceled()) return;
+        
         // Worm melee attack detection
         
-        if (!(e.target instanceof EntityArmorStand)) return;
-        final EntityArmorStand attackedArmorStand = (EntityArmorStand) e.target;
+        if (!(event.target instanceof EntityArmorStand)) return;
+        final EntityArmorStand attackedArmorStand = (EntityArmorStand) event.target;
         
         // Check for attacked armor stand being the worm itself (= the name tag)
         DetectedWorm worm = DetectedWorm.getById(attackedArmorStand.getEntityId());
@@ -122,9 +124,11 @@ public class MiscListeners
     }
     
     @SubscribeEvent
-    public void onInteractItem(PlayerInteractEvent e)
+    public void onInteractItem(PlayerInteractEvent event)
     {
-        ItemStack heldItem = e.entityPlayer.getHeldItem();
+        if (event.isCanceled()) return;
+        
+        ItemStack heldItem = event.entityPlayer.getHeldItem();
         if (heldItem != null && (heldItem.getItem() == Items.fishing_rod || heldItem.getItem() == Items.bow))
         {
             scathaPro.variables.lastProjectileWeaponUsed = heldItem;
@@ -132,17 +136,17 @@ public class MiscListeners
     }
     
     @SubscribeEvent(priority = EventPriority.LOW)
-    public void onChatReceived(ClientChatReceivedEvent e)
+    public void onChatReceived(ClientChatReceivedEvent event)
     {
-        if (e.type == 2) return;
+        if (event.type == 2) return;
         
-        scathaPro.variables.lastChatMessageIsDivider = e.message.getUnformattedText().equals(MessageUtil.dividerComponent.getUnformattedText());
+        scathaPro.variables.lastChatMessageIsDivider = event.message.getUnformattedText().equals(MessageUtil.dividerComponent.getUnformattedText());
         
-        MessageUtil.addChatCopyButton(e.message);
+        MessageUtil.addChatCopyButton(event.message);
     }
     
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onSound(PlaySoundEvent e)
+    public void onSound(PlaySoundEvent event)
     {
         // Detect worm pre-spawn
         
@@ -150,19 +154,17 @@ public class MiscListeners
         
         if
         (
-            now - lastPreAlertTime > 3000 && e.name.equals("mob.spider.step")
+            now - lastPreAlertTime > 3000 && event.name.equals("mob.spider.step")
             &&
             (
-                e.sound.getPitch() == 2.0952382f && scathaPro.isInCrystalHollows()
-                || e.sound.getPitch() >= 2f && scathaPro.getConfig().getBoolean(Config.Key.devMode)
+                event.sound.getPitch() == 2.0952382f && scathaPro.isInCrystalHollows()
+                || event.sound.getPitch() >= 2f && scathaPro.getConfig().getBoolean(Config.Key.devMode)
             )
-        )
-        {
+        ) {
             MinecraftForge.EVENT_BUS.post(new WormPreSpawnEvent());
             
             lastPreAlertTime = now;
         }
-        
         
         // Mute non-Scatha-Pro sounds in Crystal Hollows
         
@@ -170,33 +172,33 @@ public class MiscListeners
         (
             scathaPro.getConfig().getBoolean(Config.Key.muteCrystalHollowsSounds)
             && scathaPro.isInCrystalHollows()
-            && !(e.sound instanceof ScathaProSound) && !e.name.equals("gui.button.press")
-        )
-        {
-            e.result = null;
+            && !(event.sound instanceof ScathaProSound) && !event.name.equals("gui.button.press")
+        ) {
+            event.result = null;
+            ScathaPro.getInstance().logDebug("Cancelled sound \"" + event.name + "\": Crystal Hollows sounds are muted");
             return;
         }
         
-        
         // Mute sounds in fake ban screen
         
-        if (mc.currentScreen != null && mc.currentScreen instanceof FakeBanGui && !e.name.equals("gui.button.press"))
+        if (mc.currentScreen != null && mc.currentScreen instanceof FakeBanGui && !event.name.equals("gui.button.press"))
         {
-            e.result = null;
+            event.result = null;
+            ScathaPro.getInstance().logDebug("Cancelled sound \"" + event.name + "\": Fake ban screen is opened");
             return;
         }
     }
     
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void onTooltip(ItemTooltipEvent e)
+    public void onTooltip(ItemTooltipEvent event)
     {
         if (!scathaPro.getConfig().getBoolean(Config.Key.devMode)) return;
         
-        String skyblockItemID = NBTUtil.getSkyblockItemID(e.itemStack);
+        String skyblockItemID = NBTUtil.getSkyblockItemID(event.itemStack);
         if (skyblockItemID != null)
         {
-            e.toolTip.add("");
-            e.toolTip.add(EnumChatFormatting.RESET.toString() + EnumChatFormatting.DARK_GRAY + "Skyblock ID: " + skyblockItemID + EnumChatFormatting.RESET);
+            event.toolTip.add("");
+            event.toolTip.add(EnumChatFormatting.RESET.toString() + EnumChatFormatting.DARK_GRAY + "Skyblock ID: " + skyblockItemID + EnumChatFormatting.RESET);
         }
     }
     

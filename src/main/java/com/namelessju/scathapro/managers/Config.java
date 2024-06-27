@@ -16,6 +16,9 @@ public class Config
         overlayY("overlay", "y", -1D),
         overlayScale("overlay", "scale", 1D),
         statsType("overlay", "statsType", ""),
+        scathaPercentageAlternativePosition("overlay", "scathaPercentageAlternativePosition", false),
+        scathaPercentageCycleAmountDuration("overlay", "scathaPercentageCycleAmountDuration", 3),
+        scathaPercentageCyclePercentageDuration("overlay", "scathaPercentageCyclePercentageDuration", 2),
         scathaPercentageDecimalDigits("overlay", "scathaPercentageDecimalPlaces", 1),
         overlayElementStates("overlay", "overlayElementStates", ""),
         overlayBackgroundEnabled("overlay", "backgroundEnabled", true),
@@ -38,8 +41,9 @@ public class Config
         jerrySpawnAlert("alerts", "jerrySpawn", true),
         
         // Achievements
-        playAchievementAlerts("achievements", "playAchievementAlerts", 1D),
+        playAchievementAlerts("achievements", "playAchievementAlerts", true),
         bonusAchievementsShown("achievements", "bonusAchievementsShown", false),
+        hideUnlockedAchievements("achievements", "hideUnlockedAchievements", false),
         
         // Other
         shortChatPrefix("other", "shortChatPrefix", false),

@@ -15,7 +15,7 @@ import com.namelessju.scathapro.events.WormKillEvent;
 import com.namelessju.scathapro.events.WormPreSpawnEvent;
 import com.namelessju.scathapro.events.WormSpawnEvent;
 import com.namelessju.scathapro.managers.Config;
-import com.namelessju.scathapro.miscellaneous.OverlayStats;
+import com.namelessju.scathapro.miscellaneous.WormStats;
 import com.namelessju.scathapro.util.MessageUtil;
 import com.namelessju.scathapro.util.NBTUtil;
 import com.namelessju.scathapro.util.SoundUtil;
@@ -34,67 +34,67 @@ public class ScathaProGameplayListeners extends ScathaProListener
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onWormPreSpawn(WormPreSpawnEvent e)
+    public void onWormPreSpawn(WormPreSpawnEvent event)
     {
         scathaPro.variables.startWormSpawnCooldown(true);
         Alert.wormPrespawn.play();
     }
     
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onWormSpawn(WormSpawnEvent e)
+    public void onWormSpawn(WormSpawnEvent event)
     {
         long now = TimeUtil.now();
         
         // Scatha spawn
-        if (e.worm.isScatha)
+        if (event.worm.isScatha)
         {
-            OverlayStats.addScathaSpawn();
+            WormStats.addScathaSpawn();
             
             Alert.scathaSpawn.play();
             
-            scathaPro.getAchievementLogicManager().handleScathaSpawnAchievements(now, e.worm);
+            scathaPro.getAchievementLogicManager().handleScathaSpawnAchievements(now, event.worm);
         }
         
         // Regular worm spawn
         else
         {
-            OverlayStats.addRegularWormSpawn();
+            WormStats.addRegularWormSpawn();
             
             Alert.regularWormSpawn.play();
         }
         
         
-        if (scathaPro.getConfig().getBoolean(Config.Key.wormSpawnTimer) && scathaPro.variables.lastWormSpawnTime >= 0L)
+        if (event.timeSincePreviousSpawn >= 0L)
         {
-            int secondsSinceLastSpawn = (int) Math.floor((now - scathaPro.variables.lastWormSpawnTime) / 1000D);
-            
-            String timeString;
-            
-            if (secondsSinceLastSpawn < 60) timeString = secondsSinceLastSpawn + " seconds";
-            else timeString = Util.numberToString(secondsSinceLastSpawn / 60D, 1, true, RoundingMode.FLOOR) + " minutes";
-            
-            MessageUtil.sendModChatMessage(EnumChatFormatting.GRAY + "Worm spawned " + timeString + " after previous worm");
+            if (scathaPro.getConfig().getBoolean(Config.Key.wormSpawnTimer))
+            {
+                int secondsSinceLastSpawn = (int) Math.floor(event.timeSincePreviousSpawn / 1000D);
+                String timeString;
+                if (secondsSinceLastSpawn < 60) timeString = secondsSinceLastSpawn + " seconds";
+                else timeString = Util.numberToString(secondsSinceLastSpawn / 60D, 1, true, RoundingMode.FLOOR) + " minutes";
+                MessageUtil.sendModChatMessage(EnumChatFormatting.GRAY + "Worm spawned " + timeString + " after previous worm");
+            }
         }
         
         scathaPro.getPersistentData().saveDailyStatsData();
         
         scathaPro.variables.lastWormSpawnTime = now;
         scathaPro.variables.startWormSpawnCooldown(false); // in case pre-spawn doesn't trigger when master volume is 0
-        scathaPro.getAchievementLogicManager().updateSpawnAchievements();
+        scathaPro.getAchievementLogicManager().updateSpawnAchievements(event);
         scathaPro.getOverlay().updateWormStreak();
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onWormHit(WormHitEvent e)
+    public void onWormHit(WormHitEvent event)
     {
-        String skyblockItemID = NBTUtil.getSkyblockItemID(e.weapon);
-        if (skyblockItemID != null && skyblockItemID.equals("DIRT") && e.worm.isScatha) Achievement.scatha_hit_dirt.unlock();
+        String skyblockItemID = NBTUtil.getSkyblockItemID(event.weapon);
+        if (skyblockItemID != null && skyblockItemID.equals("DIRT") && event.worm.isScatha) Achievement.scatha_hit_dirt.unlock();
     }
     
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onWormKill(WormKillEvent e)
+    public void onWormKill(WormKillEvent event)
     {
-        DetectedWorm worm = e.worm;
+        DetectedWorm worm = event.worm;
         if (worm.isScatha)
         {
             scathaPro.variables.addScathaKill();
@@ -145,17 +145,17 @@ public class ScathaProGameplayListeners extends ScathaProListener
     }
     
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onWormDespawn(WormDespawnEvent e)
+    public void onWormDespawn(WormDespawnEvent event)
     {
         Achievement.worm_despawn.unlock();
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onScathaPetDrop(ScathaPetDropEvent e)
+    public void onScathaPetDrop(ScathaPetDropEvent event)
     {
-        String rarityTitle = null;
-        
-        switch (e.petDrop.rarity)
+        String rarityTitle;
+
+        switch (event.petDrop.rarity)
         {
             case RARE:
                 scathaPro.variables.rarePetDrops = Math.min(scathaPro.variables.rarePetDrops + 1, Constants.maxLegitPetDropsAmount);
@@ -241,7 +241,7 @@ public class ScathaProGameplayListeners extends ScathaProListener
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onBedrockWall(BedrockDetectedEvent e)
+    public void onBedrockWall(BedrockDetectedEvent event)
     {
         Alert.bedrockWall.play();
     }

@@ -114,35 +114,34 @@ public class LoopListeners
     @SubscribeEvent(priority = EventPriority.LOW)
     public void onRenderGameOverlayPost(RenderGameOverlayEvent.Post event)
     {
-        if (event.type == ElementType.TEXT)
+        if (event.isCanceled() || event.type != ElementType.TEXT) return;
+            
+        // Overlay
+        
+        scathaPro.getOverlay().tryDrawOverlay();
+        
+        EntityPlayer player = mc.thePlayer;
+        if (player != null)
         {
-            // Overlay
+            ScaledResolution scaledResolution = new ScaledResolution(mc);
+            GlStateManager.pushMatrix();
+            GlStateManager.translate(Math.round(scaledResolution.getScaledWidth() / 2), Math.round(scaledResolution.getScaledHeight() / 2), 0);
             
-            scathaPro.getOverlay().tryDrawOverlay();
             
-            EntityPlayer player = mc.thePlayer;
-            if (player != null)
+            // Rotation Angles
+            
+            if (scathaPro.getConfig().getBoolean(Config.Key.showRotationAngles))
             {
-                ScaledResolution scaledResolution = new ScaledResolution(mc);
-                GlStateManager.pushMatrix();
-                GlStateManager.translate(Math.round(scaledResolution.getScaledWidth() / 2), Math.round(scaledResolution.getScaledHeight() / 2), 0);
-                
-                
-                // Rotation Angles
-                
-                if (scathaPro.getConfig().getBoolean(Config.Key.showRotationAngles))
-                {
-                    updateRotationAngles(player);
-                    rotationAnglesOverlay.draw();
-                }
-                
-                // Rotation Lock
-                
-                if (scathaPro.getInputManager().isRotationLocked()) rotationLockOverlay.draw();
-
-                
-                GlStateManager.popMatrix();
+                updateRotationAngles(player);
+                rotationAnglesOverlay.draw();
             }
+            
+            // Rotation Lock
+            
+            if (scathaPro.getInputManager().isRotationLocked()) rotationLockOverlay.draw();
+
+            
+            GlStateManager.popMatrix();
         }
     }
     
@@ -160,7 +159,7 @@ public class LoopListeners
     @SubscribeEvent
     public void onClientTick(ClientTickEvent event)
     {
-        if (event.phase != TickEvent.Phase.START) return;
+        if (event.isCanceled() || event.phase != TickEvent.Phase.START) return;
         
         dailyStatsCheckTickTimer --;
         if (dailyStatsCheckTickTimer <= 0)

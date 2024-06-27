@@ -8,12 +8,12 @@ import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.achievements.AchievementManager;
 import com.namelessju.scathapro.entitydetection.detectedentities.DetectedWorm;
-import com.namelessju.scathapro.miscellaneous.OverlayStats;
+import com.namelessju.scathapro.events.WormSpawnEvent;
+import com.namelessju.scathapro.miscellaneous.WormStats;
 import com.namelessju.scathapro.util.JsonUtil;
 import com.namelessju.scathapro.util.NBTUtil;
 import com.namelessju.scathapro.util.TimeUtil;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -36,12 +36,12 @@ public class AchievementLogicManager
     
     public void updateKillAchievements()
     {
-        int lobbyWormKills = OverlayStats.PER_LOBBY.regularWormKills + OverlayStats.PER_LOBBY.scathaKills;
+        int lobbyWormKills = WormStats.PER_LOBBY.regularWormKills + WormStats.PER_LOBBY.scathaKills;
         Achievement.lobby_kills_1.setProgress(lobbyWormKills);
         Achievement.lobby_kills_2.setProgress(lobbyWormKills);
         Achievement.lobby_kills_3.setProgress(lobbyWormKills);
         
-        int highestWormKills = Math.max(lobbyWormKills, variables.regularWormKills + variables.scathaKills);
+        int highestWormKills = Math.max(WormStats.PER_SESSION.regularWormKills + WormStats.PER_SESSION.scathaKills, variables.regularWormKills + variables.scathaKills);
         Achievement.worm_bestiary_max.setProgress(highestWormKills);
         Achievement.worm_kills_1.setProgress(highestWormKills);
         Achievement.worm_kills_2.setProgress(highestWormKills);
@@ -50,28 +50,39 @@ public class AchievementLogicManager
         Achievement.worm_kills_5.setProgress(highestWormKills);
         Achievement.worm_kills_6.setProgress(highestWormKills);
         
-        int highestScathaKills = Math.max(OverlayStats.PER_LOBBY.regularWormKills, variables.scathaKills);
+        int highestScathaKills = Math.max(WormStats.PER_SESSION.scathaKills, variables.scathaKills);
         Achievement.scatha_kills_1.setProgress(highestScathaKills);
         Achievement.scatha_kills_2.setProgress(highestScathaKills);
         Achievement.scatha_kills_3.setProgress(highestScathaKills);
         Achievement.scatha_kills_4.setProgress(highestScathaKills);
         Achievement.scatha_kills_5.setProgress(highestScathaKills);
         
+        int dryStreak = scathaPro.variables.scathaKills - scathaPro.variables.scathaKillsAtLastDrop;
+        if (dryStreak < 0) dryStreak = 0;
+        Achievement.scatha_pet_drop_dry_streak_1.setProgress(dryStreak);
+        Achievement.scatha_pet_drop_dry_streak_2.setProgress(dryStreak);
+        
         updateKillsTodayAchievements();
     }
     
-    public void updateSpawnAchievements()
+    public void updateSpawnAchievements(WormSpawnEvent spawnEvent)
     {
-        int scathaStreak = Math.max(0, OverlayStats.PER_LOBBY.scathaSpawnStreak);
+        int scathaStreak = Math.max(0, WormStats.PER_LOBBY.scathaSpawnStreak);
         Achievement.scatha_streak_1.setProgress(scathaStreak);
         Achievement.scatha_streak_2.setProgress(scathaStreak);
         Achievement.scatha_streak_3.setProgress(scathaStreak);
         Achievement.scatha_streak_4.setProgress(scathaStreak);
         
-        int regularWormStreak = Math.max(0, -OverlayStats.PER_LOBBY.scathaSpawnStreak);
+        int regularWormStreak = Math.max(0, -WormStats.PER_LOBBY.scathaSpawnStreak);
         Achievement.regular_worm_streak_1.setProgress(regularWormStreak);
         Achievement.regular_worm_streak_2.setProgress(regularWormStreak);
         Achievement.regular_worm_streak_3.setProgress(regularWormStreak);
+        
+        if (spawnEvent != null && spawnEvent.worm.isScatha
+            && spawnEvent.timeSincePreviousSpawn >= 30000L && spawnEvent.timeSincePreviousSpawn < 33000L)
+        {
+            Achievement.scatha_spawn_time_cooldown_end.unlock();
+        }
     }
     
     public void handleScathaSpawnAchievements(long now, DetectedWorm worm)
@@ -94,7 +105,7 @@ public class AchievementLogicManager
         {
             scathaPro.logDebug("Checking for scoreboard heat value...");
             
-            Scoreboard scoreboard = Minecraft.getMinecraft().theWorld.getScoreboard();
+            Scoreboard scoreboard = scathaPro.getMinecraft().theWorld.getScoreboard();
             ScoreObjective sidebarObjective = scoreboard.getObjectiveInDisplaySlot(1);
             if (sidebarObjective != null)
             {
@@ -164,10 +175,10 @@ public class AchievementLogicManager
         
         // Player dependent achievements
         
-        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+        EntityPlayer player = scathaPro.getMinecraft().thePlayer;
         if (player != null)
         {
-            ItemStack helmetItem = Minecraft.getMinecraft().thePlayer.getCurrentArmor(3);
+            ItemStack helmetItem = scathaPro.getMinecraft().thePlayer.getCurrentArmor(3);
             String skyblockItemID = NBTUtil.getSkyblockItemID(helmetItem);
             if (skyblockItemID != null && skyblockItemID.equals("PET"))
             {
@@ -271,7 +282,7 @@ public class AchievementLogicManager
     
     public void updateKillsTodayAchievements()
     {
-        int totalWormKillsToday = OverlayStats.PER_DAY.regularWormKills + OverlayStats.PER_DAY.scathaKills;
+        int totalWormKillsToday = WormStats.PER_DAY.regularWormKills + WormStats.PER_DAY.scathaKills;
         Achievement.day_kills_1.setProgress(totalWormKillsToday);
         Achievement.day_kills_2.setProgress(totalWormKillsToday);
         Achievement.day_kills_3.setProgress(totalWormKillsToday);

@@ -20,7 +20,7 @@ import com.namelessju.scathapro.achievements.AchievementManager;
 import com.namelessju.scathapro.achievements.UnlockedAchievement;
 import com.namelessju.scathapro.events.DailyScathaFarmingStreakChangedEvent;
 import com.namelessju.scathapro.events.DailyStatsResetEvent;
-import com.namelessju.scathapro.miscellaneous.OverlayStats;
+import com.namelessju.scathapro.miscellaneous.WormStats;
 import com.namelessju.scathapro.util.MessageUtil;
 import com.namelessju.scathapro.util.TimeUtil;
 import com.namelessju.scathapro.util.FileUtil;
@@ -365,9 +365,9 @@ public class PersistentData
             JsonObject dayData = JsonUtil.getJsonObject(getCurrentPlayerObject(), dayKey);
             
             scathaPro.variables.lastPlayedDate = TimeUtil.parseDate(JsonUtil.getString(dayData, "lastPlayed"));
-            OverlayStats.PER_DAY.regularWormKills = Util.intOrZero(JsonUtil.getInt(dayData, "stats/wormKills/regularWorms"));
-            OverlayStats.PER_DAY.scathaKills = Util.intOrZero(JsonUtil.getInt(dayData, "stats/wormKills/scathas"));
-            OverlayStats.PER_DAY.scathaSpawnStreak = Util.intOrZero(JsonUtil.getInt(dayData, "stats/scathaSpawnStreak"));
+            WormStats.PER_DAY.regularWormKills = Util.intOrZero(JsonUtil.getInt(dayData, "stats/wormKills/regularWorms"));
+            WormStats.PER_DAY.scathaKills = Util.intOrZero(JsonUtil.getInt(dayData, "stats/wormKills/scathas"));
+            WormStats.PER_DAY.scathaSpawnStreak = Util.intOrZero(JsonUtil.getInt(dayData, "stats/scathaSpawnStreak"));
             
             Integer scathaFarmingStreak = JsonUtil.getInt(dayData, "scathaFarming/streak");
             scathaPro.variables.scathaFarmingStreak = scathaFarmingStreak != null ? scathaFarmingStreak : 0;
@@ -385,9 +385,9 @@ public class PersistentData
     public void saveDailyStatsData()
     {
         JsonObject dayData = getDayData();
-        JsonUtil.set(dayData, "stats/wormKills/regularWorms", new JsonPrimitive(OverlayStats.PER_DAY.regularWormKills));
-        JsonUtil.set(dayData, "stats/wormKills/scathas", new JsonPrimitive(OverlayStats.PER_DAY.scathaKills));
-        JsonUtil.set(dayData, "stats/scathaSpawnStreak", new JsonPrimitive(OverlayStats.PER_DAY.scathaSpawnStreak));
+        JsonUtil.set(dayData, "stats/wormKills/regularWorms", new JsonPrimitive(WormStats.PER_DAY.regularWormKills));
+        JsonUtil.set(dayData, "stats/wormKills/scathas", new JsonPrimitive(WormStats.PER_DAY.scathaKills));
+        JsonUtil.set(dayData, "stats/scathaSpawnStreak", new JsonPrimitive(WormStats.PER_DAY.scathaSpawnStreak));
         saveData();
     }
     
@@ -396,9 +396,9 @@ public class PersistentData
         scathaPro.variables.lastPlayedDate = TimeUtil.today();
         setInCurrentPlayer(dayKey + "/lastPlayed", new JsonPrimitive(TimeUtil.formatDate(scathaPro.variables.lastPlayedDate)));
         
-        OverlayStats.PER_DAY.regularWormKills = 0;
-        OverlayStats.PER_DAY.scathaKills = 0;
-        OverlayStats.PER_DAY.scathaSpawnStreak = 0;
+        WormStats.PER_DAY.regularWormKills = 0;
+        WormStats.PER_DAY.scathaKills = 0;
+        WormStats.PER_DAY.scathaSpawnStreak = 0;
         
         saveDailyStatsData();
         

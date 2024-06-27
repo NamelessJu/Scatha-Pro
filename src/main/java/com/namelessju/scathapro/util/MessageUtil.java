@@ -8,6 +8,7 @@ import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.managers.Config;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
@@ -155,6 +156,19 @@ public abstract class MessageUtil
         {
             return Character.toString((char) 65533); // "replacement character" unicode symbol
         }
+    }
+
+    public static String preventOverflow(String original, int maxWidth)
+    {
+        FontRenderer fontRenderer = Minecraft.getMinecraft().fontRendererObj;
+        int strWidth = fontRenderer.getStringWidth(original);
+        int ellipsisWidth = fontRenderer.getStringWidth("...");
+
+        if (strWidth > maxWidth && strWidth > ellipsisWidth)
+        {
+            return fontRenderer.trimStringToWidth(original, maxWidth - ellipsisWidth).trim() + "...";
+        }
+        return original;
     }
     
 

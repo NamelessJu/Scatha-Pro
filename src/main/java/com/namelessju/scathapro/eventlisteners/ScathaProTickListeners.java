@@ -23,7 +23,7 @@ public class ScathaProTickListeners extends ScathaProListener
     }
     
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onFirstIngameTick(FirstIngameTickEvent e)
+    public void onFirstIngameTick(FirstIngameTickEvent event)
     {
         if (scathaPro.getConfig().getBoolean(Config.Key.automaticUpdateChecks))
         {
@@ -36,7 +36,7 @@ public class ScathaProTickListeners extends ScathaProListener
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onFirstWorldTick(FirstWorldTickEvent e)
+    public void onFirstWorldTick(FirstWorldTickEvent event)
     {
         for (IChatComponent message : scathaPro.variables.cachedChatMessages)
         {
@@ -46,7 +46,7 @@ public class ScathaProTickListeners extends ScathaProListener
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onFirstCrystalHollowsTick(FirstCrystalHollowsTickEvent e)
+    public void onFirstCrystalHollowsTick(FirstCrystalHollowsTickEvent event)
     {
         if (scathaPro.getOverlay().easterEggTitleActive)
         {
@@ -55,21 +55,21 @@ public class ScathaProTickListeners extends ScathaProListener
     }
     
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onCrystalHollowsTick(CrystalHollowsTickEvent e)
+    public void onCrystalHollowsTick(CrystalHollowsTickEvent event)
     {
         // Sneak start
         
         boolean sneaking = mc.thePlayer.isSneaking();
         if (!scathaPro.variables.sneakingBefore && sneaking)
         {
-            scathaPro.variables.lastSneakStartTime = e.now;
+            scathaPro.variables.lastSneakStartTime = event.now;
         }
         scathaPro.variables.sneakingBefore = sneaking;
         
         
         // Reset b2b scatha pet drop
         
-        if (scathaPro.variables.droppedPetAtLastScatha && scathaPro.variables.lastKillIsScatha && e.now - scathaPro.variables.lastKillTime > Constants.pingTreshold && scathaPro.variables.lastPetDropTime < scathaPro.variables.lastKillTime)
+        if (scathaPro.variables.droppedPetAtLastScatha && scathaPro.variables.lastKillIsScatha && event.now - scathaPro.variables.lastKillTime > Constants.pingTreshold && scathaPro.variables.lastPetDropTime < scathaPro.variables.lastKillTime)
         {
             scathaPro.variables.droppedPetAtLastScatha = false;
         }
@@ -77,7 +77,7 @@ public class ScathaProTickListeners extends ScathaProListener
         
         // Achievements
         
-        float hours = (e.now - scathaPro.variables.lastWorldJoinTime) / (1000f*60*60);
+        float hours = (event.now - scathaPro.variables.lastWorldJoinTime) / (1000f*60*60);
         Achievement.crystal_hollows_time_1.setProgress(hours);
         Achievement.crystal_hollows_time_2.setProgress(hours);
         Achievement.crystal_hollows_time_3.setProgress(hours);

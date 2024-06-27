@@ -2,6 +2,7 @@ package com.namelessju.scathapro.eventlisteners;
 
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.achievements.Achievement;
+import com.namelessju.scathapro.achievements.AchievementCategory;
 import com.namelessju.scathapro.events.AchievementUnlockedEvent;
 import com.namelessju.scathapro.events.DailyScathaFarmingStreakChangedEvent;
 import com.namelessju.scathapro.events.DailyStatsResetEvent;
@@ -31,18 +32,18 @@ public class ScathaProMiscListeners extends ScathaProListener
     }
     
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onModUpdate(ModUpdateEvent e)
+    public void onModUpdate(ModUpdateEvent event)
     {
         if (scathaPro.getConfig().getBoolean(Config.Key.automaticBackups) && scathaPro.getPersistentData().getData().entrySet().size() > 0)
         {
-            scathaPro.getPersistentData().backup("update_" + (e.previousVersion != null ? "v" + e.previousVersion : "unknown") + "_to_v" + e.newVersion, true);
+            scathaPro.getPersistentData().backup("update_" + (event.previousVersion != null ? "v" + event.previousVersion : "unknown") + "_to_v" + event.newVersion, true);
         }
     }
     
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onSkyblockAreaDetected(SkyblockAreaDetectedEvent e)
+    public void onSkyblockAreaDetected(SkyblockAreaDetectedEvent event)
     {
-        if (e.area != SkyblockArea.CRYSTAL_HOLLOWS) return;
+        if (event.area != SkyblockArea.CRYSTAL_HOLLOWS) return;
         
         if (scathaPro.getConfig().getBoolean(Config.Key.muteCrystalHollowsSounds))
         {
@@ -62,47 +63,49 @@ public class ScathaProMiscListeners extends ScathaProListener
     }
     
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onAchievementUnlocked(AchievementUnlockedEvent e)
+    public void onAchievementUnlocked(AchievementUnlockedEvent event)
     {
-        Achievement achievement = e.achievement;
-        
-        ChatComponentText chatMessage = new ChatComponentText(
-                (
-                        achievement.type.typeName != null
-                        ? achievement.type.getFormattedName() + EnumChatFormatting.RESET + EnumChatFormatting.GREEN + " achievement"
-                        : EnumChatFormatting.GREEN + "Achievement"
-                )
-                + " unlocked" + EnumChatFormatting.GRAY + " - "
-        );
-        
-        ChatComponentText achievementComponent = new ChatComponentText(EnumChatFormatting.GOLD.toString() + EnumChatFormatting.ITALIC + achievement.achievementName);
-        ChatStyle achievementStyle = new ChatStyle().setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.WHITE + achievement.achievementName + "\n" + EnumChatFormatting.GRAY + achievement.description)));
-        achievementComponent.setChatStyle(achievementStyle);
-        
-        chatMessage.appendSibling(achievementComponent);
-        
-        MessageUtil.sendModChatMessage(chatMessage);
-        
         long now = TimeUtil.now();
         
-        if (now >= scathaPro.variables.lastWorldJoinTime + 1000 && now >= lastAchievementUnlockTime + 1000) // required or the game might crash when too many achievements are unlocked at once
+        if (scathaPro.getConfig().getBoolean(Config.Key.playAchievementAlerts))
         {
-            switch (achievement.type)
+            Achievement achievement = event.achievement;
+            
+            ChatComponentText chatMessage = new ChatComponentText(
+                    (
+                            achievement.type.typeName != null
+                            ? achievement.type.getFormattedName() + EnumChatFormatting.RESET + EnumChatFormatting.GREEN + " achievement"
+                            : EnumChatFormatting.GREEN + "Achievement"
+                    )
+                    + " unlocked" + EnumChatFormatting.GRAY + " - "
+            );
+            
+            ChatComponentText achievementComponent = new ChatComponentText(EnumChatFormatting.GOLD.toString() + EnumChatFormatting.ITALIC + achievement.achievementName);
+            ChatStyle achievementStyle = new ChatStyle().setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.GREEN.toString() + EnumChatFormatting.BOLD + achievement.achievementName + "\n" + EnumChatFormatting.RESET + EnumChatFormatting.GRAY + achievement.description + "\n\n" + EnumChatFormatting.GOLD + AchievementCategory.getName(achievement.category))));
+            achievementComponent.setChatStyle(achievementStyle);
+            
+            chatMessage.appendSibling(achievementComponent);
+            
+            MessageUtil.sendModChatMessage(chatMessage);
+            
+            if (now >= scathaPro.variables.lastWorldJoinTime + 1000 && now >= lastAchievementUnlockTime + 1000) // required or the game might crash when too many achievements are unlocked at once
             {
-                case SECRET:
-                    SoundUtil.playModSound("achievements.unlock", 0.9f, 0.749154f);
-                    break;
-                case BONUS:
-                    SoundUtil.playModSound("achievements.unlock_hidden", 0.75f, 1.259921f);
-                    break;
-                case HIDDEN:
-                    SoundUtil.playModSound("achievements.unlock_hidden", 0.75f, 0.749154f);
-                    break;
-                default:
-                    SoundUtil.playModSound("achievements.unlock", 0.9f, 1f);
+                switch (achievement.type)
+                {
+                    case SECRET:
+                        SoundUtil.playModSound("achievements.unlock", 0.9f, 0.749154f);
+                        break;
+                    case BONUS:
+                        SoundUtil.playModSound("achievements.unlock_hidden", 0.75f, 1.259921f);
+                        break;
+                    case HIDDEN:
+                        SoundUtil.playModSound("achievements.unlock_hidden", 0.75f, 0.749154f);
+                        break;
+                    default:
+                        SoundUtil.playModSound("achievements.unlock", 0.9f, 1f);
+                }
             }
         }
-        
         
         scathaPro.getAchievementLogicManager().updateProgressAchievements();
 
@@ -111,13 +114,13 @@ public class ScathaProMiscListeners extends ScathaProListener
     }
     
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onDailyScathaFarmingStreakChanged(DailyScathaFarmingStreakChangedEvent e)
+    public void onDailyScathaFarmingStreakChanged(DailyScathaFarmingStreakChangedEvent event)
     {
         scathaPro.getAchievementLogicManager().updateDailyScathaStreakAchievements();
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onDailyStatsReset(DailyStatsResetEvent e)
+    public void onDailyStatsReset(DailyStatsResetEvent event)
     {
         scathaPro.getOverlay().updateWormKills();
         scathaPro.getOverlay().updateScathaKills();

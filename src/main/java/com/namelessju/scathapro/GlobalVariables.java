@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.google.common.collect.Lists;
-import com.namelessju.scathapro.miscellaneous.OverlayStats;
+import com.namelessju.scathapro.miscellaneous.WormStats;
 import com.namelessju.scathapro.miscellaneous.SkyblockArea;
 import com.namelessju.scathapro.util.TimeUtil;
 
@@ -65,13 +65,13 @@ public class GlobalVariables
     public void addRegularWormKill()
     {
         if (regularWormKills >= 0) regularWormKills ++;
-        OverlayStats.addRegularWormKill();
+        WormStats.addRegularWormKill();
     }
     
     public void addScathaKill()
     {
         if (scathaKills >= 0) scathaKills ++;
-        OverlayStats.addScathaKill();
+        WormStats.addScathaKill();
     }
     
     public void resetForNewLobby()
@@ -83,7 +83,7 @@ public class GlobalVariables
         
         previousScathaPets = null;
         
-        OverlayStats.resetForNewLobby();
+        WormStats.resetForNewLobby();
         lastWormSpawnTime = -1;
         wormSpawnCooldownStartTime = -1;
     }

@@ -32,7 +32,6 @@ public class MiscSettingsGui extends ScathaProGui
         super.initGui();
         
         addGridButton(new BooleanSettingButton(3, 0, 0, 0, 0, "Rotation Angles", Config.Key.showRotationAngles));
-        addGridButton(new BooleanSettingButton(6, 0, 0, 0, 0, "Chat Copy Button", Config.Key.chatCopy));
         addGridButton(new MultiOptionButton<Integer>(4, 0, 0, 0, 0, "Rot. Angles Dec. Places", MultiOptionButton.IntegerOption.range(0, 3), config.getInt(Config.Key.rotationAnglesDecimalDigits), new MultiOptionButton.IOptionChangedListener<Integer>() {
             @Override
             public void onChange(MultiOptionButton<Integer> button)
@@ -41,11 +40,12 @@ public class MiscSettingsGui extends ScathaProGui
                 config.save();
             }
         }));
+        addGridButton(new BooleanSettingButton(6, 0, 0, 0, 0, "Chat Copy Button", Config.Key.chatCopy));
         addGridButton(new BooleanSettingButton(5, 0, 0, 0, 0, "Read Bestiary Kills", Config.Key.automaticStatsParsing));
         addGridGap();
         addGridButton(new BooleanSettingButton(1, 0, 0, 0, 0, "Drop Dry Streak Msg.", Config.Key.dryStreakMessage));
         addGridButton(new BooleanSettingButton(2, 0, 0, 0, 0, "Worm Spawn Timer Msg.", Config.Key.wormSpawnTimer));
-        addGridButton(new BooleanSettingButton(8, 0, 0, 0, 0, "Daily Scatha Farming Streak Message", Config.Key.dailyScathaFarmingStreakMessage), true);
+        addGridButton(new BooleanSettingButton(8, 0, 0, 0, 0, "Daily Streak Message", Config.Key.dailyScathaFarmingStreakMessage));
         addGridGap();
         addGridButton(new BooleanSettingButton(7, 0, 0, 0, 0, "Short Chat Prefix", Config.Key.shortChatPrefix));
         addGridButton(new BooleanSettingButton(8, 0, 0, 0, 0, "High Contrast Colors", Config.Key.highContrastColors));

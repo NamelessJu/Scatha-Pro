@@ -15,7 +15,7 @@ import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.events.OverlayInitEvent;
 import com.namelessju.scathapro.gui.menus.OverlaySettingsGui;
 import com.namelessju.scathapro.managers.Config;
-import com.namelessju.scathapro.miscellaneous.OverlayStats;
+import com.namelessju.scathapro.miscellaneous.WormStats;
 import com.namelessju.scathapro.overlay.elements.DynamicOverlayContainer;
 import com.namelessju.scathapro.overlay.elements.OverlayContainer;
 import com.namelessju.scathapro.overlay.elements.OverlayElement;
@@ -104,7 +104,7 @@ public class Overlay
     public final List<ToggleableOverlayElement> toggleableOverlayElements = Lists.<ToggleableOverlayElement>newArrayList();
     
     
-    private OverlayStats statsType = OverlayStats.PER_LOBBY;
+    private WormStats statsType = WormStats.PER_LOBBY;
     public final boolean easterEggTitleActive;
     
     
@@ -117,12 +117,12 @@ public class Overlay
         String currentTypeId = scathaPro.getConfig().getString(Config.Key.statsType);
         if (!currentTypeId.replace("", " ").isEmpty())
         {
-            for (OverlayStats type : OverlayStats.values())
+            for (WormStats type : WormStats.values())
             {
                 if (type.getOptionValue().equals(currentTypeId)) statsType = type;
             }
         }
-        if (statsType == null) statsType = OverlayStats.values()[0];
+        if (statsType == null) statsType = WormStats.values()[0];
         
         
         easterEggTitleActive = new Random().nextFloat() < 0.005f;
@@ -254,7 +254,7 @@ public class Overlay
         return !overlayVisible;
     }
     
-    public void setStatsType(OverlayStats statsType)
+    public void setStatsType(WormStats statsType)
     {
         this.statsType = statsType;
         
@@ -321,6 +321,9 @@ public class Overlay
         updateLobbyTime();
         updateRealTimeClock();
         updatePosition();
+
+        if (scathaPro.getConfig().getBoolean(Config.Key.scathaPercentageAlternativePosition)) updateTotalKills();
+        else updateScathaKills();
     }
     
     public void updateOverlayFull()
@@ -407,9 +410,29 @@ public class Overlay
     public void updateScathaKills()
     {
         World world = mc.theWorld;
-        
-        secondaryScathaKillsText.setText(Util.numberToString(world != null ? statsType.scathaKills : 0));
-        scathaKillsText.setText(scathaPro.variables.scathaKills >= 0 ? Util.numberToString(scathaPro.variables.scathaKills) : EnumChatFormatting.OBFUSCATED + "?");
+
+        int cycleAmountDuration = Math.max(scathaPro.getConfig().getInt(Config.Key.scathaPercentageCycleAmountDuration), 1) * 1000;
+        int cyclePercentageDuration = Math.max(scathaPro.getConfig().getInt(Config.Key.scathaPercentageCyclePercentageDuration), 1) * 1000;
+
+        if (scathaPro.getConfig().getBoolean(Config.Key.scathaPercentageAlternativePosition)
+            || TimeUtil.now() % (cycleAmountDuration + cyclePercentageDuration) < cycleAmountDuration) // Regular kill amounts
+        {
+            scathaKillsText.setText(scathaPro.variables.scathaKills >= 0 ? Util.numberToString(scathaPro.variables.scathaKills) : EnumChatFormatting.OBFUSCATED + "?");
+            secondaryScathaKillsText.setText(Util.numberToString(world != null ? statsType.scathaKills : 0));
+        }
+        else // Scatha percentages
+        {
+            int secondaryTotalKills = world != null ? statsType.regularWormKills + statsType.scathaKills : 0;
+            int totalKills = scathaPro.variables.regularWormKills >= 0 && scathaPro.variables.scathaKills >= 0 ? scathaPro.variables.regularWormKills + scathaPro.variables.scathaKills : -1;
+
+            float secondaryScathaPercentage = secondaryTotalKills > 0 ? ((float) statsType.scathaKills / secondaryTotalKills) * 100 : -1f;
+            float scathaPercentage = totalKills > 0 ? ((float) scathaPro.variables.scathaKills / totalKills) * 100 : -1f;
+
+            int scathaPercentageDecimalDigits = scathaPro.getConfig().getInt(Config.Key.scathaPercentageDecimalDigits);
+
+            scathaKillsText.setText(totalKills >= 0 ? (scathaPercentage >= 0 ? Util.numberToString(scathaPercentage, scathaPercentageDecimalDigits, true) : EnumChatFormatting.OBFUSCATED + "?" + EnumChatFormatting.RESET) + "%" : EnumChatFormatting.OBFUSCATED + "?");
+            secondaryScathaKillsText.setText((secondaryScathaPercentage >= 0 ? MessageUtil.contrastableGray() + Util.numberToString(secondaryScathaPercentage, scathaPercentageDecimalDigits, true) : EnumChatFormatting.OBFUSCATED + "?" + EnumChatFormatting.RESET) + "%");
+        }
         
         updateTotalKills();
         updateScathaKillsSinceLastDrop();
@@ -418,18 +441,27 @@ public class Overlay
     public void updateTotalKills()
     {
         World world = mc.theWorld;
-        
+
         int secondaryTotalKills = world != null ? statsType.regularWormKills + statsType.scathaKills : 0;
         int totalKills = scathaPro.variables.regularWormKills >= 0 && scathaPro.variables.scathaKills >= 0 ? scathaPro.variables.regularWormKills + scathaPro.variables.scathaKills : -1;
-        
-        float secondaryScathaPercentage = secondaryTotalKills > 0 ? ((float) statsType.scathaKills / secondaryTotalKills) * 100 : -1f;
-        float scathaPercentage = totalKills > 0 ? ((float) scathaPro.variables.scathaKills / totalKills) * 100 : -1f;
-        
-        int scathaPercentageDecimalDigits = scathaPro.getConfig().getInt(Config.Key.scathaPercentageDecimalDigits);
 
         EnumChatFormatting contrastableGray = MessageUtil.contrastableGray();
-        secondaryTotalKillsText.setText(EnumChatFormatting.RESET + Util.numberToString(secondaryTotalKills) + (secondaryScathaPercentage >= 0 ? contrastableGray + " (" + Util.numberToString(secondaryScathaPercentage, scathaPercentageDecimalDigits, true) + "%)" : ""));
-        totalKillsText.setText(totalKills >= 0 ? EnumChatFormatting.RESET + Util.numberToString(totalKills) + (scathaPercentage >= 0 ? contrastableGray + " (" + Util.numberToString(scathaPercentage, scathaPercentageDecimalDigits, true) + "%)" : "") : EnumChatFormatting.OBFUSCATED + "?");
+
+        String scathaPercentageText = "";
+        String secondaryScathaPercentageText = "";
+        if (scathaPro.getConfig().getBoolean(Config.Key.scathaPercentageAlternativePosition))
+        {
+            float secondaryScathaPercentage = secondaryTotalKills > 0 ? ((float) statsType.scathaKills / secondaryTotalKills) * 100 : -1f;
+            float scathaPercentage = totalKills > 0 ? ((float) scathaPro.variables.scathaKills / totalKills) * 100 : -1f;
+
+            int scathaPercentageDecimalDigits = scathaPro.getConfig().getInt(Config.Key.scathaPercentageDecimalDigits);
+
+            if (secondaryScathaPercentage >= 0) scathaPercentageText = contrastableGray + " (" + Util.numberToString(secondaryScathaPercentage, scathaPercentageDecimalDigits, true) + "%)";
+            if (scathaPercentage >= 0) secondaryScathaPercentageText = contrastableGray + " (" + Util.numberToString(scathaPercentage, scathaPercentageDecimalDigits, true) + "%)";
+        }
+
+        secondaryTotalKillsText.setText(EnumChatFormatting.RESET + Util.numberToString(secondaryTotalKills) + scathaPercentageText);
+        totalKillsText.setText(totalKills >= 0 ? EnumChatFormatting.RESET + Util.numberToString(totalKills) + secondaryScathaPercentageText : EnumChatFormatting.OBFUSCATED + "?");
     }
     
     public void updateWormStreak()
@@ -566,8 +598,8 @@ public class Overlay
             secondsSinceLastWormSpawn %= 60f;
             timeString = (minutesSinceLastWormSpawn >= 1f ? Util.numberToString(minutesSinceLastWormSpawn, 0, true, RoundingMode.FLOOR) + "m " : "") + Util.numberToString(secondsSinceLastWormSpawn, 0, true, RoundingMode.FLOOR) + "s";
         }
-        else timeString = "N/A";
-        wormSpawnTimerText.setText("Time since last spawn: " + timeString);
+        else timeString = EnumChatFormatting.OBFUSCATED + "?";
+        wormSpawnTimerText.setText(EnumChatFormatting.RESET + "Time since last spawn: " + timeString);
     }
     
     public void updateRealTimeClock()
@@ -576,5 +608,4 @@ public class Overlay
         EnumChatFormatting contrastableGray = MessageUtil.contrastableGray();
         realTimeClockText.setText(EnumChatFormatting.WHITE + "IRL Clock: " + TimeUtil.padZero(now.getHour()) + ":" + TimeUtil.padZero(now.getMinute()) + contrastableGray + ":" + TimeUtil.padZero(now.getSecond()));
     }
-
 }
