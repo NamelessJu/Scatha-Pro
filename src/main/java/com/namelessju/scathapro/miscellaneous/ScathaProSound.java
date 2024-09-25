@@ -5,21 +5,21 @@ import net.minecraft.util.ResourceLocation;
 
 public class ScathaProSound implements ISound
 {
-    public String soundPath;
+    public final ResourceLocation resourceLocation;
     public float volume;
     public float pitch;
     
     public ScathaProSound(String soundPath, float volume, float pitch)
     {
-        this.soundPath = soundPath;
+        this.resourceLocation = new ResourceLocation(soundPath);
         this.volume = volume;
         this.pitch = pitch;
     }
-
+    
     @Override
     public ResourceLocation getSoundLocation()
     {
-        return new ResourceLocation(soundPath);
+        return resourceLocation;
     }
 
     @Override
@@ -51,7 +51,7 @@ public class ScathaProSound implements ISound
     {
         return 0f;
     }
-
+    
     @Override
     public float getYPosF()
     {

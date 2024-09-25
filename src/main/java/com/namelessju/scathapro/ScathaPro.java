@@ -22,14 +22,13 @@ import com.namelessju.scathapro.events.ModUpdateEvent;
 import com.namelessju.scathapro.managers.AchievementLogicManager;
 import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.managers.PersistentData;
+import com.namelessju.scathapro.managers.SaveManager;
 import com.namelessju.scathapro.managers.UpdateChecker;
 import com.namelessju.scathapro.miscellaneous.SkyblockArea;
 import com.namelessju.scathapro.overlay.Overlay;
 import com.namelessju.scathapro.managers.InputManager;
-import com.namelessju.scathapro.util.FileUtil;
 import com.namelessju.scathapro.util.JsonUtil;
-import com.namelessju.scathapro.util.MessageUtil;
-import com.namelessju.scathapro.util.TimeUtil;
+import com.namelessju.scathapro.util.TextUtil;
 import com.namelessju.scathapro.commands.DevCommand;
 
 import net.minecraft.client.Minecraft;
@@ -46,8 +45,8 @@ public class ScathaPro
 {
     public static final String MODNAME = "Scatha-Pro";
     public static final String MODID = "scathapro";
-    // public static final String VERSION = "1.3.dev.5";
-    public static final String VERSION = "1.3.pre-release.5";
+    public static final String VERSION = "1.3.pre_6";
+    // public static final String VERSION = "1.3.dev_7";
     
     
     private static ScathaPro instance;
@@ -94,7 +93,7 @@ public class ScathaPro
         minecraft = Minecraft.getMinecraft();
         
         
-        FileUtil.updateOldSaveLocations();
+        SaveManager.updateOldSaveLocations();
         
         config = new Config();
         config.init();
@@ -108,7 +107,7 @@ public class ScathaPro
         
         
         persistentData = new PersistentData(this);
-        persistentData.loadData();
+        persistentData.loadFile();
     }
     
     @EventHandler
@@ -130,7 +129,7 @@ public class ScathaPro
         try
         {
             // I'm not a fan of using reflection but this is the best way to make sure this custom resource pack always gets loaded
-            // TODO: try to replace this with mixins?
+            // TODO: replace this with mixins?
             List<IResourcePack> defaultResourcePacks = ReflectionHelper.getPrivateValue(Minecraft.class, minecraft, "field_110449_ao", "defaultResourcePacks");
             defaultResourcePacks.add(customAlertModeManager.resourcePack);
             
@@ -138,7 +137,7 @@ public class ScathaPro
         }
         catch (Exception e)
         {
-            MessageUtil.sendModErrorMessage("Failed to set up custom alert mode resource pack - vanilla sounds will play instead!");
+            TextUtil.sendModErrorMessage("Failed to set up custom alert mode resource pack - vanilla sounds will play instead!");
             
             e.printStackTrace();
             logError("Custom alert mode resource pack injection failed");
@@ -193,14 +192,6 @@ public class ScathaPro
     public boolean isInCrystalHollows()
     {
         return variables.currentArea == SkyblockArea.CRYSTAL_HOLLOWS;
-    }
-    
-    public void handleDailyStatsReset()
-    {
-        if (variables.lastPlayedDate == null || !variables.lastPlayedDate.equals(TimeUtil.today()))
-        {
-            ScathaPro.getInstance().getPersistentData().resetDailyStats();
-        }
     }
     
 }

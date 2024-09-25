@@ -100,18 +100,19 @@ public enum Achievement
     scatha_spawn_heat_burning(AchievementCategory.SCATHA_SPAWNS, "This is fine.", "Spawn a Scatha while being at or above 90 heat", 1, Type.SECRET),
     scatha_spawn_chtop(AchievementCategory.SCATHA_SPAWNS, "Reach for the sky", "Spawn a Scatha at the top of the Crystal Hollows", 1, Type.SECRET),
     scatha_spawn_time(AchievementCategory.SCATHA_SPAWNS, "Any%", "Spawn a Scatha in the 1st minute after joining a lobby", 1, Type.SECRET),
-    scatha_spawn_time_cooldown_end(AchievementCategory.SCATHA_SPAWNS, "Don't leave me waiting", "Spawn a Scatha less than 3s after the cooldown ends", 1, Type.SECRET),
+    scatha_spawn_time_cooldown_end(AchievementCategory.SCATHA_SPAWNS, "Don't keep me waiting", "Spawn a Scatha in less than 3s after the cooldown ends", 1, Type.SECRET),
     scatha_spawn_scatha_helmet(AchievementCategory.SCATHA_SPAWNS, "Scatha impostor", "Wear a Scatha pet on your head and spawn a Scatha", 1, Type.SECRET),
     
-    kill_weapons_regular_worm(AchievementCategory.WORM_HIT_KILL, "Variety gamer", "Kill a regular worm using 5 different weapons", 5, Type.SECRET), // TODO: new name?
-    kill_weapons_scatha(AchievementCategory.WORM_HIT_KILL, "A fine collection", "Kill a Scatha using 10 different weapons", 10, Type.SECRET),
+    kill_weapons_regular_worm(AchievementCategory.WORM_HIT_KILL, "One for each segment", "Kill a regular worm using 5 different \"weapons\"", 5, Type.SECRET),
+    kill_weapons_scatha(AchievementCategory.WORM_HIT_KILL, "A fine collection", "Kill a Scatha using 10 different \"weapons\"", 10, Type.SECRET),
     scatha_kill_sneak(AchievementCategory.WORM_HIT_KILL, "Sneak 100", "Spawn and kill a Scatha while sneaking the entire time", 1, Type.SECRET),
     scatha_kill_highground(AchievementCategory.WORM_HIT_KILL, "Obi Wan would be proud", "Kill a Scatha from high ground", 1, Type.SECRET),
     scatha_hit_dirt(AchievementCategory.WORM_HIT_KILL, "Bully Maguire", "Put some dirt in a Scatha's eye", 1, Type.SECRET),
     scatha_kill_gemstone(AchievementCategory.WORM_HIT_KILL, "Return to sender", "Kill a Scatha with one of the gemstones they can drop", 1, Type.SECRET),
     scatha_kill_juju(AchievementCategory.WORM_HIT_KILL, "Juju Farmer", "Kill a Scatha with a Juju Shortbow", 1, Type.HIDDEN),
     scatha_kill_terminator(AchievementCategory.WORM_HIT_KILL, "I'll be back!", "Kill a Scatha with a Terminator", 1, Type.HIDDEN),
-    
+
+    anomalous_desire_waste(AchievementCategory.MISCELLANEOUS, "Wasteful Desire", "Waste Anomalous Desire during the spawn cooldown", 1, Type.SECRET),
     easter_egg_overlay_title(AchievementCategory.MISCELLANEOUS, "Scappa", "Get the easter egg overlay title", 1, Type.HIDDEN),
     meet_developer(AchievementCategory.MISCELLANEOUS, "The Creator", "Be in a lobby with " + ScathaPro.MODNAME + "'s developer", 1, Type.HIDDEN),
     cheat(AchievementCategory.MISCELLANEOUS, "Cheater", "Put impossible values into the " + ScathaPro.MODNAME + " savefile", 1, Type.HIDDEN);
@@ -132,7 +133,12 @@ public enum Achievement
 
         public final String typeName;
         public final String formatting;
-        public Visibility visibility;
+        public final Visibility visibility;
+        /**
+         * This acts as a visual override. If set to <code>true</code> the achievement will be visible in the menu regardless
+         * of it's <code>visibility</code>, but still be treated as such otherwise (e.g. for progress achievements).
+         */
+        public boolean visibilityOverride = false;
         
         Type(String typeName, String formatting, Visibility visibility)
         {
@@ -151,6 +157,12 @@ public enum Achievement
         public String toString()
         {
             return typeName != null ? typeName : "Unnamed achievement type";
+        }
+        
+        public boolean isVisible()
+        {
+            if (visibilityOverride) return true;
+            return visibility != Visibility.HIDDEN;
         }
     }
     

@@ -34,21 +34,24 @@ public class InputManager
         if (lockRotationKeybinding.isPressed())
         {
             toggleCameraRotationLock();
+            return;
         }
         
-        else if (toggleOverlayKeybinding.isPressed())
+        if (toggleOverlayKeybinding.isPressed())
         {
             if (scathaPro.getOverlay().isOverlayDrawAllowed())
             {
                 scathaPro.getOverlay().toggleVisibility();
             }
+            return;
         }
         
-        else if (toggleRotationAnglesKeybinding.isPressed())
+        if (toggleRotationAnglesKeybinding.isPressed())
         {
             boolean enabled = scathaPro.getConfig().getBoolean(Config.Key.showRotationAngles);
             scathaPro.getConfig().set(Config.Key.showRotationAngles, !enabled);
             scathaPro.getConfig().save();
+            return;
         }
     }
     

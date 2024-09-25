@@ -33,7 +33,7 @@ public class InfoMessageGui extends GuiScreen
     {
         this.buttonList.add(new GuiButton(0, this.width / 2 - 50, this.height / 6 + 96, 100, 20, buttonText == null ? "OK" : buttonText));
         this.messageLine2WrappedLines.clear();
-        this.messageLine2WrappedLines.addAll(this.fontRendererObj.listFormattedStringToWidth(this.messageLine2, this.width - 50));
+        this.messageLine2WrappedLines.addAll(this.fontRendererObj.listFormattedStringToWidth(this.messageLine2, Math.min(310, this.width - 50)));
     }
     
     protected void actionPerformed(GuiButton button) throws IOException

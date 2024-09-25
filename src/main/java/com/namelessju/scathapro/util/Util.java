@@ -15,6 +15,7 @@ import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.scoreboard.ScoreObjective;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 
 public class Util
@@ -58,9 +59,21 @@ public class Util
         return null;
     }
 
+    public static UUID getPlayerUUID()
+    {
+        try
+        {
+            return Minecraft.getMinecraft().getSession().getProfile().getId();
+        }
+        catch (NullPointerException e)
+        {
+            return null;
+        }
+    }
+
     public static String getPlayerUUIDString()
     {
-        return getUUIDString(Minecraft.getMinecraft().getSession().getProfile().getId());
+        return getUUIDString(getPlayerUUID());
     }
 
     public static String numberToString(int number)
@@ -87,6 +100,19 @@ public class Util
         return decimalFormat.format(number);
     }
     
+    /**
+     * Returns a zero-size AABB at the position of a given entity
+     * @param entity
+     * @return
+     */
+    public static AxisAlignedBB getEntityPositionAABB(Entity entity)
+    {
+        return new AxisAlignedBB(entity.posX, entity.posY, entity.posZ, entity.posX, entity.posY, entity.posZ);
+    }
+    
+    /**
+     * The default Entity.getBlockPos() method is fucked up and changes in the middle of a block, hence this method to receive an actual block position
+     */
     public static BlockPos entityBlockPos(Entity entity)
     {
         return new BlockPos(
@@ -96,11 +122,19 @@ public class Util
         );
     }
     
-    public static int getFacing(EntityPlayer player)
+    /**
+     * <p>Returns the direction that the player is looking towards:</p>
+     * 
+     * 0: -Z<br> 
+     * 1: +X<br> 
+     * 2: +Z<br> 
+     * 3: -X
+     */
+    public static int getDirection(EntityPlayer player)
     {
-        int facing = (int) Math.floor(player.rotationYaw / 90 - 1.5f) % 4;
-        if (facing < 0) facing += 4;
-        return facing;
+        int direction = (int) Math.floor(player.rotationYaw / 90 - 1.5f) % 4;
+        if (direction < 0) direction += 4;
+        return direction;
     }
     
     public static boolean isPlayerListOpened()

@@ -1,6 +1,7 @@
-package com.namelessju.scathapro.gui.menus;
+package com.namelessju.scathapro.gui.menus.overlay;
 
 import com.namelessju.scathapro.ScathaPro;
+import com.namelessju.scathapro.gui.menus.ScathaProGui;
 import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.overlay.Overlay;
 
@@ -22,7 +23,7 @@ public abstract class OverlaySettingsGui extends ScathaProGui
     @Override
     protected void drawCustomBackground()
     {
-        overlay.forceDrawOverlay();
+        overlay.drawOverlay();
     }
     
     public OverlaySettingsGui(ScathaPro scathaPro, GuiScreen parentGui)
@@ -40,6 +41,14 @@ public abstract class OverlaySettingsGui extends ScathaProGui
         
         debugInfoShownBefore = scathaPro.getMinecraft().gameSettings.showDebugInfo;
         scathaPro.getMinecraft().gameSettings.showDebugInfo = false;
+    }
+    
+    @Override
+    public void updateScreen()
+    {
+        super.updateScreen();
+        
+        overlay.updateRealtimeElements();
     }
     
     @Override

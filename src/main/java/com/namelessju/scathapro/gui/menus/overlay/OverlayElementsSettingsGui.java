@@ -1,7 +1,8 @@
-package com.namelessju.scathapro.gui.menus;
+package com.namelessju.scathapro.gui.menus.overlay;
 
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.gui.elements.OverlayComponentsGuiList;
+import com.namelessju.scathapro.gui.lists.OverlayComponentsGuiList;
+import com.namelessju.scathapro.gui.menus.ScathaProGui;
 
 import net.minecraft.client.gui.GuiScreen;
 
@@ -24,7 +25,7 @@ public class OverlayElementsSettingsGui extends ScathaProGui
     {
         super.initGui();
         
-        scrollList = new OverlayComponentsGuiList(scathaPro, this);
+        scrollList = new OverlayComponentsGuiList(this);
         
         addDoneButton(this.width / 2 - 100, this.height - 30, 200, 20);
     }

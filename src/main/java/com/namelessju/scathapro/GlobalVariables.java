@@ -26,7 +26,8 @@ public class GlobalVariables
     public int scathaKills = 0;
 
     public long wormSpawnCooldownStartTime = -1;
-    
+
+    public long lastCrystalHollowsBlockHitTime = -1;
     public long lastWormSpawnTime = -1;
     public long lastScathaKillTime = -1;
     
@@ -38,6 +39,7 @@ public class GlobalVariables
 
     public LocalDate lastPlayedDate = null;
     public int scathaFarmingStreak = 0;
+    public int scathaFarmingStreakHighscore = 0;
     public LocalDate lastScathaFarmedDate = null;
     
     public long lastKillTime = -1;
@@ -48,7 +50,14 @@ public class GlobalVariables
     public boolean sneakingBefore = false;
     public long lastSneakStartTime = -1;
     
+    /** Used for the high heat alert and doesn't get updated if the alert is disabled! */
+    public int lastHeat = -1;
+    public long anomalousDesireReadyTime = -1;
+    public long anomalousDesireStartTime = -1;
+
+    public Runnable runnableNextTick = null;
     public GuiScreen openGuiNextTick = null;
+    
     public boolean firstWorldTickPending = true;
     public boolean cheaterDetected = false;
 
@@ -84,7 +93,11 @@ public class GlobalVariables
         previousScathaPets = null;
         
         WormStats.resetForNewLobby();
+        
+        lastCrystalHollowsBlockHitTime = -1;
         lastWormSpawnTime = -1;
         wormSpawnCooldownStartTime = -1;
+        
+        lastHeat = -1;
     }
 }

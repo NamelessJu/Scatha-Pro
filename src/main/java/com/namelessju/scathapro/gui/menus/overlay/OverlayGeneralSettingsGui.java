@@ -1,4 +1,4 @@
-package com.namelessju.scathapro.gui.menus;
+package com.namelessju.scathapro.gui.menus.overlay;
 
 import java.io.IOException;
 

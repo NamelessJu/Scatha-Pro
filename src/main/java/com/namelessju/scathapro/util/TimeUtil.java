@@ -1,8 +1,9 @@
 package com.namelessju.scathapro.util;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
+import java.util.Date;
 
 public class TimeUtil
 {
@@ -16,20 +17,22 @@ public class TimeUtil
         return System.currentTimeMillis();
     }
     
-    public static String getDateString()
+    /**
+     * Formats a timestamp the same way vanilla Minecraft does it
+     * @param timestamp The Unix timestamp in milliseconds to format
+     */
+    public static String formatUnixDateTime(long timestamp)
     {
-        Calendar today = Calendar.getInstance();
-        return today.get(Calendar.YEAR) + "-" + (today.get(Calendar.MONTH) + 1) + "-" + today.get(Calendar.DAY_OF_MONTH);
+        return new SimpleDateFormat().format(new Date(timestamp));
     }
     
-    public static String formatDate(LocalDate date)
+    public static String serializeDate(LocalDate date)
     {
         return date.format(dateFormat);
     }
     
     public static LocalDate today()
     {
-        // return LocalDate.parse("2024-06-21");
         return LocalDate.now();
     }
     

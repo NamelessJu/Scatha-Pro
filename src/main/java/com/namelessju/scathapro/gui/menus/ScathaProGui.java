@@ -7,14 +7,12 @@ import com.google.common.collect.Lists;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.gui.elements.DoneButton;
 import com.namelessju.scathapro.gui.elements.IClickActionButton;
-import com.namelessju.scathapro.gui.elements.ScathaProButton;
-import com.namelessju.scathapro.gui.elements.ScathaProGuiList;
+import com.namelessju.scathapro.gui.elements.ScathaProLabel;
 import com.namelessju.scathapro.gui.elements.ScathaProTextField;
-import com.namelessju.scathapro.util.Util;
+import com.namelessju.scathapro.gui.elements.TooltipElement;
+import com.namelessju.scathapro.gui.lists.ScathaProGuiList;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiLabel;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -40,25 +38,20 @@ public abstract class ScathaProGui extends GuiScreen
     protected void drawCustomBackground() {}
     
     
-    public ScathaProButton hoveredButton = null; // Currently only used to render the button tooltip
+    public TooltipElement.Tooltip tooltipToRender = null;
     
     protected final List<ScathaProTextField> textFieldList = Lists.<ScathaProTextField>newArrayList();
-    protected final List<GuiLabel> labelList = Lists.<GuiLabel>newArrayList();
+    protected final List<ScathaProLabel> labelList = Lists.<ScathaProLabel>newArrayList();
     protected ScathaProGuiList scrollList;
     
     private int currentGridPositionY;
     private boolean isCurrentGridPositionRightColumn;
     
-    private GuiScreen parentGui;
-
-    public ScathaProGui(ScathaPro scathaPro)
-    {
-        this.scathaPro = scathaPro;
-    }
+    public final GuiScreen parentGui;
     
     public ScathaProGui(ScathaPro scathaPro, GuiScreen parentGui)
     {
-        this(scathaPro);
+        this.scathaPro = scathaPro;
         this.parentGui = parentGui;
     }
     
@@ -66,7 +59,7 @@ public abstract class ScathaProGui extends GuiScreen
     
     protected void openGui(GuiScreen gui)
     {
-        Minecraft.getMinecraft().displayGuiScreen(gui);
+        scathaPro.getMinecraft().displayGuiScreen(gui);
     }
     
     public void openParentGui()
@@ -88,16 +81,14 @@ public abstract class ScathaProGui extends GuiScreen
         String title = getTitle();
         if (title != null && !title.replace(" ", "").isEmpty())
         {
-            GuiLabel titleLabel = new GuiLabel(fontRendererObj, 1, width / 2 - 155, 15, 310, 10, Util.Color.WHITE.getValue()).setCentered();
-            titleLabel.func_175202_a("Scatha-Pro - " + title);
-            labelList.add(titleLabel);
+            labelList.add(new ScathaProLabel(1, width / 2 - 155, 15, 310, 10, "Scatha-Pro - " + title).setCentered());
         }
     }
     
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
-        hoveredButton = null;
+        tooltipToRender = null;
         
         if (hasBackground())
         {
@@ -117,18 +108,18 @@ public abstract class ScathaProGui extends GuiScreen
         
         for (ScathaProTextField textField : textFieldList)
         {
-            textField.drawTextBox();
+            textField.drawTextBox(mouseX, mouseY);
         }
         
-        for (GuiLabel label : labelList)
+        for (ScathaProLabel label : labelList)
         {
             label.drawLabel(mc, mouseX, mouseY);
         }
         
         
-        if (hoveredButton != null)
+        if (tooltipToRender != null)
         {
-            List<String> tooltipLines = hoveredButton.getTooltipLines();
+            List<String> tooltipLines = tooltipToRender.getTooltipLines();
             if (tooltipLines != null && tooltipLines.size() > 0)
             {
                 net.minecraftforge.fml.client.config.GuiUtils.drawHoveringText(tooltipLines, mouseX, mouseY, width, height, -1, fontRendererObj);
@@ -194,11 +185,14 @@ public abstract class ScathaProGui extends GuiScreen
     }
 
     @Override
-    public void updateScreen() {
+    public void updateScreen()
+    {
         for (ScathaProTextField textField : textFieldList)
         {
-            textField.updateCursorCounter();
+            textField.tick();
         }
+        
+        if (scrollList != null) scrollList.tick();
         
         super.updateScreen();
     }

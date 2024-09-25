@@ -7,10 +7,12 @@ import com.namelessju.scathapro.events.AchievementUnlockedEvent;
 import com.namelessju.scathapro.events.DailyScathaFarmingStreakChangedEvent;
 import com.namelessju.scathapro.events.DailyStatsResetEvent;
 import com.namelessju.scathapro.events.ModUpdateEvent;
+import com.namelessju.scathapro.events.NewIRLDayStartedEvent;
 import com.namelessju.scathapro.events.SkyblockAreaDetectedEvent;
 import com.namelessju.scathapro.managers.Config;
+import com.namelessju.scathapro.managers.SaveManager;
 import com.namelessju.scathapro.miscellaneous.SkyblockArea;
-import com.namelessju.scathapro.util.MessageUtil;
+import com.namelessju.scathapro.util.TextUtil;
 import com.namelessju.scathapro.util.SoundUtil;
 import com.namelessju.scathapro.util.TimeUtil;
 
@@ -36,7 +38,7 @@ public class ScathaProMiscListeners extends ScathaProListener
     {
         if (scathaPro.getConfig().getBoolean(Config.Key.automaticBackups) && scathaPro.getPersistentData().getData().entrySet().size() > 0)
         {
-            scathaPro.getPersistentData().backup("update_" + (event.previousVersion != null ? "v" + event.previousVersion : "unknown") + "_to_v" + event.newVersion, true);
+            SaveManager.backup("update_" + (event.previousVersion != null ? event.previousVersion : "unknown") + "_to_" + event.newVersion);
         }
     }
     
@@ -44,6 +46,8 @@ public class ScathaProMiscListeners extends ScathaProListener
     public void onSkyblockAreaDetected(SkyblockAreaDetectedEvent event)
     {
         if (event.area != SkyblockArea.CRYSTAL_HOLLOWS) return;
+
+        scathaPro.getPersistentData().updateScathaFarmingStreak(false);
         
         if (scathaPro.getConfig().getBoolean(Config.Key.muteCrystalHollowsSounds))
         {
@@ -58,7 +62,7 @@ public class ScathaProMiscListeners extends ScathaProListener
             chatComponent.appendSibling(commandComponent);
             
             chatComponent.appendSibling(new ChatComponentText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GRAY + "!"));
-            MessageUtil.sendModChatMessage(chatComponent);
+            TextUtil.sendModChatMessage(chatComponent);
         }
     }
     
@@ -86,7 +90,7 @@ public class ScathaProMiscListeners extends ScathaProListener
             
             chatMessage.appendSibling(achievementComponent);
             
-            MessageUtil.sendModChatMessage(chatMessage);
+            TextUtil.sendModChatMessage(chatMessage);
             
             if (now >= scathaPro.variables.lastWorldJoinTime + 1000 && now >= lastAchievementUnlockTime + 1000) // required or the game might crash when too many achievements are unlocked at once
             {
@@ -111,6 +115,13 @@ public class ScathaProMiscListeners extends ScathaProListener
 
         
         lastAchievementUnlockTime = now;
+    }
+    
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public void onNewIRLDayStarted(NewIRLDayStartedEvent event)
+    {
+        scathaPro.getPersistentData().resetDailyStats();
+        scathaPro.getPersistentData().updateScathaFarmingStreak(false);
     }
     
     @SubscribeEvent(priority = EventPriority.HIGH)

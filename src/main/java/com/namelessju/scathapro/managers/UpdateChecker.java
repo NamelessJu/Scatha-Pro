@@ -1,16 +1,15 @@
 package com.namelessju.scathapro.managers;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Iterator;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.namelessju.scathapro.util.MessageUtil;
+import com.namelessju.scathapro.util.TextUtil;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.util.JsonUtil;
 
@@ -22,29 +21,39 @@ import net.minecraft.util.EnumChatFormatting;
 
 public class UpdateChecker
 {
-    private static final String GITHUB_API_RELEASES_LATEST_URL = "https://api.github.com/repos/NamelessJu/Scatha-Pro/releases/latest";
-    private static final String MODRINTH_VERSIONS_URL = "https://modrinth.com/mod/scatha-pro/version/";
+    private static final String MODRINTH_PROJECT_ID = "lPe25xOt";
+    
+    private static final String MODRINTH_API_BASE_URL = "https://api.modrinth.com/v2";
+    private static final String MODRINTH_API_VERSIONS_ENDPOINT = MODRINTH_API_BASE_URL + "/project/"+MODRINTH_PROJECT_ID+"/version";
+    
+    private static final String MODRINTH_VERSIONS_BASE_URL = "https://modrinth.com/mod/"+MODRINTH_PROJECT_ID+"/version/";
     
     
     public static void checkForUpdate(final boolean showAllResults)
     {
+        final String modLoader = "forge";
+        final String mcVersion = "1.8.9";
+        
         new Thread(new Runnable() {
             public void run()
             {
                 try
                 {
-                    URL url = new URL(GITHUB_API_RELEASES_LATEST_URL);
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    HttpURLConnection connection = (HttpURLConnection) new URL(MODRINTH_API_VERSIONS_ENDPOINT + "?loaders=[%22"+modLoader+"%22]&game_versions=[%22"+mcVersion+"%22]").openConnection();
                     connection.setRequestMethod("GET");
+                    connection.setDoInput(true);
+                    connection.setDoOutput(false);
+                    connection.setRequestProperty("User-Agent", "NamelessJu/" + ScathaPro.MODNAME + "/" + ScathaPro.VERSION);
+                    connection.setRequestProperty("Accept", "application/json");
+                    connection.setRequestProperty("Accept-Charset", "utf-8");
                     connection.connect();
-        
+                    
                     int code = connection.getResponseCode();
                     
                     if (code == 200)
                     {
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                        
                         StringBuilder response = new StringBuilder();
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                         String line;
                         while ((line = reader.readLine()) != null)
                         {
@@ -52,70 +61,103 @@ public class UpdateChecker
                         }
                         
                         connection.disconnect();
-
+                        
                         JsonElement json = new JsonParser().parse(response.toString());
                         
-                        if (json.isJsonObject())
+                        if (json.isJsonArray())
                         {
-                            JsonObject versionObject = json.getAsJsonObject();
+                            String latestVersion = null;
                             
-                            String versionTag = JsonUtil.getString(versionObject, "tag_name");
-                            if (versionTag == null) return;
-                            
-                            int comparison = compareVersions(ScathaPro.VERSION, versionTag);
-                            if (comparison > 0)
+                            Iterator<JsonElement> versionsIterator = json.getAsJsonArray().iterator();
+                            while (versionsIterator.hasNext())
                             {
-                                // String updateLink = JsonUtil.getString(versionObject, "html_url");
-                                String updateLink = MODRINTH_VERSIONS_URL + versionTag;
+                                JsonElement versionElement = versionsIterator.next();
+                                if (!versionElement.isJsonObject()) continue;
+                                JsonObject versionObject = versionElement.getAsJsonObject();
                                 
-                                ChatComponentText updateNotice = new ChatComponentText(EnumChatFormatting.GOLD.toString() + EnumChatFormatting.ITALIC + "A new version (" + versionTag + ") is available. You can download it ");
+                                if (!"release".equals(JsonUtil.getString(versionObject, "version_type"))) continue;
+                                if (!"listed".equals(JsonUtil.getString(versionObject, "status"))) continue;
                                 
-                                ChatComponentText downloadLink = new ChatComponentText(EnumChatFormatting.BLUE.toString() + EnumChatFormatting.ITALIC + EnumChatFormatting.UNDERLINE + "here");
-                                if (updateLink != null)
+                                String version = JsonUtil.getString(versionObject, "version_number");
+                                if (version == null) continue;
+                                
+                                int comparison = latestVersion != null ? compareVersions(latestVersion, version) : 1;
+                                if (comparison > 0) latestVersion = version;
+                            }
+
+                            if (latestVersion != null)
+                            {
+                                int updateComparison = compareVersions(ScathaPro.VERSION, latestVersion);
+                                
+                                if (updateComparison > 0)
                                 {
+                                    String updateLink = MODRINTH_VERSIONS_BASE_URL + latestVersion;
+                                    
+                                    ChatComponentText updateNotice = new ChatComponentText(EnumChatFormatting.GOLD.toString() + "A newer Scatha-Pro version (" + latestVersion + ") is available! You can download it ");
+                                    ChatComponentText downloadLink = new ChatComponentText(EnumChatFormatting.BLUE.toString() + EnumChatFormatting.UNDERLINE + "here");
+                                    /*
+                                    if (updateLink != null)
+                                    {
+                                    */
                                     ChatStyle style = new ChatStyle()
                                             .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.GRAY + updateLink)))
                                             .setChatClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, updateLink));
                                     downloadLink.setChatStyle(style);
+                                    /*
+                                    }
+                                    else
+                                    {
+                                        ChatStyle style = new ChatStyle().setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.RED + "No download link found")));
+                                        downloadLink.setChatStyle(style);
+                                    }
+                                    */
+                                    updateNotice.appendSibling(downloadLink);
+                                    updateNotice.appendText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GOLD + EnumChatFormatting.ITALIC + ".");
+                                    
+                                    TextUtil.sendModChatMessage(updateNotice);
                                 }
-                                /*
                                 else
                                 {
-                                    ChatStyle style = new ChatStyle().setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.RED + "No download link found")));
-                                    downloadLink.setChatStyle(style);
+                                    if (showAllResults)
+                                    {
+                                        if (updateComparison < 0) TextUtil.sendModChatMessage(EnumChatFormatting.AQUA + "Your version is newer than the latest public release");
+                                        else TextUtil.sendModChatMessage(EnumChatFormatting.GREEN + "You're using the newest version!");
+                                    }
                                 }
-                                */
-                                updateNotice.appendSibling(downloadLink);
                                 
-                                updateNotice.appendText(EnumChatFormatting.RESET.toString() + EnumChatFormatting.GOLD + EnumChatFormatting.ITALIC + ".");
-                                
-                                MessageUtil.sendModChatMessage(updateNotice);
+                                return;
                             }
-                            else
-                            {
-                                if (showAllResults)
-                                {
-                                    if (comparison < 0) MessageUtil.sendModChatMessage("Your version is newer than the latest public release");
-                                    else MessageUtil.sendModChatMessage(EnumChatFormatting.GREEN + "You're using the newest version!");
-                                }
-                            }
-                            
-                            return;
+                            else ScathaPro.getInstance().logError("Couldn't check for update: no versions found on API");
                         }
-                        else ScathaPro.getInstance().logError("Couldn't check for update (response is not an object)");
+                        else ScathaPro.getInstance().logError("Couldn't check for update: response is not in expected format");
                     }
-                    else ScathaPro.getInstance().logError("Couldn't check for update (response code " + code + ")");
+                    else
+                    {
+                        StringBuilder response = new StringBuilder();
+                        
+                        try
+                        {
+                            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+                            String line;
+                            while ((line = reader.readLine()) != null)
+                            {
+                                response.append(line + "\n");
+                            }
+                        }
+                        catch (Exception e) {}
+                        
+                        connection.disconnect();
+                        
+                        ScathaPro.getInstance().logError("Couldn't check for update: response code " + code + " - " + (response.length() > 0 ? "response:\n" + response.toString() : "no error response"));
+                    }
                 }
-                catch (MalformedURLException e)
+                catch (Exception e)
                 {
-                    ScathaPro.getInstance().logError("Update checker URL is malformed");
-                }
-                catch (IOException e)
-                {
-                    ScathaPro.getInstance().logError("Couldn't read API response while checking for update");
+                    ScathaPro.getInstance().logError("Failed to check for update:");
+                    e.printStackTrace();
                 }
                 
-                MessageUtil.sendModErrorMessage("Error while checking for update!");
+                TextUtil.sendModErrorMessage("Error while checking for update!");
             }
         }).start();
     }

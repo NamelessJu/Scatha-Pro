@@ -3,7 +3,7 @@ package com.namelessju.scathapro.gui.menus;
 import java.io.IOException;
 
 import com.namelessju.scathapro.achievements.Achievement;
-import com.namelessju.scathapro.util.MessageUtil;
+import com.namelessju.scathapro.util.TextUtil;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiDisconnected;
@@ -45,7 +45,7 @@ public class FakeBanGui extends GuiDisconnected
         {
             Achievement.cheat.unlock();
             
-            MessageUtil.displayTitle("", EnumChatFormatting.GREEN + "We do a little trolling", 5, 60, 40);
+            TextUtil.displayTitle("", EnumChatFormatting.GREEN + "We do a little trolling", 5, 60, 40);
         }
         
         super.actionPerformed(button);

@@ -10,12 +10,14 @@ public class PresetAlertMode extends AlertMode
     {
         super(id, name);
     }
-    
+
+    @Override
     public String getIconPath()
     {
         return "overlay/scatha_icons/mode_" + id + ".png";
     }
 
+    @Override
     public ResourceLocation getSoundBaseResourceLocation()
     {
         return new ResourceLocation(ScathaPro.MODID, "alert_modes." + id);

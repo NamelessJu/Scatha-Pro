@@ -1,31 +1,38 @@
 package com.namelessju.scathapro.gui.elements;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.lwjgl.opengl.GL11;
+
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.namelessju.scathapro.util.TextUtil;
 import com.namelessju.scathapro.util.Util;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ChatAllowedCharacters;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.StringUtils;
 
-/**
- * This is a copy of <code>GuiTextField</code> with some changes/additional features.
- */
+// This is a copy of <code>GuiTextField</code> with some changes/additional features.
 // (inheriting from GuiTextField didn't work, as most of it's fields are private, making important information inaccessible)
-public class ScathaProTextField extends Gui
+public class ScathaProTextField extends Gui implements TooltipElement
 {
     private final int id;
     private final FontRenderer fontRendererInstance;
     private String text = "";
     private int maxStringLength = 32;
-    private int cursorCounter = 0;
+    private int cursorBlinkCounter = 0;
     private boolean isFocused = false;
     private boolean isEnabled = true;
     private int lineScrollOffset = 0;
@@ -34,12 +41,15 @@ public class ScathaProTextField extends Gui
     private boolean visible = true;
     private Predicate<String> textPredicate = Predicates.<String>alwaysTrue();
 
-    private String placeholder = null;
-
     public int xPosition;
     public int yPosition;
     public int width;
     public int height;
+
+    private final Tooltip tooltip = new Tooltip();
+    private String placeholder = null;
+    private boolean supportsFormatting = false;
+    private String formattedText = "";
     
     public ScathaProTextField(int componentId, FontRenderer fontrendererObj, int x, int y, int width, int height)
     {
@@ -51,12 +61,72 @@ public class ScathaProTextField extends Gui
         this.height = height;
     }
     
+    public ScathaProTextField setTooltip(String text)
+    {
+        tooltip.setTooltip(text);
+        return this;
+    }
+    
+    @Override
+    public Tooltip getTooltip()
+    {
+        return tooltip;
+    }
+    
     public void setPlaceholder(String placeholder)
     {
         this.placeholder = placeholder;
     }
     
-    public void drawTextBox()
+    public ScathaProTextField setSupportsFormatting(boolean value)
+    {
+        this.supportsFormatting = value;
+        if (this.supportsFormatting) updateFormattedText();
+        if (this.text.length() > 0) this.setSelectionPos(this.selectionEnd);
+        return this;
+    }
+    
+    public void updateFormattedText()
+    {
+        if (!supportsFormatting)
+        {
+            this.formattedText = "";
+            return;
+        }
+
+        Matcher formattingCodeMatcher = Pattern.compile("&" + TextUtil.formattingCodesRegex).matcher(this.text);
+        
+        String formattedText = this.text;
+        int indexOffset = 0; 
+        String previousStyling = "";
+        while (formattingCodeMatcher.find())
+        {
+            int index = formattingCodeMatcher.start() + indexOffset;
+            String code = formattingCodeMatcher.group();
+            
+            String realFormatting = code.replace("&", TextUtil.formattingStartCharacter);
+            String codeFormatted = EnumChatFormatting.DARK_GRAY + code + EnumChatFormatting.RESET + previousStyling + realFormatting;
+            
+            if (!TextUtil.isFancyFormattingCode(realFormatting.charAt(1))) previousStyling = "";
+            previousStyling += realFormatting;
+            
+            formattedText = formattedText.substring(0, index) + codeFormatted + formattedText.substring(index + code.length());
+            
+            indexOffset += codeFormatted.length() - code.length();
+        }
+        
+        this.formattedText = EnumChatFormatting.RESET + formattedText;
+    }
+    
+    /**
+     * Returns the formatted text if formatting is supported, otherwise returns the regular text
+     */
+    private String getFormattableText()
+    {
+        return this.supportsFormatting ? this.formattedText : this.text;
+    }
+    
+    public void drawTextBox(int mouseX, int mouseY)
     {
         if (this.getVisible())
         {
@@ -64,84 +134,122 @@ public class ScathaProTextField extends Gui
             drawRect(this.xPosition - 1, this.yPosition - 1, this.xPosition + this.width + 1, this.yPosition + this.height + 1, outlineColor);
             drawRect(this.xPosition, this.yPosition, this.xPosition + this.width, this.yPosition + this.height, -16777216);
 
-            int textColor = this.isEnabled ? 14737632 : 7368816;
-            int j = this.cursorPosition - this.lineScrollOffset;
-            int k = this.selectionEnd - this.lineScrollOffset;
-            String s = this.fontRendererInstance.trimStringToWidth(this.text.substring(this.lineScrollOffset), this.getWidth());
-            boolean flag = j >= 0 && j <= s.length();
-            boolean flag1 = this.isFocused && this.cursorCounter / 6 % 2 == 0 && flag;
-            int l = this.xPosition + 4;
-            int i1 = this.yPosition + (this.height - 8) / 2;
-            int j1 = l;
-
-            if (k > s.length())
+            
+            int textOffset = getFormattableStringWidthAtIndex(this.lineScrollOffset);
+            int textBaseX = this.xPosition + 4; // X position without offset
+            int textXWithOffset = textBaseX - textOffset;
+            int textY = this.yPosition + (this.height - 8) / 2;
+            
+            ScaledResolution scaledResolution = new ScaledResolution(Minecraft.getMinecraft());
+            GL11.glEnable(GL11.GL_SCISSOR_TEST);
+            GlStateManager.pushMatrix();
+            GlStateManager.loadIdentity();
+            GL11.glScissor((xPosition + 1) * scaledResolution.getScaleFactor(), Minecraft.getMinecraft().displayHeight - (yPosition + height) * scaledResolution.getScaleFactor(), (width - 2) * scaledResolution.getScaleFactor(), height * scaledResolution.getScaleFactor());
+            GlStateManager.popMatrix();
+            
+            if (this.text.length() > 0)
             {
-                k = s.length();
-            }
-
-            if (s.length() > 0)
-            {
-                String s1 = flag ? s.substring(0, j) : s;
-                j1 = this.fontRendererInstance.drawStringWithShadow(s1, (float)l, (float)i1, textColor);
+                this.fontRendererInstance.drawStringWithShadow(getFormattableText(), textXWithOffset, textY, this.isEnabled ? 14737632 : 7368816);
             }
             else if (this.placeholder != null)
             {
-                String placeholderTrimmed = this.fontRendererInstance.trimStringToWidth(this.placeholder, this.getWidth());
-                this.fontRendererInstance.drawStringWithShadow(placeholderTrimmed, xPosition + 4, yPosition + (height - 8) / 2, Util.Color.DARK_GRAY.getValue());
+                this.fontRendererInstance.drawStringWithShadow(TextUtil.trimStringToWidth(this.placeholder, this.getWidth()), textBaseX, textY, Util.Color.DARK_GRAY.getValue());
             }
             
-
-            boolean flag2 = this.cursorPosition < this.text.length() || this.text.length() >= this.getMaxStringLength();
-            int k1 = j1;
-
-            if (!flag)
+            // Caret
+            
+            int caretX = textXWithOffset + getFormattableStringWidthAtIndex(this.cursorPosition);
+            if (this.isFocused && this.cursorBlinkCounter / 10 % 2 == 0)
             {
-                k1 = j > 0 ? l + this.width : l;
-            }
-            else if (flag2)
-            {
-                k1 = j1 - 1;
-                --j1;
-            }
-
-            if (s.length() > 0 && flag && j < s.length())
-            {
-                j1 = this.fontRendererInstance.drawStringWithShadow(s.substring(j), (float)j1, (float)i1, textColor);
+                Gui.drawRect(caretX, textY - 1, caretX + 1, textY + this.fontRendererInstance.FONT_HEIGHT + 1, -3092272);
             }
             
-            if (flag1)
+            // Selection
+            
+            if (this.cursorPosition != this.selectionEnd)
             {
-                if (flag2)
-                {
-                    Gui.drawRect(k1, i1 - 1, k1 + 1, i1 + 1 + this.fontRendererInstance.FONT_HEIGHT, -3092272);
-                }
-                else
-                {
-                    this.fontRendererInstance.drawStringWithShadow("_", (float)k1, (float)i1, textColor);
-                }
+                int selectionEndX = textXWithOffset + getFormattableStringWidthAtIndex(this.selectionEnd);
+                this.drawSelection(caretX, textY - 1, selectionEndX - 1, textY + 1 + this.fontRendererInstance.FONT_HEIGHT);
             }
-
-            if (k != j)
-            {
-                int l1 = l + this.fontRendererInstance.getStringWidth(s.substring(0, k));
-                this.drawCursorVertical(k1, i1 - 1, l1 - 1, i1 + 1 + this.fontRendererInstance.FONT_HEIGHT);
-            }
+            
+            GL11.glDisable(GL11.GL_SCISSOR_TEST);
+            
+            boolean hovered = mouseX >= this.xPosition && mouseY >= this.yPosition && mouseX < this.xPosition + this.width && mouseY < this.yPosition + this.height;
+            if (hovered) this.tooltip.render();
         }
     }
     
-    public void mouseClicked(int mouseX, int mouseY, int mouseButton)
+    /**
+     * Returns the length of the formattable string until the specified index (exclusive), ignoring any formatting codes for the index value.
+     */
+    private int getFormattableStringWidthAtIndex(int index)
     {
-        boolean flag = mouseX >= this.xPosition && mouseX < this.xPosition + this.width && mouseY >= this.yPosition && mouseY < this.yPosition + this.height;
-
-        this.setFocused(!this.isEnabled ? false : flag);
-
-        if (this.isFocused && flag && mouseButton == 0)
+        String partialString = null;
+        if (this.supportsFormatting)
         {
-            int i = mouseX - this.xPosition - 4;
-
-            String s = this.fontRendererInstance.trimStringToWidth(this.text.substring(this.lineScrollOffset), this.getWidth());
-            this.setCursorPosition(this.fontRendererInstance.trimStringToWidth(s, i).length() + this.lineScrollOffset);
+            String string = this.formattedText;
+            int currentNonFormattingCharIndex = 0;
+            for (int i = 0; i < string.length(); i ++)
+            {
+                if (currentNonFormattingCharIndex >= index)
+                {
+                    partialString = string.substring(0, i);
+                    break;
+                }
+                if (i >= string.length() - 1)
+                {
+                    partialString = string;
+                    break;
+                }
+                
+                if (string.length() >= i + 2 && TextUtil.isFormattingSequence(string.substring(i, i + 2)))
+                {
+                    i++;
+                    continue;
+                }
+                
+                currentNonFormattingCharIndex ++;
+            }
         }
+        else partialString = this.text.substring(0, index);
+        
+        if (partialString == null) return 0;
+        return TextUtil.getStringWidth(partialString);
+    }
+    
+    private int getFormattableStringIndexAtWidth(int width)
+    {
+        return StringUtils.stripControlCodes(TextUtil.trimStringToWidth(getFormattableText(), width)).length();
+    }
+    
+    public boolean mouseClicked(int mouseX, int mouseY, int mouseButton)
+    {
+        boolean isMouseOver = mouseX >= this.xPosition && mouseX < this.xPosition + this.width && mouseY >= this.yPosition && mouseY < this.yPosition + this.height;
+        
+        this.setFocused(this.isEnabled ? isMouseOver : false);
+
+        if (this.isFocused && isMouseOver && mouseButton == 0)
+        {
+            int mouseXRelative = mouseX - this.xPosition - 4 + getFormattableStringWidthAtIndex(this.lineScrollOffset);
+            
+            String trimmedString = TextUtil.trimStringToWidth(getFormattableText(), mouseXRelative);
+            int cursorIndex = StringUtils.stripControlCodes(trimmedString).length();
+            if (cursorIndex < this.text.length())
+            {
+                char nextChar = this.text.charAt(cursorIndex);
+                if (mouseXRelative - TextUtil.getStringWidth(trimmedString) >= fontRendererInstance.getCharWidth(nextChar) / 2f)
+                {
+                    cursorIndex ++;
+                }
+            }
+            this.setCursorPosition(cursorIndex);
+            
+            this.cursorBlinkCounter = 0;
+            
+            return true;
+        }
+        
+        return false;
     }
 
     public void setEnabled(boolean enabled)
@@ -165,6 +273,8 @@ public class ScathaProTextField extends Gui
             {
                 this.text = newText;
             }
+            
+            updateFormattedText();
 
             this.setCursorPositionEnd();
         }
@@ -175,9 +285,9 @@ public class ScathaProTextField extends Gui
         return this.text;
     }
     
-    public void updateCursorCounter()
+    public void tick()
     {
-        ++this.cursorCounter;
+        ++this.cursorBlinkCounter;
     }
     
     public String getSelectedText()
@@ -225,6 +335,7 @@ public class ScathaProTextField extends Gui
         if (this.textPredicate.apply(s))
         {
             this.text = s;
+            updateFormattedText();
             this.moveCursorBy(i - this.selectionEnd + l);
         }
     }
@@ -272,6 +383,8 @@ public class ScathaProTextField extends Gui
                 if (this.textPredicate.apply(s))
                 {
                     this.text = s;
+                    
+                    updateFormattedText();
 
                     if (flag)
                     {
@@ -358,10 +471,9 @@ public class ScathaProTextField extends Gui
      */
     public void setCursorPosition(int p_146190_1_)
     {
-        this.cursorPosition = p_146190_1_;
-        int i = this.text.length();
-        this.cursorPosition = MathHelper.clamp_int(this.cursorPosition, 0, i);
+        this.cursorPosition = MathHelper.clamp_int(p_146190_1_, 0, this.text.length());
         this.setSelectionPos(this.cursorPosition);
+        this.cursorBlinkCounter = 0;
     }
 
     /**
@@ -542,11 +654,8 @@ public class ScathaProTextField extends Gui
             }
         }
     }
-
-    /**
-     * draws the vertical line cursor in the textbox
-     */
-    private void drawCursorVertical(int p_146188_1_, int p_146188_2_, int p_146188_3_, int p_146188_4_)
+    
+    private void drawSelection(int p_146188_1_, int p_146188_2_, int p_146188_3_, int p_146188_4_)
     {
         if (p_146188_1_ < p_146188_3_)
         {
@@ -595,6 +704,7 @@ public class ScathaProTextField extends Gui
         if (this.text.length() > p_146203_1_)
         {
             this.text = this.text.substring(0, p_146203_1_);
+            updateFormattedText();
         }
     }
     
@@ -612,7 +722,7 @@ public class ScathaProTextField extends Gui
     {
         if (focused && !this.isFocused)
         {
-            this.cursorCounter = 0;
+            this.cursorBlinkCounter = 0;
         }
 
         this.isFocused = focused;
@@ -633,48 +743,49 @@ public class ScathaProTextField extends Gui
         return this.width - 8;
     }
     
-    public void setSelectionPos(int p_146199_1_)
+    public void setSelectionPos(int selectionIndex)
     {
-        int i = this.text.length();
+        int textLength = this.text.length();
+        
+        if (selectionIndex > textLength) selectionIndex = textLength;
+        if (selectionIndex < 0) selectionIndex = 0;
 
-        if (p_146199_1_ > i)
-        {
-            p_146199_1_ = i;
-        }
-
-        if (p_146199_1_ < 0)
-        {
-            p_146199_1_ = 0;
-        }
-
-        this.selectionEnd = p_146199_1_;
+        this.selectionEnd = selectionIndex;
 
         if (this.fontRendererInstance != null)
         {
-            if (this.lineScrollOffset > i)
+            if (this.lineScrollOffset > textLength)
             {
-                this.lineScrollOffset = i;
+                this.lineScrollOffset = textLength;
+            }
+            
+            String formattedText = getFormattableText();
+            int width = this.getWidth();
+            if (selectionIndex == this.lineScrollOffset)
+            {
+                this.lineScrollOffset -= TextUtil.trimStringToWidth(formattedText, width, true).length();
+            }
+            else
+            {
+                int textWidthToOffset = getFormattableStringWidthAtIndex(this.lineScrollOffset);
+                int textWidthToFieldEnd = textWidthToOffset + width;
+                int indexAtFieldEnd = getFormattableStringIndexAtWidth(textWidthToFieldEnd);
+                
+                if (selectionIndex > indexAtFieldEnd)
+                {
+                    int textWidthToSelection = getFormattableStringWidthAtIndex(selectionIndex);
+                    int scrollByWidth = textWidthToSelection - textWidthToFieldEnd;
+                    int scrollToTextWidth = textWidthToOffset + scrollByWidth;
+                    
+                    this.lineScrollOffset = getFormattableStringIndexAtWidth(scrollToTextWidth) + 1;
+                }
+                else if (selectionIndex < this.lineScrollOffset)
+                {
+                    this.lineScrollOffset = selectionIndex;
+                }
             }
 
-            int j = this.getWidth();
-            String s = this.fontRendererInstance.trimStringToWidth(this.text.substring(this.lineScrollOffset), j);
-            int k = s.length() + this.lineScrollOffset;
-
-            if (p_146199_1_ == this.lineScrollOffset)
-            {
-                this.lineScrollOffset -= this.fontRendererInstance.trimStringToWidth(this.text, j, true).length();
-            }
-
-            if (p_146199_1_ > k)
-            {
-                this.lineScrollOffset += p_146199_1_ - k;
-            }
-            else if (p_146199_1_ <= this.lineScrollOffset)
-            {
-                this.lineScrollOffset -= this.lineScrollOffset - p_146199_1_;
-            }
-
-            this.lineScrollOffset = MathHelper.clamp_int(this.lineScrollOffset, 0, i);
+            this.lineScrollOffset = MathHelper.clamp_int(this.lineScrollOffset, 0, textLength);
         }
     }
     

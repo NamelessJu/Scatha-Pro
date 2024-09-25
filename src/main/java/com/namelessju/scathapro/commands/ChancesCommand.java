@@ -1,10 +1,10 @@
 package com.namelessju.scathapro.commands;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.collect.Lists;
 import com.namelessju.scathapro.Constants;
-import com.namelessju.scathapro.util.MessageUtil;
+import com.namelessju.scathapro.util.TextUtil;
 import com.namelessju.scathapro.util.NBTUtil;
 import com.namelessju.scathapro.util.Util;
 
@@ -31,15 +31,13 @@ public class ChancesCommand extends CommandBase
     @Override
     public List<String> getCommandAliases()
     {
-        List<String> aliases = new ArrayList<String>();
-        aliases.add("scacha");
-        return aliases;
+        return Lists.newArrayList("scacha");
     }
 
     @Override
     public String getCommandUsage(ICommandSender sender)
     {
-        return "/" + COMMAND_NAME + " [magic find] [pet luck] [Scatha kills]";
+        return "/" + COMMAND_NAME + " (magic find) (pet luck) (Scatha kills)";
     }
     
     @Override
@@ -47,7 +45,7 @@ public class ChancesCommand extends CommandBase
     {
         return 0;
     }
-
+    
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException
     {
@@ -55,15 +53,15 @@ public class ChancesCommand extends CommandBase
         
         if (args.length > 0 && args[0].equalsIgnoreCase("help"))
         {
-            MessageUtil.sendChatDivider();
-            MessageUtil.sendModChatMessage(
+            TextUtil.sendChatDivider();
+            TextUtil.sendModChatMessage(
                 Constants.msgHighlightingColor + "Scatha chances calculator:\n"
                 + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " (alias /scacha)" + EnumChatFormatting.WHITE + ":" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Shows the base Scatha pet drop chances\n"
-                + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " <magic find> (pet luck): " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "Calculates specific Scatha pet drop chances\n"
-                + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " <magic find> <pet luck> <Scatha kills>: " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "Calculates the chances for dropping at least one Scatha pet during the process of killing x Scathas\n"
-                + EnumChatFormatting.YELLOW + EnumChatFormatting.ITALIC + "Remember to add worm bestiary magic find to your numbers!"
+                + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " <Magic Find> (Pet Luck): " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "Calculates specific Scatha pet drop chances\n"
+                + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " <Magic Find> <Pet Luck> <Scatha kills>: " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "Calculates the chances for dropping at least one Scatha pet during the process of killing x Scathas\n"
+                + EnumChatFormatting.YELLOW + EnumChatFormatting.ITALIC + "Remember to add worm bestiary Magic Find to your total Magic Find number!"
             );
-            MessageUtil.sendChatDivider();
+            TextUtil.sendChatDivider();
             return;
         }
         
@@ -82,7 +80,7 @@ public class ChancesCommand extends CommandBase
         }
         
 
-        boolean specificChances = magicFind > 0 || petLuck > 0;
+        boolean specificChances = magicFind > 0 || petLuck > 0 || useLooting;
         
         float rareChance = Constants.scathaPetBaseChanceRare;
         float epicChance = Constants.scathaPetBaseChanceEpic;
@@ -98,7 +96,19 @@ public class ChancesCommand extends CommandBase
         float anyChance = rareChance + epicChance + legendaryChance;
         
         
-        String attributesString = EnumChatFormatting.AQUA + MessageUtil.getUnicodeString("272F") + " " + Util.numberToString(magicFind, 2) + " magic find" + Constants.msgHighlightingColor + (looting > 0 ? ", " : " and ") + EnumChatFormatting.LIGHT_PURPLE + MessageUtil.getUnicodeString("2663") + " " + Util.numberToString(petLuck, 2) + " pet luck" + Constants.msgHighlightingColor + (looting > 0 ? " and " + EnumChatFormatting.BLUE + "looting " + looting + EnumChatFormatting.GRAY + " (held item)" : "") + Constants.msgHighlightingColor;
+        String attributesString = "";
+        if (petLuck <= 0)
+        {
+            attributesString = EnumChatFormatting.AQUA + "\u272F" + EnumChatFormatting.GRAY + "/" + EnumChatFormatting.LIGHT_PURPLE + "\u2663" + EnumChatFormatting.AQUA + " " + Util.numberToString(magicFind, 2) + " Effective Magic Find" + Constants.msgHighlightingColor;
+        }
+        else
+        {
+            attributesString = EnumChatFormatting.AQUA + "\u272F" + " " + Util.numberToString(magicFind, 2) + " Magic Find" + Constants.msgHighlightingColor + (looting > 0 ? ", " : " and ") + EnumChatFormatting.LIGHT_PURPLE + "\u2663" + " " + Util.numberToString(petLuck, 2) + " Pet Luck" + Constants.msgHighlightingColor;
+        }
+        if (looting > 0)
+        {
+            attributesString += " and " + EnumChatFormatting.BLUE + "looting " + looting + EnumChatFormatting.GRAY + " (held item)" + Constants.msgHighlightingColor;
+        }
         
         
         if (kills == 0)
@@ -108,8 +118,8 @@ public class ChancesCommand extends CommandBase
             int legendaryKills = (int) Math.ceil(1 / legendaryChance);
             int anyKills = (int) Math.ceil(1 / anyChance);
 
-            MessageUtil.sendChatDivider();
-            MessageUtil.sendModChatMessage(
+            TextUtil.sendChatDivider();
+            TextUtil.sendModChatMessage(
                 Constants.msgHighlightingColor + (
                         specificChances
                         ? "Scatha pet drop chances with " + attributesString + ":\n"
@@ -120,7 +130,7 @@ public class ChancesCommand extends CommandBase
                 + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.DARK_PURPLE + "Epic: " + (epicChance >= 0.999995f ? Util.numberToString(99.999f, 3) : Util.numberToString(epicChance * 100, 3)) + "% " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "(" + epicKills + " Scatha kills on average)" + EnumChatFormatting.RESET + "\n"
                 + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.GOLD + "Legendary: " + (legendaryChance >= 0.999995f ? Util.numberToString(99.999f, 3) : Util.numberToString(legendaryChance * 100, 3)) + "% " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC +"(" + legendaryKills + " Scatha kills on average)"
             );
-            MessageUtil.sendChatDivider();
+            TextUtil.sendChatDivider();
         }
         else
         {
@@ -129,18 +139,18 @@ public class ChancesCommand extends CommandBase
             float epicChanceAtKills = (float) (1 - Math.pow(1 - epicChance, kills));
             float legendaryChanceAtKills = (float) (1 - Math.pow(1 - legendaryChance, kills));
             
-            ChatComponentText descriptionMessage = new ChatComponentText(Constants.msgHighlightingColor + "You have the following chances to drop at least 1 Scatha pet while killing " + EnumChatFormatting.RED + MessageUtil.getUnicodeString("2694") + " " + kills + " Scatha" + (kills == 1 ? "" : "s") + Constants.msgHighlightingColor + " with " + attributesString + ":");
+            ChatComponentText descriptionMessage = new ChatComponentText(Constants.msgHighlightingColor + "You have the following chances to drop at least 1 Scatha pet while killing " + EnumChatFormatting.RED + "\u2694" + " " + kills + " Scatha" + (kills == 1 ? "" : "s") + Constants.msgHighlightingColor + " with " + attributesString + ":");
             descriptionMessage.setChatStyle(new ChatStyle().setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.RED + "Killing more Scathas does NOT increase the drop chance per kill!\n" + EnumChatFormatting.RESET + EnumChatFormatting.GRAY + "However, the more often you roll the chance (by killing more Scathas) the higher the chance to drop a Scatha pet overall gets!"))));
 
-            MessageUtil.sendChatDivider();
-            MessageUtil.sendModChatMessage(descriptionMessage);
-            MessageUtil.sendModChatMessage(
+            TextUtil.sendChatDivider();
+            TextUtil.sendModChatMessage(descriptionMessage);
+            TextUtil.sendModChatMessage(
                 EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.RESET + "Any: " + (anyChanceAtKills >= 0.999995f ? Util.numberToString(99.999f, 3) : Util.numberToString(anyChanceAtKills * 100, 3)) + "%"+ EnumChatFormatting.RESET + "\n"
                 + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.BLUE + "Rare: " + (rareChanceAtKills >= 0.999995f ? Util.numberToString(99.999f, 3) : Util.numberToString(rareChanceAtKills * 100, 3)) + "%" + EnumChatFormatting.RESET + "\n"
                 + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.DARK_PURPLE + "Epic: " + (epicChanceAtKills >= 0.999995f ? Util.numberToString(99.999f, 3) : Util.numberToString(epicChanceAtKills * 100, 3)) + "%" + EnumChatFormatting.RESET + "\n"
                 + EnumChatFormatting.DARK_GRAY + " - " + EnumChatFormatting.GOLD + "Legendary: " + (legendaryChanceAtKills >= 0.999995f ? Util.numberToString(99.999f, 3) : Util.numberToString(legendaryChanceAtKills * 100, 3)) + "%"
             , false);
-            MessageUtil.sendChatDivider();
+            TextUtil.sendChatDivider();
         }
     }
 }

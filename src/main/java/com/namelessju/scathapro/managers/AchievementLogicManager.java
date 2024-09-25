@@ -1,14 +1,16 @@
 package com.namelessju.scathapro.managers;
 
 import java.time.LocalDate;
-import java.util.Collection;
 
+import com.namelessju.scathapro.Constants;
 import com.namelessju.scathapro.GlobalVariables;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.achievements.AchievementManager;
+import com.namelessju.scathapro.achievements.Achievement.Type.Visibility;
 import com.namelessju.scathapro.entitydetection.detectedentities.DetectedWorm;
 import com.namelessju.scathapro.events.WormSpawnEvent;
+import com.namelessju.scathapro.miscellaneous.ScoreboardParser;
 import com.namelessju.scathapro.miscellaneous.WormStats;
 import com.namelessju.scathapro.util.JsonUtil;
 import com.namelessju.scathapro.util.NBTUtil;
@@ -17,11 +19,6 @@ import com.namelessju.scathapro.util.TimeUtil;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.scoreboard.Score;
-import net.minecraft.scoreboard.ScoreObjective;
-import net.minecraft.scoreboard.ScorePlayerTeam;
-import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.util.StringUtils;
 
 public class AchievementLogicManager
 {
@@ -79,7 +76,8 @@ public class AchievementLogicManager
         Achievement.regular_worm_streak_3.setProgress(regularWormStreak);
         
         if (spawnEvent != null && spawnEvent.worm.isScatha
-            && spawnEvent.timeSincePreviousSpawn >= 30000L && spawnEvent.timeSincePreviousSpawn < 33000L)
+            && spawnEvent.timeSincePreviousSpawn >= Constants.wormSpawnCooldown - 1000L // 1s grace period for ping differences
+            && spawnEvent.timeSincePreviousSpawn < Constants.wormSpawnCooldown + 3000L)
         {
             Achievement.scatha_spawn_time_cooldown_end.unlock();
         }
@@ -103,74 +101,7 @@ public class AchievementLogicManager
         
         if (!scathaPro.getAchievementManager().isAchievementUnlocked(Achievement.scatha_spawn_heat_burning))
         {
-            scathaPro.logDebug("Checking for scoreboard heat value...");
-            
-            Scoreboard scoreboard = scathaPro.getMinecraft().theWorld.getScoreboard();
-            ScoreObjective sidebarObjective = scoreboard.getObjectiveInDisplaySlot(1);
-            if (sidebarObjective != null)
-            {
-                scathaPro.logDebug("Scoreboard objective found in sidebar: \"" + sidebarObjective.getDisplayName() + "\"");
-                
-                Collection<Score> scores = scoreboard.getSortedScores(sidebarObjective);
-                for (Score score : scores)
-                {
-                    String playerName = score.getPlayerName();
-                    ScorePlayerTeam playerTeam = scoreboard.getPlayersTeam(playerName);
-                    String formattedScoreText = ScorePlayerTeam.formatPlayerName(playerTeam, playerName);
-                    String unformattedText = StringUtils.stripControlCodes(formattedScoreText.replace(playerName, ""));
-                    
-                    scathaPro.logDebug("Scoreboard line: \"" + unformattedText + "\"");
-                    
-                    if (unformattedText.startsWith("Heat:"))
-                    {
-                        String valueString = unformattedText.substring(5).trim();
-                        
-                        // remove non-digit characters from left
-                        while (valueString.length() > 0)
-                        {
-                            char firstChar = valueString.charAt(0);
-                            if (firstChar >= '0' && firstChar <= '9') break;
-                            if (valueString.startsWith("IMMUNE"))
-                            {
-                                valueString = null;
-                                break;
-                            }
-                            valueString = valueString.substring(1).trim();
-                        }
-                        
-                        // remove non-digit characters from right
-                        while (valueString != null && valueString.length() > 0)
-                        {
-                            char lastChar = valueString.charAt(valueString.length() - 1);
-                            if (lastChar >= '0' && lastChar <= '9') break;
-                            valueString = valueString.substring(0, valueString.length() - 1).trim();
-                        }
-                        
-                        if (valueString != null && !valueString.isEmpty())
-                        {
-                            int heat = -1;
-                            try
-                            {
-                                heat = Integer.parseInt(valueString);
-                                scathaPro.logDebug("Scoreboard heat entry found - value: " + heat);
-                            }
-                            catch (NumberFormatException exception)
-                            {
-                                scathaPro.logError("Error while parsing scoreboard heat value: \"" + unformattedText + "\" couldn't be parsed to an int");
-                            }
-                            
-                            if (heat >= 90) Achievement.scatha_spawn_heat_burning.unlock();
-                        }
-                        else
-                        {
-                            scathaPro.logDebug("Scoreboard heat entry found, but has no int value: \"" + unformattedText + "\"");
-                        }
-                        
-                        break;
-                    }
-                }
-            }
-            else scathaPro.logDebug("No scoreboard objective in sidebar found");
+            if (ScoreboardParser.parseHeat() >= 90) Achievement.scatha_spawn_heat_burning.unlock();
         }
         
         // Player dependent achievements
@@ -231,7 +162,7 @@ public class AchievementLogicManager
         for (int i = 0; i < achievements.length; i ++)
         {
             Achievement a = achievements[i];
-            if (a.type.visibility == Achievement.Type.Visibility.VISIBLE)
+            if (a.type.visibility != Visibility.HIDDEN)
             {
                 achievementsCount ++;
                 if (scathaPro.getAchievementManager().isAchievementUnlocked(a)) unlockedAchievementsCount ++;

@@ -1,6 +1,6 @@
 package com.namelessju.scathapro.alerts;
 
-import com.namelessju.scathapro.util.MessageUtil;
+import com.namelessju.scathapro.util.TextUtil;
 
 import net.minecraft.util.EnumChatFormatting;
 
@@ -9,11 +9,11 @@ public class AlertTitle
     public String title;
     public boolean hasVariableSubtitle;
     public String subtitle;
-    private final String titleFormatting;
-    private final String subtitleFormatting;
-    private final int fadeInTicks;
-    private final int stayTicks;
-    private final int fadeOutTicks;
+    public final String titleFormatting;
+    public final String subtitleFormatting;
+    public final int fadeInTicks;
+    public final int stayTicks;
+    public final int fadeOutTicks;
 
     private AlertTitle(String title, boolean hasVariableSubtitle, String subtitle, String titleFormatting, String subtitleFormatting, int fadeInTicks, int stayTicks, int fadeOutTicks)
     {
@@ -45,7 +45,7 @@ public class AlertTitle
     public void display()
     {
         if (fadeInTicks <= 0 && stayTicks <= 0 && fadeOutTicks <= 0) return;
-        MessageUtil.displayTitle(formattingOrDefault(titleFormatting) + stringOrEmpty(title), formattingOrDefault(subtitleFormatting) + stringOrEmpty(subtitle), fadeInTicks, stayTicks, fadeOutTicks);
+        TextUtil.displayTitle(formattingOrDefault(titleFormatting) + stringOrEmpty(title), formattingOrDefault(subtitleFormatting) + stringOrEmpty(subtitle), fadeInTicks, stayTicks, fadeOutTicks);
     }
     
     public AlertTitle replaceWith(AlertTitle other, String variableSubtitle)

@@ -40,12 +40,10 @@ public class DeleteCustomAlertModeButton extends ScathaProButton implements ICli
     @Override
     public void confirmClicked(boolean result, int sourceButtonId)
     {
-        if (result)
-        {
-            customAlertModeManager.deleteSubmode(customModeId);
-        }
-        
-        Minecraft.getMinecraft().displayGuiScreen(returnGui);
+        boolean wasActiveBefore = customAlertModeManager.isSubmodeActive(customModeId);
+        if (wasActiveBefore) Minecraft.getMinecraft().currentScreen = returnGui; // loading screen returns to current screen after completion 
+        if (result) customAlertModeManager.deleteSubmode(customModeId);
+        if (!wasActiveBefore) Minecraft.getMinecraft().displayGuiScreen(returnGui);
     }
     
     @Override
@@ -86,7 +84,7 @@ public class DeleteCustomAlertModeButton extends ScathaProButton implements ICli
 
             this.drawCenteredString(fontrenderer, this.displayString, this.xPosition + this.width / 2, this.yPosition + (this.height - 8) / 2, color);
             
-            handleTooltipRendering(mc);
+            if (this.hovered) this.getTooltip().render();
         }
     }
 }

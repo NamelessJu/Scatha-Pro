@@ -12,8 +12,8 @@ build/
 eclipse/
 bin/
 *.launch
-.settings
-.metadata
+.settings/
+.metadata/
 .classpath
 .project
 
@@ -26,7 +26,7 @@ classes/
 .idea/
 
 # VS Code
-.vscode
+.vscode/
 
 # System files
 [Dd]esktop.ini

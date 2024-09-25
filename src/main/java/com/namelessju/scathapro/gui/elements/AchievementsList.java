@@ -13,7 +13,8 @@ import com.namelessju.scathapro.achievements.AchievementCategory;
 import com.namelessju.scathapro.achievements.AchievementManager;
 import com.namelessju.scathapro.achievements.Achievement.Type;
 import com.namelessju.scathapro.managers.Config;
-import com.namelessju.scathapro.util.MessageUtil;
+import com.namelessju.scathapro.util.TextUtil;
+import com.namelessju.scathapro.util.TimeUtil;
 import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.client.Minecraft;
@@ -42,7 +43,7 @@ public class AchievementsList extends Gui
     
     private Minecraft mc = Minecraft.getMinecraft();
     private FontRenderer fontRenderer = mc.fontRendererObj;
-    private ScaledResolution scaledResolution = new ScaledResolution(mc);
+    private final int resolutionScaleFactor;
     private AchievementManager achievementManager = ScathaPro.getInstance().getAchievementManager();
     
     private AchievementListEntry[] listEntries;
@@ -70,6 +71,8 @@ public class AchievementsList extends Gui
         this.width = width;
         this.height = height;
         
+        this.resolutionScaleFactor = new ScaledResolution(mc).getScaleFactor();
+        
         Achievement[] achievementList = AchievementManager.getAllAchievements();
         ArrayList<Achievement> visibleAchievements = new ArrayList<Achievement>();
         
@@ -83,7 +86,7 @@ public class AchievementsList extends Gui
             boolean unlocked = achievementManager.isAchievementUnlocked(achievement);
             
             if (
-                (achievement.type.visibility != Achievement.Type.Visibility.HIDDEN || unlocked)
+                (achievement.type.isVisible() || unlocked)
                 &&
                 (!unlocked || !ScathaPro.getInstance().getConfig().getBoolean(Config.Key.hideUnlockedAchievements))
             ) {
@@ -100,13 +103,13 @@ public class AchievementsList extends Gui
             }
         }
 
-        EnumChatFormatting contrastableGray = MessageUtil.contrastableGray();
+        EnumChatFormatting contrastableGray = TextUtil.contrastableGray();
         
         StringBuilder extraAchievementsString = new StringBuilder();
         for (int i = 0; i < extraAchievementTypes.length; i ++)
         {
             Achievement.Type achievementType = extraAchievementTypes[i];
-            boolean isAlwaysVisible = achievementType.visibility != Achievement.Type.Visibility.HIDDEN;
+            boolean isAlwaysVisible = achievementType.isVisible();
             
             int unlockedCount = Util.intOrZero(unlockedAchievementCount.get(achievementType));
             
@@ -184,7 +187,7 @@ public class AchievementsList extends Gui
         if (listEntries.length > 0)
         {
             GL11.glEnable(GL11.GL_SCISSOR_TEST);
-            GL11.glScissor(xPosition * scaledResolution.getScaleFactor(), (screenHeight - yPosition - height) * scaledResolution.getScaleFactor(), width * scaledResolution.getScaleFactor(), height * scaledResolution.getScaleFactor());
+            GL11.glScissor(xPosition * resolutionScaleFactor, (screenHeight - yPosition - height) * resolutionScaleFactor, width * resolutionScaleFactor, height * resolutionScaleFactor);
             for (AchievementListEntry listEntry : listEntries)
             {
                 listEntry.draw();
@@ -200,7 +203,7 @@ public class AchievementsList extends Gui
             }
             else emptyListText = "No achievements found";
             
-            fontRenderer.drawString(emptyListText, xPosition + width/2 - fontRenderer.getStringWidth(emptyListText)/2, yPosition + height/2 - 4, Util.Color.GRAY.getValue(), true);
+            fontRenderer.drawString(emptyListText, xPosition + width/2 - TextUtil.getStringWidth(emptyListText)/2, yPosition + height/2 - 4, Util.Color.GRAY.getValue(), true);
         }
 
         int scrollBarWidth = 2;
@@ -217,7 +220,7 @@ public class AchievementsList extends Gui
         this.scrollBarHovered = mouseX >= scrollBarX - 2 && mouseY >= scrollBarY && mouseX < scrollBarX + scrollBarWidth + 2 && mouseY < scrollBarY + scrollBarHeight;
         
         
-        fontRenderer.drawString(unlockedAchievementsString, xPosition + width/2 - fontRenderer.getStringWidth(unlockedAchievementsString)/2, yPosition - 12, Util.Color.WHITE.getValue(), true);
+        fontRenderer.drawString(unlockedAchievementsString, xPosition + width/2 - TextUtil.getStringWidth(unlockedAchievementsString)/2, yPosition - 12, Util.Color.WHITE.getValue(), true);
     }
     
     public void handleMouseInput(int mouseY)
@@ -363,7 +366,7 @@ public class AchievementsList extends Gui
         protected void draw(int scrolledY)
         {
             Gui.drawRect(entryX, scrolledY, entryX + entryWidth, scrolledY + entryHeight, 0xA008080A);
-            fontRenderer.drawString(text, entryX + entryWidth/2 - fontRenderer.getStringWidth(text) / 2, scrolledY + 6, Util.Color.WHITE.getValue(), true);
+            fontRenderer.drawString(text, entryX + entryWidth/2 - TextUtil.getStringWidth(text) / 2, scrolledY + 6, Util.Color.WHITE.getValue(), true);
         }
     }
 
@@ -382,7 +385,7 @@ public class AchievementsList extends Gui
         
         public void draw(int scrolledY)
         {
-            EnumChatFormatting contrastableGray = MessageUtil.contrastableGray();
+            EnumChatFormatting contrastableGray = TextUtil.contrastableGray();
             
             boolean unlocked = achievementManager.isAchievementUnlocked(achievement);
             boolean detailsHidden = achievement.type.visibility == Achievement.Type.Visibility.TITLE_ONLY && !unlocked;
@@ -393,8 +396,8 @@ public class AchievementsList extends Gui
             {
                 fontRenderer.drawString((achievement.type.typeName != null ? EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + "[" + EnumChatFormatting.RESET + achievement.type.getFormattedName() + EnumChatFormatting.RESET + EnumChatFormatting.GREEN + "] " : "") + EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + EnumChatFormatting.BOLD + achievement.achievementName, entryX + cardPadding, scrolledY + cardPadding, Util.Color.WHITE.getValue(), true);
                 
-                String unlockedString = EnumChatFormatting.RESET.toString() + contrastableGray + MessageUtil.formatDateTime(achievementManager.getUnlockedAchievement(achievement).unlockedAtTimestamp);
-                fontRenderer.drawString(unlockedString, entryX + entryWidth - cardPadding - fontRenderer.getStringWidth(unlockedString), scrolledY + cardPadding, Util.Color.WHITE.getValue(), true);
+                String unlockedString = EnumChatFormatting.RESET.toString() + contrastableGray + TimeUtil.formatUnixDateTime(achievementManager.getUnlockedAchievement(achievement).unlockedAtTimestamp);
+                fontRenderer.drawString(unlockedString, entryX + entryWidth - cardPadding - TextUtil.getStringWidth(unlockedString), scrolledY + cardPadding, Util.Color.WHITE.getValue(), true);
             }
             else
             {
@@ -420,7 +423,7 @@ public class AchievementsList extends Gui
                 if (unlocked) progressString = EnumChatFormatting.GREEN + progressString;
                 else progressString = EnumChatFormatting.YELLOW + progressString;
             }
-            fontRenderer.drawString(progressString, entryX + cardPadding + barWidth - fontRenderer.getStringWidth(progressString), scrolledY + cardPadding + 12, Util.Color.WHITE.getValue(), true);
+            fontRenderer.drawString(progressString, entryX + cardPadding + barWidth - TextUtil.getStringWidth(progressString), scrolledY + cardPadding + 12, Util.Color.WHITE.getValue(), true);
         }
     }
 }

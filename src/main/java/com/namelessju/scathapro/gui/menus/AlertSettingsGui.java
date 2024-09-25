@@ -5,8 +5,8 @@ import java.io.IOException;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.alerts.alertmodes.customalertmode.CustomAlertMode;
 import com.namelessju.scathapro.gui.elements.AlertModeSettingButton;
-import com.namelessju.scathapro.gui.elements.AlertsGuiList;
 import com.namelessju.scathapro.gui.elements.SubMenuButton;
+import com.namelessju.scathapro.gui.lists.AlertsGuiList;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;

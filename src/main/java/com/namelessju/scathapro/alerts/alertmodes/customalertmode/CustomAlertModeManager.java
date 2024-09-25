@@ -11,7 +11,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.alerts.Alert;
+import com.namelessju.scathapro.gui.menus.CustomAlertModeResourceLoadingGui;
 import com.namelessju.scathapro.managers.Config;
+import com.namelessju.scathapro.managers.SaveManager;
 import com.namelessju.scathapro.util.FileUtil;
 import com.namelessju.scathapro.util.JsonUtil;
 import com.namelessju.scathapro.util.TimeUtil;
@@ -22,7 +24,7 @@ import net.minecraft.util.StringUtils;
 public class CustomAlertModeManager
 {
     public static final String resourceDomain = "scathapro_customalertmode";
-    public static final File submodesDirectory = FileUtil.getModFile("customAlertModes");
+    public static final File submodesDirectory = SaveManager.getSaveFile("customAlertModes");
     
     public static String getResourceName(String resourcePath)
     {
@@ -131,7 +133,7 @@ public class CustomAlertModeManager
         
         loadCurrentSubmodeProperties();
         
-        reloadResourcePack();
+        scathaPro.getMinecraft().displayGuiScreen(new CustomAlertModeResourceLoadingGui(scathaPro.getMinecraft().currentScreen));
     }
     
     private void loadCurrentSubmode()
@@ -161,16 +163,17 @@ public class CustomAlertModeManager
     
     public void deleteSubmode(String customModeId)
     {
-        if (isSubmodeActive(customModeId))
-        {
-            changeSubmode(null);
-        }
+        boolean isActive = isSubmodeActive(customModeId);
+        
+        if (isActive) scathaPro.getMinecraft().getSoundHandler().unloadSounds();
         
         File modeFolder = getSubModeFile(customModeId);
         if (!FileUtil.deleteDirectoryRecursive(modeFolder))
         {
             scathaPro.logError("Couldn't delete custom alert mode - recursively deleting the directory failed");
         }
+        
+        if (isActive) changeSubmode(null);
     }
     
     
@@ -214,8 +217,8 @@ public class CustomAlertModeManager
     
     public void loadMeta(String submodeId)
     {
-        String propertiesString = FileUtil.readFile(getMetaFile(submodeId));
-        if (propertiesString != null) metas.put(submodeId, JsonUtil.parseObject(propertiesString));
+        String metaString = FileUtil.readFile(getMetaFile(submodeId));
+        if (metaString != null) metas.put(submodeId, JsonUtil.parseObject(metaString));
     }
     
     public void setMeta(String submodeId, String path, JsonElement value)

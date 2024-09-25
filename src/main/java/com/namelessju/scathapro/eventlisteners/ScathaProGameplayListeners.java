@@ -2,12 +2,13 @@ package com.namelessju.scathapro.eventlisteners;
 
 import java.math.RoundingMode;
 
+import com.google.common.base.Predicate;
 import com.namelessju.scathapro.Constants;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.alerts.Alert;
 import com.namelessju.scathapro.entitydetection.detectedentities.DetectedWorm;
-import com.namelessju.scathapro.events.BedrockDetectedEvent;
+import com.namelessju.scathapro.events.BedrockWallDetectedEvent;
 import com.namelessju.scathapro.events.ScathaPetDropEvent;
 import com.namelessju.scathapro.events.WormDespawnEvent;
 import com.namelessju.scathapro.events.WormHitEvent;
@@ -16,12 +17,18 @@ import com.namelessju.scathapro.events.WormPreSpawnEvent;
 import com.namelessju.scathapro.events.WormSpawnEvent;
 import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.miscellaneous.WormStats;
-import com.namelessju.scathapro.util.MessageUtil;
+import com.namelessju.scathapro.util.TextUtil;
 import com.namelessju.scathapro.util.NBTUtil;
 import com.namelessju.scathapro.util.SoundUtil;
 import com.namelessju.scathapro.util.TimeUtil;
 import com.namelessju.scathapro.util.Util;
 
+import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -44,25 +51,102 @@ public class ScathaProGameplayListeners extends ScathaProListener
     public void onWormSpawn(WormSpawnEvent event)
     {
         long now = TimeUtil.now();
+        EntityPlayer player = scathaPro.getMinecraft().thePlayer;
+        
+        boolean spawnedBySelf = false;
+        
+        AxisAlignedBB playerDetectionAABB = new AxisAlignedBB(player.posX, player.posY, player.posZ, player.posX, player.posY, player.posZ).expand(35f, 7f, 35f);
+        int nearbyPlayerCount =  scathaPro.getMinecraft().theWorld.getEntitiesInAABBexcluding(player, playerDetectionAABB, new Predicate<Entity>() {
+            @Override
+            public boolean apply(Entity input)
+            {
+                return input instanceof EntityPlayer;
+            }
+        }).size();
+        
+        BlockPos playerPos = Util.entityBlockPos(player);
+        BlockPos wormPos = Util.entityBlockPos(event.worm.getEntity()).down(1); // down because the armor stand is floating 1 block above ground
+        
+        if (nearbyPlayerCount <= 0) spawnedBySelf = true;
+        else
+        {
+            int xDistance = Math.abs(playerPos.getX() - wormPos.getX());
+            int zDistance = Math.abs(playerPos.getZ() - wormPos.getZ());
+
+            // Note: allowed time delta needs to be rather long because players might not be able to insta-mine
+            // blocks and this works with the timestamp that the player started mining a block at
+            boolean recentBlockHit = scathaPro.variables.lastCrystalHollowsBlockHitTime >= 0L && (now - scathaPro.variables.lastCrystalHollowsBlockHitTime) <= 10000 + Constants.pingTreshold * 1.5f;
+            
+            if (
+                xDistance <= 1 || zDistance <= 1
+                && Math.abs(playerPos.getY() - wormPos.getY()) <= 1
+                && recentBlockHit
+            ) {
+                spawnedBySelf = true;
+                
+                if (xDistance > 1 || zDistance > 1)
+                {
+                    int[] obstructionCheckDirection = {0, 0};
+
+                    BlockPos currentCheckPos = wormPos;
+                    BlockPos targetPos;
+                    
+                    if (xDistance >= zDistance)
+                    {
+                        obstructionCheckDirection[0] = (int) Math.signum(playerPos.getX() - wormPos.getX());
+                        targetPos = new BlockPos(playerPos.getX(), wormPos.getY(), wormPos.getZ());
+                    }
+                    else
+                    {
+                        obstructionCheckDirection[1] = (int) Math.signum(playerPos.getZ() - wormPos.getZ());
+                        targetPos = new BlockPos(wormPos.getX(), wormPos.getY(), playerPos.getZ());
+                    }
+                    
+                    for (int i = 0; i < 5; i ++)
+                    {
+                        currentCheckPos = currentCheckPos.add(obstructionCheckDirection[0], 0, obstructionCheckDirection[1]);
+                        
+                        if (currentCheckPos.equals(targetPos)) break;
+                        
+                        Block block = mc.theWorld.getBlockState(currentCheckPos).getBlock();
+                        if (block != Blocks.air && block != Blocks.lava && block != Blocks.flowing_lava && block != Blocks.water && block != Blocks.flowing_water)
+                        {
+                            scathaPro.logDebug("Worm (" + wormPos.toString() + ") not in FOV of player (" + playerPos.toString() + ") - blocked by " + block.getRegistryName() + " at " + currentCheckPos.toString());
+                            spawnedBySelf = false;
+                            break;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (!recentBlockHit) scathaPro.logDebug("Worm spawn detection: last block hit not recent");
+            }
+        }
+        
+        if (spawnedBySelf) scathaPro.logDebug("Worm spawned: assumed to be spawned by this client's player");
+        else scathaPro.logDebug("Worm spawned: assumed to be spawned by other player");
+        
+        /*
+        int ticksExisted = event.worm.getEntity().ticksExisted;
+        TextUtil.sendDevModeMessage("Worm existed for " + ticksExisted + " ticks = " + Util.numberToString(ticksExisted / 20D, 1, true) + " seconds");
+        */
+        
+        if (!spawnedBySelf) return;
         
         // Scatha spawn
         if (event.worm.isScatha)
         {
-            WormStats.addScathaSpawn();
-            
             Alert.scathaSpawn.play();
-            
+            WormStats.addScathaSpawn();
             scathaPro.getAchievementLogicManager().handleScathaSpawnAchievements(now, event.worm);
         }
-        
         // Regular worm spawn
         else
         {
-            WormStats.addRegularWormSpawn();
-            
             Alert.regularWormSpawn.play();
+            WormStats.addRegularWormSpawn();
         }
-        
         
         if (event.timeSincePreviousSpawn >= 0L)
         {
@@ -72,7 +156,7 @@ public class ScathaProGameplayListeners extends ScathaProListener
                 String timeString;
                 if (secondsSinceLastSpawn < 60) timeString = secondsSinceLastSpawn + " seconds";
                 else timeString = Util.numberToString(secondsSinceLastSpawn / 60D, 1, true, RoundingMode.FLOOR) + " minutes";
-                MessageUtil.sendModChatMessage(EnumChatFormatting.GRAY + "Worm spawned " + timeString + " after previous worm");
+                TextUtil.sendModChatMessage(EnumChatFormatting.GRAY + "Worm spawned " + timeString + " after previous worm");
             }
         }
         
@@ -120,7 +204,7 @@ public class ScathaProGameplayListeners extends ScathaProListener
             
             scathaPro.getOverlay().updateScathaKills();
             scathaPro.getOverlay().updateScathaKillsSinceLastDrop();
-            scathaPro.getPersistentData().updateScathaFarmingStreak();
+            scathaPro.getPersistentData().updateScathaFarmingStreak(true);
         }
         else
         {
@@ -187,11 +271,11 @@ public class ScathaProGameplayListeners extends ScathaProListener
             int dryStreak = (scathaPro.variables.scathaKills - 1) - scathaPro.variables.scathaKillsAtLastDrop;
             if (dryStreak > 0)
             {
-                MessageUtil.sendModChatMessage(EnumChatFormatting.YELLOW + "Scatha pet dropped after a " + EnumChatFormatting.RED + dryStreak + " Scatha kill" + (dryStreak != 1 ? "s" : "") + EnumChatFormatting.YELLOW + " dry streak");
+                TextUtil.sendModChatMessage(EnumChatFormatting.YELLOW + "Scatha pet dropped after a " + EnumChatFormatting.RED + dryStreak + " Scatha kill" + (dryStreak != 1 ? "s" : "") + EnumChatFormatting.YELLOW + " dry streak");
             }
             else if (dryStreak == 0)
             {
-                MessageUtil.sendModChatMessage(EnumChatFormatting.RED + "BACK TO BACK" + EnumChatFormatting.YELLOW + " Scatha pet drop!");
+                TextUtil.sendModChatMessage(EnumChatFormatting.RED + "BACK TO BACK" + EnumChatFormatting.YELLOW + " Scatha pet drop!");
             }
         }
         
@@ -241,7 +325,7 @@ public class ScathaProGameplayListeners extends ScathaProListener
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onBedrockWall(BedrockDetectedEvent event)
+    public void onBedrockWall(BedrockWallDetectedEvent event)
     {
         Alert.bedrockWall.play();
     }

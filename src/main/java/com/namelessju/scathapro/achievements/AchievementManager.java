@@ -81,7 +81,6 @@ public class AchievementManager
     
     public void updateBonusTypeVisibility()
     {
-        boolean visible = scathaPro.getConfig().getBoolean(Config.Key.bonusAchievementsShown);
-        Achievement.Type.BONUS.visibility = visible ? Achievement.Type.Visibility.VISIBLE : Achievement.Type.Visibility.HIDDEN;
+        Achievement.Type.BONUS.visibilityOverride = scathaPro.getConfig().getBoolean(Config.Key.bonusAchievementsShown);
     }
 }

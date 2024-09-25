@@ -30,20 +30,19 @@ public class CustomAlertModeResourcePack implements IResourcePack
         Alert[] alertSounds = Alert.values();
         
         JsonObject soundsJson = new JsonObject();
-        for (Alert sound : alertSounds)
+        for (Alert alert : alertSounds)
         {
-            String soundName = sound.alertId;
+            String soundName = alert.alertId;
             if (resourceExists(new ResourceLocation(CustomAlertModeManager.getResourceName("sounds/" + soundName + ".ogg"))))
             {
-                addSoundToJson(soundName, soundsJson);
-                ScathaPro.getInstance().logDebug("Added sound \"" + soundName + "\" to custom mode sound JSON");
+                addSoundToJson(alert, soundsJson);
             }
-            else ScathaPro.getInstance().logDebug("Skipped sound \"" + soundName+ "\" while generating custom mode sound JSON (sound file doesn't exist)");
+            else ScathaPro.getInstance().logDebug("Skipped sound for \"" + alert.alertName + "\" while generating custom mode sound JSON (sound file doesn't exist)");
         }
         return soundsJson;
     }
     
-    private void addSoundToJson(String soundName, JsonObject json)
+    private void addSoundToJson(Alert alert, JsonObject json)
     {
         // weird indentation to visualize JSON structure
         
@@ -51,17 +50,35 @@ public class CustomAlertModeResourcePack implements IResourcePack
         
             soundEntry.add("category", new JsonPrimitive("master"));
             
-                JsonArray soundsArray = new JsonArray();
+            JsonArray soundsArray = new JsonArray();
                 
-                    JsonObject soundListEntry = new JsonObject();
-                    soundListEntry.add("name", new JsonPrimitive(soundName));
-                    soundListEntry.add("stream", new JsonPrimitive(true));
+                JsonObject soundListEntry = new JsonObject();
+                
+                    soundListEntry.add("name", new JsonPrimitive(alert.alertId));
+                    
+                    boolean streamed = true;
+                    /*
+                    // Always streamed for now because the sound engine in 1.8 is buggy af,
+                    // will come back to this when porting to latest MC version
+                    
+                    String currentSubMode = ScathaPro.getInstance().getCustomAlertModeManager().getCurrentSubmodeId();
+                    if (currentSubMode != null)
+                    {
+                        Path path = Paths.get(CustomAlertModeManager.getAlertAudioFile(currentSubMode, alert).getAbsolutePath());
+                        try { streamed = Files.size(path) > 512000L; }
+                        catch (Exception e) {}
+                    }
+                    */
+                    
+                    soundListEntry.add("stream", new JsonPrimitive(streamed));
+
+                    ScathaPro.getInstance().logDebug("Added sound for \"" + alert.alertName + "\" to custom mode sound JSON (streamed: " + streamed + ")");
                     
                 soundsArray.add(soundListEntry);
-                
+            
             soundEntry.add("sounds", soundsArray);
         
-        json.add(soundName, soundEntry);
+        json.add(alert.alertId, soundEntry);
     }
 
     @Override

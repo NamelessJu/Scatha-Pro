@@ -6,12 +6,14 @@ import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.gui.elements.ImageButton;
 import com.namelessju.scathapro.gui.menus.AchievementsGui;
 import com.namelessju.scathapro.gui.menus.SettingsGui;
+import com.namelessju.scathapro.miscellaneous.FileChooser;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiIngameMenu;
 import net.minecraft.client.gui.GuiOptions;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -29,11 +31,15 @@ public class GuiListeners
         mc = scathaPro.getMinecraft();
     }
     
+    @SubscribeEvent()
+    public void onGuiOpen(GuiOpenEvent event)
+    {
+        FileChooser.closeActiveDialog();
+    }
+    
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onGuiInitPost(GuiScreenEvent.InitGuiEvent.Post event)
     {
-        if (event.isCanceled()) return;
-        
         // Settings Button
         
         if (event.gui instanceof GuiOptions)
@@ -84,10 +90,9 @@ public class GuiListeners
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onGuiDrawPost(GuiScreenEvent.DrawScreenEvent.Post event)
     {
-        if (event.isCanceled()) return;
         if (event.gui instanceof GuiIngameMenu && achievementMenuButton.isMouseOver())
         {
-            net.minecraftforge.fml.client.config.GuiUtils.drawHoveringText(achievementMenuButton.getTooltipLines(),
+            net.minecraftforge.fml.client.config.GuiUtils.drawHoveringText(achievementMenuButton.getTooltip().getTooltipLines(),
                 event.mouseX, event.mouseY, event.gui.width, event.gui.height, -1, mc.fontRendererObj);
         }
     }
@@ -95,7 +100,6 @@ public class GuiListeners
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onGuiAction(GuiScreenEvent.ActionPerformedEvent.Pre event)
     {
-        if (event.isCanceled()) return;
         switch (event.button.id)
         {
             case 504703001:

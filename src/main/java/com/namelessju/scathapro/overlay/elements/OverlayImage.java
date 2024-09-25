@@ -11,6 +11,9 @@ public class OverlayImage extends OverlayElement
 {
     protected ResourceLocation resourceLocation;
     protected int textureWidth, textureHeight;
+    protected float r = 1f;
+    protected float g = 1f;
+    protected float b = 1f;
     
     public OverlayImage(String texturePath, int textureWidth, int textureHeight, int x, int y, float scale)
     {
@@ -21,12 +24,11 @@ public class OverlayImage extends OverlayElement
     @Override
     protected void drawSpecific()
     {
-        if (resourceLocation != null)
-        {
-            Minecraft.getMinecraft().renderEngine.bindTexture(resourceLocation);
-            GlStateManager.color(1f, 1f, 1f);
-            GuiIngame.drawModalRectWithCustomSizedTexture(0, 0, 0, 0, textureWidth, textureHeight, textureWidth, textureHeight);
-        }
+        if (resourceLocation == null) return;
+        
+        Minecraft.getMinecraft().renderEngine.bindTexture(resourceLocation);
+        GlStateManager.color(r, g, b);
+        GuiIngame.drawModalRectWithCustomSizedTexture(0, 0, 0, 0, textureWidth, textureHeight, textureWidth, textureHeight);
     }
     
     @Override
@@ -46,5 +48,19 @@ public class OverlayImage extends OverlayElement
         this.textureWidth = textureWidth;
         this.textureHeight = textureHeight;
         resourceLocation = (texturePath != null && !texturePath.isEmpty()) ? new ResourceLocation(ScathaPro.MODID, "textures/" + texturePath) : null;
+    }
+    
+    public void setColor(float r, float g, float b)
+    {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+    }
+    
+    public void setColor(int color)
+    {
+        this.r = ((color >> 16) & 0xFF) / 255f;
+        this.g = ((color >> 8) & 0xFF) / 255f;
+        this.b = (color & 0xFF) / 255f;
     }
 }

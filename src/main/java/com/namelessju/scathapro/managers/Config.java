@@ -1,7 +1,6 @@
 package com.namelessju.scathapro.managers;
 
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.util.FileUtil;
 
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
@@ -19,7 +18,7 @@ public class Config
         scathaPercentageAlternativePosition("overlay", "scathaPercentageAlternativePosition", false),
         scathaPercentageCycleAmountDuration("overlay", "scathaPercentageCycleAmountDuration", 3),
         scathaPercentageCyclePercentageDuration("overlay", "scathaPercentageCyclePercentageDuration", 2),
-        scathaPercentageDecimalDigits("overlay", "scathaPercentageDecimalPlaces", 1),
+        scathaPercentageDecimalDigits("overlay", "scathaPercentageDecimalPlaces", 2),
         overlayElementStates("overlay", "overlayElementStates", ""),
         overlayBackgroundEnabled("overlay", "backgroundEnabled", true),
         
@@ -32,11 +31,15 @@ public class Config
         customModeSubmode("alerts", "customModeSubmode", ""),
 
         bedrockWallAlert("alerts", "wall", true),
+        bedrockWallAlertTriggerDistance("alerts", "wall.triggerDistance", 15),
         wormSpawnCooldownEndAlert("alerts", "wormSpawnCooldownEnd", false),
         wormPrespawnAlert("alerts", "wormsPre", true),
         regularWormSpawnAlert("alerts", "worms", true),
         scathaSpawnAlert("alerts", "scathas", true),
         scathaPetDropAlert("alerts", "pet", true),
+        highHeatAlert("alerts", "highHeat", false),
+        highHeatAlertTriggerValue("alerts", "highHeat.triggerValue", 98),
+        pickaxeAbilityReadyAlert("alerts", "pickaxeAbilityReadyAlert", false),
         goblinSpawnAlert("alerts", "goblinSpawn", true),
         jerrySpawnAlert("alerts", "jerrySpawn", true),
         
@@ -48,14 +51,17 @@ public class Config
         // Other
         shortChatPrefix("other", "shortChatPrefix", false),
         showRotationAngles("other", "showRotationAngles", false),
-        rotationAnglesDecimalDigits("other", "rotationAnglesDecimalPlaces", 1),
+        rotationAnglesYawOnly("other", "rotationAnglesYawOnly", false),
+        rotationAnglesDecimalDigits("other", "rotationAnglesDecimalPlaces", 2),
+        rotationAnglesMinimalYaw("other", "rotationAnglesMinimalYaw", false),
         wormSpawnTimer("other", "wormSpawnTimer", false),
         dryStreakMessage("other", "dryStreakMessage", true),
         chatCopy("other", "chatCopy", false),
         automaticBackups("other", "automaticBackups", true),
         automaticUpdateChecks("other", "automaticUpdateChecks", true),
         automaticStatsParsing("other", "automaticStatsParsing", true),
-        dailyScathaFarmingStreakMessage("other", "dailyScathaFarmingStreakMessage", false),
+        dailyScathaFarmingStreakMessage("other", "dailyScathaFarmingStreakMessage", true),
+        scathaPetDropMessageExtension("other", "scathaPetDropMessageExtension", false),
         
         // Accessibility
         highContrastColors("accessibility", "highContrastColors", false),
@@ -133,7 +139,7 @@ public class Config
     
     public void loadFile()
     {
-        config = new Configuration(FileUtil.getModFile("config.cfg"));
+        config = new Configuration(SaveManager.getSaveFile("config.cfg"));
         config.load();
     }
     

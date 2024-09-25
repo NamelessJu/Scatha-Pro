@@ -1,61 +1,103 @@
 {
     "achievements.unlock": {
         "category": "player",
-        "sounds": [{"name": "achievements/unlock", "stream": true}]
+        "sounds": [{
+            "name": "achievements/unlock",
+            "stream": true
+        }]
     },
     "achievements.unlock_hidden": {
         "category": "player",
-        "sounds": [{"name": "achievements/unlock_hidden", "stream": true}]
+        "sounds": [{
+            "name": "achievements/unlock_hidden",
+            "stream": true
+        }]
     },
     
     
     "alert_modes.meme.bedrock_wall": {
         "category": "master",
-        "sounds": [{"name": "alert_modes/meme/bedrock_wall", "stream": true}]
+        "sounds": [{
+            "name": "alert_modes/meme/bedrock_wall",
+            "stream": true
+        }]
     },
     "alert_modes.meme.worm_prespawn": {
         "category": "master",
-        "sounds": [{"name": "alert_modes/meme/worm_prespawn", "stream": true}]
+        "sounds": [{
+            "name": "alert_modes/meme/worm_prespawn",
+            "stream": true
+        }]
     },
     "alert_modes.meme.regular_worm_spawn": {
         "category": "master",
-        "sounds": [{"name": "alert_modes/meme/regular_worm_spawn", "stream": true}]
+        "sounds": [{
+            "name": "alert_modes/meme/regular_worm_spawn",
+            "stream": true
+        }]
     },
     "alert_modes.meme.scatha_spawn": {
         "category": "master",
-        "sounds": [{"name": "alert_modes/meme/scatha_spawn", "stream": true}]
+        "sounds": [{
+            "name": "alert_modes/meme/scatha_spawn",
+            "stream": true
+        }]
     },
     "alert_modes.meme.scatha_pet_drop": {
         "category": "master",
-        "sounds": [{"name": "alert_modes/meme/scatha_pet_drop", "stream": true}]
+        "sounds": [{
+            "name": "alert_modes/meme/scatha_pet_drop",
+            "stream": true
+        }]
     },
     "alert_modes.meme.jerry_spawn": {
         "category": "master",
-        "sounds": [{"name": "alert_modes/meme/jerry_spawn", "stream": true}]
+        "sounds": [{
+            "name": "alert_modes/meme/jerry_spawn",
+            "stream": true
+        }]
     },
     "alert_modes.meme.goblin_spawn": {
         "category": "master",
-        "sounds": [{"name": "alert_modes/meme/goblin_spawn", "stream": true}]
+        "sounds": [{
+            "name": "alert_modes/meme/goblin_spawn",
+            "stream": true
+        }]
     },
 
     "alert_modes.anime.bedrock_wall": {
         "category": "master",
-        "sounds": [{"name": "alert_modes/anime/bedrock_wall", "stream": true}]
+        "sounds": [{
+            "name": "alert_modes/anime/bedrock_wall",
+            "stream": true
+        }]
     },
     "alert_modes.anime.worm_prespawn": {
         "category": "master",
-        "sounds": [{"name": "alert_modes/anime/worm_prespawn", "stream": true}]
+        "sounds": [{
+            "name": "alert_modes/anime/worm_prespawn",
+            "stream": true
+        }]
     },
     "alert_modes.anime.regular_worm_spawn": {
         "category": "master",
-        "sounds": [{"name": "alert_modes/anime/regular_worm_spawn", "stream": true}]
+        "sounds": [{
+            "name": "alert_modes/anime/regular_worm_spawn",
+            "stream": true
+        }]
     },
     "alert_modes.anime.scatha_spawn": {
         "category": "master",
-        "sounds": [{"name": "alert_modes/anime/scatha_spawn", "stream": true}]
+        "sounds": [{
+            "name": "alert_modes/anime/scatha_spawn",
+            "stream": true
+        }]
     },
     "alert_modes.anime.scatha_pet_drop": {
         "category": "master",
-        "sounds": [{"name": "alert_modes/anime/scatha_pet_drop", "stream": true}]
+        "sounds": [{
+            "name": "alert_modes/anime/scatha_pet_drop",
+            "stream": true
+        }]
     }
 }

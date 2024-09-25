@@ -14,7 +14,8 @@ import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.alerts.Alert;
 import com.namelessju.scathapro.entitydetection.detectedentities.DetectedEntity;
 import com.namelessju.scathapro.entitydetection.detectedentities.DetectedWorm;
-import com.namelessju.scathapro.events.BedrockDetectedEvent;
+import com.namelessju.scathapro.events.BedrockWallDetectedEvent;
+import com.namelessju.scathapro.events.NewIRLDayStartedEvent;
 import com.namelessju.scathapro.events.TickEvent.CrystalHollowsTickEvent;
 import com.namelessju.scathapro.events.TickEvent.FirstCrystalHollowsTickEvent;
 import com.namelessju.scathapro.events.TickEvent.FirstIngameTickEvent;
@@ -30,12 +31,11 @@ import com.namelessju.scathapro.overlay.elements.OverlayElement.Alignment;
 import com.namelessju.scathapro.overlay.elements.OverlayImage;
 import com.namelessju.scathapro.overlay.elements.OverlayText;
 import com.namelessju.scathapro.util.JsonUtil;
-import com.namelessju.scathapro.util.MessageUtil;
+import com.namelessju.scathapro.util.TextUtil;
 import com.namelessju.scathapro.util.NBTUtil;
 import com.namelessju.scathapro.util.TimeUtil;
 import com.namelessju.scathapro.util.Util;
 
-import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
@@ -47,7 +47,6 @@ import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.entity.projectile.EntityFishHook;
-import net.minecraft.init.Blocks;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
@@ -84,10 +83,11 @@ public class LoopListeners
     
     private long lastDeveloperCheckTime = -1;
     
+    private int distanceToWallPrevious = -1;
     private long lastBedrockDetectionTime = -1;
-    private boolean bedrockDetectedBefore = false;
-    private int bedrockFacingBefore = -1;
-
+    private boolean bedrockDetectedThisDirection = false;
+    private int bedrockDirectionBefore = -1;
+    
     private List<PetDrop> receivedPets = new ArrayList<PetDrop>();
     private HashMap<Integer, String> arrowOwners = new HashMap<Integer, String>();
     
@@ -104,7 +104,7 @@ public class LoopListeners
         mc = scathaPro.getMinecraft();
         
         rotationAnglesOverlay = new OverlayContainer(0, 0, 0.75f);
-        rotationAnglesOverlay.add(yawText = new OverlayText(EnumChatFormatting.OBFUSCATED + "?", Util.Color.WHITE.getValue(), 10, -4, 1f));
+        rotationAnglesOverlay.add(yawText = new OverlayText(EnumChatFormatting.OBFUSCATED + "?", Util.Color.WHITE.getValue(), 10, -3, 1f));
         rotationAnglesOverlay.add(pitchText = new OverlayText(EnumChatFormatting.OBFUSCATED + "?", Util.Color.WHITE.getValue(), 0, 10, 1f));
         pitchText.setAlignment(Alignment.CENTER);
         
@@ -114,11 +114,11 @@ public class LoopListeners
     @SubscribeEvent(priority = EventPriority.LOW)
     public void onRenderGameOverlayPost(RenderGameOverlayEvent.Post event)
     {
-        if (event.isCanceled() || event.type != ElementType.TEXT) return;
-            
+        if (event.type != ElementType.TEXT) return;
+        
         // Overlay
         
-        scathaPro.getOverlay().tryDrawOverlay();
+        scathaPro.getOverlay().drawOverlayIfAllowed();
         
         EntityPlayer player = mc.thePlayer;
         if (player != null)
@@ -151,21 +151,50 @@ public class LoopListeners
         
         float yaw = player.rotationYaw % 360;
         if (yaw < 0) yaw += 360;
-        yawText.setText(MessageUtil.contrastableGray() + Util.numberToString(yaw, decimalDigits, true));
+        if (scathaPro.getConfig().getBoolean(Config.Key.rotationAnglesMinimalYaw))
+        {
+            yaw = (yaw / 10f) % 1 * 10f;
+        }
         
-        pitchText.setText(MessageUtil.contrastableGray() + Util.numberToString(player.rotationPitch, decimalDigits, true));
+        yawText.setText(TextUtil.contrastableGray() + Util.numberToString(yaw, decimalDigits, true));
+        
+        if (scathaPro.getConfig().getBoolean(Config.Key.rotationAnglesYawOnly))
+        {
+            pitchText.setVisible(false);
+        }
+        else
+        {
+            pitchText.setVisible(true);
+            pitchText.setText(TextUtil.contrastableGray() + Util.numberToString(player.rotationPitch, decimalDigits, true));
+        }
     }
 
     @SubscribeEvent
     public void onClientTick(ClientTickEvent event)
     {
-        if (event.isCanceled() || event.phase != TickEvent.Phase.START) return;
+        if (event.phase != TickEvent.Phase.START) return;
         
         dailyStatsCheckTickTimer --;
         if (dailyStatsCheckTickTimer <= 0)
         {
-            scathaPro.handleDailyStatsReset();
+            if (scathaPro.variables.lastPlayedDate == null || !scathaPro.variables.lastPlayedDate.equals(TimeUtil.today()))
+            {
+                MinecraftForge.EVENT_BUS.post(new NewIRLDayStartedEvent());
+            }
+
             dailyStatsCheckTickTimer = 20;
+        }
+        
+        if (scathaPro.variables.runnableNextTick != null)
+        {
+            scathaPro.variables.runnableNextTick.run();
+            scathaPro.variables.runnableNextTick = null;
+        }
+        
+        if (scathaPro.variables.openGuiNextTick != null)
+        {
+            mc.displayGuiScreen(scathaPro.variables.openGuiNextTick);
+            scathaPro.variables.openGuiNextTick = null;
         }
         
         final EntityPlayer player = mc.thePlayer;
@@ -173,14 +202,6 @@ public class LoopListeners
         if (world != null)
         {
             long now = TimeUtil.now();
-            
-            
-            if (scathaPro.variables.openGuiNextTick != null)
-            {
-                mc.displayGuiScreen(scathaPro.variables.openGuiNextTick);
-                scathaPro.variables.openGuiNextTick = null;
-            }
-            
             
             if (scathaPro.variables.cheaterDetected && mc.currentScreen == null)
             {
@@ -251,6 +272,12 @@ public class LoopListeners
                 MinecraftForge.EVENT_BUS.post(new CrystalHollowsTickEvent(now));
                 
                 
+                if (scathaPro.getOverlay().isOverlayDrawAllowed())
+                {
+                    scathaPro.getOverlay().updateRealtimeElements();
+                }
+                
+                
                 // Entity detection
                 
                 DetectedEntity.update(player);
@@ -319,72 +346,66 @@ public class LoopListeners
                 }
                 
                 
-                // Bedrock wall detection
-                
-                int[] checkDirection = {0, 0};
-                int facing = Util.getFacing(player);
-                switch (facing)
-                {
-                    case 0:
-                        checkDirection[1] = -1;
-                        break;
-                    case 1:
-                        checkDirection[0] = 1;
-                        break;
-                    case 2:
-                        checkDirection[1] = 1;
-                        break;
-                    case 3:
-                        checkDirection[0] = -1;
-                        break;
-                }
-                
-                if (bedrockFacingBefore >= 0 && bedrockFacingBefore != facing) bedrockDetectedBefore = false;
-                bedrockFacingBefore = facing;
+                // Bedrock detection
                 
                 boolean bedrockDetected = false;
-                boolean viewBlockedLower = false, viewBlockedUpper = false;
-                BlockPos playerPos = Util.entityBlockPos(player);
                 
-                for (int i = 0; i < 10; i ++)
-                {
-                    boolean bedrockFoundLower = false, bedrockFoundUpper = false;
-                    
-                    BlockPos lowerBlockPos = playerPos.add(checkDirection[0] * i, 0, checkDirection[1] * i);
-                    
-                    Block upperBlock = world.getBlockState(lowerBlockPos.add(0, 1, 0)).getBlock();
-                    if (upperBlock == Blocks.bedrock)
-                    {
-                        bedrockFoundUpper = true;
-                        if (viewBlockedUpper) bedrockDetected = true;
-                    }
-                    else if (upperBlock != Blocks.air) viewBlockedUpper = true;
-                    
-                    Block lowerBlock = world.getBlockState(lowerBlockPos).getBlock();
-                    if (lowerBlock == Blocks.bedrock)
-                    {
-                        bedrockFoundLower = true;
-                        if (viewBlockedLower && !bedrockFoundUpper) bedrockDetected = true;
-                    }
-                    else if (lowerBlock != Blocks.air) viewBlockedLower = true;
-                    
-                    if (bedrockFoundLower || bedrockFoundUpper) break;
-                }
+                BlockPos playerBlockPos = Util.entityBlockPos(player);
+                int distanceToWall = -1;
+                // BlockPos checkBlockPosBottom = null;
                 
-                if (bedrockDetected)
+                int playerDirection = Util.getDirection(player);
+                switch (playerDirection)
                 {
-                    if (!bedrockDetectedBefore)
-                    {
-                        bedrockDetectedBefore = true;
-                        
-                        if (lastBedrockDetectionTime < 0 || now - lastBedrockDetectionTime > 1500)
-                        {
-                            lastBedrockDetectionTime = now;
-                            MinecraftForge.EVENT_BUS.post(new BedrockDetectedEvent());
-                        }
+                    case 0: // -Z
+                        distanceToWall = playerBlockPos.getZ() - Constants.crystalHollowsBoundsMin;
+                        // checkBlockPosBottom = playerBlockPos.north();
+                        break;
+                    case 1: // +X
+                        distanceToWall = Constants.crystalHollowsBoundsMax - playerBlockPos.getX();
+                        // checkBlockPosBottom = playerBlockPos.east();
+                        break;
+                    case 2: // +Z
+                        distanceToWall = Constants.crystalHollowsBoundsMax - playerBlockPos.getZ();
+                        // checkBlockPosBottom = playerBlockPos.south();
+                        break;
+                    case 3: // -X
+                        distanceToWall = playerBlockPos.getX() - Constants.crystalHollowsBoundsMin;
+                        // checkBlockPosBottom = playerBlockPos.west();
+                        break;
+                }
+                distanceToWall -= 1; // being next to the wall should be 0 distance
+                
+                if (bedrockDirectionBefore >= 0 && bedrockDirectionBefore != playerDirection)
+                {
+                    distanceToWallPrevious = -1;
+                    bedrockDetectedThisDirection = false;
+                }
+                bedrockDirectionBefore = playerDirection;
+                
+                int triggerDistance = scathaPro.getConfig().getInt(Config.Key.bedrockWallAlertTriggerDistance);
+                
+                if (distanceToWallPrevious >= 0 && distanceToWallPrevious - distanceToWall == 1)
+                {
+                    if (distanceToWall < triggerDistance
+                        /* ||
+                        checkBlockPosBottom != null &&
+                        (world.getBlockState(checkBlockPosBottom).getBlock() == Blocks.bedrock
+                        || world.getBlockState(checkBlockPosBottom.up()).getBlock() == Blocks.bedrock) */
+                    ) {
+                        bedrockDetected = true;
                     }
                 }
-                else bedrockDetectedBefore = false;
+                if (distanceToWall >= triggerDistance) bedrockDetectedThisDirection = false;
+                distanceToWallPrevious = distanceToWall;
+                
+                if (bedrockDetected && !bedrockDetectedThisDirection && (lastBedrockDetectionTime < 0 || now - lastBedrockDetectionTime > 1500))
+                {
+                    bedrockDetectedThisDirection = true;
+                    
+                    lastBedrockDetectionTime = now;
+                    MinecraftForge.EVENT_BUS.post(new BedrockWallDetectedEvent());
+                }
                 
                 
                 // Scatha pet drop detection
@@ -494,7 +515,24 @@ public class LoopListeners
                     }
                 }
                 else wormSpawnCooldownRunningBefore = false;
-                    
+            }
+            
+            
+            if (scathaPro.variables.anomalousDesireReadyTime >= 0)
+            {
+                if (now >= scathaPro.variables.anomalousDesireReadyTime) // ability is ready
+                {
+                    if (now - scathaPro.variables.wormSpawnCooldownStartTime < Constants.wormSpawnCooldown) // spawn cooldown still running
+                    {
+                        // delay ability ready time until after cooldown runs out
+                        scathaPro.variables.anomalousDesireReadyTime = scathaPro.variables.wormSpawnCooldownStartTime + Constants.wormSpawnCooldown + 1000;
+                    }
+                    else
+                    {
+                        scathaPro.variables.anomalousDesireReadyTime = -1;
+                        if (scathaPro.isInCrystalHollows()) Alert.anomalous_desire_ready.play();
+                    }
+                }
             }
             
             
@@ -572,7 +610,7 @@ public class LoopListeners
         }
         
         // Bestiary worms
-        String wormBestiaryTitle = "Crystal Hollows " + MessageUtil.getUnicodeString("279C") + " Worm";
+        String wormBestiaryTitle = "Crystal Hollows \u279C Worm";
         
         if (chestInventory.getDisplayName().getUnformattedText().equals(wormBestiaryTitle))
         {
@@ -611,7 +649,7 @@ public class LoopListeners
             if (killsUpdated)
             {
                 scathaPro.getPersistentData().saveWormKills();
-                MessageUtil.sendModChatMessage("Updated overall worm kills from bestiary");
+                TextUtil.sendModChatMessage("Updated overall worm kills from bestiary");
                 lastChestCheckedForKillInfo = chestGui;
             }
         }

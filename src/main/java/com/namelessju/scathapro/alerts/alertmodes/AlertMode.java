@@ -1,5 +1,6 @@
 package com.namelessju.scathapro.alerts.alertmodes;
 
+import com.namelessju.scathapro.alerts.Alert;
 import com.namelessju.scathapro.alerts.AlertTitle;
 
 import net.minecraft.util.ResourceLocation;
@@ -21,7 +22,17 @@ public class AlertMode
     
     public String getIconPath()
     {
-        return "overlay/scatha_icons/regular.png";
+        return "overlay/scatha_icons/default.png";
+    }
+    
+    public String getIconOverlayPath()
+    {
+        return null;
+    }
+    
+    public int getIconColor()
+    {
+        return 0xFFFFFF;
     }
 
     
@@ -30,7 +41,7 @@ public class AlertMode
         return null;
     }
     
-    public AlertTitle getTitle(String alertId)
+    public AlertTitle getTitle(Alert alert)
     {
         return null;
     }

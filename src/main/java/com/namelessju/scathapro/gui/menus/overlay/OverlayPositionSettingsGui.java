@@ -1,4 +1,4 @@
-package com.namelessju.scathapro.gui.menus;
+package com.namelessju.scathapro.gui.menus.overlay;
 
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.managers.Config;

@@ -9,7 +9,7 @@ public enum AchievementCategory
     HARD_STONE("Hard Stone"),
     LOBBY_TIMER("Lobby Timer"),
     WORM_LIFETIME("Worm Lifetime"),
-    TIMEFRAME_KILLS("Worm Kills In Timeframe"),
+    TIMEFRAME_KILLS("Timeframed Worm Kills"),
     SCATHA_FARMING_STREAK("Scatha Farming Streak"),
     SPAWN_STREAK("Spawn Streak"),
     SCATHA_SPAWNS("Scatha Spawn"),
