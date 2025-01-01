@@ -21,6 +21,12 @@ public class OverlayImage extends OverlayElement
         setImage(texturePath, textureWidth, textureHeight);
     }
     
+    public OverlayImage(int x, int y, float scale)
+    {
+        super(x, y, scale);
+        setImage(null, 1, 1);
+    }
+    
     @Override
     protected void drawSpecific()
     {

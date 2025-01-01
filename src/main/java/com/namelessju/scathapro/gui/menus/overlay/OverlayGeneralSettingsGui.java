@@ -1,7 +1,5 @@
 package com.namelessju.scathapro.gui.menus.overlay;
 
-import java.io.IOException;
-
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.gui.elements.BooleanSettingButton;
 import com.namelessju.scathapro.gui.elements.SubMenuButton;
@@ -28,10 +26,10 @@ public class OverlayGeneralSettingsGui extends OverlaySettingsGui
     {
         super.initGui();
         
-        buttonList.add(new BooleanSettingButton(1, width / 2 - 155, height - 45 - 48 - 6, 150, 20, "UI Overlay", Config.Key.overlayEnabled));
-        buttonList.add(new SubMenuButton(2, width / 2 + 5, height - 45 - 48 - 6, 150, 20, "Position...", this, OverlayPositionSettingsGui.class));
-        buttonList.add(new SubMenuButton(3, width / 2 - 155, height - 45 - 24 - 6, 150, 20, "Components...", this, OverlayElementsSettingsGui.class));
-        buttonList.add(new SubMenuButton(4, width / 2 + 5, height - 45 - 24 - 6, 150, 20, "Miscellaneous...", this, OverlayMiscSettingsGui.class));
+        elements.add(new BooleanSettingButton(1, width / 2 - 155, height - 45 - 48 - 6, 150, 20, "UI Overlay", Config.Key.overlayEnabled));
+        elements.add(new SubMenuButton(2, width / 2 + 5, height - 45 - 48 - 6, 150, 20, "Position...", this, OverlayPositionSettingsGui.class));
+        elements.add(new SubMenuButton(3, width / 2 - 155, height - 45 - 24 - 6, 150, 20, "Components...", this, OverlayComponentsSettingsGui.class));
+        elements.add(new SubMenuButton(4, width / 2 + 5, height - 45 - 24 - 6, 150, 20, "Miscellaneous...", this, OverlayMiscSettingsGui.class));
         
         addDoneButton(width / 2 - 100, height - 45, 200, 20);
         
@@ -39,7 +37,7 @@ public class OverlayGeneralSettingsGui extends OverlaySettingsGui
     }
     
     @Override
-    protected void actionPerformed(GuiButton button) throws IOException
+    protected void actionPerformed(GuiButton button)
     {
         super.actionPerformed(button);
         

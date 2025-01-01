@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.google.common.collect.Lists;
-import com.namelessju.scathapro.miscellaneous.WormStats;
-import com.namelessju.scathapro.miscellaneous.SkyblockArea;
+import com.namelessju.scathapro.miscellaneous.enums.SkyblockArea;
+import com.namelessju.scathapro.miscellaneous.enums.WormStatsType;
 import com.namelessju.scathapro.util.TimeUtil;
 
 import net.minecraft.client.gui.GuiScreen;
@@ -15,6 +15,9 @@ import net.minecraft.util.IChatComponent;
 
 public class GlobalVariables
 {
+    public Runnable runnableNextTick = null;
+    public GuiScreen openGuiNextTick = null;
+    
     public long lastWorldJoinTime = -1;
     public int currentAreaCheckTimeIndex = 0;
     public SkyblockArea currentArea = null;
@@ -27,7 +30,6 @@ public class GlobalVariables
 
     public long wormSpawnCooldownStartTime = -1;
 
-    public long lastCrystalHollowsBlockHitTime = -1;
     public long lastWormSpawnTime = -1;
     public long lastScathaKillTime = -1;
     
@@ -44,25 +46,35 @@ public class GlobalVariables
     
     public long lastKillTime = -1;
     public long lastPetDropTime = -1;
-    public boolean lastKillIsScatha = false;
-    public boolean droppedPetAtLastScatha = false;
     
     public boolean sneakingBefore = false;
     public long lastSneakStartTime = -1;
     
     /** Used for the high heat alert and doesn't get updated if the alert is disabled! */
     public int lastHeat = -1;
+    
     public long anomalousDesireReadyTime = -1;
+    public long anomalousDesireCooldownEndTime = -1;
     public long anomalousDesireStartTime = -1;
-
-    public Runnable runnableNextTick = null;
-    public GuiScreen openGuiNextTick = null;
+    public boolean anomalousDesireWastedForRecovery = false;
     
     public boolean firstWorldTickPending = true;
+    public boolean firstCrystalHollowsTickPending = true;
     public boolean cheaterDetected = false;
 
     public List<IChatComponent> cachedChatMessages = Lists.newArrayList();
+    public List<IChatComponent> cachedCrystalHollowsMessages = Lists.newArrayList();
     public boolean lastChatMessageIsDivider = false;
+    
+    public boolean scappaModeActiveTemp = false;
+    public boolean scappaModeUnlocked = false;
+    
+    public float avgMoneyCalcScathaPriceRare = -1f;
+    public float avgMoneyCalcScathaPriceEpic = -1f;
+    public float avgMoneyCalcScathaPriceLegendary = -1f;
+    public float avgMoneyCalcMagicFind = -1f;
+    public float avgMoneyCalcPetLuck = -1f;
+    public float avgMoneyCalcScathaRate = -1f;
     
     
     public void startWormSpawnCooldown(boolean forceRestart)
@@ -74,30 +86,27 @@ public class GlobalVariables
     public void addRegularWormKill()
     {
         if (regularWormKills >= 0) regularWormKills ++;
-        WormStats.addRegularWormKill();
+        WormStatsType.addRegularWormKill();
     }
     
     public void addScathaKill()
     {
         if (scathaKills >= 0) scathaKills ++;
-        WormStats.addScathaKill();
+        WormStatsType.addScathaKill();
     }
     
     public void resetForNewLobby()
     {
         firstWorldTickPending = true;
-        
+        firstCrystalHollowsTickPending = true;
         currentAreaCheckTimeIndex = 0;
         currentArea = null;
-        
         previousScathaPets = null;
-        
-        WormStats.resetForNewLobby();
-        
-        lastCrystalHollowsBlockHitTime = -1;
+        WormStatsType.resetForNewLobby();
         lastWormSpawnTime = -1;
         wormSpawnCooldownStartTime = -1;
-        
         lastHeat = -1;
+        sneakingBefore = false;
+        anomalousDesireWastedForRecovery = false;
     }
 }

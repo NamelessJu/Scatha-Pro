@@ -2,6 +2,7 @@ package com.namelessju.scathapro.managers;
 
 import com.namelessju.scathapro.ScathaPro;
 
+import net.minecraftforge.common.config.ConfigCategory;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 
@@ -29,7 +30,7 @@ public class Config
         // Alerts
         mode("alerts", "mode", ""),
         customModeSubmode("alerts", "customModeSubmode", ""),
-
+        
         bedrockWallAlert("alerts", "wall", true),
         bedrockWallAlertTriggerDistance("alerts", "wall.triggerDistance", 15),
         wormSpawnCooldownEndAlert("alerts", "wormSpawnCooldownEnd", false),
@@ -39,17 +40,20 @@ public class Config
         scathaPetDropAlert("alerts", "pet", true),
         highHeatAlert("alerts", "highHeat", false),
         highHeatAlertTriggerValue("alerts", "highHeat.triggerValue", 98),
-        pickaxeAbilityReadyAlert("alerts", "pickaxeAbilityReadyAlert", false),
+        pickaxeAbilityReadyAlert("alerts", "pickaxeAbilityReadyAlert", true),
         goblinSpawnAlert("alerts", "goblinSpawn", true),
         jerrySpawnAlert("alerts", "jerrySpawn", true),
         
         // Achievements
         playAchievementAlerts("achievements", "playAchievementAlerts", true),
+        playRepeatAchievementAlerts("achievements", "playRepeatAchievementAlerts", true),
         bonusAchievementsShown("achievements", "bonusAchievementsShown", false),
         hideUnlockedAchievements("achievements", "hideUnlockedAchievements", false),
+        repeatCountsShown("achievements", "repeatCountsShown", true),
         
         // Other
         shortChatPrefix("other", "shortChatPrefix", false),
+        hideWormSpawnMessage("other", "hideWormSpawnMessage", false),
         showRotationAngles("other", "showRotationAngles", false),
         rotationAnglesYawOnly("other", "rotationAnglesYawOnly", false),
         rotationAnglesDecimalDigits("other", "rotationAnglesDecimalPlaces", 2),
@@ -61,7 +65,10 @@ public class Config
         automaticUpdateChecks("other", "automaticUpdateChecks", true),
         automaticStatsParsing("other", "automaticStatsParsing", true),
         dailyScathaFarmingStreakMessage("other", "dailyScathaFarmingStreakMessage", true),
-        scathaPetDropMessageExtension("other", "scathaPetDropMessageExtension", false),
+        dropMessageRarityMode("other", "dropMessageRarityMode", ""),
+        dropMessageRarityColored("other", "dropMessageRarityColored", true),
+        dropMessageRarityUppercase("other", "dropMessageRarityUppercase", false),
+        scappaMode("other", "scappaMode", false),
         
         // Accessibility
         highContrastColors("accessibility", "highContrastColors", false),
@@ -71,20 +78,37 @@ public class Config
         debugLogs("dev", "debugLogs", false);
         
         
-        private String category;
-        private String key;
-        private Object defaultValue;
+        public final Property.Type type; 
+        public final String category;
+        public final String key;
+        public final String defaultValue;
         
-        Key(String category, String key, Object defaultValue)
+        Key(String category, String key, String defaultValue)
+        {
+            this(category, key, defaultValue, Property.Type.STRING);
+        }
+        
+        Key(String category, String key, boolean defaultValue)
+        {
+            this(category, key, Boolean.toString(defaultValue), Property.Type.BOOLEAN);
+        }
+        
+        Key(String category, String key, double defaultValue)
+        {
+            this(category, key, Double.toString(defaultValue), Property.Type.DOUBLE);
+        }
+        
+        Key(String category, String key, int defaultValue)
+        {
+            this(category, key, Integer.toString(defaultValue), Property.Type.INTEGER);
+        }
+        
+        Key(String category, String key, String defaultValue, Property.Type type)
         {
             this.category = category;
             this.key = key;
             this.defaultValue = defaultValue;
-        }
-
-        public Object getDefaultValue()
-        {
-            return defaultValue;
+            this.type = type;
         }
     }
     
@@ -94,21 +118,35 @@ public class Config
     public void init()
     {
         loadFile();
+        
         convertOldConfigEntries();
         
-        ScathaPro.getInstance().logDebug("Config loaded");
+        // Fill config with all registered keys
+        
+        boolean changed = false;
+        for (Key key : Key.values())
+        {
+            if (getProperty(key.category, key.key, key.type) != null) continue;
+            getProperty(key); // auto-adds the key
+            changed = true;
+        }
+        if (changed)
+        {
+            save();
+            ScathaPro.getInstance().logDebug("Config updated");
+        }
     }
     
     private void convertOldConfigEntries()
     {
         // convert old integer-based mode ID to new string-based mode ID
-        if (config.get(Key.mode.category, Key.mode.key, "").getString().isEmpty())
+        if (!config.hasKey(Key.mode.category, Key.mode.key))
         {
-            int oldMode = config.get("other", "mode", -1).getInt();
-            if (oldMode >= 0)
+            Property oldModeProperty = getProperty("other", "mode", Property.Type.INTEGER);
+            if (oldModeProperty != null)
             {
                 String newMode;
-                switch (oldMode)
+                switch (oldModeProperty.getInt())
                 {
                     case 1:
                         newMode = "meme";
@@ -124,14 +162,14 @@ public class Config
                 config.save();
             }
         }
-
+        
         // convert sounds volume key
-        if (config.get(Key.soundsVolume.category, Key.soundsVolume.key, -1D).getDouble() < 0D)
+        if (!config.hasKey(Key.soundsVolume.category, Key.soundsVolume.key))
         {
-            double oldVolume = config.get("alerts", "volume", -1D).getDouble();
-            if (oldVolume >= 0)
+            Property oldVolumeProperty = getProperty("alerts", "volume", Property.Type.DOUBLE);
+            if (oldVolumeProperty != null)
             {
-                set(Key.soundsVolume, oldVolume);
+                set(Key.soundsVolume, oldVolumeProperty.getDouble(-1));
                 config.save();
             }
         }
@@ -141,77 +179,91 @@ public class Config
     {
         config = new Configuration(SaveManager.getSaveFile("config.cfg"));
         config.load();
+        ScathaPro.getInstance().log("Config loaded");
     }
     
     
-    private Property getIntProperty(Key key)
+    /**
+     * Gets a config property without automatically adding it to the file
+     */
+    private Property getProperty(String category, String key, Property.Type type)
     {
-        return config.get(key.category, key.key, (Integer) key.getDefaultValue());
+        ConfigCategory cat = config.hasCategory(category) ? config.getCategory(category) : null;
+        if (cat != null)
+        {
+            Property property = cat.get(key);
+            if (property != null && property.getType() == type) return property;
+        }
+        return null;
     }
     
-    private Property getDoubleProperty(Key key)
+    /**
+     * Gets a config property for a key<br>
+     * Automatically adds the key to the file if it doesn't exist yet (without saving)
+     */
+    private Property getProperty(Key key)
     {
-        return config.get(key.category, key.key, (Double) key.getDefaultValue());
+        return config.get(key.category, key.key, key.defaultValue, null, key.type);
     }
-    
-    private Property getStringProperty(Key key)
-    {
-        return config.get(key.category, key.key, (String) key.getDefaultValue());
-    }
-    
-    private Property getBooleanProperty(Key key)
-    {
-        return config.get(key.category, key.key, (Boolean) key.getDefaultValue());
-    }
-    
     
     public int getInt(Key key)
     {
-        return getIntProperty(key).getInt();
+        return getProperty(key).getInt();
     }
     
     public double getDouble(Key key)
     {
-        return getDoubleProperty(key).getDouble();
+        return getProperty(key).getDouble();
     }
     
     public String getString(Key key)
     {
-        return getStringProperty(key).getString();
+        return getProperty(key).getString();
     }
     
     public boolean getBoolean(Key key)
     {
-        return getBooleanProperty(key).getBoolean();
+        return getProperty(key).getBoolean();
+    }
+    
+    public <U extends Enum<U>> U getEnum(Config.Key configKey, Class<U> enumClass)
+    {
+        try
+        {
+            String stringValue = getString(configKey);
+            if (stringValue.isEmpty()) return null;
+            return Enum.valueOf(enumClass, stringValue);
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
     }
     
     public void set(Key key, int value)
     {
-        getIntProperty(key).set(value);
+        getProperty(key).set(value);
     }
     
     public void set(Key key, double value)
     {
-        getDoubleProperty(key).set(value);
+        getProperty(key).set(value);
     }
     
     public void set(Key key, String value)
     {
-        getStringProperty(key).set(value);
+        getProperty(key).set(value);
     }
     
     public void set(Key key, boolean value)
     {
-        getBooleanProperty(key).set(value);
+        getProperty(key).set(value);
     }
     
     
     public void reset(Key key)
     {
-        if (key.getDefaultValue() instanceof Integer) set(key, (Integer) key.getDefaultValue());
-        else if (key.getDefaultValue() instanceof Double) set(key, (Double) key.getDefaultValue());
-        else if (key.getDefaultValue() instanceof String) set(key, (String) key.getDefaultValue());
-        else if (key.getDefaultValue() instanceof Boolean) set(key, (Boolean) key.getDefaultValue());
+        set(key, key.defaultValue);
     }
     
     public void save()

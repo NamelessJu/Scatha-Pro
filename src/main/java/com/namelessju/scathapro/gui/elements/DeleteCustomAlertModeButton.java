@@ -84,7 +84,7 @@ public class DeleteCustomAlertModeButton extends ScathaProButton implements ICli
 
             this.drawCenteredString(fontrenderer, this.displayString, this.xPosition + this.width / 2, this.yPosition + (this.height - 8) / 2, color);
             
-            if (this.hovered) this.getTooltip().render();
+            if (this.hovered) this.getTooltip().requestRender();
         }
     }
 }

@@ -1,10 +1,12 @@
 package com.namelessju.scathapro.gui.elements;
 
-public class MultiOptionButton<T> extends ScathaProButton implements IClickActionButton
+import net.minecraft.client.gui.GuiScreen;
+
+public class CycleButton<T> extends ScathaProButton implements IClickActionButton
 {
     public static interface IOptionChangedListener<U>
     {
-        public void onChange(MultiOptionButton<U> button);
+        public void onChange(CycleButton<U> button);
     }
     
     public String text;
@@ -13,7 +15,7 @@ public class MultiOptionButton<T> extends ScathaProButton implements IClickActio
     
     private int selectedOptionIndex = 0;
     
-    public MultiOptionButton(int buttonId, int x, int y, int widthIn, int heightIn, String text, IOption<T>[] options, T startValue, IOptionChangedListener<T> changeListener)
+    public CycleButton(int buttonId, int x, int y, int widthIn, int heightIn, String text, IOption<T>[] options, T startValue, IOptionChangedListener<T> changeListener)
     {
         super(buttonId, x, y, widthIn, heightIn, "");
         
@@ -23,7 +25,8 @@ public class MultiOptionButton<T> extends ScathaProButton implements IClickActio
         
         for (int i = 0; i < options.length; i++)
         {
-            if (options[i].getOptionValue().equals(startValue))
+            T value = options[i].getOptionValue();
+            if (value != null && value.equals(startValue) || value == null && startValue == null)
             {
                 selectedOptionIndex = i;
                 break;
@@ -43,7 +46,9 @@ public class MultiOptionButton<T> extends ScathaProButton implements IClickActio
     public void click()
     {
         if (options.length <= 0) return;
-        selectedOptionIndex = (selectedOptionIndex + 1) % options.length;
+        if (GuiScreen.isShiftKeyDown()) selectedOptionIndex --;
+        else selectedOptionIndex ++;
+        selectedOptionIndex = selectedOptionIndex % options.length;
         if (selectedOptionIndex < 0) selectedOptionIndex += options.length;
         
         updateText();
@@ -76,21 +81,43 @@ public class MultiOptionButton<T> extends ScathaProButton implements IClickActio
         public U getOptionValue();
     }
     
-    public static class IntegerOption implements IOption<Integer>
+    public static class EnumOption<T extends Enum<T>> implements IOption<T>
     {
-        public static IntegerOption[] range(int min, int max)
+        @SuppressWarnings("unchecked")
+        public static <U extends Enum<U>> EnumOption<U>[] from(Class<U> enumClass, boolean includeNull)
         {
-            int size = max - min + 1;
-            if (size < 0) throw new IllegalArgumentException("IntegerOption max must be larger than min!");
-            
-            IntegerOption[] options = new IntegerOption[size];
-            for (int i = 0; i < size ; i ++)
-            {
-                options[i] = new IntegerOption(min + i);
-            }
+            U[] enumValues = enumClass.getEnumConstants();
+            int count = enumValues.length;
+            if (includeNull) count ++;
+            EnumOption<U>[] options = new EnumOption[count];
+            int i = 0, j = 0;
+            if (includeNull) options[j++] = new EnumOption<U>(null);
+            while (i < enumValues.length) options[j++] = new EnumOption<U>(enumValues[i++]);
             return options;
         }
         
+        final T value;
+        
+        public EnumOption(T value)
+        {
+            this.value = value;
+        }
+        
+        @Override
+        public String getOptionName()
+        {
+            return value != null ? value.toString() : "OFF";
+        }
+        
+        @Override
+        public T getOptionValue()
+        {
+            return value;
+        }
+    }
+    
+    public static class IntegerOption implements IOption<Integer>
+    {
         public static IntegerOption[] from(int[] values)
         {
             IntegerOption[] options = new IntegerOption[values.length];

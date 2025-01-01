@@ -25,7 +25,8 @@ import com.namelessju.scathapro.events.SkyblockAreaDetectedEvent;
 import com.namelessju.scathapro.gui.menus.FakeBanGui;
 import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.miscellaneous.PetDrop;
-import com.namelessju.scathapro.miscellaneous.SkyblockArea;
+import com.namelessju.scathapro.miscellaneous.enums.Rarity;
+import com.namelessju.scathapro.miscellaneous.enums.SkyblockArea;
 import com.namelessju.scathapro.overlay.elements.OverlayContainer;
 import com.namelessju.scathapro.overlay.elements.OverlayElement.Alignment;
 import com.namelessju.scathapro.overlay.elements.OverlayImage;
@@ -79,7 +80,6 @@ public class LoopListeners
     
     
     private boolean firstIngameTickPending = true;
-    private boolean firstCrystalHollowsFramePending = true;
     
     private long lastDeveloperCheckTime = -1;
     
@@ -149,14 +149,15 @@ public class LoopListeners
     {
         int decimalDigits = scathaPro.getConfig().getInt(Config.Key.rotationAnglesDecimalDigits);
         
-        float yaw = player.rotationYaw % 360;
-        if (yaw < 0) yaw += 360;
+        float yaw = player.rotationYaw % 360f;
+        if (yaw < 0) yaw += 360f;
+        String yawString = Util.numberToString(yaw, decimalDigits, true);
         if (scathaPro.getConfig().getBoolean(Config.Key.rotationAnglesMinimalYaw))
         {
-            yaw = (yaw / 10f) % 1 * 10f;
+            int dotIndex = yawString.indexOf('.');
+            if (dotIndex >= 0) yawString = yawString.substring(dotIndex - 1);
         }
-        
-        yawText.setText(TextUtil.contrastableGray() + Util.numberToString(yaw, decimalDigits, true));
+        yawText.setText(TextUtil.contrastableGray() + yawString);
         
         if (scathaPro.getConfig().getBoolean(Config.Key.rotationAnglesYawOnly))
         {
@@ -263,10 +264,10 @@ public class LoopListeners
             
             if (scathaPro.isInCrystalHollows())
             {
-                if (firstCrystalHollowsFramePending && mc.currentScreen == null)
+                if (scathaPro.variables.firstCrystalHollowsTickPending && mc.currentScreen == null)
                 {
                     MinecraftForge.EVENT_BUS.post(new FirstCrystalHollowsTickEvent());
-                    firstCrystalHollowsFramePending = false;
+                    scathaPro.variables.firstCrystalHollowsTickPending = false;
                 }
                 
                 MinecraftForge.EVENT_BUS.post(new CrystalHollowsTickEvent(now));
@@ -282,10 +283,15 @@ public class LoopListeners
                 
                 DetectedEntity.update(player);
                 
+                // Worm arrow hits
                 
-                // Worm projectile hits
+                ArrayList<Integer> arrowIds = new ArrayList<Integer>(arrowOwners.keySet());
+                for (int i = 0; i < arrowOwners.size(); i ++)
+                {
+                    int arrowID = arrowIds.get(i);
+                    if (world.getEntityByID(arrowID) == null) arrowOwners.remove(arrowID);
+                }
                 
-                // Arrows
                 List<EntityArrow> arrows = world.getEntities(EntityArrow.class, new Predicate<EntityArrow>() {
                     @Override
                     public boolean apply(EntityArrow input)
@@ -317,13 +323,8 @@ public class LoopListeners
                     }
                 }
                 
-                for (int i = 0; i < arrowOwners.size(); i ++)
-                {
-                    int arrowID = new ArrayList<Integer>(arrowOwners.keySet()).get(i);
-                    if (world.getEntityByID(arrowID) == null) arrowOwners.remove(arrowID);
-                }
+                // Worm fishing hook hits
                 
-                // Fishing hooks
                 List<EntityFishHook> fishHooks = world.getEntities(EntityFishHook.class, new Predicate<EntityFishHook>() {
                     @Override
                     public boolean apply(EntityFishHook input)
@@ -461,18 +462,18 @@ public class LoopListeners
                     
                     if (newScathaPet >= 0)
                     {
-                        PetDrop.Rarity rarity = PetDrop.Rarity.UNKNOWN;
+                        Rarity rarity = null;
                         
                         switch (newScathaPet)
                         {
                             case 1:
-                                rarity = PetDrop.Rarity.RARE;
+                                rarity = Rarity.RARE;
                                 break;
                             case 2:
-                                rarity = PetDrop.Rarity.EPIC;
+                                rarity = Rarity.EPIC;
                                 break;
                             case 3:
-                                rarity = PetDrop.Rarity.LEGENDARY;
+                                rarity = Rarity.LEGENDARY;
                                 break;
                         }
 
@@ -518,21 +519,27 @@ public class LoopListeners
             }
             
             
-            if (scathaPro.variables.anomalousDesireReadyTime >= 0)
+            if (scathaPro.variables.anomalousDesireReadyTime >= 0L && now >= scathaPro.variables.anomalousDesireReadyTime)
             {
-                if (now >= scathaPro.variables.anomalousDesireReadyTime) // ability is ready
+                if (now - scathaPro.variables.wormSpawnCooldownStartTime < Constants.wormSpawnCooldown) // spawn cooldown still running
                 {
-                    if (now - scathaPro.variables.wormSpawnCooldownStartTime < Constants.wormSpawnCooldown) // spawn cooldown still running
-                    {
-                        // delay ability ready time until after cooldown runs out
-                        scathaPro.variables.anomalousDesireReadyTime = scathaPro.variables.wormSpawnCooldownStartTime + Constants.wormSpawnCooldown + 1000;
-                    }
-                    else
-                    {
-                        scathaPro.variables.anomalousDesireReadyTime = -1;
-                        if (scathaPro.isInCrystalHollows()) Alert.anomalous_desire_ready.play();
-                    }
+                    // delay ability ready time until after cooldown runs out
+                    scathaPro.variables.anomalousDesireReadyTime = scathaPro.variables.wormSpawnCooldownStartTime + Constants.wormSpawnCooldown + 1000;
                 }
+                else
+                {
+                    scathaPro.variables.anomalousDesireReadyTime = -1L;
+                    if (scathaPro.isInCrystalHollows()) Alert.anomalous_desire_ready.play();
+                }
+            }
+
+            if (scathaPro.variables.anomalousDesireStartTime >= 0L && now - scathaPro.variables.anomalousDesireStartTime >= Constants.anomalousDesireEffectDuration)
+            {
+                scathaPro.variables.anomalousDesireStartTime = -1L;
+            }
+            if (scathaPro.variables.anomalousDesireCooldownEndTime >= 0L && now >= scathaPro.variables.anomalousDesireCooldownEndTime)
+            {
+                scathaPro.variables.anomalousDesireCooldownEndTime = -1L;
             }
             
             

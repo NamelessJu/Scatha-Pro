@@ -1,5 +1,7 @@
 package com.namelessju.scathapro.overlay.elements;
 
+import com.namelessju.scathapro.util.TextUtil;
+
 import net.minecraft.client.Minecraft;
 
 public class OverlayText extends OverlayElement
@@ -23,7 +25,7 @@ public class OverlayText extends OverlayElement
     @Override
     public int getWidth()
     {
-        return text != null ? Minecraft.getMinecraft().fontRendererObj.getStringWidth(text) : 0;
+        return text != null ? TextUtil.getStringWidth(text) : 0;
     }
     
     @Override

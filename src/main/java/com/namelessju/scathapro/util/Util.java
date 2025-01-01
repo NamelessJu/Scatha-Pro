@@ -17,6 +17,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.Session;
 
 public class Util
 {
@@ -58,17 +59,33 @@ public class Util
         if (uuid != null) return uuid.toString().replace("-", "").toLowerCase();
         return null;
     }
-
+    
     public static UUID getPlayerUUID()
     {
+        Session session = Minecraft.getMinecraft().getSession();
+        
+        if ("true".equalsIgnoreCase(System.getProperty("scathapro.offlineUuid"))) // JVM argument: -Dscathapro.offlineUuid=true
+        {
+            return Util.getOfflinePlayerUUID(session.getUsername());
+        }
+        
         try
         {
-            return Minecraft.getMinecraft().getSession().getProfile().getId();
+            return session.getProfile().getId();
         }
         catch (NullPointerException e)
         {
+        	e.printStackTrace();
             return null;
         }
+    }
+
+    /**
+     * Generates a UUID from a player name the same way Minecraft does it when the session is offline
+     */
+    public static UUID getOfflinePlayerUUID(String username)
+    {
+        return UUID.nameUUIDFromBytes(("OfflinePlayer:" + username).getBytes());
     }
 
     public static String getPlayerUUIDString()

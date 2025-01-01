@@ -1,16 +1,17 @@
 package com.namelessju.scathapro.gui.menus;
 
-import java.io.IOException;
-
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.gui.elements.BooleanSettingButton;
 import com.namelessju.scathapro.managers.Config;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.util.EnumChatFormatting;
 
 public class AchievementSettingsGui extends ScathaProGui
 {
+    private BooleanSettingButton unlockAlertsButton, repeatUnlockAlertsButton;
+    
     @Override
     public String getTitle()
     {
@@ -27,23 +28,39 @@ public class AchievementSettingsGui extends ScathaProGui
     {
         super.initGui();
         
-        addGridButton(new BooleanSettingButton(1, 0, 0, 0, 0, "Show Non-Unlocked Bonus Achievements", Config.Key.bonusAchievementsShown), true);
-        addGridButton(new BooleanSettingButton(2, 0, 0, 0, 0, "Hide Unlocked Achievements", Config.Key.hideUnlockedAchievements), true);
+        addGridButton(new BooleanSettingButton(1, 0, 0, 0, 0, "Show Non-Unlocked Bonus Achievements", Config.Key.bonusAchievementsShown), GridElementMode.FULL_WIDTH);
+        addGridButton(new BooleanSettingButton(2, 0, 0, 0, 0, "Hide Unlocked Achievements", Config.Key.hideUnlockedAchievements), GridElementMode.FULL_WIDTH);
+        addGridButton(new BooleanSettingButton(5, 0, 0, 0, 0, "Show Repeat Counts And Progress", Config.Key.repeatCountsShown), GridElementMode.FULL_WIDTH);
         addGridGap();
-        addGridButton(new BooleanSettingButton(3, 0, 0, 0, 0, "Achievement Unlock Alerts", Config.Key.playAchievementAlerts), true);
+        addGridButton(unlockAlertsButton = new BooleanSettingButton(3, 0, 0, 0, 0, "Achievement Unlock Alerts", Config.Key.playAchievementAlerts), GridElementMode.FULL_WIDTH);
+        addGridButton(repeatUnlockAlertsButton = new BooleanSettingButton(4, 0, 0, 0, 0, "Achievement Repeat Unlock Alerts", Config.Key.playRepeatAchievementAlerts), GridElementMode.FULL_WIDTH);
         
         addDoneButton();
+        
+        updateRepeatUnlockAlertsButton();
     }
     
     @Override
-    protected void actionPerformed(GuiButton button) throws IOException
+    protected void actionPerformed(GuiButton button)
     {
         super.actionPerformed(button);
         
-        if (button.enabled && button.id == 1)
+        switch (button.id)
         {
-            scathaPro.getAchievementManager().updateBonusTypeVisibility();
+            case 1:
+                scathaPro.getAchievementManager().updateBonusTypeVisibility();
+                break;
+            case 3:
+            case 4:
+                updateRepeatUnlockAlertsButton();
+                break;
         }
     }
     
+    private void updateRepeatUnlockAlertsButton()
+    {
+        boolean generalAlertsEnabled = unlockAlertsButton.isSettingEnabled();
+        repeatUnlockAlertsButton.enabled = generalAlertsEnabled;
+        repeatUnlockAlertsButton.getTooltip().setText(generalAlertsEnabled ? null : EnumChatFormatting.YELLOW + "Requires generic achievement\n" + EnumChatFormatting.YELLOW + "unlock alerts to be enabled");
+    }
 }

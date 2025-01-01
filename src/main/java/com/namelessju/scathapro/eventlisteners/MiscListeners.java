@@ -1,10 +1,9 @@
 package com.namelessju.scathapro.eventlisteners;
 
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import com.google.common.base.Predicate;
+import com.namelessju.scathapro.Constants;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.entitydetection.detectedentities.DetectedEntity;
@@ -12,6 +11,7 @@ import com.namelessju.scathapro.entitydetection.detectedentities.DetectedWorm;
 import com.namelessju.scathapro.events.WormPreSpawnEvent;
 import com.namelessju.scathapro.gui.menus.FakeBanGui;
 import com.namelessju.scathapro.managers.Config;
+import com.namelessju.scathapro.managers.Config.Key;
 import com.namelessju.scathapro.miscellaneous.ScathaProSound;
 import com.namelessju.scathapro.util.TextUtil;
 import com.namelessju.scathapro.util.NBTUtil;
@@ -22,8 +22,8 @@ import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StringUtils;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
@@ -75,7 +75,7 @@ public class MiscListeners
         
         // Update achievements
         
-        scathaPro.getAchievementLogicManager().updateKillAchievements();
+        scathaPro.getAchievementLogicManager().updateKillsAchievements();
         scathaPro.getAchievementLogicManager().updateSpawnAchievements(null);
         
         Achievement.crystal_hollows_time_1.setProgress(0);
@@ -152,15 +152,6 @@ public class MiscListeners
     }
     
     @SubscribeEvent
-    public void onLeftClickBlock(PlayerInteractEvent event)
-    {
-        if (event.action == PlayerInteractEvent.Action.LEFT_CLICK_BLOCK && scathaPro.isInCrystalHollows())
-        {
-            scathaPro.variables.lastCrystalHollowsBlockHitTime = TimeUtil.now();
-        }
-    }
-    
-    @SubscribeEvent
     public void onUseItemStop(PlayerUseItemEvent.Stop event)
     {
         if (!scathaPro.isInCrystalHollows()) return;
@@ -176,33 +167,18 @@ public class MiscListeners
     {
         if (event.type == 2) return;
         
-        if (scathaPro.getConfig().getBoolean(Config.Key.scathaPetDropMessageExtension))
-        {
-            String f = TextUtil.formattingStartCharacter;
-            String aqua = f+"r"+f+"b";
-            String patternString = f+"6"+f+"lPET DROP! "+f+"r"+f+"([a-f0-9])Scatha "+aqua+"\\(\\+"+aqua+"(\\d+)% "+aqua+"\\u272F Magic Find"+aqua+"\\)";
-            Matcher messageMatcher = Pattern.compile(patternString).matcher(event.message.getFormattedText());
-            if (messageMatcher.find())
-            {
-                String rarityColorCode = messageMatcher.group(1);
-                String magicFind = messageMatcher.group(2);
-                
-                String rarityText = null;
-                if (rarityColorCode.equals("9")) rarityText = EnumChatFormatting.BLUE + "Rare";
-                else if (rarityColorCode.equals("5")) rarityText = EnumChatFormatting.DARK_PURPLE + "Epic";
-                else if (rarityColorCode.equals("6")) rarityText = EnumChatFormatting.GOLD + "Legendary";
-                
-                if (rarityText != null)
-                {
-                    event.message = new ChatComponentText(f+"6"+f+"lPET DROP! "+EnumChatFormatting.RESET+rarityText+" "+f+"r"+f+rarityColorCode+"Scatha "+EnumChatFormatting.AQUA+"(+"+magicFind+"% \u272F Magic Find)");                
-                }
-                else scathaPro.logError("Detected Scatha pet drop message, but encountered unknown rarity color code \"" + f + rarityColorCode + "\"!");
-            }
-        }
+        IChatComponent extendedPetDropMessage = TextUtil.extendPetDropMessage(event.message.getFormattedText());
+        if (extendedPetDropMessage != null) event.message = extendedPetDropMessage;
         
         String unformattedText = StringUtils.stripControlCodes(event.message.getFormattedText());
         
-        if (unformattedText.equals("You used your Anomalous Desire Pickaxe Ability!"))
+        if (scathaPro.getConfig().getBoolean(Key.hideWormSpawnMessage)
+            && unformattedText.equals("You hear the sound of something approaching..."))
+        {
+            event.setCanceled(true);
+            return;
+        }
+        else if (unformattedText.equals("You used your Anomalous Desire Pickaxe Ability!"))
         {
             long now = TimeUtil.now();
             
@@ -210,13 +186,21 @@ public class MiscListeners
             if (cooldown >= 0)
             {
                 scathaPro.variables.anomalousDesireReadyTime = now + cooldown * 1000L;
+                scathaPro.variables.anomalousDesireCooldownEndTime = scathaPro.variables.anomalousDesireReadyTime;
             }
             
+            scathaPro.variables.anomalousDesireWastedForRecovery = false;
             scathaPro.variables.anomalousDesireStartTime = now;
             
-            if (scathaPro.variables.wormSpawnCooldownStartTime >= 0L && now - scathaPro.variables.wormSpawnCooldownStartTime < 10000L)
+            if (scathaPro.variables.wormSpawnCooldownStartTime >= 0L)
             {
-                Achievement.anomalous_desire_waste.unlock();
+                long spawnCooldownElapsedTime = now - scathaPro.variables.wormSpawnCooldownStartTime;
+                if (spawnCooldownElapsedTime < (long) (Constants.wormSpawnCooldown * 0.5D))
+                {
+                    scathaPro.variables.anomalousDesireWastedForRecovery = true;
+                    
+                    if (spawnCooldownElapsedTime < (long) (Constants.wormSpawnCooldown * 1D/3D)) Achievement.anomalous_desire_waste.unlock();
+                }
             }
         }
     }
@@ -239,7 +223,6 @@ public class MiscListeners
         if (mc.currentScreen != null && mc.currentScreen instanceof FakeBanGui && !event.name.equals("gui.button.press"))
         {
             event.result = null;
-            ScathaPro.getInstance().logDebug("Cancelled sound \"" + event.name + "\": Fake ban screen is opened");
             return;
         }
         
@@ -274,7 +257,6 @@ public class MiscListeners
             && !(event.sound instanceof ScathaProSound) && !event.name.equals("gui.button.press")
         ) {
             event.result = null;
-            ScathaPro.getInstance().logDebug("Cancelled sound \"" + event.name + "\": Crystal Hollows sounds are muted");
             return;
         }
     }

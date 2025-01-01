@@ -1,6 +1,7 @@
 package com.namelessju.scathapro.gui.menus.overlay;
 
 import com.namelessju.scathapro.ScathaPro;
+import com.namelessju.scathapro.gui.elements.ScathaProSlider;
 import com.namelessju.scathapro.managers.Config;
 
 import net.minecraft.client.gui.GuiScreen;
@@ -25,16 +26,16 @@ public class OverlayPositionSettingsGui extends OverlaySettingsGui implements Gu
         super.initGui();
         
         double overlayX = config.getDouble(Config.Key.overlayX);
-        GuiSlider overlayXSlider = new GuiSlider(1, width / 2 - 155, height - 45 - 24 - 6, 150, 20, "Overlay X Position: ", "%", -1, 100, overlayX >= 0 ? overlayX * 100 : -1, false, true, this);
+        ScathaProSlider overlayXSlider = new ScathaProSlider(1, width / 2 - 155, height - 45 - 24 - 6, 150, 20, "Overlay X Position: ", "%", -1, 100, overlayX >= 0 ? overlayX * 100 : -1, false, true, this);
         if (overlayX < 0) setSliderTextDefault(overlayXSlider);
-        buttonList.add(overlayXSlider);
+        elements.add(overlayXSlider);
         
         double overlayY = config.getDouble(Config.Key.overlayY);
-        GuiSlider overlayYSlider = new GuiSlider(2, width / 2 + 5, height - 45 - 24 - 6, 150, 20, "Overlay Y Position: ", "%", -1, 100, overlayY >= 0 ? overlayY * 100 : -1, false, true, this);
+        ScathaProSlider overlayYSlider = new ScathaProSlider(2, width / 2 + 5, height - 45 - 24 - 6, 150, 20, "Overlay Y Position: ", "%", -1, 100, overlayY >= 0 ? overlayY * 100 : -1, false, true, this);
         if (overlayY < 0) setSliderTextDefault(overlayYSlider);
-        buttonList.add(overlayYSlider);
+        elements.add(overlayYSlider);
         
-        buttonList.add(new GuiSlider(3, width / 2 - 155, height - 45 - 48 - 6, 310, 20, "Overlay Scale: ", "%", 50, 150, config.getDouble(Config.Key.overlayScale) * 100, false, true, this));
+        elements.add(new ScathaProSlider(3, width / 2 - 155, height - 45 - 48 - 6, 310, 20, "Overlay Scale: ", "%", 50, 150, config.getDouble(Config.Key.overlayScale) * 100, false, true, this));
         
         addDoneButton(width / 2 - 100, height - 45, 200, 20);
         

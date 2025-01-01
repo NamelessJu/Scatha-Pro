@@ -37,7 +37,7 @@ public class AchievementsGui extends ScathaProGui
         
         initializeAchievementsList();
         
-        buttonList.add(new SubMenuButton(1, width / 2 - 100, Math.round(height - 24 - 50 * heightFactor), 200, 20, "Achievement Settings...", this, AchievementSettingsGui.class));
+        elements.add(new SubMenuButton(1, width / 2 - 100, Math.round(height - 24 - 50 * heightFactor), 200, 20, "Achievement Settings...", this, AchievementSettingsGui.class));
         
         addDoneButton("Close", width / 2 - 100, Math.round(height - 50 * heightFactor), 200, 20);
     }

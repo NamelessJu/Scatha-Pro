@@ -24,12 +24,20 @@ public class AchievementManager
     
     public void unlockAchievement(Achievement achievement)
     {
-        if (isAchievementUnlocked(achievement)) return;
+    	UnlockedAchievement unlockedAchievement = getUnlockedAchievement(achievement);
+        if (unlockedAchievement == null)
+    	{
+        	unlockedAchievement = new UnlockedAchievement(achievement, TimeUtil.now());
+            unlockedAchievements.put(achievement.getID(), unlockedAchievement);
+    	}
+        else
+        {
+        	if (!achievement.isRepeatable) return;
+        	unlockedAchievement.setRepeatCount(unlockedAchievement.getRepeatCount() + 1);
+        }
         
-        unlockedAchievements.put(achievement.getID(), new UnlockedAchievement(achievement, TimeUtil.now()));
         scathaPro.getPersistentData().saveAchievements();
-        
-        MinecraftForge.EVENT_BUS.post(new AchievementUnlockedEvent(achievement));
+        MinecraftForge.EVENT_BUS.post(new AchievementUnlockedEvent(unlockedAchievement));
     }
     
     public boolean revokeAchievement(Achievement achievement)

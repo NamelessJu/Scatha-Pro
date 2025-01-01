@@ -1,4 +1,4 @@
-package com.namelessju.scathapro.miscellaneous;
+package com.namelessju.scathapro.miscellaneous.enums;
 
 public enum SkyblockArea
 {

@@ -5,6 +5,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
+import net.minecraft.client.Minecraft;
+
 public class TimeUtil
 {
     public static final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("uuuu-MM-dd");
@@ -15,6 +17,19 @@ public class TimeUtil
     public static long now()
     {
         return System.currentTimeMillis();
+    }
+    
+    /**
+     * Returns a timestamp in milliseconds that can be used for animations
+     */
+    public static long getAnimationTime()
+    {
+        return Minecraft.getSystemTime();
+    }
+    
+    public static boolean getAnimationState(int trueDuration, int falseDuration)
+    {
+        return getAnimationTime() % (trueDuration + falseDuration) < trueDuration;
     }
     
     /**
@@ -55,6 +70,33 @@ public class TimeUtil
     public static String padZero(int number)
     {
         return String.format("%02d", number);
+    }
+    
+    /**
+     * Generates a time string of seconds, minutes and hours, showing only the applicable fields<br>
+     * E.g.: 1h 2m 3s
+     * @param countDown When set to true rounds the seconds up instead of down
+     */
+    public static String getHMSTimeString(long milliseconds, boolean countDown)
+    {
+        int seconds;
+        {
+            double secondsD = milliseconds / 1000D;
+            seconds = (int) (countDown ? Math.ceil(secondsD) : secondsD);
+        }
+        int minutes = 0;
+        if (seconds >= 60)
+        {
+            minutes = seconds / 60;
+            seconds %= 60;
+        }
+        int hours = 0;
+        if (minutes >= 60)
+        {
+            hours = minutes / 60;
+            minutes %= 60;
+        }
+        return (hours >= 1 ? hours + "h " : "") + (minutes >= 1 ? minutes + "m " : "") + seconds + "s";
     }
     
 }

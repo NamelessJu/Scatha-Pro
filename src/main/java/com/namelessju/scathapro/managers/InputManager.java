@@ -1,18 +1,25 @@
 package com.namelessju.scathapro.managers;
 
 import com.namelessju.scathapro.ScathaPro;
+import com.namelessju.scathapro.miscellaneous.enums.WormStatsType;
+import com.namelessju.scathapro.util.TextUtil;
 
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MouseHelper;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 
 public class InputManager
 {
     private static final NoDeltaMouseHelper NO_DELTA_MOUSE_HELPER = new NoDeltaMouseHelper(); 
+    private static final String KEYBINDING_CATEGORY = "key.categories." + ScathaPro.MODID + ".main";
     
     private final ScathaPro scathaPro;
     
-    private KeyBinding lockRotationKeybinding, toggleOverlayKeybinding, toggleRotationAnglesKeybinding;
+    private KeyBinding lockRotationKeybinding,
+        toggleOverlayKeybinding,
+        toggleRotationAnglesKeybinding,
+        cycleSelectedWormStatsType;
     
     private boolean rotationLocked = false;
     private MouseHelper previousMouseHelper = null;
@@ -27,6 +34,7 @@ public class InputManager
         lockRotationKeybinding = registerKeybind("lockRotation");
         toggleOverlayKeybinding = registerKeybind("toggleOverlay");
         toggleRotationAnglesKeybinding = registerKeybind("toggleRotationAngles");
+        cycleSelectedWormStatsType = registerKeybind("cycleSelectedWormStatsType");
     }
     
     public void onKeyInput()
@@ -51,6 +59,25 @@ public class InputManager
             boolean enabled = scathaPro.getConfig().getBoolean(Config.Key.showRotationAngles);
             scathaPro.getConfig().set(Config.Key.showRotationAngles, !enabled);
             scathaPro.getConfig().save();
+            return;
+        }
+        
+        if (cycleSelectedWormStatsType.isPressed())
+        {
+            WormStatsType statsType = scathaPro.getConfig().getEnum(Config.Key.statsType, WormStatsType.class);
+            if (statsType == null) statsType = WormStatsType.values()[0];
+            
+            int statsTypeIndex = statsType.ordinal();
+            statsTypeIndex = (statsTypeIndex + 1) % WormStatsType.values().length;
+            
+            statsType = WormStatsType.values()[statsTypeIndex];
+            
+            Config config = scathaPro.getConfig();
+            config.set(Config.Key.statsType, statsType.name());
+            config.save();
+            scathaPro.getOverlay().updateStatsType();
+            
+            TextUtil.sendModChatMessage(EnumChatFormatting.GRAY + "Changed overlay worm stats to: Per " + statsType);
             return;
         }
     }
@@ -94,9 +121,15 @@ public class InputManager
     }
     private KeyBinding registerKeybind(String id, int defaultKey)
     {
-        KeyBinding keybinding = new KeyBinding("key." + ScathaPro.MODID + "." + id, defaultKey, "key.categories." + ScathaPro.MODID + ".main");
+        KeyBinding keybinding = new KeyBinding("key." + ScathaPro.MODID + "." + id, defaultKey, KEYBINDING_CATEGORY);
         ClientRegistry.registerKeyBinding(keybinding);
         return keybinding;
+    }
+    
+    
+    public static boolean isScathaProKeybinding(KeyBinding keybinding)
+    {
+        return keybinding.getKeyCategory().equals(KEYBINDING_CATEGORY);
     }
     
     

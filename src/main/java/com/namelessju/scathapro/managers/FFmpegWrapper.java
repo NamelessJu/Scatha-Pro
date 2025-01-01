@@ -82,7 +82,12 @@ public class FFmpegWrapper
         File minecraftDir = Loader.instance().getConfigDir().getParentFile();
         File modFolder = new File(minecraftDir, "mods");
         ffmpegFile = new File(modFolder, getOsSpecificExecutableFilename("scathapro-ffmpeg"));
-        if (ffmpegFile.exists()) return ffmpegFile.getAbsolutePath();
+        if (ffmpegFile.exists())
+        {
+            String filePath = ffmpegFile.getAbsolutePath();
+            ScathaPro.getInstance().log("FFmpeg installation found in mods folder (" + filePath + ")");
+            return filePath;
+        }
         
         // path variable
         String envPaths = System.getenv("PATH");
@@ -90,9 +95,15 @@ public class FFmpegWrapper
         {
             if (path.isEmpty()) continue;
             ffmpegFile = new File(path, getOsSpecificExecutableFilename("ffmpeg"));
-            if (ffmpegFile.exists()) return "ffmpeg";
+            if (ffmpegFile.exists())
+            {
+                String filePath = ffmpegFile.getAbsolutePath();
+                ScathaPro.getInstance().log("FFmpeg installation found in PATH environment variable (" + filePath + ")");
+                return filePath;
+            }
         }
         
+        ScathaPro.getInstance().logWarning("No FFmpeg installation found, custom mode will not support audio file conversions!");
         return null;
     }
     

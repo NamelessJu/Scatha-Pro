@@ -22,10 +22,7 @@ import net.minecraft.util.EnumChatFormatting;
 public class UpdateChecker
 {
     private static final String MODRINTH_PROJECT_ID = "lPe25xOt";
-    
-    private static final String MODRINTH_API_BASE_URL = "https://api.modrinth.com/v2";
-    private static final String MODRINTH_API_VERSIONS_ENDPOINT = MODRINTH_API_BASE_URL + "/project/"+MODRINTH_PROJECT_ID+"/version";
-    
+    private static final String MODRINTH_API_VERSIONS_ENDPOINT = "https://api.modrinth.com/v2/project/"+MODRINTH_PROJECT_ID+"/version";
     private static final String MODRINTH_VERSIONS_BASE_URL = "https://modrinth.com/mod/"+MODRINTH_PROJECT_ID+"/version/";
     
     
@@ -172,8 +169,8 @@ public class UpdateChecker
         from = getComparableVersion(from);
         to = getComparableVersion(to);
         
-        String[] fromParts = from.split("\\.");
-        String[] toParts = to.split("\\.");
+        String[] fromParts = from.split("[\\.-]");
+        String[] toParts = to.split("[\\.-]");
         
         for (int i = 0; (i < fromParts.length || i < toParts.length); i ++)
         {
@@ -216,8 +213,8 @@ public class UpdateChecker
             }
             
             // Pre-releases
-            boolean fromIsPreRelease = fromString != null && (fromString.equalsIgnoreCase("pre") || fromString.equalsIgnoreCase("prerelease") || fromString.equalsIgnoreCase("pre-release"));
-            boolean toIsPreRelease = toString != null && (toString.equalsIgnoreCase("pre") || toString.equalsIgnoreCase("prerelease") || toString.equalsIgnoreCase("pre-release"));
+            boolean fromIsPreRelease = fromString != null && (fromString.equalsIgnoreCase("pre") || fromString.equalsIgnoreCase("prerelease") || fromString.equalsIgnoreCase("rc"));
+            boolean toIsPreRelease = toString != null && (toString.equalsIgnoreCase("pre") || toString.equalsIgnoreCase("prerelease") || toString.equalsIgnoreCase("rc"));
             if (fromIsPreRelease && !toIsPreRelease) return 1;
             else if (!fromIsPreRelease && toIsPreRelease) return -1;
             else if (fromIsPreRelease && toIsPreRelease) continue;

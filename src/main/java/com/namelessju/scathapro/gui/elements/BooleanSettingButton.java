@@ -29,7 +29,11 @@ public class BooleanSettingButton extends ScathaProButton implements IClickActio
     
     private void updateText()
     {
-        boolean enabled = ScathaPro.getInstance().getConfig().getBoolean(configSetting);
-        this.displayString = (text != null ? text + ": " : "") + (enabled ? "ON" : "OFF");
+        this.displayString = (text != null ? text + ": " : "") + (isSettingEnabled() ? "ON" : "OFF");
+    }
+    
+    public boolean isSettingEnabled()
+    {
+        return ScathaPro.getInstance().getConfig().getBoolean(configSetting);
     }
 }

@@ -1,9 +1,9 @@
 package com.namelessju.scathapro.gui.menus;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.function.Consumer;
 
+import com.google.gson.JsonObject;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.alerts.alertmodes.customalertmode.CustomAlertModeManager;
 import com.namelessju.scathapro.alerts.alertmodes.customalertmode.ICustomAlertModeSaveable;
@@ -30,6 +30,7 @@ public class CustomAlertModeEditGui extends ScathaProGui implements GuiYesNoCall
     private final CustomAlertModeManager customAlertModeManager;
     
     private final String customAlertModeId;
+    private final JsonObject modeProperties;
     private final File modeFolder;
     private final boolean isNewMode;
     
@@ -45,8 +46,9 @@ public class CustomAlertModeEditGui extends ScathaProGui implements GuiYesNoCall
         
         this.customAlertModeManager = scathaPro.getCustomAlertModeManager();
         this.customAlertModeId = customAlertModeId;
+        modeProperties = customAlertModeManager.loadSubmodeProperties(customAlertModeId);
         modeFolder = CustomAlertModeManager.getSubModeFile(customAlertModeId);
-
+        
         currentModeName = customAlertModeManager.getSubmodeName(customAlertModeId);
         if (currentModeName == null) currentModeName = "";
         
@@ -84,10 +86,6 @@ public class CustomAlertModeEditGui extends ScathaProGui implements GuiYesNoCall
     @Override
     public boolean doesGuiPauseGame()
     {
-        // Required as a fix to prevent stopped alert sounds from
-        // stacking up and continuing to play after closing the GUI (thanks, MC sound engine...)
-        // Although it doesn't matter on Hypixel since the game can't be paused in Multiplayer
-        // I wanted to fix this regardless as it is annoying in my Singleplayer test world lol
         return false;
     }
     
@@ -97,43 +95,43 @@ public class CustomAlertModeEditGui extends ScathaProGui implements GuiYesNoCall
         super.initGui();
         
         customModeNameLabel = new ScathaProLabel(1, this.width / 2 - 155, 35, 225, 10, "Mode Name", Util.Color.GRAY.getValue());
-        labelList.add(customModeNameLabel);
+        elements.add(customModeNameLabel);
         
         String editModeName = nameTextField != null ? nameTextField.getText() : currentModeName;
-        nameTextField = new ScathaProTextField(1, mc.fontRendererObj, this.width / 2 - 155, 45, 225, 20);
+        nameTextField = new ScathaProTextField(1, this.width / 2 - 155, 45, 225, 20);
         nameTextField.setText(editModeName);
         nameTextField.setPlaceholder(EnumChatFormatting.ITALIC + "(unnamed)");
-        textFieldList.add(nameTextField);
+        elements.add(nameTextField);
         
         updateNameTextFieldLabel();
         
         ScathaProButton exportButton;
-        buttonList.add(exportButton = new ScathaProButton(1, this.width / 2 + 80, 45, 75, 20, "Export..."));
+        elements.add(exportButton = new ScathaProButton(1, this.width / 2 + 80, 45, 75, 20, "Export..."));
         if (isNewMode)
         {
             exportButton.enabled = false;
-            exportButton.setTooltip(EnumChatFormatting.YELLOW + "Save your new mode before exporting!");
+            exportButton.getTooltip().setText(EnumChatFormatting.YELLOW + "Save your new mode before exporting!");
         }
         else
         {
-            exportButton.setTooltip(EnumChatFormatting.GRAY + "Unsaved changes will not be exported!");
+            exportButton.getTooltip().setText(EnumChatFormatting.GRAY + "Unsaved changes will not be exported!");
         }
         
         if (scrollList == null)
         {
-            scrollList = new CustomAlertModeEditGuiList(this, customAlertModeId);
+            scrollList = new CustomAlertModeEditGuiList(this, customAlertModeId, modeProperties);
         }
         else if (scrollList instanceof CustomAlertModeEditGuiList)
         {
             ((CustomAlertModeEditGuiList) scrollList).resize();
         }
         
-        buttonList.add(new ScathaProButton(999, this.width / 2 - 155, this.height - 30, 150, 20, "Save"));
-        buttonList.add(new DoneButton(998, this.width / 2 + 5, this.height - 30, 150, 20, "Cancel", this));
+        elements.add(new ScathaProButton(999, this.width / 2 - 155, this.height - 30, 150, 20, "Save"));
+        elements.add(new DoneButton(998, this.width / 2 + 5, this.height - 30, 150, 20, "Cancel", this));
     }
     
     @Override
-    protected void actionPerformed(GuiButton button) throws IOException
+    protected void actionPerformed(GuiButton button)
     {
         switch (button.id)
         {
@@ -150,6 +148,13 @@ public class CustomAlertModeEditGui extends ScathaProGui implements GuiYesNoCall
                 {
                     mc.displayGuiScreen(new CustomAlertModeResourceLoadingGui(parentGui, results));
                     return;
+                }
+                
+                if (results.isPropertiesSavingRequired())
+                {
+                    customAlertModeManager.saveSubmodeProperties(customAlertModeId, modeProperties);
+                    if (customAlertModeManager.isSubmodeActive(customAlertModeId)) customAlertModeManager.loadCurrentSubmodeProperties();
+                    scathaPro.logDebug("Custom alert mode properties saving was requested, save performed");
                 }
                 
                 openParentGui();
@@ -179,7 +184,7 @@ public class CustomAlertModeEditGui extends ScathaProGui implements GuiYesNoCall
     }
     
     @Override
-    protected void textFieldTyped(ScathaProTextField textField)
+    protected void onTextFieldTyped(ScathaProTextField textField)
     {
         if (textField == nameTextField)
         {
@@ -193,12 +198,12 @@ public class CustomAlertModeEditGui extends ScathaProGui implements GuiYesNoCall
         if (!newName.equals(currentModeName))
         {
             customModeNameLabel.setSuffix(unsavedChangesSuffix);
-            customModeNameLabel.getTooltip().setTooltip(unsavedChangesExplanation);
+            customModeNameLabel.getTooltip().setText(unsavedChangesExplanation);
         }
         else
         {
             customModeNameLabel.setSuffix(null);
-            customModeNameLabel.getTooltip().setTooltip(null);
+            customModeNameLabel.getTooltip().setText(null);
         }
     }
 

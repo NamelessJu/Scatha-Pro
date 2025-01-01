@@ -14,13 +14,14 @@ public interface ICustomAlertModeSaveable
     {
         public final String customModeId;
         private boolean resourceReloadRequested = false;
+        private boolean propertiesSavingRequired = false;
         private List<AudioConversion> audioConversions = Lists.newArrayList();
         
         public SaveResults(String customModeId)
         {
             this.customModeId = customModeId;
         }
-
+        
         public void requestResourceReload()
         {
             resourceReloadRequested = true;
@@ -29,6 +30,16 @@ public interface ICustomAlertModeSaveable
         public boolean isResourceReloadRequired()
         {
             return (resourceReloadRequested || hasAudioConversions()) && ScathaPro.getInstance().getCustomAlertModeManager().isSubmodeActive(customModeId);
+        }
+        
+        public void requestPropertiesSave()
+        {
+            propertiesSavingRequired = true;
+        }
+        
+        public boolean isPropertiesSavingRequired()
+        {
+            return propertiesSavingRequired;
         }
         
         public void addAudioConversion(AudioConversion conversion)

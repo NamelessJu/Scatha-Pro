@@ -7,11 +7,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.google.gson.JsonPrimitive;
+import com.namelessju.scathapro.achievements.AchievementLogicManager;
 import com.namelessju.scathapro.achievements.AchievementManager;
 import com.namelessju.scathapro.alerts.alertmodes.AlertModeManager;
 import com.namelessju.scathapro.alerts.alertmodes.customalertmode.CustomAlertModeManager;
-import com.namelessju.scathapro.commands.ChancesCommand;
-import com.namelessju.scathapro.commands.MainCommand;
+import com.namelessju.scathapro.commands.CommandRegistry;
 import com.namelessju.scathapro.eventlisteners.GuiListeners;
 import com.namelessju.scathapro.eventlisteners.LoopListeners;
 import com.namelessju.scathapro.eventlisteners.MiscListeners;
@@ -19,21 +19,18 @@ import com.namelessju.scathapro.eventlisteners.ScathaProGameplayListeners;
 import com.namelessju.scathapro.eventlisteners.ScathaProMiscListeners;
 import com.namelessju.scathapro.eventlisteners.ScathaProTickListeners;
 import com.namelessju.scathapro.events.ModUpdateEvent;
-import com.namelessju.scathapro.managers.AchievementLogicManager;
 import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.managers.PersistentData;
 import com.namelessju.scathapro.managers.SaveManager;
 import com.namelessju.scathapro.managers.UpdateChecker;
-import com.namelessju.scathapro.miscellaneous.SkyblockArea;
+import com.namelessju.scathapro.miscellaneous.enums.SkyblockArea;
 import com.namelessju.scathapro.overlay.Overlay;
 import com.namelessju.scathapro.managers.InputManager;
 import com.namelessju.scathapro.util.JsonUtil;
 import com.namelessju.scathapro.util.TextUtil;
-import com.namelessju.scathapro.commands.DevCommand;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IResourcePack;
-import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
@@ -45,8 +42,7 @@ public class ScathaPro
 {
     public static final String MODNAME = "Scatha-Pro";
     public static final String MODID = "scathapro";
-    public static final String VERSION = "1.3.pre_6";
-    // public static final String VERSION = "1.3.dev_7";
+    public static final String VERSION = "1.3";
     
     
     private static ScathaPro instance;
@@ -64,6 +60,8 @@ public class ScathaPro
     private AchievementManager achievementManager;
     private AchievementLogicManager achievementLogicManager;
     private InputManager inputManager;
+    
+    public final CommandRegistry commandRegistry;
     
     
     public static ScathaPro getInstance()
@@ -108,6 +106,9 @@ public class ScathaPro
         
         persistentData = new PersistentData(this);
         persistentData.loadFile();
+        
+        
+        commandRegistry = new CommandRegistry(this);
     }
     
     @EventHandler
@@ -120,16 +121,12 @@ public class ScathaPro
         MinecraftForge.EVENT_BUS.register(new ScathaProTickListeners(this));
         MinecraftForge.EVENT_BUS.register(new ScathaProMiscListeners(this));
         
-        ClientCommandHandler.instance.registerCommand(new MainCommand(this));
-        ClientCommandHandler.instance.registerCommand(new ChancesCommand());
-        ClientCommandHandler.instance.registerCommand(new DevCommand(this));
+        this.commandRegistry.registerCommands();
         
         inputManager.register();
         
         try
         {
-            // I'm not a fan of using reflection but this is the best way to make sure this custom resource pack always gets loaded
-            // TODO: replace this with mixins?
             List<IResourcePack> defaultResourcePacks = ReflectionHelper.getPrivateValue(Minecraft.class, minecraft, "field_110449_ao", "defaultResourcePacks");
             defaultResourcePacks.add(customAlertModeManager.resourcePack);
             
@@ -160,6 +157,9 @@ public class ScathaPro
             JsonUtil.set(persistentData.getData(), "global/lastUsedVersion", new JsonPrimitive(ScathaPro.VERSION));
             persistentData.saveData();
         }
+        
+        
+        overlay.updateOverlayFull();
     }
     
     
@@ -192,6 +192,11 @@ public class ScathaPro
     public boolean isInCrystalHollows()
     {
         return variables.currentArea == SkyblockArea.CRYSTAL_HOLLOWS;
+    }
+    
+    public boolean isScappaModeActive()
+    {
+        return variables.scappaModeUnlocked && (variables.scappaModeActiveTemp || getConfig().getBoolean(Config.Key.scappaMode));
     }
     
 }

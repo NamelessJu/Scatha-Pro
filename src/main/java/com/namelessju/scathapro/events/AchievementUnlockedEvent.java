@@ -1,15 +1,15 @@
 package com.namelessju.scathapro.events;
 
-import com.namelessju.scathapro.achievements.Achievement;
+import com.namelessju.scathapro.achievements.UnlockedAchievement;
 
 import net.minecraftforge.fml.common.eventhandler.Event;
 
 public class AchievementUnlockedEvent extends Event
 {
-    public final Achievement achievement;
+    public final UnlockedAchievement unlockedAchievement;
     
-    public AchievementUnlockedEvent(Achievement achievement)
+    public AchievementUnlockedEvent(UnlockedAchievement unlockedAchievement)
     {
-        this.achievement = achievement;
+        this.unlockedAchievement = unlockedAchievement;
     }
 }

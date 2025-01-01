@@ -3,6 +3,7 @@ package com.namelessju.scathapro.eventlisteners;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.achievements.AchievementCategory;
+import com.namelessju.scathapro.achievements.UnlockedAchievement;
 import com.namelessju.scathapro.events.AchievementUnlockedEvent;
 import com.namelessju.scathapro.events.DailyScathaFarmingStreakChangedEvent;
 import com.namelessju.scathapro.events.DailyStatsResetEvent;
@@ -11,7 +12,7 @@ import com.namelessju.scathapro.events.NewIRLDayStartedEvent;
 import com.namelessju.scathapro.events.SkyblockAreaDetectedEvent;
 import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.managers.SaveManager;
-import com.namelessju.scathapro.miscellaneous.SkyblockArea;
+import com.namelessju.scathapro.miscellaneous.enums.SkyblockArea;
 import com.namelessju.scathapro.util.TextUtil;
 import com.namelessju.scathapro.util.SoundUtil;
 import com.namelessju.scathapro.util.TimeUtil;
@@ -70,44 +71,67 @@ public class ScathaProMiscListeners extends ScathaProListener
     public void onAchievementUnlocked(AchievementUnlockedEvent event)
     {
         long now = TimeUtil.now();
+
+        Achievement achievement = event.unlockedAchievement.achievement;
+        boolean repeated = achievement.isRepeatable && event.unlockedAchievement.getRepeatCount() > 0;
         
-        if (scathaPro.getConfig().getBoolean(Config.Key.playAchievementAlerts))
+        if (scathaPro.getConfig().getBoolean(Config.Key.playAchievementAlerts)
+            && (!repeated || scathaPro.getConfig().getBoolean(Config.Key.playRepeatAchievementAlerts)))
         {
-            Achievement achievement = event.achievement;
-            
+            String unlockTextFormatting;
+            String unlockWord;
+            if (repeated)
+            {
+                unlockTextFormatting = UnlockedAchievement.repeatFormatting;
+                unlockWord = "repeated";
+            }
+            else
+            {
+                unlockTextFormatting = EnumChatFormatting.GREEN.toString();
+                unlockWord = "unlocked";
+            }
             ChatComponentText chatMessage = new ChatComponentText(
                     (
                             achievement.type.typeName != null
-                            ? achievement.type.getFormattedName() + EnumChatFormatting.RESET + EnumChatFormatting.GREEN + " achievement"
-                            : EnumChatFormatting.GREEN + "Achievement"
+                            ? achievement.type.getFormattedName() + EnumChatFormatting.RESET + unlockTextFormatting + " achievement"
+                            : unlockTextFormatting + "Achievement"
                     )
-                    + " unlocked" + EnumChatFormatting.GRAY + " - "
+                    + " " + unlockWord + ": "
             );
             
-            ChatComponentText achievementComponent = new ChatComponentText(EnumChatFormatting.GOLD.toString() + EnumChatFormatting.ITALIC + achievement.achievementName);
-            ChatStyle achievementStyle = new ChatStyle().setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.GREEN.toString() + EnumChatFormatting.BOLD + achievement.achievementName + "\n" + EnumChatFormatting.RESET + EnumChatFormatting.GRAY + achievement.description + "\n\n" + EnumChatFormatting.GOLD + AchievementCategory.getName(achievement.category))));
-            achievementComponent.setChatStyle(achievementStyle);
+            ChatComponentText achievementNameComponent = new ChatComponentText(EnumChatFormatting.GOLD.toString() + EnumChatFormatting.ITALIC + achievement.achievementName);
             
-            chatMessage.appendSibling(achievementComponent);
+            ChatStyle achievementStyle = new ChatStyle().setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.GREEN.toString() + EnumChatFormatting.BOLD + achievement.achievementName + "\n" + EnumChatFormatting.RESET + EnumChatFormatting.GRAY + achievement.description + (achievement.isRepeatable ? "\n" + EnumChatFormatting.RESET + UnlockedAchievement.repeatFormatting + "[Repeatable]" + EnumChatFormatting.RESET : "") + "\n\n" + EnumChatFormatting.GOLD + AchievementCategory.getName(achievement.category))));
+            achievementNameComponent.setChatStyle(achievementStyle);
+            
+            chatMessage.appendSibling(achievementNameComponent);
+            if (repeated)
+            {
+                chatMessage.appendText(EnumChatFormatting.RESET.toString() + " " + event.unlockedAchievement.getRepeatCountUnlockString());
+            }
             
             TextUtil.sendModChatMessage(chatMessage);
             
             if (now >= scathaPro.variables.lastWorldJoinTime + 1000 && now >= lastAchievementUnlockTime + 1000) // required or the game might crash when too many achievements are unlocked at once
             {
-                switch (achievement.type)
-                {
-                    case SECRET:
-                        SoundUtil.playModSound("achievements.unlock", 0.9f, 0.749154f);
-                        break;
-                    case BONUS:
-                        SoundUtil.playModSound("achievements.unlock_hidden", 0.75f, 1.259921f);
-                        break;
-                    case HIDDEN:
-                        SoundUtil.playModSound("achievements.unlock_hidden", 0.75f, 0.749154f);
-                        break;
-                    default:
-                        SoundUtil.playModSound("achievements.unlock", 0.9f, 1f);
-                }
+            	if (repeated) SoundUtil.playModSound("achievements.unlock", 0.85f, 1.259921f);
+            	else
+            	{
+	                switch (achievement.type)
+	                {
+	                    case SECRET:
+	                        SoundUtil.playModSound("achievements.unlock", 0.9f, 0.749154f);
+	                        break;
+	                    case BONUS:
+	                        SoundUtil.playModSound("achievements.unlock_hidden", 0.75f, 1.259921f);
+	                        break;
+	                    case HIDDEN:
+	                        SoundUtil.playModSound("achievements.unlock_hidden", 0.75f, 0.749154f);
+	                        break;
+	                    default:
+	                        SoundUtil.playModSound("achievements.unlock", 0.9f, 1f);
+	                }
+            	}
             }
         }
         

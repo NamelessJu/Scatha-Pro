@@ -30,6 +30,7 @@ public class SettingsGui extends ScathaProGui
         addGridButton(new SubMenuButton(2, 0, 0, 0, 0, "Alerts...", this, AlertSettingsGui.class));
         addGridButton(new SubMenuButton(7, 0, 0, 0, 0, "Pitch/Yaw Display...", this, RotationAnglesSettingsGui.class));
         addGridButton(new SubMenuButton(3, 0, 0, 0, 0, "Sounds...", this, SoundSettingsGui.class));
+        addGridButton(new SubMenuButton(8, 0, 0, 0, 0, "Key Bindings...", this, KeybindingsGui.class));
         addGridButton(new SubMenuButton(4, 0, 0, 0, 0, "Miscellaneous...", this, MiscSettingsGui.class));
         addGridGap();
         addGridButton(new BooleanSettingButton(5, 0, 0, 0, 0, "Autom. Update Checks", Config.Key.automaticUpdateChecks));

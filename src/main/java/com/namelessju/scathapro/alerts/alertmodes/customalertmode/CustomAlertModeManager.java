@@ -285,7 +285,7 @@ public class CustomAlertModeManager
         return JsonUtil.getJsonElement(currentProperties, path);
     }
 
-    public String getCurrentSubmodeProperty(String path)
+    public String getCurrentSubmodeUnformattedStringProperty(String path)
     {
         if (currentProperties == null) return null;
         String propertyValue = JsonUtil.getString(currentProperties, path);

@@ -1,17 +1,15 @@
-package com.namelessju.scathapro.miscellaneous;
+package com.namelessju.scathapro.miscellaneous.enums;
 
-import com.namelessju.scathapro.gui.elements.MultiOptionButton;
-
-public enum WormStats implements MultiOptionButton.IOption<String>
+public enum WormStatsType
 {
-    PER_LOBBY("Lobby", "lobby"),
-    PER_SESSION("Session", "session"),
-    PER_DAY("IRL Day", "day");
+    PER_LOBBY("Lobby"),
+    PER_SESSION("Session"),
+    PER_DAY("IRL Day");
     
     
     public static void addRegularWormSpawn()
     {
-        for (WormStats stats : WormStats.values())
+        for (WormStatsType stats : WormStatsType.values())
         {
             if (stats.scathaSpawnStreak > 0) stats.scathaSpawnStreak = 0;
             stats.scathaSpawnStreak --;
@@ -20,7 +18,7 @@ public enum WormStats implements MultiOptionButton.IOption<String>
     
     public static void addScathaSpawn()
     {
-        for (WormStats stats : WormStats.values())
+        for (WormStatsType stats : WormStatsType.values())
         {
             if (stats.scathaSpawnStreak < 0) stats.scathaSpawnStreak = 0;
             stats.scathaSpawnStreak ++;
@@ -29,13 +27,13 @@ public enum WormStats implements MultiOptionButton.IOption<String>
     
     public static void addRegularWormKill()
     {
-        for (WormStats stats : WormStats.values())
+        for (WormStatsType stats : WormStatsType.values())
             stats.regularWormKills ++;
     }
     
     public static void addScathaKill()
     {
-        for (WormStats stats : WormStats.values())
+        for (WormStatsType stats : WormStatsType.values())
             stats.scathaKills ++;
     }
     
@@ -48,12 +46,10 @@ public enum WormStats implements MultiOptionButton.IOption<String>
     
     
     private String displayString;
-    private String id;
     
-    WormStats(String displayString, String id)
+    WormStatsType(String displayString)
     {
         this.displayString = displayString;
-        this.id = id;
     }
     
     public int regularWormKills = 0;
@@ -61,14 +57,8 @@ public enum WormStats implements MultiOptionButton.IOption<String>
     public int scathaSpawnStreak = 0; // positive = Scatha streak; negative = regular worm streak
     
     @Override
-    public String getOptionName()
+    public String toString()
     {
         return displayString;
-    }
-
-    @Override
-    public String getOptionValue()
-    {
-        return id;
     }
 }

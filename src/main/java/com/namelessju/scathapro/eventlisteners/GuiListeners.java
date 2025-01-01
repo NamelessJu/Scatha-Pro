@@ -5,6 +5,7 @@ import java.util.List;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.gui.elements.ImageButton;
 import com.namelessju.scathapro.gui.menus.AchievementsGui;
+import com.namelessju.scathapro.gui.menus.ScathaProGui;
 import com.namelessju.scathapro.gui.menus.SettingsGui;
 import com.namelessju.scathapro.miscellaneous.FileChooser;
 
@@ -66,7 +67,7 @@ public class GuiListeners
         if (event.gui instanceof GuiIngameMenu)
         {
             achievementMenuButton = new ImageButton(504703002, event.gui.width / 2 - 100 - 24, event.gui.height / 4 + 48 - 16, 20, 20, "gui/achievements/button_icon.png", 64, 64, 0.2f);
-            achievementMenuButton.setTooltip(EnumChatFormatting.GRAY + ScathaPro.MODNAME + " Achievements");
+            achievementMenuButton.getTooltip().setText(EnumChatFormatting.GRAY + ScathaPro.MODNAME + " Achievements");
             
             if (isButtonOverlapping(achievementMenuButton, event.buttonList))
             {
@@ -92,8 +93,7 @@ public class GuiListeners
     {
         if (event.gui instanceof GuiIngameMenu && achievementMenuButton.isMouseOver())
         {
-            net.minecraftforge.fml.client.config.GuiUtils.drawHoveringText(achievementMenuButton.getTooltip().getTooltipLines(),
-                event.mouseX, event.mouseY, event.gui.width, event.gui.height, -1, mc.fontRendererObj);
+            ScathaProGui.drawTooltip(event.gui, mc.fontRendererObj, event.mouseX, event.mouseY, achievementMenuButton.getTooltip().getTextLines(), -1);
         }
     }
     

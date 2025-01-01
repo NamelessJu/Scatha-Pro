@@ -93,6 +93,11 @@ public abstract class OverlayElement
         this.scale = scale;
     }
     
+    public float getScale()
+    {
+        return this.scale;
+    }
+    
     public void setVisible(boolean visible)
     {
         this.visible = visible;

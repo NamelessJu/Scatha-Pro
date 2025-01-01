@@ -41,6 +41,8 @@ public abstract class OverlaySettingsGui extends ScathaProGui
         
         debugInfoShownBefore = scathaPro.getMinecraft().gameSettings.showDebugInfo;
         scathaPro.getMinecraft().gameSettings.showDebugInfo = false;
+
+        overlay.updateRealtimeElements();
     }
     
     @Override

@@ -1,6 +1,5 @@
 package com.namelessju.scathapro.gui.lists;
 
-import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.EnumChatFormatting;
 
 import java.io.File;
@@ -17,6 +16,7 @@ import com.namelessju.scathapro.util.FileUtil;
 import com.namelessju.scathapro.util.TextUtil;
 import com.namelessju.scathapro.util.Util;
 import com.namelessju.scathapro.gui.elements.DeleteCustomAlertModeButton;
+import com.namelessju.scathapro.gui.elements.ScathaProButton;
 import com.namelessju.scathapro.gui.elements.ScathaProLabel;
 import com.namelessju.scathapro.gui.menus.CustomAlertModeEditGui;
 
@@ -65,8 +65,8 @@ public class CustomAlertModeGuiList extends ScathaProGuiList
     {
         public CreateCustomModeEntry()
         {
-            addButton(new GuiButton(0, 0, 5, getListWidth() - 83, 20, "Create New Custom Alert Mode..."));
-            addButton(new GuiButton(1, getListWidth() - 78, 5, 78, 20, "Import..."));
+            addElement(new ScathaProButton(0, 0, 5, getListWidth() - 83, 20, "Create New Custom Alert Mode..."));
+            addElement(new ScathaProButton(1, getListWidth() - 78, 5, 78, 20, "Import..."));
         }
         
         private FileChooser modeFileChooser = new FileChooser("Select custom alert mode file...", new String[] {"spmode"}, new Consumer<File>() {
@@ -100,7 +100,7 @@ public class CustomAlertModeGuiList extends ScathaProGuiList
         });
         
         @Override
-        protected void onButtonPressed(GuiButton button)
+        protected void onButtonPressed(ScathaProButton button)
         {
             switch (button.id)
             {
@@ -136,19 +136,19 @@ public class CustomAlertModeGuiList extends ScathaProGuiList
             boolean isModeActive = customAlertModeManager.isSubmodeActive(customModeId);
             
             int modeNameWidth = getListWidth() - 165;
-            addLabel(new ScathaProLabel(0, 0, isModeActive ? 5 : 10, modeNameWidth, 10, TextUtil.ellipsis(customModeName, modeNameWidth)));
-            if (isModeActive) addLabel(new ScathaProLabel(1, 0, 15, modeNameWidth, 10, "Selected", Util.Color.GREEN.getValue()));
+            addElement(new ScathaProLabel(0, 0, isModeActive ? 5 : 10, modeNameWidth, TextUtil.ellipsis(customModeName, modeNameWidth)));
+            if (isModeActive) addElement(new ScathaProLabel(1, 0, 15, modeNameWidth, "Selected", Util.Color.GREEN.getValue()));
             
-            GuiButton btnSelect = new GuiButton(0, getListWidth() - 160, 5, 50, 20, "Select");
+            ScathaProButton btnSelect = new ScathaProButton(0, getListWidth() - 160, 5, 50, 20, "Select");
             btnSelect.enabled = !isModeActive;
-            addButton(btnSelect);
+            addElement(btnSelect);
             
-            addButton(new GuiButton(1, getListWidth() - 105, 5, 50, 20, "Edit..."));
-            addButton(new DeleteCustomAlertModeButton(2, getListWidth() - 50, 5, 50, 20, "Delete", customModeId, gui));
+            addElement(new ScathaProButton(1, getListWidth() - 105, 5, 50, 20, "Edit..."));
+            addElement(new DeleteCustomAlertModeButton(2, getListWidth() - 50, 5, 50, 20, "Delete", customModeId, gui));
         }
         
         @Override
-        protected void onButtonPressed(GuiButton button)
+        protected void onButtonPressed(ScathaProButton button)
         {
             switch (button.id)
             {

@@ -8,6 +8,7 @@ import com.google.gson.JsonObject;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.achievements.AchievementManager;
+import com.namelessju.scathapro.alerts.Alert;
 import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.managers.UpdateChecker;
 import com.namelessju.scathapro.util.TextUtil;
@@ -20,6 +21,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 
@@ -57,12 +59,21 @@ public class DevCommand extends CommandBase
     {
         return 0;
     }
-
-    /**
-     * Method for quick test commands
-     */
+    
     private boolean devTrigger(String trigger, String[] arguments) throws CommandException
     {
+        if (trigger.equalsIgnoreCase("drop"))
+        {
+            String f = TextUtil.formattingStartCharacter;
+            TextUtil.sendChatMessage(new ChatComponentText(f+"6"+f+"lPET DROP! "+f+"r"+f+"5Scatha "+f+"r"+f+"b"+"(+"+f+"r"+f+"b"+"125% "+f+"r"+f+"b"+"\u272F Magic Find"+f+"r"+f+"b"+")"));
+            return true;
+        }
+        else if (trigger.equalsIgnoreCase("heat"))
+        {
+            Alert.highHeat.play();
+            return true;
+        }
+        
         return false;
     }
     

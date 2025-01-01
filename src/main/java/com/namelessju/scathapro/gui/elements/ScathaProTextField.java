@@ -24,12 +24,10 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.StringUtils;
 
-// This is a copy of <code>GuiTextField</code> with some changes/additional features.
-// (inheriting from GuiTextField didn't work, as most of it's fields are private, making important information inaccessible)
-public class ScathaProTextField extends Gui implements TooltipElement
+public class ScathaProTextField extends Gui implements IGuiElement, ITooltipElement
 {
     private final int id;
-    private final FontRenderer fontRendererInstance;
+    private final FontRenderer fontRenderer;
     private String text = "";
     private int maxStringLength = 32;
     private int cursorBlinkCounter = 0;
@@ -45,26 +43,87 @@ public class ScathaProTextField extends Gui implements TooltipElement
     public int yPosition;
     public int width;
     public int height;
-
+    
     private final Tooltip tooltip = new Tooltip();
+    private String defaultFormatting = null;
     private String placeholder = null;
     private boolean supportsFormatting = false;
     private String formattedText = "";
     
-    public ScathaProTextField(int componentId, FontRenderer fontrendererObj, int x, int y, int width, int height)
+    public ScathaProTextField(int componentId, int x, int y, int width, int height)
     {
         this.id = componentId;
-        this.fontRendererInstance = fontrendererObj;
+        this.fontRenderer = Minecraft.getMinecraft().fontRendererObj;
         this.xPosition = x;
         this.yPosition = y;
         this.width = width;
         this.height = height;
     }
     
-    public ScathaProTextField setTooltip(String text)
+    @Override
+    public void setElementX(int x)
     {
-        tooltip.setTooltip(text);
-        return this;
+        this.xPosition = x;
+    }
+    
+    @Override
+    public void setElementY(int y)
+    {
+        this.yPosition = y;
+    }
+    
+    @Override
+    public void setElementWidth(int width)
+    {
+        this.width = width;
+    }
+    
+    @Override
+    public void setElementHeight(int height)
+    {
+        this.height = height;
+    }
+    
+    @Override
+    public int getElementX()
+    {
+        return this.xPosition;
+    }
+    
+    @Override
+    public int getElementY()
+    {
+        return this.yPosition;
+    }
+    
+    @Override
+    public int getElementHeight()
+    {
+        return this.height;
+    }
+    
+    @Override
+    public int getElementWidth()
+    {
+        return this.width;
+    }
+    
+    @Override
+    public void elementTick()
+    {
+        ++this.cursorBlinkCounter;
+    }
+    
+    @Override
+    public void elementKeyTyped(char character, int code)
+    {
+        this.textboxKeyTyped(character, code);
+    }
+    
+    @Override
+    public void elementDraw(int mouseX, int mouseY)
+    {
+        this.drawTextBox(mouseX, mouseY);
     }
     
     @Override
@@ -73,9 +132,16 @@ public class ScathaProTextField extends Gui implements TooltipElement
         return tooltip;
     }
     
-    public void setPlaceholder(String placeholder)
+    public ScathaProTextField setDefaultFormatting(String formatting)
+    {
+        this.defaultFormatting = formatting;
+        return this;
+    }
+    
+    public ScathaProTextField setPlaceholder(String placeholder)
     {
         this.placeholder = placeholder;
+        return this;
     }
     
     public ScathaProTextField setSupportsFormatting(boolean value)
@@ -93,7 +159,7 @@ public class ScathaProTextField extends Gui implements TooltipElement
             this.formattedText = "";
             return;
         }
-
+        
         Matcher formattingCodeMatcher = Pattern.compile("&" + TextUtil.formattingCodesRegex).matcher(this.text);
         
         String formattedText = this.text;
@@ -105,7 +171,7 @@ public class ScathaProTextField extends Gui implements TooltipElement
             String code = formattingCodeMatcher.group();
             
             String realFormatting = code.replace("&", TextUtil.formattingStartCharacter);
-            String codeFormatted = EnumChatFormatting.DARK_GRAY + code + EnumChatFormatting.RESET + previousStyling + realFormatting;
+            String codeFormatted = EnumChatFormatting.DARK_GRAY + code + EnumChatFormatting.RESET + (this.defaultFormatting != null ? this.defaultFormatting : "") + ("&r".equals(code) ? "" : previousStyling + realFormatting);
             
             if (!TextUtil.isFancyFormattingCode(realFormatting.charAt(1))) previousStyling = "";
             previousStyling += realFormatting;
@@ -115,7 +181,7 @@ public class ScathaProTextField extends Gui implements TooltipElement
             indexOffset += codeFormatted.length() - code.length();
         }
         
-        this.formattedText = EnumChatFormatting.RESET + formattedText;
+        this.formattedText = formattedText;
     }
     
     /**
@@ -123,60 +189,59 @@ public class ScathaProTextField extends Gui implements TooltipElement
      */
     private String getFormattableText()
     {
-        return this.supportsFormatting ? this.formattedText : this.text;
+        return EnumChatFormatting.RESET.toString() + (defaultFormatting != null ? defaultFormatting : "") + (this.supportsFormatting ? this.formattedText : this.text);
     }
     
     public void drawTextBox(int mouseX, int mouseY)
     {
-        if (this.getVisible())
-        {
-            int outlineColor = this.isEnabled ? -6250336 : Util.Color.DARK_GRAY.getValue();
-            drawRect(this.xPosition - 1, this.yPosition - 1, this.xPosition + this.width + 1, this.yPosition + this.height + 1, outlineColor);
-            drawRect(this.xPosition, this.yPosition, this.xPosition + this.width, this.yPosition + this.height, -16777216);
+        if (!this.getVisible()) return;
+        
+        int outlineColor = this.isEnabled ? -6250336 : Util.Color.DARK_GRAY.getValue();
+        drawRect(this.xPosition - 1, this.yPosition - 1, this.xPosition + this.width + 1, this.yPosition + this.height + 1, outlineColor);
+        drawRect(this.xPosition, this.yPosition, this.xPosition + this.width, this.yPosition + this.height, -16777216);
 
-            
-            int textOffset = getFormattableStringWidthAtIndex(this.lineScrollOffset);
-            int textBaseX = this.xPosition + 4; // X position without offset
-            int textXWithOffset = textBaseX - textOffset;
-            int textY = this.yPosition + (this.height - 8) / 2;
-            
-            ScaledResolution scaledResolution = new ScaledResolution(Minecraft.getMinecraft());
-            GL11.glEnable(GL11.GL_SCISSOR_TEST);
-            GlStateManager.pushMatrix();
-            GlStateManager.loadIdentity();
-            GL11.glScissor((xPosition + 1) * scaledResolution.getScaleFactor(), Minecraft.getMinecraft().displayHeight - (yPosition + height) * scaledResolution.getScaleFactor(), (width - 2) * scaledResolution.getScaleFactor(), height * scaledResolution.getScaleFactor());
-            GlStateManager.popMatrix();
-            
-            if (this.text.length() > 0)
-            {
-                this.fontRendererInstance.drawStringWithShadow(getFormattableText(), textXWithOffset, textY, this.isEnabled ? 14737632 : 7368816);
-            }
-            else if (this.placeholder != null)
-            {
-                this.fontRendererInstance.drawStringWithShadow(TextUtil.trimStringToWidth(this.placeholder, this.getWidth()), textBaseX, textY, Util.Color.DARK_GRAY.getValue());
-            }
-            
-            // Caret
-            
-            int caretX = textXWithOffset + getFormattableStringWidthAtIndex(this.cursorPosition);
-            if (this.isFocused && this.cursorBlinkCounter / 10 % 2 == 0)
-            {
-                Gui.drawRect(caretX, textY - 1, caretX + 1, textY + this.fontRendererInstance.FONT_HEIGHT + 1, -3092272);
-            }
-            
-            // Selection
-            
-            if (this.cursorPosition != this.selectionEnd)
-            {
-                int selectionEndX = textXWithOffset + getFormattableStringWidthAtIndex(this.selectionEnd);
-                this.drawSelection(caretX, textY - 1, selectionEndX - 1, textY + 1 + this.fontRendererInstance.FONT_HEIGHT);
-            }
-            
-            GL11.glDisable(GL11.GL_SCISSOR_TEST);
-            
-            boolean hovered = mouseX >= this.xPosition && mouseY >= this.yPosition && mouseX < this.xPosition + this.width && mouseY < this.yPosition + this.height;
-            if (hovered) this.tooltip.render();
+        
+        int textOffset = getFormattableStringWidthAtIndex(this.lineScrollOffset);
+        int textBaseX = this.xPosition + 4; // X position without offset
+        int textXWithOffset = textBaseX - textOffset;
+        int textY = this.yPosition + (this.height - 8) / 2;
+        
+        ScaledResolution scaledResolution = new ScaledResolution(Minecraft.getMinecraft());
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        GlStateManager.pushMatrix();
+        GlStateManager.loadIdentity();
+        GL11.glScissor((xPosition + 1) * scaledResolution.getScaleFactor(), Minecraft.getMinecraft().displayHeight - (yPosition + height) * scaledResolution.getScaleFactor(), (width - 2) * scaledResolution.getScaleFactor(), height * scaledResolution.getScaleFactor());
+        GlStateManager.popMatrix();
+        
+        if (this.text.length() > 0)
+        {
+            this.fontRenderer.drawStringWithShadow(getFormattableText(), textXWithOffset, textY, this.isEnabled ? 14737632 : 7368816);
         }
+        else if (this.placeholder != null)
+        {
+            this.fontRenderer.drawStringWithShadow(TextUtil.trimStringToWidth(this.placeholder, this.getInnerWidth()), textBaseX, textY, Util.Color.DARK_GRAY.getValue());
+        }
+        
+        // Caret
+        
+        int caretX = textXWithOffset + getFormattableStringWidthAtIndex(this.cursorPosition);
+        if (this.isFocused && this.cursorBlinkCounter / 10 % 2 == 0)
+        {
+            Gui.drawRect(caretX, textY - 1, caretX + 1, textY + this.fontRenderer.FONT_HEIGHT + 1, -3092272);
+        }
+        
+        // Selection
+        
+        if (this.cursorPosition != this.selectionEnd)
+        {
+            int selectionEndX = textXWithOffset + getFormattableStringWidthAtIndex(this.selectionEnd);
+            this.drawSelection(caretX, textY - 1, selectionEndX - 1, textY + 1 + this.fontRenderer.FONT_HEIGHT);
+        }
+        
+        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        
+        boolean hovered = mouseX >= this.xPosition && mouseY >= this.yPosition && mouseX < this.xPosition + this.width && mouseY < this.yPosition + this.height;
+        if (hovered) this.tooltip.requestRender();
     }
     
     /**
@@ -222,7 +287,8 @@ public class ScathaProTextField extends Gui implements TooltipElement
         return StringUtils.stripControlCodes(TextUtil.trimStringToWidth(getFormattableText(), width)).length();
     }
     
-    public boolean mouseClicked(int mouseX, int mouseY, int mouseButton)
+    @Override
+    public boolean elementMouseClicked(int mouseX, int mouseY, int mouseButton)
     {
         boolean isMouseOver = mouseX >= this.xPosition && mouseX < this.xPosition + this.width && mouseY >= this.yPosition && mouseY < this.yPosition + this.height;
         
@@ -237,7 +303,7 @@ public class ScathaProTextField extends Gui implements TooltipElement
             if (cursorIndex < this.text.length())
             {
                 char nextChar = this.text.charAt(cursorIndex);
-                if (mouseXRelative - TextUtil.getStringWidth(trimmedString) >= fontRendererInstance.getCharWidth(nextChar) / 2f)
+                if (mouseXRelative - TextUtil.getStringWidth(trimmedString) >= fontRenderer.getCharWidth(nextChar) / 2f)
                 {
                     cursorIndex ++;
                 }
@@ -283,11 +349,6 @@ public class ScathaProTextField extends Gui implements TooltipElement
     public String getText()
     {
         return this.text;
-    }
-    
-    public void tick()
-    {
-        ++this.cursorBlinkCounter;
     }
     
     public String getSelectedText()
@@ -491,28 +552,28 @@ public class ScathaProTextField extends Gui implements TooltipElement
     {
         this.setCursorPosition(this.text.length());
     }
-
+    
     /**
      * Call this method from your GuiScreen to process the keys into the textbox
      */
-    public boolean textboxKeyTyped(char p_146201_1_, int p_146201_2_)
+    protected boolean textboxKeyTyped(char character, int keyCode)
     {
         if (!this.isFocused)
         {
             return false;
         }
-        else if (GuiScreen.isKeyComboCtrlA(p_146201_2_))
+        else if (GuiScreen.isKeyComboCtrlA(keyCode))
         {
             this.setCursorPositionEnd();
             this.setSelectionPos(0);
             return true;
         }
-        else if (GuiScreen.isKeyComboCtrlC(p_146201_2_))
+        else if (GuiScreen.isKeyComboCtrlC(keyCode))
         {
             GuiScreen.setClipboardString(this.getSelectedText());
             return true;
         }
-        else if (GuiScreen.isKeyComboCtrlV(p_146201_2_))
+        else if (GuiScreen.isKeyComboCtrlV(keyCode))
         {
             if (this.isEnabled)
             {
@@ -521,7 +582,7 @@ public class ScathaProTextField extends Gui implements TooltipElement
 
             return true;
         }
-        else if (GuiScreen.isKeyComboCtrlX(p_146201_2_))
+        else if (GuiScreen.isKeyComboCtrlX(keyCode))
         {
             GuiScreen.setClipboardString(this.getSelectedText());
 
@@ -534,10 +595,9 @@ public class ScathaProTextField extends Gui implements TooltipElement
         }
         else
         {
-            switch (p_146201_2_)
+            switch (keyCode)
             {
                 case 14:
-
                     if (GuiScreen.isCtrlKeyDown())
                     {
                         if (this.isEnabled)
@@ -549,10 +609,9 @@ public class ScathaProTextField extends Gui implements TooltipElement
                     {
                         this.deleteFromCursor(-1);
                     }
-
                     return true;
+                    
                 case 199:
-
                     if (GuiScreen.isShiftKeyDown())
                     {
                         this.setSelectionPos(0);
@@ -561,10 +620,9 @@ public class ScathaProTextField extends Gui implements TooltipElement
                     {
                         this.setCursorPositionZero();
                     }
-
                     return true;
+                    
                 case 203:
-
                     if (GuiScreen.isShiftKeyDown())
                     {
                         if (GuiScreen.isCtrlKeyDown())
@@ -584,10 +642,9 @@ public class ScathaProTextField extends Gui implements TooltipElement
                     {
                         this.moveCursorBy(-1);
                     }
-
                     return true;
+                    
                 case 205:
-
                     if (GuiScreen.isShiftKeyDown())
                     {
                         if (GuiScreen.isCtrlKeyDown())
@@ -607,10 +664,9 @@ public class ScathaProTextField extends Gui implements TooltipElement
                     {
                         this.moveCursorBy(1);
                     }
-
                     return true;
+                    
                 case 207:
-
                     if (GuiScreen.isShiftKeyDown())
                     {
                         this.setSelectionPos(this.text.length());
@@ -619,10 +675,9 @@ public class ScathaProTextField extends Gui implements TooltipElement
                     {
                         this.setCursorPositionEnd();
                     }
-
                     return true;
+                    
                 case 211:
-
                     if (GuiScreen.isCtrlKeyDown())
                     {
                         if (this.isEnabled)
@@ -634,15 +689,14 @@ public class ScathaProTextField extends Gui implements TooltipElement
                     {
                         this.deleteFromCursor(1);
                     }
-
                     return true;
+                    
                 default:
-
-                    if (ChatAllowedCharacters.isAllowedCharacter(p_146201_1_))
+                    if (ChatAllowedCharacters.isAllowedCharacter(character))
                     {
                         if (this.isEnabled)
                         {
-                            this.writeText(Character.toString(p_146201_1_));
+                            this.writeText(Character.toString(character));
                         }
 
                         return true;
@@ -655,30 +709,30 @@ public class ScathaProTextField extends Gui implements TooltipElement
         }
     }
     
-    private void drawSelection(int p_146188_1_, int p_146188_2_, int p_146188_3_, int p_146188_4_)
+    private void drawSelection(int x, int y, int dx, int dy)
     {
-        if (p_146188_1_ < p_146188_3_)
+        if (x < dx)
         {
-            int i = p_146188_1_;
-            p_146188_1_ = p_146188_3_;
-            p_146188_3_ = i;
+            int i = x;
+            x = dx;
+            dx = i;
         }
 
-        if (p_146188_2_ < p_146188_4_)
+        if (y < dy)
         {
-            int j = p_146188_2_;
-            p_146188_2_ = p_146188_4_;
-            p_146188_4_ = j;
+            int j = y;
+            y = dy;
+            dy = j;
         }
 
-        if (p_146188_3_ > this.xPosition + this.width)
+        if (dx > this.xPosition + this.width)
         {
-            p_146188_3_ = this.xPosition + this.width;
+            dx = this.xPosition + this.width;
         }
 
-        if (p_146188_1_ > this.xPosition + this.width)
+        if (x > this.xPosition + this.width)
         {
-            p_146188_1_ = this.xPosition + this.width;
+            x = this.xPosition + this.width;
         }
 
         Tessellator tessellator = Tessellator.getInstance();
@@ -688,10 +742,10 @@ public class ScathaProTextField extends Gui implements TooltipElement
         GlStateManager.enableColorLogic();
         GlStateManager.colorLogicOp(5387);
         worldrenderer.begin(7, DefaultVertexFormats.POSITION);
-        worldrenderer.pos((double)p_146188_1_, (double)p_146188_4_, 0.0D).endVertex();
-        worldrenderer.pos((double)p_146188_3_, (double)p_146188_4_, 0.0D).endVertex();
-        worldrenderer.pos((double)p_146188_3_, (double)p_146188_2_, 0.0D).endVertex();
-        worldrenderer.pos((double)p_146188_1_, (double)p_146188_2_, 0.0D).endVertex();
+        worldrenderer.pos((double)x, (double)dy, 0.0D).endVertex();
+        worldrenderer.pos((double)dx, (double)dy, 0.0D).endVertex();
+        worldrenderer.pos((double)dx, (double)y, 0.0D).endVertex();
+        worldrenderer.pos((double)x, (double)y, 0.0D).endVertex();
         tessellator.draw();
         GlStateManager.disableColorLogic();
         GlStateManager.enableTexture2D();
@@ -738,7 +792,7 @@ public class ScathaProTextField extends Gui implements TooltipElement
         return this.selectionEnd;
     }
     
-    public int getWidth()
+    public int getInnerWidth()
     {
         return this.width - 8;
     }
@@ -752,7 +806,7 @@ public class ScathaProTextField extends Gui implements TooltipElement
 
         this.selectionEnd = selectionIndex;
 
-        if (this.fontRendererInstance != null)
+        if (this.fontRenderer != null)
         {
             if (this.lineScrollOffset > textLength)
             {
@@ -760,7 +814,7 @@ public class ScathaProTextField extends Gui implements TooltipElement
             }
             
             String formattedText = getFormattableText();
-            int width = this.getWidth();
+            int width = this.getInnerWidth();
             if (selectionIndex == this.lineScrollOffset)
             {
                 this.lineScrollOffset -= TextUtil.trimStringToWidth(formattedText, width, true).length();

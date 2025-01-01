@@ -1,23 +1,20 @@
 package com.namelessju.scathapro.gui.elements;
 
-import java.util.List;
-
-import com.google.common.collect.Lists;
 import com.namelessju.scathapro.gui.menus.ScathaProGui;
 import com.namelessju.scathapro.util.TextUtil;
 
 import net.minecraft.client.Minecraft;
 
-public interface TooltipElement
+public interface ITooltipElement
 {
-    // ugly nesting because interfaces can't do shit (this drove me mad)
     public Tooltip getTooltip();
     
     public static class Tooltip
     {
         private String[] tooltipLines = null;
+        private int maxWidth = -1;
         
-        public void render()
+        public void requestRender()
         {
             if (Minecraft.getMinecraft().currentScreen instanceof ScathaProGui)
             {
@@ -25,18 +22,30 @@ public interface TooltipElement
             }
         }
         
-        public void setTooltip(String text)
+        public void setText(String text)
+        {
+            setText(text, 200);
+        }
+        
+        public void setText(String text, int maxWidth)
         {
             if (text != null && !text.isEmpty())
             {
                 tooltipLines = TextUtil.splitOnLineBreaks(text);
             }
             else tooltipLines = null;
+            
+            this.maxWidth = maxWidth;
         }
         
-        public List<String> getTooltipLines()
+        public String[] getTextLines()
         {
-            return tooltipLines != null ? Lists.newArrayList(tooltipLines) : null;
+            return tooltipLines;
+        }
+        
+        public int getMaxWidth()
+        {
+            return maxWidth;
         }
     }
 }

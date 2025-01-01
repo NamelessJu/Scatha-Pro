@@ -1,6 +1,6 @@
 package com.namelessju.scathapro.events;
 
-import com.namelessju.scathapro.miscellaneous.SkyblockArea;
+import com.namelessju.scathapro.miscellaneous.enums.SkyblockArea;
 
 import net.minecraftforge.fml.common.eventhandler.Event;
 

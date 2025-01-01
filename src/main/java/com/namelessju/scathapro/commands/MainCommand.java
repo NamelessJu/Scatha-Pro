@@ -48,40 +48,63 @@ public class MainCommand extends CommandBase
     {
         return "/" + COMMAND_NAME + " (\"help\")";
     }
-
+    
     @Override
     public int getRequiredPermissionLevel()
     {
         return 0;
     }
-
+    
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException
     {
         if (args.length <= 0 || args[0].equalsIgnoreCase("help"))
         {
+            int page = args.length > 1 ? CommandBase.parseInt(args[1]) : 1;
+            
+            if (page < 1 || page > 2) throw new CommandException("Invalid page number (only 1 and 2 allowed)");
+            
             TextUtil.sendChatDivider();
-            TextUtil.sendModChatMessage(
-                Constants.msgHighlightingColor + "All commands:\n"
-                + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "(alias: /sp)" + EnumChatFormatting.WHITE + " (\"help\"):" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Shows this help message\n"
-                + EnumChatFormatting.WHITE + "/" + ChancesCommand.COMMAND_NAME + " " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "(alias: /scacha)" + EnumChatFormatting.WHITE + " (\"help\"):" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Check/calculate Scatha pet drop chances\n"
-                + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " settings:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Opens the settings menu\n"
-                + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " achievements:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Opens the achievements menu\n"
-                + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " dailyStreak:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Shows information about your daily Scatha farming streak\n"
-                + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " setPetDrops <rare> <epic> <legendary>:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Set your pet drop counter to the specified numbers\n"
-                + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " toggleOverlay " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "(alias: /sp to)" + EnumChatFormatting.WHITE + ":" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Toggles the overlay visibility\n"
-                + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " backup " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "(alt.: " + EnumChatFormatting.WHITE + EnumChatFormatting.ITALIC + "backupPersistentData" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + ")" + EnumChatFormatting.WHITE + ":" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Creates a backup of this mod's save folder/persistent data file\n"
-                + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " checkUpdate:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Check for an update\n"
-                + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " resetSettings:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Reset all settings\n"
-                + EnumChatFormatting.WHITE + "/" + COMMAND_NAME + " persistentDataFile:" + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " Open the persistent data file path in the file explorer"
-            );
+            TextUtil.sendModChatMessage(Constants.msgHighlightingColor + ScathaPro.MODNAME + " commands:");
+            
+            switch (page)
+            {
+                case 1:
+                    sendHelpMessageEntry(COMMAND_NAME, "(\"help\")", "/sp", "Shows this help message");
+                    sendHelpMessageEntry(null, "settings", null, "Opens the mod's settings menu");
+                    sendHelpMessageEntry(null, "achievements", null, "Opens the achievements menu");
+                    sendHelpMessageEntry(ChancesCommand.COMMAND_NAME, "(\"help\")", "/scacha", "Check/calculate Scatha pet drop chances");
+                    sendHelpMessageEntry(AverageMoneyCommand.COMMAND_NAME, null, "/sp averageMoney/avgMoney", "Calculate average Scatha farming profits");
+                    sendHelpMessageEntry(null, "dailyStreak", "daily, streak", "Shows information about your daily Scatha farming streak");
+                    break;
+                
+                case 2:
+                    sendHelpMessageEntry(null, "setPetDrops <rare> <epic> <legendary>", null, "Set your pet drop counter to the specified numbers");
+                    sendHelpMessageEntry(null, "toggleOverlay", "to", "Toggles the overlay visibility");
+                    sendHelpMessageEntry(null, "checkUpdate", null, "Check for mod updates");
+                    sendHelpMessageEntry(null, "resetSettings", null, "Reset all settings");
+                    sendHelpMessageEntry(null, "backup/backupPersistentData", null, "Creates a backup of this mod's save folder/persistent data file");
+                    sendHelpMessageEntry(null, "persistentDataFile", null, "Open the mod's persistent data file path in the file explorer");
+                    break;
+                
+                default:
+                    TextUtil.sendModChatMessage(EnumChatFormatting.RED + "Something went wrong! (invalid page number)", false);
+            }
+            
+            TextUtil.sendModChatMessage(Constants.msgHighlightingColor + "Help page " + page + "/2 - /sp help <page>", false);
+            
             TextUtil.sendChatDivider();
             return;
         }
         
         String subCommand = args[0];
         
-        if (subCommand.equalsIgnoreCase("settings") || subCommand.equalsIgnoreCase("config"))
+        if (subCommand.equalsIgnoreCase("averagemoney") || subCommand.equalsIgnoreCase("avgmoney"))
+        {
+            scathaPro.commandRegistry.averageMoneyCommand.processCommand(sender, new String[0]);
+        }
+        
+        else if (subCommand.equalsIgnoreCase("settings") || subCommand.equalsIgnoreCase("config"))
         {
             scathaPro.variables.openGuiNextTick = new SettingsGui(scathaPro, null);
         }
@@ -208,5 +231,18 @@ public class MainCommand extends CommandBase
         }
         
         else throw new CommandException("Invalid sub-command - Get a list of all sub-commands using " + getCommandUsage(null));
+    }
+    
+    private void sendHelpMessageEntry(String commandName, String parameters, String alias, String description)
+    {
+        TextUtil.sendModChatMessage(
+            EnumChatFormatting.WHITE + "/" + (commandName != null ? commandName : "sp")
+            + (parameters != null ? " " + parameters : "")
+            + (alias != null ? " " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "(alias: " + alias + ")" : "")
+            + EnumChatFormatting.WHITE + ":"
+            + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " " + description
+            ,
+            false
+        );
     }
 }

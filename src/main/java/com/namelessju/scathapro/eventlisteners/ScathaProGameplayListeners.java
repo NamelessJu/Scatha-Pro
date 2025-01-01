@@ -1,6 +1,7 @@
 package com.namelessju.scathapro.eventlisteners;
 
 import java.math.RoundingMode;
+import java.util.Random;
 
 import com.google.common.base.Predicate;
 import com.namelessju.scathapro.Constants;
@@ -16,7 +17,7 @@ import com.namelessju.scathapro.events.WormKillEvent;
 import com.namelessju.scathapro.events.WormPreSpawnEvent;
 import com.namelessju.scathapro.events.WormSpawnEvent;
 import com.namelessju.scathapro.managers.Config;
-import com.namelessju.scathapro.miscellaneous.WormStats;
+import com.namelessju.scathapro.miscellaneous.enums.WormStatsType;
 import com.namelessju.scathapro.util.TextUtil;
 import com.namelessju.scathapro.util.NBTUtil;
 import com.namelessju.scathapro.util.SoundUtil;
@@ -45,6 +46,8 @@ public class ScathaProGameplayListeners extends ScathaProListener
     {
         scathaPro.variables.startWormSpawnCooldown(true);
         Alert.wormPrespawn.play();
+        
+        scathaPro.getAchievementLogicManager().handleAnomalousDesireRecoverAchievement();
     }
     
     @SubscribeEvent(priority = EventPriority.HIGH)
@@ -72,15 +75,10 @@ public class ScathaProGameplayListeners extends ScathaProListener
         {
             int xDistance = Math.abs(playerPos.getX() - wormPos.getX());
             int zDistance = Math.abs(playerPos.getZ() - wormPos.getZ());
-
-            // Note: allowed time delta needs to be rather long because players might not be able to insta-mine
-            // blocks and this works with the timestamp that the player started mining a block at
-            boolean recentBlockHit = scathaPro.variables.lastCrystalHollowsBlockHitTime >= 0L && (now - scathaPro.variables.lastCrystalHollowsBlockHitTime) <= 10000 + Constants.pingTreshold * 1.5f;
             
             if (
                 xDistance <= 1 || zDistance <= 1
                 && Math.abs(playerPos.getY() - wormPos.getY()) <= 1
-                && recentBlockHit
             ) {
                 spawnedBySelf = true;
                 
@@ -120,17 +118,12 @@ public class ScathaProGameplayListeners extends ScathaProListener
             }
             else
             {
-                if (!recentBlockHit) scathaPro.logDebug("Worm spawn detection: last block hit not recent");
+                scathaPro.logDebug("Worm spawn detection: player wasn't close to the worm's X or Z position");
             }
         }
         
         if (spawnedBySelf) scathaPro.logDebug("Worm spawned: assumed to be spawned by this client's player");
         else scathaPro.logDebug("Worm spawned: assumed to be spawned by other player");
-        
-        /*
-        int ticksExisted = event.worm.getEntity().ticksExisted;
-        TextUtil.sendDevModeMessage("Worm existed for " + ticksExisted + " ticks = " + Util.numberToString(ticksExisted / 20D, 1, true) + " seconds");
-        */
         
         if (!spawnedBySelf) return;
         
@@ -138,14 +131,19 @@ public class ScathaProGameplayListeners extends ScathaProListener
         if (event.worm.isScatha)
         {
             Alert.scathaSpawn.play();
-            WormStats.addScathaSpawn();
-            scathaPro.getAchievementLogicManager().handleScathaSpawnAchievements(now, event.worm);
+            WormStatsType.addScathaSpawn();
+            scathaPro.getAchievementLogicManager().updateScathaSpawnAchievements(now, event.worm);
+            
+            if (scathaPro.isScappaModeActive())
+            {
+                SoundUtil.playMovingSound(ScathaPro.MODID + ":scappa", 1f, 1f, event.worm.getEntity());
+            }
         }
         // Regular worm spawn
         else
         {
             Alert.regularWormSpawn.play();
-            WormStats.addRegularWormSpawn();
+            WormStatsType.addRegularWormSpawn();
         }
         
         if (event.timeSincePreviousSpawn >= 0L)
@@ -182,9 +180,7 @@ public class ScathaProGameplayListeners extends ScathaProListener
         if (worm.isScatha)
         {
             scathaPro.variables.addScathaKill();
-            
             scathaPro.variables.lastScathaKillTime = TimeUtil.now();
-            scathaPro.variables.lastKillIsScatha = true;
             
             if (worm.getHitWeaponsCount() >= Achievement.kill_weapons_scatha.goal) Achievement.kill_weapons_scatha.unlock();
             if (worm.getHitWeaponsCount() > 0)
@@ -202,9 +198,32 @@ public class ScathaProGameplayListeners extends ScathaProListener
             if (mc.thePlayer.isSneaking() && scathaPro.variables.lastSneakStartTime >= 0 && worm.spawnTime >= scathaPro.variables.lastSneakStartTime) Achievement.scatha_kill_sneak.unlock();
             if (mc.thePlayer.posY - worm.getEntity().posY >= 0) Achievement.scatha_kill_highground.unlock(); // note: this armor stand (= Scatha name tag) is positioned a little bit above the worm visuals
             
+            // seems weird but works because it would only be a problem on a kill that is about to trigger the b2b drop
+            // but in that case it happens so fast that it won't ever be noticed
+            Achievement.scatha_pet_drop_b2b.setProgress(0f);
+            
             scathaPro.getOverlay().updateScathaKills();
             scathaPro.getOverlay().updateScathaKillsSinceLastDrop();
             scathaPro.getPersistentData().updateScathaFarmingStreak(true);
+            
+            
+            if (!scathaPro.variables.scappaModeUnlocked)
+            {
+                if (new Random().nextFloat() < 0.004f)
+                {
+                    scathaPro.variables.scappaModeActiveTemp = true;
+                    scathaPro.variables.scappaModeUnlocked = true;
+                    scathaPro.getPersistentData().saveMiscData();
+                    
+                    TextUtil.sendChatDivider();
+                    TextUtil.sendModChatMessage(TextUtil.getRainbowText("Scappa mode unlocked!") + "\n" + EnumChatFormatting.GRAY + "This was a 1/250 chance per Scatha kill. It will stay active for this game session, afterwards you can from now on toggle it freely under Scatha-Pro Settings > Miscellaneous.");
+                    TextUtil.sendChatDivider();
+                    
+                    Achievement.scappa_mode.unlock();
+                    
+                    scathaPro.getOverlay().updateScappaMode();
+                }
+            }
         }
         else
         {
@@ -212,15 +231,13 @@ public class ScathaProGameplayListeners extends ScathaProListener
             
             if (worm.getHitWeaponsCount() >= Achievement.kill_weapons_regular_worm.goal) Achievement.kill_weapons_regular_worm.unlock();
             
-            scathaPro.variables.lastKillIsScatha = false;
-            
             scathaPro.getOverlay().updateWormKills();
         }
 
         scathaPro.getPersistentData().saveWormKills();
         scathaPro.getPersistentData().saveDailyStatsData();
         
-        scathaPro.getAchievementLogicManager().updateKillAchievements();
+        scathaPro.getAchievementLogicManager().updateKillsAchievements();
         
         if (worm.getCurrentLifetime() <= 1000) Achievement.worm_kill_time_1.unlock();
         else if (worm.getCurrentLifetime() >= Constants.wormLifetime - 3000) Achievement.worm_kill_time_2.unlock();
@@ -304,19 +321,20 @@ public class ScathaProGameplayListeners extends ScathaProListener
             Achievement.scatha_pet_drop_super_secret_setting.unlock();
         }
         
-        if ((scathaPro.variables.scathaKillsAtLastDrop >= 0 && scathaPro.variables.scathaKills >= 0 && scathaPro.variables.scathaKills == scathaPro.variables.scathaKillsAtLastDrop + 1) || scathaPro.variables.droppedPetAtLastScatha)
+        if (scathaPro.variables.scathaKillsAtLastDrop >= 0 && scathaPro.variables.scathaKills >= 0 && scathaPro.variables.scathaKills == scathaPro.variables.scathaKillsAtLastDrop + 1)
         {
             Achievement.scatha_pet_drop_b2b.unlock();
         }
+        Achievement.scatha_pet_drop_b2b.setProgress(1f);
         
         
         if (scathaPro.variables.scathaKills >= 0)
         {
             scathaPro.variables.scathaKillsAtLastDrop = scathaPro.variables.scathaKills;
             scathaPro.getOverlay().updateScathaKillsSinceLastDrop();
+            scathaPro.getAchievementLogicManager().updateDryStreakAchievements();
         }
         
-        scathaPro.variables.droppedPetAtLastScatha = true;
         scathaPro.variables.lastPetDropTime = TimeUtil.now(); 
         
         scathaPro.getPersistentData().savePetDrops();

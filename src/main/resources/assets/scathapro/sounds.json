@@ -2,14 +2,14 @@
     "achievements.unlock": {
         "category": "player",
         "sounds": [{
-            "name": "achievements/unlock",
+            "name": "scathapro:achievements/unlock",
             "stream": true
         }]
     },
     "achievements.unlock_hidden": {
         "category": "player",
         "sounds": [{
-            "name": "achievements/unlock_hidden",
+            "name": "scathapro:achievements/unlock_hidden",
             "stream": true
         }]
     },
@@ -18,49 +18,63 @@
     "alert_modes.meme.bedrock_wall": {
         "category": "master",
         "sounds": [{
-            "name": "alert_modes/meme/bedrock_wall",
+            "name": "scathapro:alert_modes/meme/bedrock_wall",
             "stream": true
         }]
     },
     "alert_modes.meme.worm_prespawn": {
         "category": "master",
         "sounds": [{
-            "name": "alert_modes/meme/worm_prespawn",
+            "name": "scathapro:alert_modes/meme/worm_prespawn",
             "stream": true
         }]
     },
     "alert_modes.meme.regular_worm_spawn": {
         "category": "master",
         "sounds": [{
-            "name": "alert_modes/meme/regular_worm_spawn",
+            "name": "scathapro:alert_modes/meme/regular_worm_spawn",
             "stream": true
         }]
     },
     "alert_modes.meme.scatha_spawn": {
         "category": "master",
         "sounds": [{
-            "name": "alert_modes/meme/scatha_spawn",
+            "name": "scathapro:alert_modes/meme/scatha_spawn",
+            "stream": true
+        }]
+    },
+    "alert_modes.meme.worm_spawn_cooldown_end": {
+        "category": "master",
+        "sounds": [{
+            "name": "scathapro:alert_modes/meme/worm_spawn_cooldown_end",
             "stream": true
         }]
     },
     "alert_modes.meme.scatha_pet_drop": {
         "category": "master",
         "sounds": [{
-            "name": "alert_modes/meme/scatha_pet_drop",
+            "name": "scathapro:alert_modes/meme/scatha_pet_drop",
             "stream": true
         }]
     },
-    "alert_modes.meme.jerry_spawn": {
+    "alert_modes.meme.high_heat": {
         "category": "master",
         "sounds": [{
-            "name": "alert_modes/meme/jerry_spawn",
+            "name": "scathapro:alert_modes/meme/high_heat",
             "stream": true
         }]
     },
     "alert_modes.meme.goblin_spawn": {
         "category": "master",
         "sounds": [{
-            "name": "alert_modes/meme/goblin_spawn",
+            "name": "scathapro:alert_modes/meme/goblin_spawn",
+            "stream": true
+        }]
+    },
+    "alert_modes.meme.jerry_spawn": {
+        "category": "master",
+        "sounds": [{
+            "name": "scathapro:alert_modes/meme/jerry_spawn",
             "stream": true
         }]
     },
@@ -68,35 +82,43 @@
     "alert_modes.anime.bedrock_wall": {
         "category": "master",
         "sounds": [{
-            "name": "alert_modes/anime/bedrock_wall",
+            "name": "scathapro:alert_modes/anime/bedrock_wall",
             "stream": true
         }]
     },
     "alert_modes.anime.worm_prespawn": {
         "category": "master",
         "sounds": [{
-            "name": "alert_modes/anime/worm_prespawn",
+            "name": "scathapro:alert_modes/anime/worm_prespawn",
             "stream": true
         }]
     },
     "alert_modes.anime.regular_worm_spawn": {
         "category": "master",
         "sounds": [{
-            "name": "alert_modes/anime/regular_worm_spawn",
+            "name": "scathapro:alert_modes/anime/regular_worm_spawn",
             "stream": true
         }]
     },
     "alert_modes.anime.scatha_spawn": {
         "category": "master",
         "sounds": [{
-            "name": "alert_modes/anime/scatha_spawn",
+            "name": "scathapro:alert_modes/anime/scatha_spawn",
             "stream": true
         }]
     },
     "alert_modes.anime.scatha_pet_drop": {
         "category": "master",
         "sounds": [{
-            "name": "alert_modes/anime/scatha_pet_drop",
+            "name": "scathapro:alert_modes/anime/scatha_pet_drop",
+            "stream": true
+        }]
+    },
+
+    "scappa": {
+        "category": "master",
+        "sounds": [{
+            "name": "scathapro:scappa",
             "stream": true
         }]
     }

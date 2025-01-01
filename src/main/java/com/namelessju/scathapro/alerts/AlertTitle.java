@@ -45,7 +45,22 @@ public class AlertTitle
     public void display()
     {
         if (fadeInTicks <= 0 && stayTicks <= 0 && fadeOutTicks <= 0) return;
-        TextUtil.displayTitle(formattingOrDefault(titleFormatting) + stringOrEmpty(title), formattingOrDefault(subtitleFormatting) + stringOrEmpty(subtitle), fadeInTicks, stayTicks, fadeOutTicks);
+        
+        String displayTitle = "";
+        if (this.title != null)
+        {
+            String titleDefaultFormatting = EnumChatFormatting.RESET + stringOrEmpty(this.titleFormatting);
+            displayTitle = titleDefaultFormatting + this.title.replace(EnumChatFormatting.RESET.toString(), titleDefaultFormatting);
+        }
+        
+        String displaySubtitle = "";
+        if (this.subtitle != null)
+        {
+            String subtitleDefaultFormatting = EnumChatFormatting.RESET + stringOrEmpty(this.subtitleFormatting);
+            displaySubtitle = subtitleDefaultFormatting + this.subtitle.replace(EnumChatFormatting.RESET.toString(), subtitleDefaultFormatting);
+        }
+        
+        TextUtil.displayTitle(displayTitle, displaySubtitle, fadeInTicks, stayTicks, fadeOutTicks);
     }
     
     public AlertTitle replaceWith(AlertTitle other, String variableSubtitle)
@@ -71,13 +86,8 @@ public class AlertTitle
     }
     
     
-    private String stringOrEmpty(String str)
+    private String stringOrEmpty(String string)
     {
-        return str == null ? "" : str;
-    }
-    
-    private String formattingOrDefault(String formatting)
-    {
-        return formatting != null ? formatting : EnumChatFormatting.GRAY.toString();
+        return string != null ? string : "";
     }
 }

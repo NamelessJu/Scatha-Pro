@@ -1,32 +1,38 @@
 package com.namelessju.scathapro.gui.menus;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.google.common.collect.Lists;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.gui.elements.DoneButton;
-import com.namelessju.scathapro.gui.elements.IClickActionButton;
+import com.namelessju.scathapro.gui.elements.IGuiElement;
 import com.namelessju.scathapro.gui.elements.ScathaProLabel;
 import com.namelessju.scathapro.gui.elements.ScathaProTextField;
-import com.namelessju.scathapro.gui.elements.TooltipElement;
+import com.namelessju.scathapro.gui.elements.ITooltipElement;
 import com.namelessju.scathapro.gui.lists.ScathaProGuiList;
 
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiLabel;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.config.GuiSlider;
+import net.minecraftforge.fml.client.config.GuiUtils;
 
 public abstract class ScathaProGui extends GuiScreen
 {
-    protected static void setSliderTextDefault(GuiSlider slider)
-    {
-        slider.displayString = slider.dispString + "default";
-    }
-    
+    @Deprecated // discourage usage of vanilla element lists
+    protected final List<GuiButton> buttonList = null;
+    @Deprecated // discourage usage of vanilla element lists
+    protected final List<GuiLabel> labelList = null;
     
     public final ScathaPro scathaPro;
+    public final GuiScreen parentGui;
     
     public abstract String getTitle();
     
@@ -38,16 +44,17 @@ public abstract class ScathaProGui extends GuiScreen
     protected void drawCustomBackground() {}
     
     
-    public TooltipElement.Tooltip tooltipToRender = null;
+    public ITooltipElement.Tooltip tooltipToRender = null;
     
-    protected final List<ScathaProTextField> textFieldList = Lists.<ScathaProTextField>newArrayList();
-    protected final List<ScathaProLabel> labelList = Lists.<ScathaProLabel>newArrayList();
-    protected ScathaProGuiList scrollList;
+    private ScathaProLabel titleLabel = null;
+    protected final List<IGuiElement> elements = Lists.<IGuiElement>newArrayList();
+    protected ScathaProGuiList scrollList = null;
     
-    private int currentGridPositionY;
-    private boolean isCurrentGridPositionRightColumn;
+    private IGuiElement clickingElement = null;
     
-    public final GuiScreen parentGui;
+    private int currentGridPositionY = 0;
+    private int currentGridPositionX = 0;
+    private int currentGridLineHeight = 0;
     
     public ScathaProGui(ScathaPro scathaPro, GuiScreen parentGui)
     {
@@ -55,7 +62,7 @@ public abstract class ScathaProGui extends GuiScreen
         this.parentGui = parentGui;
     }
     
-    protected void textFieldTyped(ScathaProTextField textField) {}
+    protected void onTextFieldTyped(ScathaProTextField textField) {}
     
     protected void openGui(GuiScreen gui)
     {
@@ -72,16 +79,16 @@ public abstract class ScathaProGui extends GuiScreen
     {
         super.initGui();
         
-        textFieldList.clear();
-        labelList.clear();
+        elements.clear();
         
-        currentGridPositionY = -1;
-        isCurrentGridPositionRightColumn = false;
+        currentGridPositionY = 0;
+        currentGridPositionX = 0;
+        currentGridLineHeight = 0;
         
         String title = getTitle();
         if (title != null && !title.replace(" ", "").isEmpty())
         {
-            labelList.add(new ScathaProLabel(1, width / 2 - 155, 15, 310, 10, "Scatha-Pro - " + title).setCentered());
+            titleLabel = new ScathaProLabel(1, width / 2 - 155, 15, 310, "Scatha-Pro - " + title).setCentered();
         }
     }
     
@@ -106,23 +113,19 @@ public abstract class ScathaProGui extends GuiScreen
         
         super.drawScreen(mouseX, mouseY, partialTicks);
         
-        for (ScathaProTextField textField : textFieldList)
-        {
-            textField.drawTextBox(mouseX, mouseY);
-        }
+        if (titleLabel != null) titleLabel.elementDraw(mouseX, mouseY);
         
-        for (ScathaProLabel label : labelList)
+        for (IGuiElement element : elements)
         {
-            label.drawLabel(mc, mouseX, mouseY);
+            element.elementDraw(mouseX, mouseY);
         }
-        
         
         if (tooltipToRender != null)
         {
-            List<String> tooltipLines = tooltipToRender.getTooltipLines();
-            if (tooltipLines != null && tooltipLines.size() > 0)
+            String[] tooltipLines = tooltipToRender.getTextLines();
+            if (tooltipLines != null && tooltipLines.length > 0)
             {
-                net.minecraftforge.fml.client.config.GuiUtils.drawHoveringText(tooltipLines, mouseX, mouseY, width, height, -1, fontRendererObj);
+                ScathaProGui.drawTooltip(this, fontRendererObj, mouseX, mouseY, tooltipLines, tooltipToRender.getMaxWidth());
             }
         }
     }
@@ -135,45 +138,59 @@ public abstract class ScathaProGui extends GuiScreen
     }
     
     @Override
-    protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
-        if (mouseButton == 0 && scrollList != null)
-        {
-            scrollList.mouseClicked(mouseX, mouseY, mouseButton);
-        }
-        
-        for (ScathaProTextField textField : textFieldList)
-        {
-            textField.mouseClicked(mouseX, mouseY, mouseButton);
-        }
-
-        super.mouseClicked(mouseX, mouseY, mouseButton);
-    }
-
-    @Override
-    protected void mouseReleased(int mouseX, int mouseY, int state)
+    protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException
     {
-        if (state != 0 || scrollList == null || !scrollList.mouseReleased(mouseX, mouseY, state))
+        if (mouseButton == 0)
         {
-            super.mouseReleased(mouseX, mouseY, state);
-        }
-    }
-
-    @Override
-    protected void actionPerformed(GuiButton button) throws IOException
-    {
-        if (button.enabled && button instanceof IClickActionButton)
-        {
-            ((IClickActionButton) button).click();
+            if (scrollList != null)
+            {
+                scrollList.mouseClicked(mouseX, mouseY, mouseButton);
+            }
+            
+            for (IGuiElement element : elements)
+            {
+                if (element.elementMouseClicked(mouseX, mouseY, mouseButton))
+                {
+                    this.clickingElement = element;
+                    if (element instanceof GuiButton) actionPerformed((GuiButton) element);
+                }
+            }
         }
     }
     
     @Override
+    protected void mouseReleased(int mouseX, int mouseY, int releaseButton)
+    {
+        if (releaseButton == 0)
+        {
+            if (scrollList != null && scrollList.mouseReleased(mouseX, mouseY, releaseButton))
+            {
+                return;
+            }
+            
+            if (clickingElement != null)
+            {
+                clickingElement.elementMouseReleased(mouseX, mouseY);
+                clickingElement = null;
+            }
+        }
+    }
+    
+    @Override
+    protected void actionPerformed(GuiButton button) { }
+    
+    @Override
     protected void keyTyped(char character, int code) throws IOException
     {
-        for (ScathaProTextField textField : textFieldList)
+        for (IGuiElement element : elements)
         {
-            textField.textboxKeyTyped(character, code);
-            if (textField.isFocused()) textFieldTyped(textField);
+            element.elementKeyTyped(character, code);
+            
+            if (element instanceof ScathaProTextField)
+            {
+                ScathaProTextField textField = (ScathaProTextField) element;
+                if (textField.isFocused()) onTextFieldTyped(textField);
+            }
         }
         
         if (scrollList != null)
@@ -187,9 +204,9 @@ public abstract class ScathaProGui extends GuiScreen
     @Override
     public void updateScreen()
     {
-        for (ScathaProTextField textField : textFieldList)
+        for (IGuiElement element : elements)
         {
-            textField.tick();
+            element.elementTick();
         }
         
         if (scrollList != null) scrollList.tick();
@@ -202,54 +219,230 @@ public abstract class ScathaProGui extends GuiScreen
     {
         return true;
     }
+
     
-    protected void addDoneButton()
+    protected enum GridElementMode
     {
-        addDoneButton(width / 2 - 100, height / 6 + 168, 200, 20);
+        HALF_WIDTH, FULL_WIDTH, CUSTOM_X;
+    }
+
+    protected <T extends GuiButton & IGuiElement> void addGridButton(T button)
+    {
+        addGridButton(button, GridElementMode.HALF_WIDTH);
     }
     
-    protected void addDoneButton(int x, int y, int width, int height)
+    protected <T extends GuiButton & IGuiElement> void addGridButton(T button, GridElementMode mode)
     {
-        addDoneButton("Done", x, y, width, height);
+        elements.add(setGridPosition(button, mode));
     }
     
-    protected void addDoneButton(String text, int x, int y, int width, int height)
+    protected <T extends IGuiElement> T setGridPosition(T element, GridElementMode mode)
     {
-        buttonList.add(new DoneButton(999, x, y, width, height, text, this));
-    }
-    
-    protected void addGridButton(GuiButton button)
-    {
-        addGridButton(button, false);
-    }
-    
-    protected void addGridButton(GuiButton button, boolean doubleWidth)
-    {
-        if (currentGridPositionY < 0) currentGridPositionY = height / 6 - 12;
-        if (doubleWidth && isCurrentGridPositionRightColumn)
+        if (element == null) return null;
+        
+        switch (mode)
         {
-            currentGridPositionY += 24;
-            isCurrentGridPositionRightColumn = false;
+            case HALF_WIDTH:
+                element.setElementX(10);
+                element.setElementWidth(150);
+                break;
+            case FULL_WIDTH:
+                element.setElementX(0);
+                element.setElementWidth(310);
+                break;
+            default: break;
         }
         
-        button.xPosition = width / 2 + (isCurrentGridPositionRightColumn ? 5 : -155);
-        button.yPosition = currentGridPositionY;
-        button.width = doubleWidth ? 310 : 150;
-        button.height = 20;
-        buttonList.add(button);
+        if (currentGridPositionX > 0) currentGridPositionX += element.getElementX();
+        if (currentGridPositionX + element.getElementWidth() > 310) gridNewLine();
+        element.setElementX(width / 2 - 155 + currentGridPositionX);
+        currentGridPositionX += element.getElementWidth();
         
-        if (isCurrentGridPositionRightColumn || doubleWidth) currentGridPositionY += 24;
-        if (!doubleWidth) isCurrentGridPositionRightColumn = !isCurrentGridPositionRightColumn;
+        element.setElementY(height / 6 - 12 + currentGridPositionY);
+        if (element.getElementHeight() <= 0) element.setElementHeight(20);
+        currentGridLineHeight = Math.max(currentGridLineHeight, element.getElementHeight());
+        
+        return element;
+    }
+    
+    protected void gridNewLine()
+    {
+        gridNewLine(4);
+    }
+    
+    protected void gridNewLine(int spacing)
+    {
+        currentGridPositionX = 0;
+        currentGridPositionY += currentGridLineHeight + spacing;
+        currentGridLineHeight = 0;
     }
     
     protected void addGridGap()
     {
-        if (currentGridPositionY < 0) return;
-        currentGridPositionY += 6;
-        if (isCurrentGridPositionRightColumn)
+        gridNewLine(10);
+    }
+    
+    protected DoneButton addDoneButton()
+    {
+        return addDoneButton(width / 2 - 100, height / 6 + 168, 200, 20);
+    }
+    
+    protected DoneButton addDoneButton(int x, int y, int width, int height)
+    {
+        return addDoneButton("Done", x, y, width, height);
+    }
+    
+    protected DoneButton addDoneButton(String text, int x, int y, int width, int height)
+    {
+        DoneButton button;
+        elements.add(button = new DoneButton(999, x, y, width, height, text, this));
+        return button;
+    }
+    
+    
+    protected static void setSliderTextDefault(GuiSlider slider)
+    {
+        slider.displayString = slider.dispString + "default";
+    }
+    
+    public static void drawTooltip(GuiScreen screen, FontRenderer fontRenderer, final int mouseX, final int mouseY, String[] textLines, final int maxTextWidth)
+    {
+        if (textLines.length == 0) return;
+        
+        GlStateManager.disableRescaleNormal();
+        RenderHelper.disableStandardItemLighting();
+        GlStateManager.disableLighting();
+        GlStateManager.disableDepth();
+        
+        int tooltipTextWidth = 0;
+        for (String textLine : textLines)
         {
-            currentGridPositionY += 24;
-            isCurrentGridPositionRightColumn = false;
+            int textLineWidth = fontRenderer.getStringWidth(textLine);
+            if (textLineWidth > tooltipTextWidth)
+            {
+                tooltipTextWidth = textLineWidth;
+            }
         }
+        
+        boolean needsWrap = false;
+        
+        if (maxTextWidth > 0 && tooltipTextWidth > maxTextWidth)
+        {
+            tooltipTextWidth = maxTextWidth;
+            needsWrap = true;
+        }
+
+        int tooltipX = mouseX + 12;
+        
+        if (needsWrap)
+        {
+            int wrappedTooltipWidth = 0;
+            List<String> wrappedTextLines = new ArrayList<String>();
+            for (int i = 0; i < textLines.length; i++)
+            {
+                String textLine = textLines[i];
+                List<String> wrappedLine = fontRenderer.listFormattedStringToWidth(textLine, tooltipTextWidth);
+                for (String line : wrappedLine)
+                {
+                    int lineWidth = fontRenderer.getStringWidth(line);
+                    if (lineWidth > wrappedTooltipWidth)
+                    {
+                        wrappedTooltipWidth = lineWidth;
+                    }
+                    wrappedTextLines.add(line);
+                }
+            }
+            tooltipTextWidth = wrappedTooltipWidth;
+            textLines = wrappedTextLines.toArray(new String[0]);
+        }
+        
+        needsWrap = false;
+        
+        int tempWidth = tooltipTextWidth;
+        if (tooltipX + tooltipTextWidth + 4 > screen.width)
+        {
+            tempWidth = screen.width - 12 - 4 - mouseX;
+            needsWrap = true;
+        }
+        boolean wrappedLeft = false;
+        if (needsWrap && mouseX > screen.width / 2)
+        {
+            needsWrap = false;
+            tooltipX = mouseX - 12 - tooltipTextWidth;
+            tempWidth = tooltipTextWidth;
+            if (tooltipX < 4)
+            {
+                tempWidth = mouseX - 12 - 4;
+                needsWrap = true;
+                wrappedLeft = true;
+            }
+        }
+        tooltipTextWidth = tempWidth;
+        
+        if (needsWrap)
+        {
+            int wrappedTooltipWidth = 0;
+            List<String> wrappedTextLines = new ArrayList<String>();
+            for (int i = 0; i < textLines.length; i++)
+            {
+                String textLine = textLines[i];
+                List<String> wrappedLine = fontRenderer.listFormattedStringToWidth(textLine, tooltipTextWidth);
+                for (String line : wrappedLine)
+                {
+                    int lineWidth = fontRenderer.getStringWidth(line);
+                    if (lineWidth > wrappedTooltipWidth)
+                    {
+                        wrappedTooltipWidth = lineWidth;
+                    }
+                    wrappedTextLines.add(line);
+                }
+            }
+            tooltipTextWidth = wrappedTooltipWidth;
+            textLines = wrappedTextLines.toArray(new String[0]);
+        }
+        
+        if (wrappedLeft)
+        {
+            tooltipX = mouseX - 12 - tooltipTextWidth;
+        }
+        
+        int tooltipY = mouseY - 12;
+        int tooltipHeight = 8;
+        
+        if (textLines.length > 1)
+        {
+            tooltipHeight += (textLines.length - 1) * 10;
+        }
+        
+        if (tooltipY + tooltipHeight + 6 > screen.height)
+        {
+            tooltipY = screen.height - tooltipHeight - 6;
+        }
+        
+        final int zLevel = 300;
+        final int backgroundColor = 0xF0100010;
+        GuiUtils.drawGradientRect(zLevel, tooltipX - 3, tooltipY - 4, tooltipX + tooltipTextWidth + 3, tooltipY - 3, backgroundColor, backgroundColor);
+        GuiUtils.drawGradientRect(zLevel, tooltipX - 3, tooltipY + tooltipHeight + 3, tooltipX + tooltipTextWidth + 3, tooltipY + tooltipHeight + 4, backgroundColor, backgroundColor);
+        GuiUtils.drawGradientRect(zLevel, tooltipX - 3, tooltipY - 3, tooltipX + tooltipTextWidth + 3, tooltipY + tooltipHeight + 3, backgroundColor, backgroundColor);
+        GuiUtils.drawGradientRect(zLevel, tooltipX - 4, tooltipY - 3, tooltipX - 3, tooltipY + tooltipHeight + 3, backgroundColor, backgroundColor);
+        GuiUtils.drawGradientRect(zLevel, tooltipX + tooltipTextWidth + 3, tooltipY - 3, tooltipX + tooltipTextWidth + 4, tooltipY + tooltipHeight + 3, backgroundColor, backgroundColor);
+        final int borderColorStart = 0x505000FF;
+        final int borderColorEnd = (borderColorStart & 0xFEFEFE) >> 1 | borderColorStart & 0xFF000000;
+        GuiUtils.drawGradientRect(zLevel, tooltipX - 3, tooltipY - 3 + 1, tooltipX - 3 + 1, tooltipY + tooltipHeight + 3 - 1, borderColorStart, borderColorEnd);
+        GuiUtils.drawGradientRect(zLevel, tooltipX + tooltipTextWidth + 2, tooltipY - 3 + 1, tooltipX + tooltipTextWidth + 3, tooltipY + tooltipHeight + 3 - 1, borderColorStart, borderColorEnd);
+        GuiUtils.drawGradientRect(zLevel, tooltipX - 3, tooltipY - 3, tooltipX + tooltipTextWidth + 3, tooltipY - 3 + 1, borderColorStart, borderColorStart);
+        GuiUtils.drawGradientRect(zLevel, tooltipX - 3, tooltipY + tooltipHeight + 2, tooltipX + tooltipTextWidth + 3, tooltipY + tooltipHeight + 3, borderColorEnd, borderColorEnd);
+        
+        for (int lineNumber = 0; lineNumber < textLines.length; ++lineNumber)
+        {
+            String line = textLines[lineNumber];
+            fontRenderer.drawStringWithShadow(line, tooltipX, tooltipY, -1);
+            tooltipY += 10;
+        }
+        
+        GlStateManager.enableLighting();
+        GlStateManager.enableDepth();
+        RenderHelper.enableStandardItemLighting();
+        GlStateManager.enableRescaleNormal();
     }
 }

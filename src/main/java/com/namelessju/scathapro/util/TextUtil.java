@@ -1,8 +1,13 @@
 package com.namelessju.scathapro.util;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import com.namelessju.scathapro.Constants;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.managers.Config;
+import com.namelessju.scathapro.managers.Config.Key;
+import com.namelessju.scathapro.miscellaneous.enums.DropMessageRarityMode;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -20,8 +25,8 @@ import net.minecraftforge.common.MinecraftForge;
 public abstract class TextUtil
 {
     public static final String formattingStartCharacter = "\u00a7";
-    public static final String formattingCodesRegex = "[0-9a-fk-or]";
-    public static final String formattingColorCodesRegex = "[0-9a-f]";
+    public static final String formattingCodesRegex = "[0-9a-fA-Fk-oK-OrR]";
+    public static final String formattingColorCodesRegex = "[0-9a-fA-F]";
     
     // public static final ChatComponentText dividerComponent = new ChatComponentText(Constants.msgHighlightingColor + EnumChatFormatting.BOLD + new String(new char[64]).replace("\0", Util.getUnicodeString("25AC")));
     public static final ChatComponentText chatDividerComponent = new ChatComponentText("");
@@ -72,17 +77,30 @@ public abstract class TextUtil
     
     public static void sendModChatMessage(IChatComponent chatComponent, boolean prefix)
     {
+        sendChatMessage(prefix ? getModMessageComponent(chatComponent) : chatComponent);
+    }
+    
+    public static void sendCrystalHollowsMessage(IChatComponent chatComponent)
+    {
+        if (ScathaPro.getInstance().isInCrystalHollows()) sendChatMessage(chatComponent);
+        else ScathaPro.getInstance().variables.cachedCrystalHollowsMessages.add(chatComponent);
+    }
+    
+    public static IChatComponent getModMessageComponent(IChatComponent component)
+    {
         IChatComponent messageComponent = new ChatComponentText("");
         
-        if (prefix)
-        {
-            String prefixText = ScathaPro.getInstance().getConfig().getBoolean(Config.Key.shortChatPrefix) ? Constants.chatPrefixShort : Constants.chatPrefix;
-            messageComponent.appendSibling(new ChatComponentText(prefixText));
-        }
+        String prefixText = ScathaPro.getInstance().getConfig().getBoolean(Config.Key.shortChatPrefix) ? Constants.chatPrefixShort : Constants.chatPrefix;
+        messageComponent.appendSibling(new ChatComponentText(prefixText));
         
-        messageComponent.appendSibling(chatComponent);
+        messageComponent.appendSibling(component);
         
-        sendChatMessage(messageComponent);
+        return messageComponent;
+    }
+
+    public static IChatComponent getModMessageComponent(String message)
+    {
+        return getModMessageComponent(new ChatComponentText(message));
     }
     
     public static void sendModErrorMessage(String errorMessage)
@@ -175,10 +193,40 @@ public abstract class TextUtil
         if (ScathaPro.getInstance().getConfig().getBoolean(Config.Key.highContrastColors)) return EnumChatFormatting.WHITE;
         return color;
     }
-    
+
     public static String[] splitOnLineBreaks(String string)
     {
-        return string.split("\\r?\\n|\\r");
+        return splitOnLineBreaks(string, true);
+    }
+    
+    public static String[] splitOnLineBreaks(String string, boolean applyFormattingFromPreviousLines)
+    {
+        String[] lines = string.split("\\r?\\n|\\r");
+        
+        if (applyFormattingFromPreviousLines)
+        {
+            for (int i = 1; i < lines.length; i ++)
+            {
+                String formatting = "";
+                Matcher formattingCodeMatcher = Pattern.compile(TextUtil.formattingStartCharacter + TextUtil.formattingCodesRegex).matcher(lines[i - 1]);
+                while (formattingCodeMatcher.find())
+                {
+                    String code = formattingCodeMatcher.group();
+                    char codeChar = code.charAt(1);
+                    boolean isResetCode = codeChar == 'r' || codeChar == 'R';
+                    if (isResetCode || TextUtil.isColorFormattingCode(codeChar))
+                    {
+                        formatting = isResetCode ? "" : code;
+                        continue;
+                    }
+                    formatting += code;
+                }
+                
+                lines[i] = formatting + lines[i];
+            }
+        }
+        
+        return lines;
     }
     
     public static String ellipsis(String original, int maxWidth)
@@ -202,12 +250,17 @@ public abstract class TextUtil
         return string.matches(formattingStartCharacter + formattingCodesRegex);
     }
     
-    /**
-     * Returns whether the char is a fancy formatting code (e.g. bold, italic - not colors!)
-     */
+    public static boolean isColorFormattingCode(char formattingCode)
+    {
+        if ('0' <= formattingCode && formattingCode <= '9') return true;
+        formattingCode = Character.toLowerCase(formattingCode);
+        return 'a' <= formattingCode && formattingCode <= 'f';
+    }
+    
     public static boolean isFancyFormattingCode(char formattingCode)
     {
-        return formattingCode >= 'k' && formattingCode <= 'o' || formattingCode >= 'K' && formattingCode <= 'O';
+        formattingCode = Character.toLowerCase(formattingCode);
+        return 'k' <= formattingCode && formattingCode <= 'o';
     }
     
     public static boolean isBoldFormattingCode(char formattingCode)
@@ -287,10 +340,10 @@ public abstract class TextUtil
         int processingDirection = reverse ? -1 : 1;
         boolean isFormattingCode = false;
         boolean isBold = false;
-
-        for (int index = startIndex; index >= 0 && index < text.length() && totalWidth < width; index += processingDirection)
+        
+        for (int i = startIndex; i >= 0 && i < text.length() && totalWidth < width; i += processingDirection)
         {
-            char currentChar = text.charAt(index);
+            char currentChar = text.charAt(i);
             int charWidth = fontRenderer.getCharWidth(currentChar);
             
             if (isFormattingCode)
@@ -330,6 +383,69 @@ public abstract class TextUtil
         }
 
         return stringBuilder.toString();
+    }
+    
+    public static String getColorSeriesText(String text, EnumChatFormatting[] formattingOrder)
+    {
+        StringBuilder formattedString = new StringBuilder();
+        int formattingIndex = 0;
+        for (int i = 0; i < text.length(); i ++)
+        {
+            char c = text.charAt(i);
+            if (c != ' ')
+            {
+                formattedString.append(formattingOrder[formattingIndex].toString() + c);
+                formattingIndex = (formattingIndex + 1) % formattingOrder.length;
+            }
+            else formattedString.append(c);
+        }
+        return formattedString.toString();
+    }
+    
+    public static String getRainbowText(String text)
+    {
+        return getColorSeriesText(text, new EnumChatFormatting[] {EnumChatFormatting.RED, EnumChatFormatting.GOLD, EnumChatFormatting.YELLOW, EnumChatFormatting.GREEN, EnumChatFormatting.DARK_AQUA, EnumChatFormatting.DARK_PURPLE});
+    }
+    
+    public static IChatComponent extendPetDropMessage(String message)
+    {
+        Config config = ScathaPro.getInstance().getConfig();
+        DropMessageRarityMode mode = config.getEnum(Config.Key.dropMessageRarityMode, DropMessageRarityMode.class);
+        if (mode == null) return null;
+        
+        String f = TextUtil.formattingStartCharacter;
+        String aqua = f+"r"+f+"b";
+        String patternString = f+"6"+f+"lPET DROP! "+f+"r"+f+"([a-f0-9])Scatha "+aqua+"\\(\\+"+aqua+"(\\d+)% "+aqua+"\\u272F Magic Find"+aqua+"\\)";
+        Matcher messageMatcher = Pattern.compile(patternString).matcher(message);
+        if (messageMatcher.find())
+        {
+            String rarityColorCode = messageMatcher.group(1);
+            String magicFind = messageMatcher.group(2);
+            
+            String rarityText = null;
+            if (rarityColorCode.equals("9")) rarityText = "Rare";
+            else if (rarityColorCode.equals("5")) rarityText = "Epic";
+            else if (rarityColorCode.equals("6")) rarityText = "Legendary";
+            
+            if (rarityText != null)
+            {
+                String rarityString = rarityText;
+                if (config.getBoolean(Key.dropMessageRarityUppercase)) rarityString = EnumChatFormatting.BOLD + rarityString.toUpperCase();
+                String rarityStringColor = config.getBoolean(Key.dropMessageRarityColored) ? (f+rarityColorCode) : EnumChatFormatting.DARK_GRAY.toString();
+                
+                if (mode.hasBrackets) rarityString = rarityStringColor+"["+rarityString+EnumChatFormatting.RESET+rarityStringColor+"]";
+                else rarityString = rarityStringColor+rarityString+EnumChatFormatting.RESET;
+                
+                String petNameString = f+rarityColorCode+"Scatha";
+                if (mode.isPrefix) petNameString = rarityString + " " + petNameString;
+                else petNameString = petNameString + " " + rarityString;
+                
+                return new ChatComponentText(EnumChatFormatting.GOLD.toString()+EnumChatFormatting.BOLD+"PET DROP! "+EnumChatFormatting.RESET+petNameString+" "+EnumChatFormatting.AQUA+"(+"+magicFind+"% \u272F Magic Find)");                
+            }
+            else ScathaPro.getInstance().logError("Detected Scatha pet drop message, but encountered unknown rarity color code \"" + f + rarityColorCode + "\"!");
+        }
+        
+        return null;
     }
     
 

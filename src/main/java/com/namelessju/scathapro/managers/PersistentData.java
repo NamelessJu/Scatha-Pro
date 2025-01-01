@@ -16,7 +16,7 @@ import com.namelessju.scathapro.achievements.AchievementManager;
 import com.namelessju.scathapro.achievements.UnlockedAchievement;
 import com.namelessju.scathapro.events.DailyScathaFarmingStreakChangedEvent;
 import com.namelessju.scathapro.events.DailyStatsResetEvent;
-import com.namelessju.scathapro.miscellaneous.WormStats;
+import com.namelessju.scathapro.miscellaneous.enums.WormStatsType;
 import com.namelessju.scathapro.util.TextUtil;
 import com.namelessju.scathapro.util.TimeUtil;
 import com.namelessju.scathapro.util.FileUtil;
@@ -49,49 +49,50 @@ public class PersistentData
     
     public void loadFile()
     {
-        if (file.exists() && file.canRead())
+        if (!file.exists()) return;
+        
+        if (!file.canRead())
         {
-            String jsonString = FileUtil.readFile(file);
-            if (jsonString == null)
-            {
-                scathaPro.logError("Couldn't load persistent data (failed to read file)");
-                onLoadError();
-                return;
-            }
+            scathaPro.logError("Couldn't load persistent data (failed to read file)");
+            onLoadError();
+            return;
+        }
+        
+        String jsonString = FileUtil.readFile(file);
+        if (jsonString == null)
+        {
+            scathaPro.logError("Couldn't load persistent data (failed to read file)");
+            onLoadError();
+            return;
+        }
+        
+        JsonElement dataJson;
+        
+        try
+        {
+            dataJson = new JsonParser().parse(jsonString);
+        }
+        catch (Exception E)
+        {
+            scathaPro.logError("Couldn't load persistent data (invalid JSON format)");
+            onLoadError();
+            return;
+        }
             
-            JsonElement dataJson;
+        if (dataJson.isJsonObject())
+        {
+            data = dataJson.getAsJsonObject();
             
-            try
-            {
-                dataJson = new JsonParser().parse(jsonString);
-            }
-            catch (Exception E)
-            {
-                scathaPro.logError("Couldn't load persistent data (invalid JSON format)");
-                onLoadError();
-                return;
-            }
-                
-            if (dataJson.isJsonObject())
-            {
-                data = dataJson.getAsJsonObject();
-                
-                if (loadedPlayerUuidString != null && (data.get("unlockedAchievements") != null || data.get("petDrops") != null))
-                {
-                    JsonObject oldData = data;
-                    data = new JsonObject();
-                    data.add(loadedPlayerUuidString, oldData);
-                }
-                
-                loadCurrentPlayer();
-                
-                scathaPro.logDebug("Persistent data loaded");
-            }
-            else
-            {
-                scathaPro.logError("Couldn't load persistent data (JSON root is not an object)");
-                onLoadError();
-            }
+            loadCurrentPlayer();
+            
+            if (updateSaveData()) loadCurrentPlayer();
+            
+            scathaPro.log("Persistent data loaded");
+        }
+        else
+        {
+            scathaPro.logError("Couldn't load persistent data (JSON root is not an object)");
+            onLoadError();
         }
     }
     
@@ -100,10 +101,19 @@ public class PersistentData
         loadedPlayerUuid = Util.getPlayerUUID();
         loadedPlayerUuidString = Util.getUUIDString(loadedPlayerUuid);
         
-        loadAchievements();
         loadPetDrops();
         loadWormKills();
         loadDayData();
+        loadAchievements();
+        loadMiscData();
+        loadGlobalData();
+        
+        scathaPro.getAchievementLogicManager().updateAchievementsAfterDataLoading();
+        
+        if (loadedPlayerUuid == null)
+        {
+        	TextUtil.sendModErrorMessage("Player data couldn't be loaded, your session is offline!");
+        }
     }
     
     /**
@@ -117,16 +127,50 @@ public class PersistentData
         }
     }
     
+    public boolean updateSaveData()
+    {
+        JsonObject playerData = getCurrentPlayerObject();
+        if (playerData == null) return false;
+        
+        boolean reloadRequired = false;
+        boolean saveRequired = false;
+        
+        // Update old save files that weren't per-account yet
+        JsonElement unlockedAchievementsOld = data.get("unlockedAchievements");
+        if (unlockedAchievementsOld != null && JsonUtil.getJsonElement(playerData, "unlockedAchievements") == null)
+        {
+            setInCurrentPlayer("unlockedAchievements", unlockedAchievementsOld);
+            data.remove("unlockedAchievements");
+            saveRequired = true;
+            reloadRequired = true;
+        }
+        JsonElement petDropsOld = data.get("petDrops");
+        if (petDropsOld != null && JsonUtil.getJsonElement(playerData, "petDrops") == null)
+        {
+            setInCurrentPlayer("petDrops", petDropsOld);
+            data.remove("petDrops");
+            saveRequired = true;
+            reloadRequired = true;
+        }
+        
+        // Remove unused keys (only stuff that is REALLY not needed anymore!)
+        if (playerData.get("scappaModeUnlocked") != null)
+        {
+            playerData.remove("scappaModeUnlocked");
+            saveRequired = true;
+        }
+        
+        if (saveRequired) saveData();
+        
+        return reloadRequired;
+    }
+    
     public void saveData()
     {
-        if (loadedPlayerUuidString != null)
+        if (!FileUtil.writeFile(file, data.toString()))
         {
-            if (!FileUtil.writeFile(file, data.toString()))
-            {
-                scathaPro.logError("Error while trying to save persistent data");
-            }
+            scathaPro.logError("Error while trying to save persistent data");
         }
-        else TextUtil.sendModErrorMessage("Persistent data can't be saved, your session is offline!");
     }
     
     public JsonObject getCurrentPlayerObject()
@@ -163,44 +207,54 @@ public class PersistentData
     
     
     private void loadAchievements() {
-        try
+        
+        AchievementManager achievementManager = scathaPro.getAchievementManager();
+        achievementManager.clearUnlockedAchievements();
+
+        JsonObject playerData = getCurrentPlayerObject();
+        if (playerData == null) return;
+        
+        JsonArray achievementsJsonArray = JsonUtil.getJsonArray(playerData, unlockedAchievementsKey);
+        if (achievementsJsonArray != null)
         {
-            JsonArray achievementsJsonArray = JsonUtil.getJsonArray(getCurrentPlayerObject(), unlockedAchievementsKey);
-            if (achievementsJsonArray != null)
+            long now = TimeUtil.now();
+            
+            for (JsonElement achievementJsonElement : achievementsJsonArray)
             {
-                AchievementManager achievementManager = scathaPro.getAchievementManager();
-                achievementManager.clearUnlockedAchievements();
+                String achievementID = JsonUtil.getString(achievementJsonElement, "achievementID");
+                Long unlockedAtTimestamp = JsonUtil.getLong(achievementJsonElement, "unlockedAt");
                 
-                long now = TimeUtil.now();
-                
-                for (JsonElement achievementJsonElement : achievementsJsonArray)
+                if (achievementID != null && unlockedAtTimestamp != null)
                 {
-                    String achievementID = JsonUtil.getString(achievementJsonElement, "achievementID");
-                    Long unlockedAtTimestamp = JsonUtil.getLong(achievementJsonElement, "unlockedAt");
+                    Achievement achievement = Achievement.getByID(achievementID);
                     
-                    if (achievementID != null && unlockedAtTimestamp != null)
+                    if (achievement != null && !achievementManager.isAchievementUnlocked(achievement))
                     {
-                        Achievement achievement = Achievement.getByID(achievementID);
-                        
-                        if (achievement != null && !achievementManager.isAchievementUnlocked(achievement))
+                        if (unlockedAtTimestamp > now || unlockedAtTimestamp < 1640991600000L)
                         {
-                            if (unlockedAtTimestamp > now || unlockedAtTimestamp < 1640991600000L)
-                            {
-                                scathaPro.variables.cheaterDetected = true;
-                            }
-                            
-                            achievementManager.addUnlockedAchievement(new UnlockedAchievement(achievement, unlockedAtTimestamp));
-                            achievement.setProgress(achievement.goal);
+                            scathaPro.variables.cheaterDetected = true;
                         }
+                        
+                        UnlockedAchievement unlockedAchievement = new UnlockedAchievement(achievement, unlockedAtTimestamp);
+                		
+                        if (achievement.isRepeatable)
+                    	{
+                        	Integer repeatCount = JsonUtil.getInt(achievementJsonElement, "repeatCount");
+                        	if (repeatCount != null)
+                        	{
+	                        	if (repeatCount > 0) unlockedAchievement.setRepeatCount(repeatCount);
+	                        	else
+                        	    {
+	                        	    unlockedAchievement.setRepeatCount(0);
+	                        	    if (repeatCount < 0) scathaPro.variables.cheaterDetected = true;
+                        	    }
+                        	}
+                    	}
+                        
+                        achievementManager.addUnlockedAchievement(unlockedAchievement);
                     }
                 }
             }
-        }
-        catch (Exception e)
-        {
-            scathaPro.logError("Error while trying to load achievements data:");
-            e.printStackTrace();
-            onLoadError();
         }
     }
     
@@ -214,6 +268,10 @@ public class PersistentData
             JsonObject achievementObject = new JsonObject();
             achievementObject.add("achievementID", new JsonPrimitive(unlockedAchievement.achievement.getID()));
             achievementObject.add("unlockedAt", new JsonPrimitive(unlockedAchievement.unlockedAtTimestamp));
+            if (unlockedAchievement.achievement.isRepeatable && unlockedAchievement.getRepeatCount() > 0)
+        	{
+            	achievementObject.add("repeatCount", new JsonPrimitive(unlockedAchievement.getRepeatCount()));
+        	}
             unlockedAchievementsJson.add(achievementObject);
         }
         
@@ -224,46 +282,40 @@ public class PersistentData
     
     private void loadPetDrops()
     {
-        try
+        JsonObject playerData = getCurrentPlayerObject();
+        if (playerData == null)
+    	{
+        	scathaPro.variables.rarePetDrops = 0;
+        	scathaPro.variables.epicPetDrops = 0;
+        	scathaPro.variables.legendaryPetDrops = 0;
+        	scathaPro.variables.scathaKillsAtLastDrop = -1;
+        	
+        	return;
+    	}
+        
+        Integer rarePetDrops = JsonUtil.getInt(playerData, petDropsKey + "/rare");
+        Integer epicPetDrops = JsonUtil.getInt(playerData, petDropsKey + "/epic");
+        Integer legendaryPetDrops = JsonUtil.getInt(playerData, petDropsKey + "/legendary");
+        
+        if (rarePetDrops != null) scathaPro.variables.rarePetDrops = rarePetDrops;
+        if (epicPetDrops != null) scathaPro.variables.epicPetDrops = epicPetDrops;
+        if (legendaryPetDrops != null) scathaPro.variables.legendaryPetDrops = legendaryPetDrops;
+        
+        if
+        (
+            scathaPro.variables.rarePetDrops > Constants.maxLegitPetDropsAmount || scathaPro.variables.rarePetDrops < 0
+            || scathaPro.variables.epicPetDrops > Constants.maxLegitPetDropsAmount || scathaPro.variables.epicPetDrops < 0
+            || scathaPro.variables.legendaryPetDrops > Constants.maxLegitPetDropsAmount || scathaPro.variables.legendaryPetDrops < 0
+        )
         {
-            JsonObject playerJson = getCurrentPlayerObject();
-            if (playerJson == null) return;
-            
-            Integer rarePetDrops = JsonUtil.getInt(playerJson, petDropsKey + "/rare");
-            Integer epicPetDrops = JsonUtil.getInt(playerJson, petDropsKey + "/epic");
-            Integer legendaryPetDrops = JsonUtil.getInt(playerJson, petDropsKey + "/legendary");
-            
-            if (rarePetDrops != null) scathaPro.variables.rarePetDrops = rarePetDrops;
-            if (epicPetDrops != null) scathaPro.variables.epicPetDrops = epicPetDrops;
-            if (legendaryPetDrops != null) scathaPro.variables.legendaryPetDrops = legendaryPetDrops;
-            
-            
-            if
-            (
-                scathaPro.variables.rarePetDrops > Constants.maxLegitPetDropsAmount || scathaPro.variables.rarePetDrops < 0
-                || scathaPro.variables.epicPetDrops > Constants.maxLegitPetDropsAmount || scathaPro.variables.epicPetDrops < 0
-                || scathaPro.variables.legendaryPetDrops > Constants.maxLegitPetDropsAmount || scathaPro.variables.legendaryPetDrops < 0
-            )
-            {
-                scathaPro.variables.cheaterDetected = true;
-            }
-            
-            
-            Integer scathaKillsAtLastDrop = JsonUtil.getInt(playerJson, petDropsKey + "/scathaKillsAtLastDrop");
-            if (scathaKillsAtLastDrop != null)
-            {
-                scathaPro.variables.scathaKillsAtLastDrop = scathaKillsAtLastDrop;
-            }
-
-            scathaPro.getOverlay().updatePetDrops();
-            scathaPro.getOverlay().updateScathaKillsSinceLastDrop();
+            scathaPro.variables.cheaterDetected = true;
         }
-        catch (Exception e)
-        {
-            scathaPro.logError("Error while trying to load pet drops data:");
-            e.printStackTrace();
-            onLoadError();
-        }
+        
+        Integer scathaKillsAtLastDrop = JsonUtil.getInt(playerData, petDropsKey + "/scathaKillsAtLastDrop");
+        if (scathaKillsAtLastDrop != null) scathaPro.variables.scathaKillsAtLastDrop = scathaKillsAtLastDrop;
+        
+        scathaPro.getOverlay().updatePetDrops();
+        scathaPro.getOverlay().updateScathaKillsSinceLastDrop();
     }
     
     public void savePetDrops()
@@ -283,27 +335,24 @@ public class PersistentData
     }
     
     
-    private void loadWormKills() {
-        try
+    private void loadWormKills()
+    {
+        JsonObject playerData = getCurrentPlayerObject();
+        if (playerData == null)
         {
-            JsonObject playerJson = getCurrentPlayerObject();
-            if (playerJson == null) return;
-            
-            Integer regularWormKills = JsonUtil.getInt(playerJson, wormKillsKey + "/regularWorms");
-            Integer scathaKills = JsonUtil.getInt(playerJson, wormKillsKey + "/scathas");
-            
-            if (regularWormKills != null) scathaPro.variables.regularWormKills = regularWormKills;
-            if (scathaKills != null) scathaPro.variables.scathaKills = scathaKills;
-            
-            scathaPro.getOverlay().updateWormKills();
-            scathaPro.getOverlay().updateScathaKills();
+            scathaPro.variables.regularWormKills = 0;
+            scathaPro.variables.scathaKills = 0;
+            return;
         }
-        catch (Exception e)
-        {
-            scathaPro.logError("Error while trying to load worm kills data:");
-            e.printStackTrace();
-            onLoadError();
-        }
+        
+        Integer regularWormKills = JsonUtil.getInt(playerData, wormKillsKey + "/regularWorms");
+        Integer scathaKills = JsonUtil.getInt(playerData, wormKillsKey + "/scathas");
+        
+        if (regularWormKills != null) scathaPro.variables.regularWormKills = regularWormKills;
+        if (scathaKills != null) scathaPro.variables.scathaKills = scathaKills;
+        
+        scathaPro.getOverlay().updateWormKills();
+        scathaPro.getOverlay().updateScathaKills();
     }
     
     public void saveWormKills()
@@ -319,35 +368,39 @@ public class PersistentData
     
     private void loadDayData()
     {
-        try
+        JsonObject playerData = getCurrentPlayerObject();
+        if (playerData == null)
         {
-            JsonObject dayData = JsonUtil.getJsonObject(getCurrentPlayerObject(), dayKey);
-            
-            scathaPro.variables.lastPlayedDate = TimeUtil.parseDate(JsonUtil.getString(dayData, "lastPlayed"));
-            
-            WormStats.PER_DAY.regularWormKills = Util.intOrZero(JsonUtil.getInt(dayData, "stats/wormKills/regularWorms"));
-            WormStats.PER_DAY.scathaKills = Util.intOrZero(JsonUtil.getInt(dayData, "stats/wormKills/scathas"));
-            WormStats.PER_DAY.scathaSpawnStreak = Util.intOrZero(JsonUtil.getInt(dayData, "stats/scathaSpawnStreak"));
-            
-            scathaPro.variables.scathaFarmingStreak = Util.intOrZero(JsonUtil.getInt(dayData, "scathaFarming/streak"));
-            scathaPro.variables.scathaFarmingStreakHighscore = Util.intOrZero(JsonUtil.getInt(dayData, "scathaFarming/streakHighscore"));
-            
-            scathaPro.variables.lastScathaFarmedDate = TimeUtil.parseDate(JsonUtil.getString(dayData, "scathaFarming/lastFarmed"));
+            scathaPro.variables.lastPlayedDate = null;
+            WormStatsType.PER_DAY.regularWormKills = 0;
+            WormStatsType.PER_DAY.scathaKills = 0;
+            WormStatsType.PER_DAY.scathaSpawnStreak = 0;
+            scathaPro.variables.scathaFarmingStreak = 0;
+            scathaPro.variables.scathaFarmingStreakHighscore = 0;
+            scathaPro.variables.lastScathaFarmedDate = null;
+            return;
         }
-        catch (Exception e)
-        {
-            scathaPro.logError("Error while trying to load day data:");
-            e.printStackTrace();
-            onLoadError();
-        }
+        
+        JsonObject dayData = JsonUtil.getJsonObject(playerData, dayKey);
+        
+        scathaPro.variables.lastPlayedDate = TimeUtil.parseDate(JsonUtil.getString(dayData, "lastPlayed"));
+        
+        WormStatsType.PER_DAY.regularWormKills = Util.intOrZero(JsonUtil.getInt(dayData, "stats/wormKills/regularWorms"));
+        WormStatsType.PER_DAY.scathaKills = Util.intOrZero(JsonUtil.getInt(dayData, "stats/wormKills/scathas"));
+        WormStatsType.PER_DAY.scathaSpawnStreak = Util.intOrZero(JsonUtil.getInt(dayData, "stats/scathaSpawnStreak"));
+        
+        scathaPro.variables.scathaFarmingStreak = Util.intOrZero(JsonUtil.getInt(dayData, "scathaFarming/streak"));
+        scathaPro.variables.scathaFarmingStreakHighscore = Util.intOrZero(JsonUtil.getInt(dayData, "scathaFarming/streakHighscore"));
+        
+        scathaPro.variables.lastScathaFarmedDate = TimeUtil.parseDate(JsonUtil.getString(dayData, "scathaFarming/lastFarmed"));
     }
     
     public void saveDailyStatsData()
     {
         JsonObject dayData = getDayData();
-        JsonUtil.set(dayData, "stats/wormKills/regularWorms", new JsonPrimitive(WormStats.PER_DAY.regularWormKills));
-        JsonUtil.set(dayData, "stats/wormKills/scathas", new JsonPrimitive(WormStats.PER_DAY.scathaKills));
-        JsonUtil.set(dayData, "stats/scathaSpawnStreak", new JsonPrimitive(WormStats.PER_DAY.scathaSpawnStreak));
+        JsonUtil.set(dayData, "stats/wormKills/regularWorms", new JsonPrimitive(WormStatsType.PER_DAY.regularWormKills));
+        JsonUtil.set(dayData, "stats/wormKills/scathas", new JsonPrimitive(WormStatsType.PER_DAY.scathaKills));
+        JsonUtil.set(dayData, "stats/scathaSpawnStreak", new JsonPrimitive(WormStatsType.PER_DAY.scathaSpawnStreak));
         saveData();
     }
     
@@ -356,9 +409,9 @@ public class PersistentData
         scathaPro.variables.lastPlayedDate = TimeUtil.today();
         setInCurrentPlayer(dayKey + "/lastPlayed", new JsonPrimitive(TimeUtil.serializeDate(scathaPro.variables.lastPlayedDate)));
         
-        WormStats.PER_DAY.regularWormKills = 0;
-        WormStats.PER_DAY.scathaKills = 0;
-        WormStats.PER_DAY.scathaSpawnStreak = 0;
+        WormStatsType.PER_DAY.regularWormKills = 0;
+        WormStatsType.PER_DAY.scathaKills = 0;
+        WormStatsType.PER_DAY.scathaSpawnStreak = 0;
         
         saveDailyStatsData();
         
@@ -368,7 +421,7 @@ public class PersistentData
         
         if (TextUtil.getPlayerForChat() != null)
         {
-            TextUtil.sendModChatMessage("New IRL day started - per day stats reset");
+            TextUtil.sendModChatMessage(Constants.msgHighlightingColor + "New IRL day started - per day stats reset");
         }
     }
     
@@ -405,7 +458,8 @@ public class PersistentData
                 
                 if (scathaPro.getConfig().getBoolean(Config.Key.dailyScathaFarmingStreakMessage) && scathaPro.variables.lastScathaFarmedDate != null)
                 {
-                    TextUtil.sendModChatMessage(EnumChatFormatting.RED + "You broke your daily Scatha farming streak!" + (increase ? (EnumChatFormatting.YELLOW + " Restarting the streak from 1.") : ""));
+                    String message = EnumChatFormatting.RED + "You broke your daily Scatha farming streak!" + (increase ? (EnumChatFormatting.YELLOW + " Restarting the streak from 1.") : "");
+                    TextUtil.sendCrystalHollowsMessage(TextUtil.getModMessageComponent(message));
                 }
             }
         }
@@ -443,10 +497,65 @@ public class PersistentData
         return dayData;
     }
     
+    public void loadMiscData()
+    {
+        JsonObject playerJson = getCurrentPlayerObject();
+        if (playerJson == null)
+        {
+            scathaPro.variables.scappaModeUnlocked = false;
+            
+            scathaPro.variables.avgMoneyCalcScathaPriceRare = -1f;
+            scathaPro.variables.avgMoneyCalcScathaPriceEpic = -1f;
+            scathaPro.variables.avgMoneyCalcScathaPriceLegendary = -1f;
+            return;
+        }
+        
+        Boolean scappaModeUnlocked = JsonUtil.getBoolean(playerJson, "scappaModeV2Unlocked");
+        if (scappaModeUnlocked != null) scathaPro.variables.scappaModeUnlocked = scappaModeUnlocked;
+    }
+    
+    public void saveMiscData()
+    {
+        setInCurrentPlayer("scappaModeV2Unlocked", new JsonPrimitive(scathaPro.variables.scappaModeUnlocked));
+        
+        saveData();
+    }
+    
+    public void loadGlobalData()
+    {
+        JsonObject globalData = JsonUtil.getJsonObject(data, "global");
+        if (globalData == null)
+        {
+            scathaPro.variables.avgMoneyCalcScathaPriceRare = -1f;
+            scathaPro.variables.avgMoneyCalcScathaPriceEpic = -1f;
+            scathaPro.variables.avgMoneyCalcScathaPriceLegendary = -1f;
+            return;
+        }
+        
+        Double avgMoneyCalcScathaPriceRare = JsonUtil.getDouble(globalData, "averageMoneyCalculator/scathaPriceRare");
+        if (avgMoneyCalcScathaPriceRare != null) scathaPro.variables.avgMoneyCalcScathaPriceRare = avgMoneyCalcScathaPriceRare.floatValue();
+        Double avgMoneyCalcScathaPriceEpic = JsonUtil.getDouble(globalData, "averageMoneyCalculator/scathaPriceEpic");
+        if (avgMoneyCalcScathaPriceEpic != null) scathaPro.variables.avgMoneyCalcScathaPriceEpic = avgMoneyCalcScathaPriceEpic.floatValue();
+        Double avgMoneyCalcScathaPriceLegendary = JsonUtil.getDouble(globalData, "averageMoneyCalculator/scathaPriceLegendary");
+        if (avgMoneyCalcScathaPriceLegendary != null) scathaPro.variables.avgMoneyCalcScathaPriceLegendary = avgMoneyCalcScathaPriceLegendary.floatValue();
+    }
+    
+    public void saveGlobalData()
+    {
+        JsonObject globalData = JsonUtil.getJsonObject(data, "global");
+        if (globalData == null) data.add("global", globalData = new JsonObject());
+        
+        JsonUtil.set(globalData, "averageMoneyCalculator/scathaPriceRare", new JsonPrimitive(scathaPro.variables.avgMoneyCalcScathaPriceRare));
+        JsonUtil.set(globalData, "averageMoneyCalculator/scathaPriceEpic", new JsonPrimitive(scathaPro.variables.avgMoneyCalcScathaPriceEpic));
+        JsonUtil.set(globalData, "averageMoneyCalculator/scathaPriceLegendary", new JsonPrimitive(scathaPro.variables.avgMoneyCalcScathaPriceLegendary));
+        
+        saveData();
+    }
+    
     
     private void onLoadError()
     {
-        TextUtil.sendModErrorMessage("Failed to load persistent data, creating backup...");
+        TextUtil.sendModErrorMessage("Error while loading persistent data, creating backup...");
         SaveManager.backupPersistentData("loadError");
     }
 }

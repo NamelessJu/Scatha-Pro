@@ -28,6 +28,8 @@ public class JsonUtil
     {
         if (object == null || object.isJsonNull()) return null;
         
+        if (path == null) return object;
+        
         String[] pathSegments = path.split("[\\/]");
         
         JsonElement currentElement = object;

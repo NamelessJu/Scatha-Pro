@@ -23,6 +23,11 @@ public class DynamicOverlayContainer extends OverlayContainer
     {
         this.contentAlignment = alignment;
     }
+    
+    public Alignment getContentAlignment()
+    {
+        return this.contentAlignment;
+    }
 
     @Override
     protected void drawSpecific()
@@ -101,7 +106,7 @@ public class DynamicOverlayContainer extends OverlayContainer
         return getWidth(getContentWidth());
     }
 
-    public int getWidth(int contentWidth)
+    private int getWidth(int contentWidth)
     {
         return contentWidth + padding * 2;
     }

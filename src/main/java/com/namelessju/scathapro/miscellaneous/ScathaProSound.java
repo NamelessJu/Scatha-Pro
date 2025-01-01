@@ -1,6 +1,10 @@
 package com.namelessju.scathapro.miscellaneous;
 
+import com.namelessju.scathapro.ScathaPro;
+import com.namelessju.scathapro.managers.Config;
+
 import net.minecraft.client.audio.ISound;
+import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 
 public class ScathaProSound implements ISound
@@ -33,13 +37,13 @@ public class ScathaProSound implements ISound
     {
         return 0;
     }
-
+    
     @Override
     public float getVolume()
     {
-        return volume;
+        return volume * MathHelper.clamp_float((float) ScathaPro.getInstance().getConfig().getDouble(Config.Key.soundsVolume), 0f, 1f);
     }
-
+    
     @Override
     public float getPitch()
     {
@@ -49,19 +53,19 @@ public class ScathaProSound implements ISound
     @Override
     public float getXPosF()
     {
-        return 0f;
+        return 0.5f;
     }
     
     @Override
     public float getYPosF()
     {
-        return 0f;
+        return 0.5f;
     }
 
     @Override
     public float getZPosF()
     {
-        return 0f;
+        return 0.5f;
     }
 
     @Override

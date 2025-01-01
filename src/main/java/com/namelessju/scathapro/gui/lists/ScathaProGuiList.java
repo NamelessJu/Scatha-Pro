@@ -1,6 +1,5 @@
 package com.namelessju.scathapro.gui.lists;
 
-import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiListExtended;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
@@ -11,12 +10,12 @@ import net.minecraft.util.MathHelper;
 import java.util.List;
 
 import com.google.common.collect.Lists;
-import com.namelessju.scathapro.gui.elements.IClickActionButton;
-import com.namelessju.scathapro.gui.elements.ScathaProLabel;
+import com.namelessju.scathapro.gui.elements.IGuiElement;
+import com.namelessju.scathapro.gui.elements.ScathaProButton;
 import com.namelessju.scathapro.gui.elements.ScathaProTextField;
 import com.namelessju.scathapro.gui.menus.ScathaProGui;
 
-public abstract class ScathaProGuiList extends GuiListExtended
+public abstract class ScathaProGuiList extends GuiListExtended 
 {
     protected final ScathaProGui gui;
     protected final List<ListEntry> listEntries = Lists.<ListEntry>newArrayList();
@@ -24,7 +23,7 @@ public abstract class ScathaProGuiList extends GuiListExtended
     
     public ScathaProGuiList(ScathaProGui gui, int entryHeight)
     {
-        this(gui, 40, gui.height - 40, entryHeight);
+        this(gui, 37, gui.height - 40, entryHeight);
     }
     
     public ScathaProGuiList(ScathaProGui gui, int listTopY, int listBottomY, int entryHeight)
@@ -68,7 +67,7 @@ public abstract class ScathaProGuiList extends GuiListExtended
         boolean elementClicked = false;
         
         if (super.mouseClicked(mouseX, mouseY, mouseEvent)) elementClicked = true;
-
+        
         for (ListEntry entry : listEntries)
         {
             if (entry.mousePressedAlways(mouseX, mouseY, mouseEvent))
@@ -184,131 +183,57 @@ public abstract class ScathaProGuiList extends GuiListExtended
     
     public abstract class ListEntry implements IGuiListEntry
     {
-        private abstract class EntryGuiElement<T>
+        private class EntryElement<T extends IGuiElement>
         {
             public final T element;
             
             protected int localX = 0;
             protected int localY = 0;
             
-            public EntryGuiElement(T element)
+            public EntryElement(T element)
             {
                 this.element = element;
-                setLocalPosition();
+                setLocalPosition(element.getElementX(), element.getElementY());
             }
-
-            public abstract void setLocalPosition();
-            public abstract void updatePosition(int listX, int listY);
-        }
-        
-        private class EntryButton extends EntryGuiElement<GuiButton>
-        {
-            public EntryButton(GuiButton element)
+            
+            public void setLocalPosition(int x, int y)
             {
-                super(element);
-            }
-
-            @Override
-            public void setLocalPosition()
-            {
-                localX = element.xPosition;
-                localY = element.yPosition;
-            }
-
-            public void updatePosition(int listX, int listY)
-            {
-                element.xPosition = listX + localX;
-                element.yPosition = listY + localY;
-            }
-        }
-        
-        protected class EntryLabel extends EntryGuiElement<ScathaProLabel>
-        {
-            public EntryLabel(ScathaProLabel element)
-            {
-                super(element);
-            }
-
-            @Override
-            public void setLocalPosition()
-            {
-                localX = element.xPosition;
-                localY = element.yPosition;
+                localX = x;
+                localY = y;
             }
             
             public void updatePosition(int listX, int listY)
             {
-                element.xPosition = listX + localX;
-                element.yPosition = listY + localY;
-            }
-        }
-        
-        private class EntryTextField extends EntryGuiElement<ScathaProTextField>
-        {
-            public EntryTextField(ScathaProTextField element)
-            {
-                super(element);
-            }
-            
-            @Override
-            public void setLocalPosition()
-            {
-                localX = element.xPosition;
-                localY = element.yPosition;
-            }
-            
-            public void updatePosition(int listX, int listY)
-            {
-                element.xPosition = listX + localX;
-                element.yPosition = listY + localY;
+                element.setElementX(listX + localX);
+                element.setElementY(listY + localY);
             }
         }
         
         
-        private final List<EntryButton> entryButtons = Lists.<EntryButton>newArrayList();
-        private final List<EntryLabel> entryLabels = Lists.<EntryLabel>newArrayList();
-        private final List<EntryTextField> entryTextFields = Lists.<EntryTextField>newArrayList();
+        private final List<EntryElement<IGuiElement>> entryElements = Lists.<EntryElement<IGuiElement>>newArrayList();
         
-        public void addButton(GuiButton button)
+        public void addElement(IGuiElement element)
         {
-            entryButtons.add(new EntryButton(button));
+            entryElements.add(new EntryElement<IGuiElement>(element));
         }
         
-        public void addLabel(ScathaProLabel label)
-        {
-            entryLabels.add(new EntryLabel(label));
-        }
-        
-        public void addTextField(ScathaProTextField textField)
-        {
-            entryTextFields.add(new EntryTextField(textField));
-        }
-
         public void tick()
         {
-            for (EntryTextField entryTextField : entryTextFields) entryTextField.element.tick();
+            for (EntryElement<IGuiElement> entryElement : entryElements)
+            {
+            	entryElement.element.elementTick();
+            }
         }
-
+        
+        @Override
         public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected)
         {
             if (!isEntryWithinSlotBounds(y, slotHeight)) return;
             
-            for (EntryButton entryButton : entryButtons)
+            for (EntryElement<IGuiElement> entryElement : entryElements)
             {
-                entryButton.updatePosition(x, y);
-                entryButton.element.drawButton(mc, mouseX, mouseY);
-            }
-            
-            for (EntryLabel entryLabel : entryLabels)
-            {
-                entryLabel.updatePosition(x, y);
-                entryLabel.element.drawLabel(mc, mouseX, mouseY);
-            }
-            
-            for (EntryTextField entryTextField : entryTextFields)
-            {
-                entryTextField.updatePosition(x, y);
-                entryTextField.element.drawTextBox(mouseX, mouseY);
+                entryElement.updatePosition(x, y);
+                entryElement.element.elementDraw(mouseX, mouseY);
             }
         }
         
@@ -317,16 +242,14 @@ public abstract class ScathaProGuiList extends GuiListExtended
             return y + slotHeight >= ScathaProGuiList.this.top && y <= ScathaProGuiList.this.bottom;
         }
         
-        public boolean mousePressed(int slotIndex, int x, int y, int mouseEvent, int relativeX, int relativeY)
+        @Override
+        public boolean mousePressed(int slotIndex, int x, int y, int mouseButton, int relativeX, int relativeY)
         {
-            for (EntryButton entryButton : entryButtons)
+            for (EntryElement<IGuiElement> entryElement : entryElements)
             {
-                GuiButton button = entryButton.element;
-                if (button.mousePressed(mc, x, y))
+                if (entryElement.element.elementMouseClicked(x, y, mouseButton))
                 {
-                    button.playPressSound(mc.getSoundHandler());
-                    if (button instanceof IClickActionButton) ((IClickActionButton) button).click();
-                    onButtonPressed(button);
+                    if (entryElement.element instanceof ScathaProButton) onButtonPressed((ScathaProButton) entryElement.element);
                     return true;
                 }
             }
@@ -337,45 +260,54 @@ public abstract class ScathaProGuiList extends GuiListExtended
         /**
          * Similar to `mousePressed(...)`, but is always called regardless of whether the mouse is over this entry or not
          */
-        public boolean mousePressedAlways(int x, int y, int mouseEvent)
+        public boolean mousePressedAlways(int x, int y, int mouseButton)
         {
             boolean elementClicked = false;
-            
-            for (EntryTextField entryTextField : entryTextFields)
+
+            for (EntryElement<IGuiElement> entryElement : entryElements)
             {
-                if (isMouseYWithinSlotBounds(mouseY))
+                if (entryElement.element instanceof ScathaProTextField)
                 {
-                    if (entryTextField.element.mouseClicked(x, y, mouseEvent)) elementClicked = true;
+                    ScathaProTextField textField = (ScathaProTextField) entryElement.element;
+                    if (isMouseYWithinSlotBounds(y))
+                    {
+                        if (textField.elementMouseClicked(x, y, mouseButton)) elementClicked = true;
+                    }
+                    else textField.setFocused(false);
                 }
-                else entryTextField.element.setFocused(false);
             }
             
             return elementClicked;
         }
         
+        @Override
+        public void mouseReleased(int slotIndex, int x, int y, int mouseEvent, int relativeX, int relativeY)
+        {
+            for (EntryElement<IGuiElement> entryElement : entryElements)
+            {
+            	entryElement.element.elementMouseReleased(x, y);
+            }
+        }
+        
         public void keyTyped(char character, int code)
         {
-            for (EntryTextField entryTextField : entryTextFields)
+            for (EntryElement<IGuiElement> entryElement : entryElements)
             {
-                if (entryTextField.element.textboxKeyTyped(character, code))
+            	entryElement.element.elementKeyTyped(character, code);
+            	
+                if (entryElement.element instanceof ScathaProTextField)
                 {
-                    onTextFieldTyped(entryTextField.element);
+
+                    ScathaProTextField textField = (ScathaProTextField) entryElement.element;
+                    if (textField.isFocused()) onTextFieldTyped(textField);
                 }
             }
         }
         
         protected void onTextFieldTyped(ScathaProTextField textField) {}
+        protected void onButtonPressed(ScathaProButton button) {}
         
-        protected void onButtonPressed(GuiButton button) {}
-        
-        public void mouseReleased(int slotIndex, int x, int y, int mouseEvent, int relativeX, int relativeY)
-        {
-            for (EntryButton entryButton : entryButtons)
-            {
-                entryButton.element.mouseReleased(x, y);
-            }
-        }
-        
+        @Override
         public void setSelected(int p_178011_1_, int p_178011_2_, int p_178011_3_) {}
     }
 }

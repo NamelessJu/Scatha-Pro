@@ -18,6 +18,7 @@ import com.namelessju.scathapro.alerts.alertmodes.customalertmode.CustomAlertMod
 import com.namelessju.scathapro.alerts.alertmodes.customalertmode.ICustomAlertModeSaveable;
 import com.namelessju.scathapro.gui.elements.ScathaProButton;
 import com.namelessju.scathapro.gui.elements.ScathaProLabel;
+import com.namelessju.scathapro.gui.elements.ScathaProSlider;
 import com.namelessju.scathapro.gui.elements.ScathaProTextField;
 import com.namelessju.scathapro.gui.menus.CustomAlertModeEditGui;
 import com.namelessju.scathapro.gui.menus.ScathaProGui;
@@ -28,7 +29,6 @@ import com.namelessju.scathapro.util.TextUtil;
 import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StringUtils;
 
@@ -44,15 +44,15 @@ public class CustomAlertModeEditGuiList extends ScathaProGuiList implements ICus
 
     private List<ICustomAlertModeSaveable.SaveResults.AudioConversion> audioConversions = Lists.newArrayList();
     
-    public CustomAlertModeEditGuiList(ScathaProGui gui, String customModeId)
+    public CustomAlertModeEditGuiList(ScathaProGui gui, String customModeId, JsonObject modeProperties)
     {
-        super(gui, 75, 0, 115);
+        super(gui, 75, 0, 125);
         resize();
         
         customAlertModeManager = ScathaPro.getInstance().getCustomAlertModeManager();
         
         this.customModeId = customModeId;
-        modeProperties = customAlertModeManager.loadSubmodeProperties(customModeId);
+        this.modeProperties = modeProperties;
         
         Alert[] alerts = Alert.values();
         for (Alert alert : alerts)
@@ -120,15 +120,17 @@ public class CustomAlertModeEditGuiList extends ScathaProGuiList implements ICus
         private final ScathaProButton playButton;
         private final ScathaProButton audioFileButton;
         private String audioFileButtonDefaultTooltip = null;
-        private final GuiButton clearFileButton;
-        private final GuiButton resetAudioButton;
+        private final ScathaProSlider audioVolumeSlider;
+        private final ScathaProButton clearFileButton;
+        private final ScathaProButton resetAudioButton;
         private final ScathaProLabel titleLabel;
         private final ScathaProTextField titleTextField;
         private final ScathaProLabel subtitleLabel;
         private final ScathaProTextField subtitleTextField;
         
-        private String initialTitle;
-        private String initialSubtitle;
+        private final String initialTitle;
+        private final String initialSubtitle;
+        private final int initialAudioVolume;
         
         private File newSoundFile = null;
         
@@ -138,37 +140,39 @@ public class CustomAlertModeEditGuiList extends ScathaProGuiList implements ICus
             this.alert = alert;
             alertAudioFile = CustomAlertModeManager.getAlertAudioFile(customModeId, alert);
             
-            addLabel(new ScathaProLabel(0, 0, 5, getListWidth(), 10, alert.alertName, Util.Color.YELLOW.getValue()).setCentered());
+            addElement(new ScathaProLabel(0, 0, 5, getListWidth(), 10, alert.alertName, Util.Color.YELLOW.getValue()).setCentered());
             
             // Titles
             
-            final String tooltip = EnumChatFormatting.GRAY + "Supports formatting codes using '&'";
+            final String titleTextFieldTooltip = EnumChatFormatting.GRAY + "Supports formatting codes using '&'";
             
             AlertTitle defaultTitle = alert.getDefaultTitle();
             boolean canEditSubtitle = !defaultTitle.hasVariableSubtitle;
-            initialTitle = JsonUtil.getString(modeProperties, "titles/" + alert.alertId + "/title");
-            if (initialTitle == null) initialTitle = "";
-            initialSubtitle = JsonUtil.getString(modeProperties, "titles/" + alert.alertId + "/subtitle");
-            if (initialSubtitle == null) initialSubtitle = "";
+            String title = JsonUtil.getString(modeProperties, "titles/" + alert.alertId + "/title");
+            initialTitle = title != null ? title : "";
+            String subtitle = JsonUtil.getString(modeProperties, "titles/" + alert.alertId + "/subtitle");
+            initialSubtitle = subtitle != null ? subtitle : "";
             
-            addLabel(titleLabel = new ScathaProLabel(1, 0, 23, getListWidth() / 2 - 5, 10, "Title", Util.Color.GRAY.getValue()));
+            addElement(titleLabel = new ScathaProLabel(1, 0, 23, getListWidth() / 2 - 5, 10, "Title", Util.Color.GRAY.getValue()));
             
-            titleTextField = new ScathaProTextField(0, mc.fontRendererObj, 0, 33, getListWidth() / 2 - 5, 20);
+            titleTextField = new ScathaProTextField(0, 0, 33, getListWidth() / 2 - 5, 20);
+            titleTextField.setDefaultFormatting(alert.getDefaultTitle().titleFormatting);
             titleTextField.setSupportsFormatting(true);
             titleTextField.setText(initialTitle);
             titleTextField.setPlaceholder(StringUtils.isNullOrEmpty(defaultTitle.title) ? EnumChatFormatting.ITALIC + "(no default title)" : defaultTitle.title);
-            titleTextField.setTooltip(tooltip);
-            addTextField(titleTextField);
+            titleTextField.getTooltip().setText(titleTextFieldTooltip);
+            addElement(titleTextField);
             
-            addLabel(subtitleLabel = new ScathaProLabel(2, getListWidth() / 2 + 5, 23, getListWidth() / 2 - 5, 10, "Subtitle", (canEditSubtitle ? Util.Color.GRAY : Util.Color.DARK_GRAY).getValue()));
+            addElement(subtitleLabel = new ScathaProLabel(2, getListWidth() / 2 + 5, 23, getListWidth() / 2 - 5, 10, "Subtitle", (canEditSubtitle ? Util.Color.GRAY : Util.Color.DARK_GRAY).getValue()));
             
-            subtitleTextField = new ScathaProTextField(1, mc.fontRendererObj, getListWidth() / 2 + 5, 33, getListWidth() / 2 - 5, 20);
+            subtitleTextField = new ScathaProTextField(1, getListWidth() / 2 + 5, 33, getListWidth() / 2 - 5, 20);
+            subtitleTextField.setDefaultFormatting(alert.getDefaultTitle().subtitleFormatting);
             if (canEditSubtitle)
             {
                 subtitleTextField.setSupportsFormatting(true);
                 subtitleTextField.setText(initialSubtitle);
                 subtitleTextField.setPlaceholder(StringUtils.isNullOrEmpty(defaultTitle.subtitle) ? EnumChatFormatting.ITALIC + "(no default subtitle)" : defaultTitle.subtitle);
-                subtitleTextField.setTooltip(tooltip);
+                subtitleTextField.getTooltip().setText(titleTextFieldTooltip);
             }
             else
             {
@@ -178,34 +182,39 @@ public class CustomAlertModeEditGuiList extends ScathaProGuiList implements ICus
                 else placeholderText = EnumChatFormatting.ITALIC + "(not editable)";
                 subtitleTextField.setPlaceholder(placeholderText);
             }
-            addTextField(subtitleTextField);
+            addElement(subtitleTextField);
             
             // Audio
 
             boolean audioExists = alertAudioFile.exists();
             boolean canPlayAudio = customAlertModeManager.isSubmodeActive(customModeId) || !audioExists;
             
-            playButton = new ScathaProButton(0, getListWidth() - 105, 60, 105, 20, "");
+            String audioText;
+            if (audioExists) audioText = "Custom audio";
+            else audioText = EnumChatFormatting.GRAY.toString() + EnumChatFormatting.ITALIC + "Default";
+            int audioTitleWidth = TextUtil.getStringWidth("Audio: ");
+            addElement(new ScathaProLabel(3, 0, 61, audioTitleWidth, 10, "Audio: ", Util.Color.GRAY.getValue()));
+            addElement(new ScathaProLabel(4, audioTitleWidth, 61, getListWidth() - audioTitleWidth, audioText));
+            
+            playButton = new ScathaProButton(0, 0, 75, 150, 20, "");
             if (!canPlayAudio)
             {
                 playButton.enabled = false;
-                playButton.setTooltip(EnumChatFormatting.YELLOW + "Mode needs to be selected to play custom audio");
+                playButton.getTooltip().setText(EnumChatFormatting.YELLOW + "Mode needs to be selected to play custom audio");
             }
-            addButton(playButton);
+            addElement(playButton);
             
-            String audioText;
-            if (audioExists) audioText = "Custom audio set";
-            else audioText = EnumChatFormatting.DARK_GRAY.toString() + EnumChatFormatting.ITALIC + "Default audio";
-            addLabel(new ScathaProLabel(3, 0, 60, getListWidth() - 110, 10, "Audio", Util.Color.GRAY.getValue()));
-            addLabel(new ScathaProLabel(4, 0, 72, getListWidth() - 110, 10, audioText));
+            Double audioVolume = JsonUtil.getDouble(modeProperties, "soundVolumes/" + alert.alertId);
+            initialAudioVolume = audioVolume != null ? (int) Math.round(audioVolume * 100) : 100;
+            addElement(audioVolumeSlider = new ScathaProSlider(5, 160, 75, 150, 20, "Volume: ", "%", 0, 100, initialAudioVolume, false, true));
             
-            addButton(audioFileButton = new ScathaProButton(1, 0, 85, getListWidth() - 110, 20, ""));
+            addElement(audioFileButton = new ScathaProButton(1, 0, 100, getListWidth() - 110, 20, ""));
             if (!FFmpegWrapper.isFFmpegInstalled())
             {
-                audioFileButtonDefaultTooltip = EnumChatFormatting.YELLOW + "No FFmpeg installation found, only *.ogg files supported";
+                audioFileButtonDefaultTooltip = EnumChatFormatting.YELLOW + "Note:\n" + EnumChatFormatting.GRAY + "No FFmpeg installation found,\nonly *.ogg files supported";
             }
-            addButton(resetAudioButton = new GuiButton(3, getListWidth() - 105, 85, 50, 20, "Reset"));
-            addButton(clearFileButton = new GuiButton(2, getListWidth() - 50, 85, 50, 20, "Clear"));
+            addElement(resetAudioButton = new ScathaProButton(3, getListWidth() - 105, 100, 50, 20, "Reset"));
+            addElement(clearFileButton = new ScathaProButton(2, getListWidth() - 50, 100, 50, 20, "Clear"));
             updateAudioFileButtons();
             
             String[] supportedFileFormats = FFmpegWrapper.isFFmpegInstalled() ? new String[] {"ogg", "mp3", "wav"} : new String[] {"ogg"};
@@ -228,12 +237,12 @@ public class CustomAlertModeEditGuiList extends ScathaProGuiList implements ICus
                     if (titleChanged)
                     {
                         titleLabel.setSuffix(CustomAlertModeEditGui.unsavedChangesSuffix);
-                        titleLabel.getTooltip().setTooltip(CustomAlertModeEditGui.unsavedChangesExplanation);
+                        titleLabel.getTooltip().setText(CustomAlertModeEditGui.unsavedChangesExplanation);
                     }
                     else
                     {
                         titleLabel.setSuffix(null);
-                        titleLabel.getTooltip().setTooltip(null);
+                        titleLabel.getTooltip().setText(null);
                     }
                     break;
 
@@ -242,12 +251,12 @@ public class CustomAlertModeEditGuiList extends ScathaProGuiList implements ICus
                     if (subtitleChanged)
                     {
                         subtitleLabel.setSuffix(CustomAlertModeEditGui.unsavedChangesSuffix);
-                        subtitleLabel.getTooltip().setTooltip(CustomAlertModeEditGui.unsavedChangesExplanation);
+                        subtitleLabel.getTooltip().setText(CustomAlertModeEditGui.unsavedChangesExplanation);
                     }
                     else
                     {
                         subtitleLabel.setSuffix(null);
-                        subtitleLabel.getTooltip().setTooltip(null);
+                        subtitleLabel.getTooltip().setText(null);
                     }
                     break;
             }
@@ -264,7 +273,7 @@ public class CustomAlertModeEditGuiList extends ScathaProGuiList implements ICus
         }
         
         @Override
-        protected void onButtonPressed(GuiButton button)
+        protected void onButtonPressed(ScathaProButton button)
         {
             switch (button.id)
             {
@@ -274,8 +283,9 @@ public class CustomAlertModeEditGuiList extends ScathaProGuiList implements ICus
                     {
                         if (lastAlertSoundPlayed != null) lastAlertSoundPlayed.stopSound();
                         
-                        if (customAlertModeManager.isSubmodeActive(customModeId)) alert.playSound();
-                        else alert.playDefaultSound();
+                        float volume = audioVolumeSlider.getValueInt() / 100f;
+                        if (customAlertModeManager.isSubmodeActive(customModeId)) alert.playSound(volume);
+                        else alert.playDefaultSound(volume);
                         
                         lastAlertSoundPlayed = alert;
                     }
@@ -308,7 +318,7 @@ public class CustomAlertModeEditGuiList extends ScathaProGuiList implements ICus
             if (newSoundFile == null)
             {
                 audioFileButton.displayString = "Select new audio...";
-                audioFileButton.getTooltip().setTooltip(audioFileButtonDefaultTooltip);
+                audioFileButton.getTooltip().setText(audioFileButtonDefaultTooltip);
                 clearFileButton.enabled = false;
             }
             else
@@ -319,7 +329,7 @@ public class CustomAlertModeEditGuiList extends ScathaProGuiList implements ICus
                 else audioName = newSoundFile.getName().replace(TextUtil.formattingStartCharacter, "");
                 
                 audioFileButton.displayString = EnumChatFormatting.RESET + TextUtil.ellipsis(audioName, audioFileButton.getButtonWidth() - TextUtil.getStringWidth(CustomAlertModeEditGui.unsavedChangesSuffix) - 8) + CustomAlertModeEditGui.unsavedChangesSuffix;
-                audioFileButton.getTooltip().setTooltip(CustomAlertModeEditGui.unsavedChangesExplanation);
+                audioFileButton.getTooltip().setText(CustomAlertModeEditGui.unsavedChangesExplanation);
                 
                 clearFileButton.enabled = true;
             }
@@ -332,26 +342,25 @@ public class CustomAlertModeEditGuiList extends ScathaProGuiList implements ICus
         {
             // Title
             
-            boolean titleChanged = false;
-            
             String newTitle = titleTextField.getText().trim();
             if (!newTitle.equals(initialTitle))
             {
                 JsonUtil.set(modeProperties, "titles/" + alert.alertId + "/title", new JsonPrimitive(newTitle));
-                titleChanged = true;
+                results.requestPropertiesSave();
             }
             
             String newSubtitle = subtitleTextField.getText().trim();
             if (!newSubtitle.equals(initialSubtitle))
             {
                 JsonUtil.set(modeProperties, "titles/" + alert.alertId + "/subtitle", new JsonPrimitive(newSubtitle));
-                titleChanged = true;
+                results.requestPropertiesSave();
             }
             
-            if (titleChanged)
+            int newVolume = audioVolumeSlider.getValueInt();
+            if (newVolume != initialAudioVolume)
             {
-                customAlertModeManager.saveSubmodeProperties(customModeId, modeProperties);
-                if (customAlertModeManager.isSubmodeActive(customModeId)) customAlertModeManager.loadCurrentSubmodeProperties(); // TODO: prevent doing this multiple times per save
+                JsonUtil.set(modeProperties, "soundVolumes/" + alert.alertId, new JsonPrimitive(newVolume / 100f));
+                results.requestPropertiesSave();
             }
             
             // Sound

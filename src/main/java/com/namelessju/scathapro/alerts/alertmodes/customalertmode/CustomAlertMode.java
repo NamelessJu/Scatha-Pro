@@ -9,7 +9,6 @@ import com.namelessju.scathapro.util.JsonUtil;
 import com.namelessju.scathapro.util.TextUtil;
 import com.namelessju.scathapro.util.TimeUtil;
 
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StringUtils;
 
@@ -82,26 +81,30 @@ public class CustomAlertMode extends AlertMode
     {
         return new ResourceLocation(CustomAlertModeManager.resourceDomain, "");
     }
-
+    
+    @Override
+    public float getSoundVolume(Alert alert)
+    {
+        Double volume = JsonUtil.getDouble(ScathaPro.getInstance().getCustomAlertModeManager().getCurrentSubmodePropertyJsonElement(null), "soundVolumes/" + alert.alertId);
+        return volume != null ? volume.floatValue() : 1f;
+    }
+    
     @Override
     public AlertTitle getTitle(Alert alert)
     {
         JsonElement titlesJson = ScathaPro.getInstance().getCustomAlertModeManager().getCurrentSubmodePropertyJsonElement("titles");
         if (titlesJson == null) return null;
-        String title = JsonUtil.getString(titlesJson, alert.alertId + "/title");
-        String subtitle = JsonUtil.getString(titlesJson, alert.alertId + "/subtitle");
         
+        String title = JsonUtil.getString(titlesJson, alert.alertId + "/title");
         if (title != null)
         {
             title = StringUtils.stripControlCodes(title).replaceAll("&(?=" + TextUtil.formattingCodesRegex + ")", TextUtil.formattingStartCharacter);
-            String defaultTitleFormatting = alert.getDefaultTitle().titleFormatting;
-            title = title.replace(EnumChatFormatting.RESET.toString(), EnumChatFormatting.RESET + (defaultTitleFormatting != null ? defaultTitleFormatting : ""));
         }
+        
+        String subtitle = JsonUtil.getString(titlesJson, alert.alertId + "/subtitle");
         if (subtitle != null)
         {
             subtitle = StringUtils.stripControlCodes(subtitle).replaceAll("&(?=" + TextUtil.formattingCodesRegex + ")", TextUtil.formattingStartCharacter);
-            String defaultSubtitleFormatting = alert.getDefaultTitle().subtitleFormatting;
-            subtitle = subtitle.replace(EnumChatFormatting.RESET.toString(), EnumChatFormatting.RESET + (defaultSubtitleFormatting != null ? defaultSubtitleFormatting : ""));
         }
         
         return AlertTitle.createTextOnly(title, subtitle);

@@ -11,7 +11,7 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.EnumChatFormatting;
 
-public class ScathaProLabel extends Gui implements TooltipElement
+public class ScathaProLabel extends Gui implements IGuiElement, ITooltipElement
 {
     public int id;
     public int xPosition;
@@ -23,9 +23,19 @@ public class ScathaProLabel extends Gui implements TooltipElement
     protected List<String> textLines = Lists.<String>newArrayList();
     protected boolean centered;
     protected String suffix = null;
-
+    
     private final Tooltip tooltip = new Tooltip();
 
+    public ScathaProLabel(int id, int x, int y, int width, String initialText)
+    {
+        this(id, x, y, width, initialText, Util.Color.WHITE.getValue());
+    }
+    
+    public ScathaProLabel(int id, int x, int y, int width, String initialText, int color)
+    {
+        this(id, x, y, width, Minecraft.getMinecraft().fontRendererObj.FONT_HEIGHT * TextUtil.splitOnLineBreaks(initialText).length, initialText, color);
+    }
+    
     public ScathaProLabel(int id, int x, int y, int width, int height, String initialText)
     {
         this(id, x, y, width, height, initialText, Util.Color.WHITE.getValue());
@@ -41,6 +51,60 @@ public class ScathaProLabel extends Gui implements TooltipElement
         this.centered = false;
         this.color = color;
         setText(initialText);
+    }
+    
+    @Override
+    public void setElementX(int x)
+    {
+        this.xPosition = x;
+    }
+    
+    @Override
+    public void setElementY(int y)
+    {
+        this.yPosition = y;
+    }
+    
+    @Override
+    public void setElementWidth(int width)
+    {
+        this.width = width;
+    }
+    
+    @Override
+    public void setElementHeight(int height)
+    {
+        this.height = height;
+    }
+    
+    @Override
+    public int getElementX()
+    {
+        return this.xPosition;
+    }
+    
+    @Override
+    public int getElementY()
+    {
+        return this.yPosition;
+    }
+    
+    @Override
+    public int getElementHeight()
+    {
+        return this.height;
+    }
+    
+    @Override
+    public int getElementWidth()
+    {
+        return this.width;
+    }
+    
+    @Override
+    public void elementDraw(int mouseX, int mouseY)
+    {
+        this.drawLabel(Minecraft.getMinecraft(), mouseX, mouseY);;
     }
     
     public void setText(String text)
@@ -65,7 +129,7 @@ public class ScathaProLabel extends Gui implements TooltipElement
         this.centered = true;
         return this;
     }
-
+    
     public void drawLabel(Minecraft mc, int mouseX, int mouseY)
     {
         if (!this.visible) return;
@@ -108,11 +172,11 @@ public class ScathaProLabel extends Gui implements TooltipElement
             
             if (hovered)
             {
-                this.tooltip.render();
+                this.tooltip.requestRender();
             }
         }
     }
-
+    
     @Override
     public Tooltip getTooltip()
     {

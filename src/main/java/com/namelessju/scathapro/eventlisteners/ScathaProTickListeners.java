@@ -1,6 +1,5 @@
 package com.namelessju.scathapro.eventlisteners;
 
-import com.namelessju.scathapro.Constants;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.achievements.Achievement;
 import com.namelessju.scathapro.alerts.Alert;
@@ -55,15 +54,16 @@ public class ScathaProTickListeners extends ScathaProListener
     {
         heatCheckTickTimer = 0;
         
-        if (scathaPro.getOverlay().easterEggTitleActive)
-        {
-            Achievement.easter_egg_overlay_title.unlock();
-        }
-        
         if (scathaPro.variables.regularWormKills == 0 && scathaPro.variables.scathaKills == 0 && scathaPro.getConfig().getBoolean(Config.Key.automaticStatsParsing))
         {
             TextUtil.sendModChatMessage(EnumChatFormatting.YELLOW + "Open the worm bestiary once to load previous worm kills into the overlay!");
         }
+
+        for (IChatComponent message : scathaPro.variables.cachedCrystalHollowsMessages)
+        {
+            TextUtil.sendChatMessage(message);
+        }
+        scathaPro.variables.cachedCrystalHollowsMessages.clear();
     }
     
     @SubscribeEvent(priority = EventPriority.HIGH)
@@ -77,14 +77,6 @@ public class ScathaProTickListeners extends ScathaProListener
             scathaPro.variables.lastSneakStartTime = event.now;
         }
         scathaPro.variables.sneakingBefore = sneaking;
-        
-        
-        // Reset b2b scatha pet drop
-        
-        if (scathaPro.variables.droppedPetAtLastScatha && scathaPro.variables.lastKillIsScatha && event.now - scathaPro.variables.lastKillTime > Constants.pingTreshold && scathaPro.variables.lastPetDropTime < scathaPro.variables.lastKillTime)
-        {
-            scathaPro.variables.droppedPetAtLastScatha = false;
-        }
         
         
         // Achievements

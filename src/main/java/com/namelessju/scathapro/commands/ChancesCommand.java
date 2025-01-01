@@ -67,10 +67,13 @@ public class ChancesCommand extends CommandBase
         
         float magicFind = args.length > 0 ? (float) Math.max(CommandBase.parseDouble(args[0]), 0) : 0f;
         float petLuck = args.length > 1 ? (float) Math.max(CommandBase.parseDouble(args[1]), 0) : 0f;
-        int kills = args.length > 2 ? Math.max(CommandBase.parseInt(args[2]), 0) : 0;
+        int kills = args.length > 2 ? CommandBase.parseInt(args[2]) : 0;
+        
+        if (kills < 0) throw new CommandException("Scatha kills must be larger than 1!");
+        if (kills == 1) throw new CommandException("Scatha kills must be larger than 1! (leave the argument out instead of entering 1)");
         
         // Looting doesn't seem to work on (Scatha) pet drops,
-        // but this secret parameter keeps it in the mod in case it gets fixed
+        // but this secret parameter keeps it in the mod in case it gets fixed/changed by Hypixel
         boolean useLooting = args.length > 3 ? CommandBase.parseBoolean(args[3]) : false;
         int looting = 0;
         if (useLooting)
@@ -99,7 +102,7 @@ public class ChancesCommand extends CommandBase
         String attributesString = "";
         if (petLuck <= 0)
         {
-            attributesString = EnumChatFormatting.AQUA + "\u272F" + EnumChatFormatting.GRAY + "/" + EnumChatFormatting.LIGHT_PURPLE + "\u2663" + EnumChatFormatting.AQUA + " " + Util.numberToString(magicFind, 2) + " Effective Magic Find" + Constants.msgHighlightingColor;
+            attributesString = EnumChatFormatting.AQUA + "\u272F" + EnumChatFormatting.GRAY + "/" + EnumChatFormatting.LIGHT_PURPLE + "\u2663 " + EnumChatFormatting.AQUA + Util.numberToString(magicFind, 2) + EnumChatFormatting.LIGHT_PURPLE + " Effective " + EnumChatFormatting.AQUA + "Magic Find" + Constants.msgHighlightingColor;
         }
         else
         {

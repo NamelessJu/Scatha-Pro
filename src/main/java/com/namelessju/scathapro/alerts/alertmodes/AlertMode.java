@@ -41,6 +41,11 @@ public class AlertMode
         return null;
     }
     
+    public float getSoundVolume(Alert alert)
+    {
+        return 1f;
+    }
+    
     public AlertTitle getTitle(Alert alert)
     {
         return null;
