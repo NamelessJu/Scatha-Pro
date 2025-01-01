@@ -7,33 +7,37 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.google.common.base.Predicate;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
-import com.namelessju.scathapro.Config;
-import com.namelessju.scathapro.OverlayManager;
-import com.namelessju.scathapro.PersistentData;
+import com.namelessju.scathapro.Constants;
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.UpdateChecker;
-import com.namelessju.scathapro.events.BedrockWallEvent;
-import com.namelessju.scathapro.events.CrystalHollowsTickEvent;
-import com.namelessju.scathapro.events.MeetDeveloperEvent;
+import com.namelessju.scathapro.achievements.Achievement;
+import com.namelessju.scathapro.alerts.Alert;
+import com.namelessju.scathapro.entitydetection.detectedentities.DetectedEntity;
+import com.namelessju.scathapro.entitydetection.detectedentities.DetectedWorm;
+import com.namelessju.scathapro.events.BedrockWallDetectedEvent;
+import com.namelessju.scathapro.events.NewIRLDayStartedEvent;
+import com.namelessju.scathapro.events.TickEvent.CrystalHollowsTickEvent;
+import com.namelessju.scathapro.events.TickEvent.FirstCrystalHollowsTickEvent;
+import com.namelessju.scathapro.events.TickEvent.FirstIngameTickEvent;
+import com.namelessju.scathapro.events.TickEvent.FirstWorldTickEvent;
 import com.namelessju.scathapro.events.ScathaPetDropEvent;
-import com.namelessju.scathapro.events.WormDespawnEvent;
-import com.namelessju.scathapro.events.WormKillEvent;
-import com.namelessju.scathapro.events.WormSpawnEvent;
+import com.namelessju.scathapro.events.SkyblockAreaDetectedEvent;
 import com.namelessju.scathapro.gui.menus.FakeBanGui;
-import com.namelessju.scathapro.gui.menus.OverlaySettingsGui;
-import com.namelessju.scathapro.objects.PetDrop;
-import com.namelessju.scathapro.objects.Worm;
-import com.namelessju.scathapro.util.ChatUtil;
+import com.namelessju.scathapro.managers.Config;
+import com.namelessju.scathapro.miscellaneous.PetDrop;
+import com.namelessju.scathapro.miscellaneous.enums.Rarity;
+import com.namelessju.scathapro.miscellaneous.enums.SkyblockArea;
+import com.namelessju.scathapro.overlay.elements.OverlayContainer;
+import com.namelessju.scathapro.overlay.elements.OverlayElement.Alignment;
+import com.namelessju.scathapro.overlay.elements.OverlayImage;
+import com.namelessju.scathapro.overlay.elements.OverlayText;
+import com.namelessju.scathapro.util.JsonUtil;
+import com.namelessju.scathapro.util.TextUtil;
 import com.namelessju.scathapro.util.NBTUtil;
+import com.namelessju.scathapro.util.TimeUtil;
 import com.namelessju.scathapro.util.Util;
 
-import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.inventory.GuiChest;
@@ -44,15 +48,15 @@ import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.entity.projectile.EntityFishHook;
-import net.minecraft.init.Blocks;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StringUtils;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -63,483 +67,626 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
 
-public class LoopListeners {
-
-    Minecraft mc = Minecraft.getMinecraft();
-    ScathaPro scathaPro = ScathaPro.getInstance();
+public class LoopListeners
+{
+    private final ScathaPro scathaPro;
+    private final Minecraft mc;
     
-    private boolean firstIngameFrame = true;
+    
+    private final OverlayContainer rotationAnglesOverlay;
+    private final OverlayText yawText;
+    private final OverlayText pitchText;
+    private final OverlayImage rotationLockOverlay;
+    
+    
+    private boolean firstIngameTickPending = true;
     
     private long lastDeveloperCheckTime = -1;
-    private boolean developerFoundBefore = false;
-    private long lastScathaKillTime = -1;
-
+    
+    private int distanceToWallPrevious = -1;
+    private long lastBedrockDetectionTime = -1;
+    private boolean bedrockDetectedThisDirection = false;
+    private int bedrockDirectionBefore = -1;
+    
     private List<PetDrop> receivedPets = new ArrayList<PetDrop>();
     private HashMap<Integer, String> arrowOwners = new HashMap<Integer, String>();
     
     private GuiChest lastChestCheckedForKillInfo = null;
     
+    private boolean wormSpawnCooldownRunningBefore = false;
     
-    @SubscribeEvent(priority = EventPriority.LOWEST)
+    private int dailyStatsCheckTickTimer = 0;
+    
+    
+    public LoopListeners(ScathaPro scathaPro)
+    {
+        this.scathaPro = scathaPro;
+        mc = scathaPro.getMinecraft();
+        
+        rotationAnglesOverlay = new OverlayContainer(0, 0, 0.75f);
+        rotationAnglesOverlay.add(yawText = new OverlayText(EnumChatFormatting.OBFUSCATED + "?", Util.Color.WHITE.getValue(), 10, -3, 1f));
+        rotationAnglesOverlay.add(pitchText = new OverlayText(EnumChatFormatting.OBFUSCATED + "?", Util.Color.WHITE.getValue(), 0, 10, 1f));
+        pitchText.setAlignment(Alignment.CENTER);
+        
+        rotationLockOverlay = new OverlayImage("lock.png", 16, 16, -8, -20, 1f);
+    }
+    
+    @SubscribeEvent(priority = EventPriority.LOW)
     public void onRenderGameOverlayPost(RenderGameOverlayEvent.Post event)
     {
-        if (event.type == ElementType.TEXT) {
-            ScoreObjective scoreobjective = this.mc.theWorld.getScoreboard().getObjectiveInDisplaySlot(0);
-            NetHandlerPlayClient handler = mc.thePlayer.sendQueue;
-            boolean playerListShown = mc.gameSettings.keyBindPlayerList.isKeyDown() && (!mc.isIntegratedServerRunning() || handler.getPlayerInfoMap().size() > 1 || scoreobjective != null);
-            if (Config.instance.getBoolean(Config.Key.overlay) && Util.inCrystalHollows() && !mc.gameSettings.showDebugInfo && !playerListShown && !(mc.currentScreen instanceof OverlaySettingsGui))
-                OverlayManager.instance.drawOverlay();
+        if (event.type != ElementType.TEXT) return;
+        
+        // Overlay
+        
+        scathaPro.getOverlay().drawOverlayIfAllowed();
+        
+        EntityPlayer player = mc.thePlayer;
+        if (player != null)
+        {
+            ScaledResolution scaledResolution = new ScaledResolution(mc);
+            GlStateManager.pushMatrix();
+            GlStateManager.translate(Math.round(scaledResolution.getScaledWidth() / 2), Math.round(scaledResolution.getScaledHeight() / 2), 0);
             
-            if (Config.instance.getBoolean(Config.Key.showRotationAngles)) {
-                EntityPlayer player = mc.thePlayer;
-                
-                if (player != null) {
-                    ScaledResolution scaledResolution = new ScaledResolution(mc);
-                    FontRenderer fontRenderer = mc.fontRendererObj;
-                    
-                    GlStateManager.pushMatrix();
-                    GlStateManager.translate(Math.round(scaledResolution.getScaledWidth() / 2), Math.round(scaledResolution.getScaledHeight() / 2), 0);
-                    GlStateManager.scale(0.75f, 0.75f, 1f);
-                    
-                    float yaw = player.rotationYaw % 360;
-                    if (yaw < 0) yaw = 360 + yaw;
-                    GlStateManager.pushMatrix();
-                    GlStateManager.translate(10, -4, 0);
-                    fontRenderer.drawString(Util.numberToString(yaw, 1), 0, 0, Util.Color.GRAY.getValue(), true);
-                    GlStateManager.popMatrix();
-                    
-                    String pitchString = Util.numberToString(player.rotationPitch, 1);
-                    GlStateManager.pushMatrix();
-                    GlStateManager.translate(-fontRenderer.getStringWidth(pitchString) * 0.5, 10, 0);
-                    fontRenderer.drawString(pitchString, 0, 0, Util.Color.GRAY.getValue(), true);
-                    GlStateManager.popMatrix();
-                    
-                    GlStateManager.popMatrix();
-                }
+            
+            // Rotation Angles
+            
+            if (scathaPro.getConfig().getBoolean(Config.Key.showRotationAngles))
+            {
+                updateRotationAngles(player);
+                rotationAnglesOverlay.draw();
             }
+            
+            // Rotation Lock
+            
+            if (scathaPro.getInputManager().isRotationLocked()) rotationLockOverlay.draw();
+
+            
+            GlStateManager.popMatrix();
+        }
+    }
+    
+    private void updateRotationAngles(EntityPlayer player)
+    {
+        int decimalDigits = scathaPro.getConfig().getInt(Config.Key.rotationAnglesDecimalDigits);
+        
+        float yaw = player.rotationYaw % 360f;
+        if (yaw < 0) yaw += 360f;
+        String yawString = Util.numberToString(yaw, decimalDigits, true);
+        if (scathaPro.getConfig().getBoolean(Config.Key.rotationAnglesMinimalYaw))
+        {
+            int dotIndex = yawString.indexOf('.');
+            if (dotIndex >= 0) yawString = yawString.substring(dotIndex - 1);
+        }
+        yawText.setText(TextUtil.contrastableGray() + yawString);
+        
+        if (scathaPro.getConfig().getBoolean(Config.Key.rotationAnglesYawOnly))
+        {
+            pitchText.setVisible(false);
+        }
+        else
+        {
+            pitchText.setVisible(true);
+            pitchText.setText(TextUtil.contrastableGray() + Util.numberToString(player.rotationPitch, decimalDigits, true));
         }
     }
 
     @SubscribeEvent
     public void onClientTick(ClientTickEvent event)
     {
-        if (event.phase == TickEvent.Phase.START) {
+        if (event.phase != TickEvent.Phase.START) return;
+        
+        dailyStatsCheckTickTimer --;
+        if (dailyStatsCheckTickTimer <= 0)
+        {
+            if (scathaPro.variables.lastPlayedDate == null || !scathaPro.variables.lastPlayedDate.equals(TimeUtil.today()))
+            {
+                MinecraftForge.EVENT_BUS.post(new NewIRLDayStartedEvent());
+            }
+
+            dailyStatsCheckTickTimer = 20;
+        }
+        
+        if (scathaPro.variables.runnableNextTick != null)
+        {
+            scathaPro.variables.runnableNextTick.run();
+            scathaPro.variables.runnableNextTick = null;
+        }
+        
+        if (scathaPro.variables.openGuiNextTick != null)
+        {
+            mc.displayGuiScreen(scathaPro.variables.openGuiNextTick);
+            scathaPro.variables.openGuiNextTick = null;
+        }
+        
+        final EntityPlayer player = mc.thePlayer;
+        final World world = player != null ? player.worldObj : null;
+        if (world != null)
+        {
+            long now = TimeUtil.now();
             
-            long now = Util.getCurrentTime();
+            if (scathaPro.variables.cheaterDetected && mc.currentScreen == null)
+            {
+                mc.displayGuiScreen(new FakeBanGui());
+                scathaPro.variables.cheaterDetected = false;
+            }
             
-            if (scathaPro.openGuiNextTick != null) {
-                mc.displayGuiScreen(scathaPro.openGuiNextTick);
-                scathaPro.openGuiNextTick = null;
+            if (mc.currentScreen == null)
+            {
+                if (firstIngameTickPending)
+                {
+                    MinecraftForge.EVENT_BUS.post(new FirstIngameTickEvent());
+                    firstIngameTickPending = false;
+                }
+                
+                if (scathaPro.variables.firstWorldTickPending)
+                {
+                    MinecraftForge.EVENT_BUS.post(new FirstWorldTickEvent(player));
+                    scathaPro.variables.firstWorldTickPending = false;
+                }
             }
             
             
-            EntityPlayer player = mc.thePlayer;
+            if (scathaPro.variables.currentAreaCheckTimeIndex >= 0 && scathaPro.variables.currentAreaCheckTimeIndex < Constants.postWorldJoinAreaCheckTimes.length && Constants.postWorldJoinAreaCheckTimes.length > 0)
+            {
+                int checkTime = Constants.postWorldJoinAreaCheckTimes[scathaPro.variables.currentAreaCheckTimeIndex];
+                if (now - scathaPro.variables.lastWorldJoinTime >= checkTime)
+                {
+                    SkyblockArea area = checkForArea();
+                    
+                    if (area == null)
+                    {
+                        scathaPro.variables.currentAreaCheckTimeIndex ++;
+                        
+                        if (scathaPro.variables.currentAreaCheckTimeIndex >= Constants.postWorldJoinAreaCheckTimes.length)
+                        {
+                            scathaPro.logDebug("No area detected, ran out of tries");
+                        }
+                    }
+                    else
+                    {
+                        scathaPro.variables.currentArea = area;
+                        
+                        if (area == SkyblockArea.NONE) scathaPro.logDebug("No area detected, not in Skyblock");
+                        else
+                        {
+                            scathaPro.logDebug("Area detected: " + area.name() + " - " + checkTime + " ms after world join on try " + (scathaPro.variables.currentAreaCheckTimeIndex + 1) + "/" + Constants.postWorldJoinAreaCheckTimes.length);
+                            
+                            MinecraftForge.EVENT_BUS.post(new SkyblockAreaDetectedEvent(area));
+                        }
+                        
+                        scathaPro.variables.currentAreaCheckTimeIndex = -1;
+                    }
+                }
+            }
             
-            if (player != null) {
-                World world = player.worldObj;
+            if (scathaPro.getConfig().getBoolean(Config.Key.automaticStatsParsing)) parseOpenedChest();
+            
+            
+            if (scathaPro.isInCrystalHollows())
+            {
+                if (scathaPro.variables.firstCrystalHollowsTickPending && mc.currentScreen == null)
+                {
+                    MinecraftForge.EVENT_BUS.post(new FirstCrystalHollowsTickEvent());
+                    scathaPro.variables.firstCrystalHollowsTickPending = false;
+                }
+                
+                MinecraftForge.EVENT_BUS.post(new CrystalHollowsTickEvent(now));
                 
                 
-                if (firstIngameFrame) {
-                    if (Config.instance.getBoolean(Config.Key.automaticUpdateChecks))
-                    	UpdateChecker.checkForUpdate(false);
-                    
-                    firstIngameFrame = false;
+                if (scathaPro.getOverlay().isOverlayDrawAllowed())
+                {
+                    scathaPro.getOverlay().updateRealtimeElements();
                 }
                 
                 
-                if (Config.instance.getBoolean(Config.Key.automaticStatsParsing)) {
-                	checkOpenedChest();
+                // Entity detection
+                
+                DetectedEntity.update(player);
+                
+                // Worm arrow hits
+                
+                ArrayList<Integer> arrowIds = new ArrayList<Integer>(arrowOwners.keySet());
+                for (int i = 0; i < arrowOwners.size(); i ++)
+                {
+                    int arrowID = arrowIds.get(i);
+                    if (world.getEntityByID(arrowID) == null) arrowOwners.remove(arrowID);
                 }
                 
-
-                boolean inCrystalHollows = Util.inCrystalHollows();
-                if (inCrystalHollows) {
+                List<EntityArrow> arrows = world.getEntities(EntityArrow.class, new Predicate<EntityArrow>() {
+                    @Override
+                    public boolean apply(EntityArrow input)
+                    {
+                        return !input.onGround;
+                    }
+                });
+                
+                for (int i = 0; i < arrows.size(); i ++)
+                {
+                    EntityArrow arrow = arrows.get(i);
+                    int id = arrow.getEntityId();
                     
-                    
-                    MinecraftForge.EVENT_BUS.post(new CrystalHollowsTickEvent());
-                    
-                    
-                    // Worm detection
-                    
-                    List<EntityArmorStand> nearbyArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(player.posX, player.posY, player.posZ, player.posX, player.posY, player.posZ).expand(20f, 10f, 20f));
-                    
-                    for (int i = 0; i < nearbyArmorStands.size(); i ++) {
-                        
-                        EntityArmorStand e = nearbyArmorStands.get(i);
-                        int entityID = e.getEntityId();
-                        String entityName = e.getName();
-                        
-                        if (entityName != null && Worm.getByID(entityID) == null && entityName.contains(Util.getUnicodeString("2764"))) {
-                            boolean isRegisteredWorm = scathaPro.registeredWorms.contains(entityID);
-                            
-                            Worm newWorm = null;
-                            
-                            if (StringUtils.stripControlCodes(entityName).contains("[Lv5] Worm "))
-                                newWorm = new Worm(e, false);
-                            else if (StringUtils.stripControlCodes(entityName).contains("[Lv10] Scatha "))
-                                newWorm = new Worm(e, true);
-                            
-                            if (newWorm != null) {
-                                scathaPro.activeWorms.add(newWorm);
-                                
-                                if (!isRegisteredWorm) {
-                                    scathaPro.registeredWorms.add(entityID);
-
-                                    MinecraftForge.EVENT_BUS.post(new WormSpawnEvent(newWorm));
-                                }
-                            }
-                        }
+                    if (!arrowOwners.containsKey(id))
+                    {
+                        EntityPlayer owner = world.getClosestPlayerToEntity(arrow, -1);
+                        arrowOwners.put(id, Util.getUUIDString(owner.getUniqueID()));
                     }
                     
-                    
-                    // Projectile worm hit detection
-                    
-                    List<EntityArrow> arrows = world.getEntities(EntityArrow.class, new Predicate<EntityArrow>() {
-                        @Override
-                        public boolean apply(EntityArrow input) {
-                            return !input.onGround;
-                        }
-                    });
-                    for (int i = 0; i < arrows.size(); i ++) {
-                        EntityArrow arrow = arrows.get(i);
-                        int id = arrow.getEntityId();
-                        
-                        if (!arrowOwners.containsKey(id)) {
-                            EntityPlayer owner = world.getClosestPlayerToEntity(arrow, -1);
-                            arrowOwners.put(id, Util.getUUIDString(owner.getUniqueID()));
-                        }
-                        
-                        if (arrowOwners.get(id).equals(Util.getPlayerUUIDString())) {
-                            List<EntityArmorStand> hitArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(arrow.posX, arrow.posY, arrow.posZ, arrow.posX, arrow.posY, arrow.posZ).expand(3f, 3f, 3f));
-                            for (int j = 0; j < hitArmorStands.size(); j ++) {
-                                EntityArmorStand armorStand = hitArmorStands.get(j);
-                                Worm worm = Worm.getByID(armorStand.getEntityId());
-                                if (worm != null) worm.attack(scathaPro.lastProjectileWeaponUsed);
-                            }
+                    if (arrowOwners.get(id).equals(Util.getPlayerUUIDString()))
+                    {
+                        List<EntityArmorStand> hitArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(arrow.posX, arrow.posY, arrow.posZ, arrow.posX, arrow.posY, arrow.posZ).expand(3f, 3f, 3f));
+                        for (int j = 0; j < hitArmorStands.size(); j ++)
+                        {
+                            EntityArmorStand armorStand = hitArmorStands.get(j);
+                            DetectedWorm worm = DetectedWorm.getById(armorStand.getEntityId());
+                            if (worm != null) worm.attack(scathaPro.variables.lastProjectileWeaponUsed);
                         }
                     }
-                    for (int i = 0; i < arrowOwners.size(); i ++) {
-                        int arrowID = new ArrayList<Integer>(arrowOwners.keySet()).get(i);
-                        if (world.getEntityByID(arrowID) == null) arrowOwners.remove(arrowID);
+                }
+                
+                // Worm fishing hook hits
+                
+                List<EntityFishHook> fishHooks = world.getEntities(EntityFishHook.class, new Predicate<EntityFishHook>() {
+                    @Override
+                    public boolean apply(EntityFishHook input)
+                    {
+                        EntityPlayer player = mc != null ? Minecraft.getMinecraft().thePlayer : null;
+                        return player != null ? input.angler == player : false;
                     }
-                    
-                    List<EntityFishHook> fishHooks = world.getEntities(EntityFishHook.class, new Predicate<EntityFishHook>() {
-                        @Override
-                        public boolean apply(EntityFishHook input) {
-                            Minecraft mc = Minecraft.getMinecraft();
-                            EntityPlayer player = mc != null ? Minecraft.getMinecraft().thePlayer : null;
-                            return player != null ? input.angler == player : false;
-                        }
-                    });
-                    for (int i = 0; i < fishHooks.size(); i ++) {
-                        EntityFishHook hook = fishHooks.get(i);
-                        List<EntityArmorStand> hookedArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(hook.posX, hook.posY, hook.posZ, hook.posX, hook.posY, hook.posZ).expand(3f, 3f, 3f));
-                        for (int j = 0; j < hookedArmorStands.size(); j ++) {
-                            EntityArmorStand armorStand = hookedArmorStands.get(j);
-                            Worm worm = Worm.getByID(armorStand.getEntityId());
-                            if (worm != null) worm.attack(scathaPro.lastProjectileWeaponUsed);
-                        }
+                });
+                
+                for (int i = 0; i < fishHooks.size(); i ++)
+                {
+                    EntityFishHook hook = fishHooks.get(i);
+                    List<EntityArmorStand> hookedArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(hook.posX, hook.posY, hook.posZ, hook.posX, hook.posY, hook.posZ).expand(3f, 3f, 3f));
+                    for (int j = 0; j < hookedArmorStands.size(); j ++)
+                    {
+                        EntityArmorStand armorStand = hookedArmorStands.get(j);
+                        DetectedWorm worm = DetectedWorm.getById(armorStand.getEntityId());
+                        if (worm != null) worm.attack(scathaPro.variables.lastProjectileWeaponUsed);
                     }
-                    
-                    
-                    // Worm kill/despawn detection
-                    
-                    for (int i = scathaPro.activeWorms.size() - 1; i >= 0; i --) {
-                        Worm worm = scathaPro.activeWorms.get(i);
-                        int entityID = worm.armorStand.getEntityId();
-                        
-                        if (world.getEntityByID(entityID) == null) {
-                            if (worm.getLastAttackTime() >= 0 && now - worm.getLastAttackTime() < ScathaPro.pingTreshold || worm.isFireAspectActive()) {
-                                if (worm.isScatha) lastScathaKillTime = now;
-                                MinecraftForge.EVENT_BUS.post(new WormKillEvent(worm));
-                            }
-                            else MinecraftForge.EVENT_BUS.post(new WormDespawnEvent(worm));
-                            
-                            scathaPro.activeWorms.remove(worm);
-                        }
-                    }
-                    
-                    
-                    // Bedrock wall detection
-    
-                    int[] checkDirection = {0, 0};
-                    
-                    switch (Util.getFacing(player)) {
-                        case 0:
-                            checkDirection[1] = -1;
-                            break;
-                        case 1:
-                            checkDirection[0] = 1;
-                            break;
-                        case 2:
-                            checkDirection[1] = 1;
-                            break;
-                        case 3:
-                            checkDirection[0] = -1;
-                            break;
-                    }
-                    
-                    boolean bedrockFound = false;
-                    boolean viewBlocked = false;
-                    BlockPos playerPos = Util.entityBlockPos(player);
-                    
-                    for (int i = 0; i < 10; i ++) {
-                        BlockPos checkPos = playerPos.add(checkDirection[0] * i, 1, checkDirection[1] * i);
-                        Block block = world.getBlockState(checkPos).getBlock();
-                        if (block == Blocks.bedrock) {
-                            bedrockFound = true;
-                            break;
-                        }
-                        else if (block != Blocks.air) viewBlocked = true;
-                    }
-                    
-                    if (!bedrockFound) scathaPro.inBedrockWallRange = false;
-                    else if (!scathaPro.inBedrockWallRange) {
-                        scathaPro.inBedrockWallRange = true;
-                        
-                        if (viewBlocked) MinecraftForge.EVENT_BUS.post(new BedrockWallEvent());
-                    }
-                    
-                    
-                    // Scatha pet drop detection
-                    
-                    ItemStack[] inventory = player.inventory.mainInventory;
-                    
-                    HashMap<Integer, Integer> currentScathaPets = new HashMap<Integer, Integer>();
-    
-                    for (int i = 0; i < inventory.length; i++) {
-                        if (i == 8) continue;
-
-                        ItemStack item = inventory[i];
-                        
-                        if (item != null) {
-                            NBTTagCompound nbt = item.getTagCompound();
-                            
-                            if (nbt != null) {
-                                NBTTagCompound displayNbt = nbt.getCompoundTag("display");
-                                if (displayNbt != null) {
-                                    
-                                    String skyblockItemID = NBTUtil.getSkyblockItemID(item);
-                                    
-                                    if (skyblockItemID != null && skyblockItemID.equals("PET")) {
-
-                                        NBTTagCompound skyblockNbt = NBTUtil.getSkyblockTagCompound(item);
-                                        
-                                        JsonObject petInfo = null;
-                                        try {
-                                            petInfo = new JsonParser().parse(skyblockNbt.getString("petInfo")).getAsJsonObject();
-                                        }
-                                        catch (Exception e) {}
-                                        
-                                        if (petInfo != null) {
-                                            
-                                            String petType = null;
-                                            JsonElement petTypeElement = petInfo.get("type");
-                                            if (petTypeElement.isJsonPrimitive()) {
-                                                JsonPrimitive petTypePrimitive = petTypeElement.getAsJsonPrimitive();
-                                                if (petTypePrimitive.isString()) petType = petTypePrimitive.getAsString();
-                                            }
-                                            
-                                            if (petType != null && petType.equals("SCATHA")) {
-                                                
-                                                String petTier = null;
-                                                JsonElement petTierElement = petInfo.get("tier");
-                                                if (petTierElement.isJsonPrimitive()) {
-                                                    JsonPrimitive petTierPrimitive = petTierElement.getAsJsonPrimitive();
-                                                    if (petTierPrimitive.isString()) petTier = petTierPrimitive.getAsString();
-                                                }
-                                                
-                                                int rarity = 0;
-                                                if (petTier.equals("RARE")) rarity = 1;
-                                                else if (petTier.equals("EPIC")) rarity = 2;
-                                                else if (petTier.equals("LEGENDARY")) rarity = 3;
-                                                
-                                                Integer currentRarityAmount = currentScathaPets.get(rarity);
-                                                currentScathaPets.put(rarity, (currentRarityAmount != null ? currentRarityAmount : 0) + item.stackSize);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    if (scathaPro.previousScathaPets != null) {
-                        
-                        int newScathaPet = -1;
-                        
-                        for (Integer rarityID : currentScathaPets.keySet()) {
-                            int currentRarityCount = currentScathaPets.get(rarityID);
-                            Integer previousRarityCount = scathaPro.previousScathaPets.get(rarityID);
-                            int difference = currentRarityCount - (previousRarityCount != null ? previousRarityCount : 0);
-                            if (difference > 0 && rarityID > newScathaPet) newScathaPet = rarityID;
-                        }
-                        
-                        if (newScathaPet >= 0) {
-                            PetDrop.Rarity rarity = PetDrop.Rarity.UNKNOWN;
-                            
-                            switch (newScathaPet) {
-                                case 1:
-                                    rarity = PetDrop.Rarity.RARE;
-                                    break;
-                                case 2:
-                                    rarity = PetDrop.Rarity.EPIC;
-                                    break;
-                                case 3:
-                                    rarity = PetDrop.Rarity.LEGENDARY;
-                                    break;
-                            }
-
-                            receivedPets.add(new PetDrop(rarity, now));
-                        }
-                    }
-                    
-                    scathaPro.previousScathaPets = currentScathaPets;
-                    
-                    for (int i = receivedPets.size() - 1; i >= 0; i --) {
-                        PetDrop pet = receivedPets.get(i);
-                        if (now - pet.dropTime >= ScathaPro.pingTreshold) {
-                            receivedPets.remove(i);
-                            continue;
-                        }
-                        
-                        if (lastScathaKillTime >= 0 && now - lastScathaKillTime < ScathaPro.pingTreshold) {
-                            MinecraftForge.EVENT_BUS.post(new ScathaPetDropEvent(pet));
-                            receivedPets.remove(i);
-                        }
-                    }
-                    
-                    
-                    // Update UI overlay
-                    
-                    if (Config.instance.getBoolean(Config.Key.overlay) && !Minecraft.getMinecraft().gameSettings.showDebugInfo) {
-                        OverlayManager.instance.updateCoords();
-                        OverlayManager.instance.updateDay();
-                        
-                        OverlayManager.instance.updatePosition();
-
-                        OverlayManager.instance.updateCooldownProgressBar();
-                    }
-                    
                 }
                 
                 
-                // Dev check
+                // Bedrock detection
                 
-                if (now - lastDeveloperCheckTime >= 1000) {
-                    NetHandlerPlayClient netHandler = Minecraft.getMinecraft().getNetHandler();
-                    if (netHandler != null) {
-                        Collection<NetworkPlayerInfo> playerInfos = netHandler.getPlayerInfoMap();
+                boolean bedrockDetected = false;
+                
+                BlockPos playerBlockPos = Util.entityBlockPos(player);
+                int distanceToWall = -1;
+                // BlockPos checkBlockPosBottom = null;
+                
+                int playerDirection = Util.getDirection(player);
+                switch (playerDirection)
+                {
+                    case 0: // -Z
+                        distanceToWall = playerBlockPos.getZ() - Constants.crystalHollowsBoundsMin;
+                        // checkBlockPosBottom = playerBlockPos.north();
+                        break;
+                    case 1: // +X
+                        distanceToWall = Constants.crystalHollowsBoundsMax - playerBlockPos.getX();
+                        // checkBlockPosBottom = playerBlockPos.east();
+                        break;
+                    case 2: // +Z
+                        distanceToWall = Constants.crystalHollowsBoundsMax - playerBlockPos.getZ();
+                        // checkBlockPosBottom = playerBlockPos.south();
+                        break;
+                    case 3: // -X
+                        distanceToWall = playerBlockPos.getX() - Constants.crystalHollowsBoundsMin;
+                        // checkBlockPosBottom = playerBlockPos.west();
+                        break;
+                }
+                distanceToWall -= 1; // being next to the wall should be 0 distance
+                
+                if (bedrockDirectionBefore >= 0 && bedrockDirectionBefore != playerDirection)
+                {
+                    distanceToWallPrevious = -1;
+                    bedrockDetectedThisDirection = false;
+                }
+                bedrockDirectionBefore = playerDirection;
+                
+                int triggerDistance = scathaPro.getConfig().getInt(Config.Key.bedrockWallAlertTriggerDistance);
+                
+                if (distanceToWallPrevious >= 0 && distanceToWallPrevious - distanceToWall == 1)
+                {
+                    if (distanceToWall < triggerDistance
+                        /* ||
+                        checkBlockPosBottom != null &&
+                        (world.getBlockState(checkBlockPosBottom).getBlock() == Blocks.bedrock
+                        || world.getBlockState(checkBlockPosBottom.up()).getBlock() == Blocks.bedrock) */
+                    ) {
+                        bedrockDetected = true;
+                    }
+                }
+                if (distanceToWall >= triggerDistance) bedrockDetectedThisDirection = false;
+                distanceToWallPrevious = distanceToWall;
+                
+                if (bedrockDetected && !bedrockDetectedThisDirection && (lastBedrockDetectionTime < 0 || now - lastBedrockDetectionTime > 1500))
+                {
+                    bedrockDetectedThisDirection = true;
+                    
+                    lastBedrockDetectionTime = now;
+                    MinecraftForge.EVENT_BUS.post(new BedrockWallDetectedEvent());
+                }
+                
+                
+                // Scatha pet drop detection
+                
+                ItemStack[] inventory = player.inventory.mainInventory;
+                
+                HashMap<Integer, Integer> currentScathaPets = new HashMap<Integer, Integer>();
+
+                for (int i = 0; i < inventory.length; i++)
+                {
+                    if (i == 8) continue; // No need to check the Skyblock menu :)
+                    
+                    ItemStack item = inventory[i];
+                    if (item == null) continue;
+                    
+                    String skyblockItemID = NBTUtil.getSkyblockItemID(item);
+                    if (skyblockItemID == null || !skyblockItemID.equals("PET")) continue;
+                    
+                    NBTTagCompound skyblockNbt = NBTUtil.getSkyblockTagCompound(item);
+                    if (skyblockNbt == null) continue;
+                    
+                    JsonObject petInfo = JsonUtil.parseObject(skyblockNbt.getString("petInfo"));
+                    if (petInfo == null) continue;
+                    
+                    String petType = JsonUtil.getString(petInfo, "type");
+                    if (petType == null || !petType.equals("SCATHA")) continue;
+                    
+                    int rarity = 0;
+                    
+                    String petTier = JsonUtil.getString(petInfo, "tier");
+                    if (petTier != null)
+                    {
+                        if (petTier.equals("RARE")) rarity = 1;
+                        else if (petTier.equals("EPIC")) rarity = 2;
+                        else if (petTier.equals("LEGENDARY")) rarity = 3;
+                    }
+                    
+                    Integer currentRarityAmount = currentScathaPets.get(rarity);
+                    currentScathaPets.put(rarity, (currentRarityAmount != null ? currentRarityAmount : 0) + item.stackSize);
+                }
+                
+                if (scathaPro.variables.previousScathaPets != null)
+                {
+                    int newScathaPet = -1;
+                    
+                    for (Integer rarityID : currentScathaPets.keySet())
+                    {
+                        int currentRarityCount = currentScathaPets.get(rarityID);
+                        Integer previousRarityCount = scathaPro.variables.previousScathaPets.get(rarityID);
+                        int difference = currentRarityCount - (previousRarityCount != null ? previousRarityCount : 0);
+                        if (difference > 0 && rarityID > newScathaPet) newScathaPet = rarityID;
+                    }
+                    
+                    if (newScathaPet >= 0)
+                    {
+                        Rarity rarity = null;
                         
-                        boolean developerFound = false;
-                        
-                        for (Iterator<NetworkPlayerInfo> iterator = playerInfos.iterator(); iterator.hasNext();) {
-                            NetworkPlayerInfo p = iterator.next();
-                            
-                            if (Util.isDeveloper(p)) {
-                                if (!developerFoundBefore) MinecraftForge.EVENT_BUS.post(new MeetDeveloperEvent(p));
-                                developerFound = true;
+                        switch (newScathaPet)
+                        {
+                            case 1:
+                                rarity = Rarity.RARE;
                                 break;
-                            }
+                            case 2:
+                                rarity = Rarity.EPIC;
+                                break;
+                            case 3:
+                                rarity = Rarity.LEGENDARY;
+                                break;
                         }
-                        
-                        developerFoundBefore = developerFound;
+
+                        receivedPets.add(new PetDrop(rarity, now));
+                    }
+                }
+                
+                scathaPro.variables.previousScathaPets = currentScathaPets;
+                
+                for (int i = receivedPets.size() - 1; i >= 0; i --) {
+                    PetDrop pet = receivedPets.get(i);
+                    
+                    if (now - pet.dropTime >= Constants.pingTreshold)
+                    {
+                        receivedPets.remove(i);
+                        continue;
                     }
                     
-                    lastDeveloperCheckTime = now;
+                    if (scathaPro.variables.lastScathaKillTime >= 0 && now - scathaPro.variables.lastScathaKillTime < Constants.pingTreshold)
+                    {
+                        MinecraftForge.EVENT_BUS.post(new ScathaPetDropEvent(pet));
+                        receivedPets.remove(i);
+                    }
                 }
                 
                 
-                // Open fake ban screen
+                // Worm spawn cooldown
                 
-                if (mc.currentScreen == null && scathaPro.showFakeBan) {
-                    scathaPro.openGuiNextTick = new FakeBanGui();
-                    
-                    scathaPro.showFakeBan = false;
+                if (scathaPro.variables.wormSpawnCooldownStartTime >= 0)
+                {
+                    if (now - scathaPro.variables.wormSpawnCooldownStartTime < Constants.wormSpawnCooldown)
+                    {
+                        wormSpawnCooldownRunningBefore = true;
+                    }
+                    else
+                    {
+                        if (wormSpawnCooldownRunningBefore) Alert.wormSpawnCooldownEnd.play();
+                        wormSpawnCooldownRunningBefore = false;
+                        scathaPro.variables.wormSpawnCooldownStartTime = -1;
+                    }
                 }
+                else wormSpawnCooldownRunningBefore = false;
+            }
+            
+            
+            if (scathaPro.variables.anomalousDesireReadyTime >= 0L && now >= scathaPro.variables.anomalousDesireReadyTime)
+            {
+                if (now - scathaPro.variables.wormSpawnCooldownStartTime < Constants.wormSpawnCooldown) // spawn cooldown still running
+                {
+                    // delay ability ready time until after cooldown runs out
+                    scathaPro.variables.anomalousDesireReadyTime = scathaPro.variables.wormSpawnCooldownStartTime + Constants.wormSpawnCooldown + 1000;
+                }
+                else
+                {
+                    scathaPro.variables.anomalousDesireReadyTime = -1L;
+                    if (scathaPro.isInCrystalHollows()) Alert.anomalous_desire_ready.play();
+                }
+            }
+
+            if (scathaPro.variables.anomalousDesireStartTime >= 0L && now - scathaPro.variables.anomalousDesireStartTime >= Constants.anomalousDesireEffectDuration)
+            {
+                scathaPro.variables.anomalousDesireStartTime = -1L;
+            }
+            if (scathaPro.variables.anomalousDesireCooldownEndTime >= 0L && now >= scathaPro.variables.anomalousDesireCooldownEndTime)
+            {
+                scathaPro.variables.anomalousDesireCooldownEndTime = -1L;
+            }
+            
+            
+            // Dev check
+            
+            if (now - lastDeveloperCheckTime >= 1000)
+            {
+                checkForDev();
+                
+                lastDeveloperCheckTime = now;
             }
         }
     }
     
-    private void checkOpenedChest() {
-		GuiScreen guiScreen = Minecraft.getMinecraft().currentScreen;
-		if (guiScreen == null) return;
-		if (!(guiScreen instanceof GuiChest)) return;
-		GuiChest chestGui = (GuiChest) guiScreen;
-		
-		if (lastChestCheckedForKillInfo != null && lastChestCheckedForKillInfo == chestGui) return;
-		
-    	IInventory chestInventory = ((ContainerChest) chestGui.inventorySlots).getLowerChestInventory();
-    	
-    	if (!chestInventory.hasCustomName()) {
-    		lastChestCheckedForKillInfo = chestGui;
-    		return;
-    	}
-    	
-    	// Bestiary worms
-    	String wormBestiaryTitle = "Crystal Hollows " + Util.getUnicodeString("279C") + " Worm";
-    	
-        if (chestInventory.getDisplayName().getUnformattedText().equals(wormBestiaryTitle)) {
-        	
-        	int regularWormKills = parseWormKillsFromStack(chestInventory.getStackInSlot(21));
-        	int scathaKills = parseWormKillsFromStack(chestInventory.getStackInSlot(23));
-        	
-        	ScathaPro scathaPro = ScathaPro.getInstance();
-        	
-        	boolean killsUpdated = false;
-        	
-        	if (regularWormKills >= 0) {
-        		if (scathaPro.overallRegularWormKills != regularWormKills) {
-            		scathaPro.overallRegularWormKills = regularWormKills;
-            		OverlayManager.instance.updateWormKills();
-            		killsUpdated = true;
-        		}
-        		else {
-            		lastChestCheckedForKillInfo = chestGui;
-        		}
-        	}
-        	if (scathaKills >= 0) {
-        		if (scathaPro.overallScathaKills != scathaKills) {
-            		scathaPro.overallScathaKills = scathaKills;
-            		OverlayManager.instance.updateScathaKills();
-            		killsUpdated = true;
-        		}
-        		else {
-            		lastChestCheckedForKillInfo = chestGui;
-        		}
-        	}
-        	
-        	if (killsUpdated) {
-        		PersistentData.instance.saveWormKills();
-        		ChatUtil.sendModChatMessage("Updated overall worm kills from bestiary");
-        		lastChestCheckedForKillInfo = chestGui;
-        	}
-        }
-        else {
-        	// Could be an issue if the chest GUI is opened before the custom name gets loaded
-        	// (idk if that's possible)
-    		lastChestCheckedForKillInfo = chestGui;
+    private void checkForDev()
+    {
+        if (scathaPro.getAchievementManager().isAchievementUnlocked(Achievement.meet_developer)) return;
+        
+        NetHandlerPlayClient netHandler = mc.getNetHandler();
+        if (netHandler == null) return;
+        
+        if (
+            netHandler.getPlayerInfo(Constants.devUUID) != null
+            ||
+            (
+                scathaPro.getConfig().getBoolean(Config.Key.devMode)
+                &&
+                netHandler.getPlayerInfo("JuCraft") != null
+            )
+        )
+        {
+            Achievement.meet_developer.unlock();
         }
     }
     
-    private int parseWormKillsFromStack(ItemStack stack) {
-    	
-    	if (stack != null && stack.getTagCompound() != null) {
-    		NBTTagCompound displayTagCompound = stack.getTagCompound().getCompoundTag("display");
-    		if (displayTagCompound != null) {
-    			NBTTagList loreTagList = displayTagCompound.getTagList("Lore", 8);
-    			
-    			String killsLine = StringUtils.stripControlCodes(loreTagList.getStringTagAt(4));
-    			killsLine = killsLine.replace("Kills: ", "");
-    			killsLine = killsLine.replace(",", "");
-    			try {
-    				int kills = Integer.parseInt(killsLine);
-    				return kills;
-    			}
-    			catch (NumberFormatException ignored) {}
-    		}
-    	}
-    	
-    	return -1;
+    private SkyblockArea checkForArea()
+    {
+        if (scathaPro.getConfig().getBoolean(Config.Key.devMode)) return SkyblockArea.CRYSTAL_HOLLOWS;
+        
+        if (mc.isSingleplayer()) return SkyblockArea.NONE;
+        
+        NetHandlerPlayClient netHandler = mc.getNetHandler();
+        if (netHandler != null)
+        {
+            Collection<NetworkPlayerInfo> playerInfos = netHandler.getPlayerInfoMap();
+            for (Iterator<NetworkPlayerInfo> iterator = playerInfos.iterator(); iterator.hasNext();)
+            {
+                NetworkPlayerInfo p = iterator.next();
+                IChatComponent displayName = p.getDisplayName();
+                if (displayName != null && displayName.getUnformattedText().contains("Area:"))
+                {
+                    if (displayName.getUnformattedText().contains("Crystal Hollows")) return SkyblockArea.CRYSTAL_HOLLOWS;
+                    else return SkyblockArea.OTHER;
+                }
+            }
+        }
+        
+        return null;
+    }
+    
+    private void parseOpenedChest()
+    {
+        GuiScreen guiScreen = mc.currentScreen;
+        if (guiScreen == null || !(guiScreen instanceof GuiChest)) return;
+        GuiChest chestGui = (GuiChest) guiScreen;
+        
+        if (lastChestCheckedForKillInfo != null && lastChestCheckedForKillInfo == chestGui) return;
+        
+        IInventory chestInventory = ((ContainerChest) chestGui.inventorySlots).getLowerChestInventory();
+        
+        if (!chestInventory.hasCustomName())
+        {
+            lastChestCheckedForKillInfo = chestGui;
+            return;
+        }
+        
+        // Bestiary worms
+        String wormBestiaryTitle = "Crystal Hollows \u279C Worm";
+        
+        if (chestInventory.getDisplayName().getUnformattedText().equals(wormBestiaryTitle))
+        {
+            int regularWormKills = parseWormKillsFromStack(chestInventory.getStackInSlot(21));
+            int scathaKills = parseWormKillsFromStack(chestInventory.getStackInSlot(23));
+            
+            boolean killsUpdated = false;
+            
+            if (regularWormKills >= 0)
+            {
+                if (scathaPro.variables.regularWormKills != regularWormKills)
+                {
+                    scathaPro.variables.regularWormKills = regularWormKills;
+                    scathaPro.getOverlay().updateWormKills();
+                    killsUpdated = true;
+                }
+                else
+                {
+                    lastChestCheckedForKillInfo = chestGui;
+                }
+            }
+            if (scathaKills >= 0)
+            {
+                if (scathaPro.variables.scathaKills != scathaKills)
+                {
+                    scathaPro.variables.scathaKills = scathaKills;
+                    scathaPro.getOverlay().updateScathaKills();
+                    killsUpdated = true;
+                }
+                else
+                {
+                    lastChestCheckedForKillInfo = chestGui;
+                }
+            }
+            
+            if (killsUpdated)
+            {
+                scathaPro.getPersistentData().saveWormKills();
+                TextUtil.sendModChatMessage("Updated overall worm kills from bestiary");
+                lastChestCheckedForKillInfo = chestGui;
+            }
+        }
+        else
+        {
+            lastChestCheckedForKillInfo = chestGui;
+        }
+    }
+    
+    private int parseWormKillsFromStack(ItemStack stack)
+    {
+        if (stack != null && stack.getTagCompound() != null)
+        {
+            NBTTagCompound displayTagCompound = stack.getTagCompound().getCompoundTag("display");
+            if (displayTagCompound != null)
+            {
+                NBTTagList loreTagList = displayTagCompound.getTagList("Lore", 8);
+                
+                String killsLine = StringUtils.stripControlCodes(loreTagList.getStringTagAt(4));
+                killsLine = killsLine.replace("Kills: ", "");
+                killsLine = killsLine.replace(",", "");
+                try
+                {
+                    int kills = Integer.parseInt(killsLine);
+                    return kills;
+                }
+                catch (NumberFormatException ignored) {}
+            }
+        }
+        
+        return -1;
     }
 }

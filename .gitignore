@@ -1,12 +1,34 @@
+# General
 logs/
 run/
 build/
 .settings/
 .gradle/
-.classpath
-.project
-*.launch
 *.log
 *.lnk
 /*.txt
+
+# Eclipse
 eclipse/
+bin/
+*.launch
+.settings/
+.metadata/
+.classpath
+.project
+
+# IntelliJ
+out/
+classes/
+*.ipr
+*.iws
+*.iml
+.idea/
+
+# VS Code
+.vscode/
+
+# System files
+[Dd]esktop.ini
+Thumbs.db
+.DS_Store

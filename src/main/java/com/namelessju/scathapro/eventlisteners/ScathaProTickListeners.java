@@ -1,0 +1,115 @@
+package com.namelessju.scathapro.eventlisteners;
+
+import com.namelessju.scathapro.ScathaPro;
+import com.namelessju.scathapro.achievements.Achievement;
+import com.namelessju.scathapro.alerts.Alert;
+import com.namelessju.scathapro.events.TickEvent.CrystalHollowsTickEvent;
+import com.namelessju.scathapro.events.TickEvent.FirstCrystalHollowsTickEvent;
+import com.namelessju.scathapro.events.TickEvent.FirstIngameTickEvent;
+import com.namelessju.scathapro.events.TickEvent.FirstWorldTickEvent;
+import com.namelessju.scathapro.managers.Config;
+import com.namelessju.scathapro.managers.UpdateChecker;
+import com.namelessju.scathapro.miscellaneous.ScoreboardParser;
+import com.namelessju.scathapro.util.TextUtil;
+
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+
+public class ScathaProTickListeners extends ScathaProListener
+{
+    private int heatCheckTickTimer = 0; 
+    
+    public ScathaProTickListeners(ScathaPro scathaPro)
+    {
+        super(scathaPro);
+    }
+    
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public void onFirstIngameTick(FirstIngameTickEvent event)
+    {
+        if (scathaPro.getConfig().getBoolean(Config.Key.automaticUpdateChecks))
+        {
+            UpdateChecker.checkForUpdate(false);
+        }
+
+        scathaPro.getAchievementLogicManager().updatePetDropAchievements();
+        scathaPro.getAchievementLogicManager().updateProgressAchievements();
+        scathaPro.getAchievementLogicManager().updateDailyScathaStreakAchievements();
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public void onFirstWorldTick(FirstWorldTickEvent event)
+    {
+        for (IChatComponent message : scathaPro.variables.cachedChatMessages)
+        {
+            TextUtil.sendChatMessage(message);
+        }
+        scathaPro.variables.cachedChatMessages.clear();
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public void onFirstCrystalHollowsTick(FirstCrystalHollowsTickEvent event)
+    {
+        heatCheckTickTimer = 0;
+        
+        if (scathaPro.variables.regularWormKills == 0 && scathaPro.variables.scathaKills == 0 && scathaPro.getConfig().getBoolean(Config.Key.automaticStatsParsing))
+        {
+            TextUtil.sendModChatMessage(EnumChatFormatting.YELLOW + "Open the worm bestiary once to load previous worm kills into the overlay!");
+        }
+
+        for (IChatComponent message : scathaPro.variables.cachedCrystalHollowsMessages)
+        {
+            TextUtil.sendChatMessage(message);
+        }
+        scathaPro.variables.cachedCrystalHollowsMessages.clear();
+    }
+    
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public void onCrystalHollowsTick(CrystalHollowsTickEvent event)
+    {
+        // Sneak start
+        
+        boolean sneaking = mc.thePlayer.isSneaking();
+        if (!scathaPro.variables.sneakingBefore && sneaking)
+        {
+            scathaPro.variables.lastSneakStartTime = event.now;
+        }
+        scathaPro.variables.sneakingBefore = sneaking;
+        
+        
+        // Achievements
+        
+        float hours = (event.now - scathaPro.variables.lastWorldJoinTime) / (1000f*60*60);
+        Achievement.crystal_hollows_time_1.setProgress(hours);
+        Achievement.crystal_hollows_time_2.setProgress(hours);
+        Achievement.crystal_hollows_time_3.setProgress(hours);
+        
+        
+        // Heat check
+        
+        heatCheckTickTimer ++;
+        if (heatCheckTickTimer > 3*20)
+        {
+            heatCheckTickTimer = 0;
+            
+            if (scathaPro.getConfig().getBoolean(Config.Key.highHeatAlert))
+            {
+                int newHeat = ScoreboardParser.parseHeat();
+                
+                if (newHeat > 0)
+                {
+                    int triggerValue = scathaPro.getConfig().getInt(Config.Key.highHeatAlertTriggerValue);
+                    if (newHeat >= triggerValue && scathaPro.variables.lastHeat >= 0 && scathaPro.variables.lastHeat < triggerValue)
+                    {
+                        Alert.highHeat.play();
+                    }
+                }
+                
+                scathaPro.variables.lastHeat = newHeat;
+            }
+            else scathaPro.variables.lastHeat = -1;
+        }
+    }
+}

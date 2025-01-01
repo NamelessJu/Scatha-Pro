@@ -1,198 +1,202 @@
 package com.namelessju.scathapro;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.namelessju.scathapro.achievements.Achievement;
+import com.google.gson.JsonPrimitive;
+import com.namelessju.scathapro.achievements.AchievementLogicManager;
 import com.namelessju.scathapro.achievements.AchievementManager;
-import com.namelessju.scathapro.commands.ChancesCommand;
-import com.namelessju.scathapro.commands.MainCommand;
+import com.namelessju.scathapro.alerts.alertmodes.AlertModeManager;
+import com.namelessju.scathapro.alerts.alertmodes.customalertmode.CustomAlertModeManager;
+import com.namelessju.scathapro.commands.CommandRegistry;
 import com.namelessju.scathapro.eventlisteners.GuiListeners;
 import com.namelessju.scathapro.eventlisteners.LoopListeners;
 import com.namelessju.scathapro.eventlisteners.MiscListeners;
-import com.namelessju.scathapro.eventlisteners.ScathaProListeners;
-import com.namelessju.scathapro.objects.Worm;
-import com.namelessju.scathapro.commands.DevCommand;
+import com.namelessju.scathapro.eventlisteners.ScathaProGameplayListeners;
+import com.namelessju.scathapro.eventlisteners.ScathaProMiscListeners;
+import com.namelessju.scathapro.eventlisteners.ScathaProTickListeners;
+import com.namelessju.scathapro.events.ModUpdateEvent;
+import com.namelessju.scathapro.managers.Config;
+import com.namelessju.scathapro.managers.PersistentData;
+import com.namelessju.scathapro.managers.SaveManager;
+import com.namelessju.scathapro.managers.UpdateChecker;
+import com.namelessju.scathapro.miscellaneous.enums.SkyblockArea;
+import com.namelessju.scathapro.overlay.Overlay;
+import com.namelessju.scathapro.managers.InputManager;
+import com.namelessju.scathapro.util.JsonUtil;
+import com.namelessju.scathapro.util.TextUtil;
 
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraftforge.client.ClientCommandHandler;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.IResourcePack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
-import net.minecraftforge.fml.common.Mod.Instance;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
 @Mod(modid = ScathaPro.MODID, version = ScathaPro.VERSION, name = ScathaPro.MODNAME, clientSideOnly = true)
 public class ScathaPro
 {
     public static final String MODNAME = "Scatha-Pro";
     public static final String MODID = "scathapro";
-    public static final String VERSION = "1.2.3.1";
-    
-    public static final String CHATPREFIX = EnumChatFormatting.GRAY + MODNAME + ": " + EnumChatFormatting.RESET;
-    public static final int pingTreshold = 2000;
+    public static final String VERSION = "1.3";
     
     
-    @Instance(value = MODID)
     private static ScathaPro instance;
-
-    public final Logger logger = LogManager.getLogger(MODID);
+    
+    public final GlobalVariables variables;
+    
+    private Logger logger;
+    private Minecraft minecraft;
+    
+    private Config config;
+    private PersistentData persistentData;
+    private Overlay overlay;
+    private AlertModeManager alertModeManager;
+    private CustomAlertModeManager customAlertModeManager;
+    private AchievementManager achievementManager;
+    private AchievementLogicManager achievementLogicManager;
+    private InputManager inputManager;
+    
+    public final CommandRegistry commandRegistry;
     
     
-    public GuiScreen openGuiNextTick = null;
-    
-    public long lastWorldJoinTime = -1;
-    public List<Integer> registeredWorms = new ArrayList<Integer>();
-    public List<Worm> activeWorms = new ArrayList<Worm>();
-    public boolean inBedrockWallRange = false;
-    public HashMap<Integer, Integer> previousScathaPets = null;
-    
-    public ItemStack lastProjectileWeaponUsed = null;
-    
-    public boolean showFakeBan = false;
-    
-    public long lastProfilesDataRequestTime = -1;
-    public boolean repeatProfilesDataRequest = true;
-
-    public long lastWormSpawnTime = -1;
-    
-    public int overallRegularWormKills = 0;
-    public int overallScathaKills = 0;
-    
-    public int regularWormKills = 0;
-    public int scathaKills = 0;
-    
-    public int wormStreak = 0; // positive -> scatha streak; negative -> regular worm streak
-    
-    public int rarePetDrops = 0;
-    public int epicPetDrops = 0;
-    public int legendaryPetDrops = 0;
-    
-    public int scathaKillsAtLastDrop = -1;
-    
-    public int hardstoneMined = 0;
-    
-    
-    public static ScathaPro getInstance() {
+    public static ScathaPro getInstance()
+    {
         return instance;
     }
     
+    public Minecraft getMinecraft() { return minecraft; }
     
-    @EventHandler
-    public void preInit(FMLPreInitializationEvent event) {
-    	
-        MinecraftForge.EVENT_BUS.register(new LoopListeners());
-        MinecraftForge.EVENT_BUS.register(new GuiListeners());
-        MinecraftForge.EVENT_BUS.register(new MiscListeners());
-        MinecraftForge.EVENT_BUS.register(new ScathaProListeners());
-        // MinecraftForge.EVENT_BUS.register(new HypixelApiListeners());
+    public Config getConfig() { return config; }
+    public PersistentData getPersistentData() { return persistentData; }
+    public Overlay getOverlay() { return overlay; }
+    public AlertModeManager getAlertModeManager() { return alertModeManager; }
+    public CustomAlertModeManager getCustomAlertModeManager() { return customAlertModeManager; }
+    public AchievementManager getAchievementManager() { return achievementManager; }
+    public AchievementLogicManager getAchievementLogicManager() { return achievementLogicManager; }
+    public InputManager getInputManager() { return inputManager; }
+    
+    
+    public ScathaPro()
+    {
+        instance = this;
         
-        ClientCommandHandler.instance.registerCommand(new MainCommand());
-        ClientCommandHandler.instance.registerCommand(new ChancesCommand());
-        ClientCommandHandler.instance.registerCommand(new DevCommand());
+        variables = new GlobalVariables();
+        
+        logger = LogManager.getLogger(MODID);
+        minecraft = Minecraft.getMinecraft();
         
         
         SaveManager.updateOldSaveLocations();
-        Config.instance.loadFile();
+        
+        config = new Config();
+        config.init();
+        
+        achievementManager = new AchievementManager(this);
+        achievementLogicManager = new AchievementLogicManager(this);
+        overlay = new Overlay(this);
+        alertModeManager = new AlertModeManager(config);
+        customAlertModeManager = new CustomAlertModeManager(this);
+        inputManager = new InputManager(this);
+        
+        
+        persistentData = new PersistentData(this);
+        persistentData.loadFile();
+        
+        
+        commandRegistry = new CommandRegistry(this);
     }
     
-    
-    public void updateKillAchievements() {
+    @EventHandler
+    public void init(FMLInitializationEvent event)
+    {
+        MinecraftForge.EVENT_BUS.register(new LoopListeners(this));
+        MinecraftForge.EVENT_BUS.register(new GuiListeners(this));
+        MinecraftForge.EVENT_BUS.register(new MiscListeners(this));
+        MinecraftForge.EVENT_BUS.register(new ScathaProGameplayListeners(this));
+        MinecraftForge.EVENT_BUS.register(new ScathaProTickListeners(this));
+        MinecraftForge.EVENT_BUS.register(new ScathaProMiscListeners(this));
         
-        int lobbyWormKills = regularWormKills + scathaKills;
-        Achievement.lobby_kills_1.setProgress(lobbyWormKills);
-        Achievement.lobby_kills_2.setProgress(lobbyWormKills);
-        Achievement.lobby_kills_3.setProgress(lobbyWormKills);
+        this.commandRegistry.registerCommands();
         
-        int highestRegularWormKills = Math.max(lobbyWormKills, overallRegularWormKills + overallScathaKills);
-        Achievement.worm_kills_1.setProgress(highestRegularWormKills);
-        Achievement.worm_kills_2.setProgress(highestRegularWormKills);
-        Achievement.worm_kills_3.setProgress(highestRegularWormKills);
-        Achievement.worm_kills_4.setProgress(highestRegularWormKills);
-        Achievement.worm_kills_5.setProgress(highestRegularWormKills);
-        Achievement.worm_kills_6.setProgress(highestRegularWormKills);
+        inputManager.register();
         
-        int highestScathaKills = Math.max(scathaKills, overallScathaKills);
-        Achievement.scatha_kills_1.setProgress(highestScathaKills);
-        Achievement.scatha_kills_2.setProgress(highestScathaKills);
-        Achievement.scatha_kills_3.setProgress(highestScathaKills);
-        Achievement.scatha_kills_4.setProgress(highestScathaKills);
-        Achievement.scatha_kills_5.setProgress(highestScathaKills);
-        Achievement.scatha_kills_6.setProgress(highestScathaKills);
-    }
-    
-    public void updateSpawnAchievements() {
-        int scathaStreak = Math.max(0, wormStreak);
-        Achievement.scatha_streak_1.setProgress(scathaStreak);
-        Achievement.scatha_streak_2.setProgress(scathaStreak);
-        Achievement.scatha_streak_3.setProgress(scathaStreak);
-        Achievement.scatha_streak_4.setProgress(scathaStreak);
-        
-        int regularWormStreak = Math.max(0, -wormStreak);
-        Achievement.regular_worm_streak_1.setProgress(regularWormStreak);
-        Achievement.regular_worm_streak_2.setProgress(regularWormStreak);
-        Achievement.regular_worm_streak_3.setProgress(regularWormStreak);
-    }
-    
-    public void updatePetDropAchievements() {
-        Achievement.scatha_pet_drop_1_rare.setProgress(rarePetDrops);
-        Achievement.scatha_pet_drop_2_rare.setProgress(rarePetDrops);
-        Achievement.scatha_pet_drop_3_rare.setProgress(rarePetDrops);
-        
-        Achievement.scatha_pet_drop_1_epic.setProgress(epicPetDrops);
-        Achievement.scatha_pet_drop_2_epic.setProgress(epicPetDrops);
-        Achievement.scatha_pet_drop_3_epic.setProgress(epicPetDrops);
-        
-        Achievement.scatha_pet_drop_1_legendary.setProgress(legendaryPetDrops);
-        Achievement.scatha_pet_drop_2_legendary.setProgress(legendaryPetDrops);
-        Achievement.scatha_pet_drop_3_legendary.setProgress(legendaryPetDrops);
-        
-        Achievement.scatha_pet_drop_each.setProgress(
-                (rarePetDrops > 0 ? 1 : 0)
-                +
-                (epicPetDrops > 0 ? 1 : 0)
-                +
-                (legendaryPetDrops > 0 ? 1 : 0)
-        );
-        
-        int totalPetDrops = rarePetDrops + epicPetDrops + legendaryPetDrops;
-        Achievement.scatha_pet_drop_any_1.setProgress(totalPetDrops);
-        Achievement.scatha_pet_drop_any_2.setProgress(totalPetDrops);
-    }
-    
-    public void updateProgressAchievements() {
-        int nonHiddenAchievements = 0;
-        int unlockedNonHiddenAchievements = 0;
-        
-        Achievement[] achievements = AchievementManager.getAllAchievements();
-        
-        for (int i = 0; i < achievements.length; i ++) {
-            Achievement a = achievements[i];
-            if (a.type != Achievement.Type.HIDDEN) {
-                nonHiddenAchievements ++;
-                if (AchievementManager.instance.isAchievementUnlocked(a)) unlockedNonHiddenAchievements ++;
-            }
+        try
+        {
+            List<IResourcePack> defaultResourcePacks = ReflectionHelper.getPrivateValue(Minecraft.class, minecraft, "field_110449_ao", "defaultResourcePacks");
+            defaultResourcePacks.add(customAlertModeManager.resourcePack);
+            
+            log("Custom alert mode resource pack injected as a default resource pack");
+        }
+        catch (Exception e)
+        {
+            TextUtil.sendModErrorMessage("Failed to set up custom alert mode resource pack - vanilla sounds will play instead!");
+            
+            e.printStackTrace();
+            logError("Custom alert mode resource pack injection failed");
         }
         
-        float unlockedNonHiddenAchievementsPercentage = (float) unlockedNonHiddenAchievements / nonHiddenAchievements;
-        if (unlockedNonHiddenAchievementsPercentage >= 1f) Achievement.achievements_unlocked_all.setProgress(Achievement.achievements_unlocked_all.goal);
-        else if (unlockedNonHiddenAchievementsPercentage >= 0.5f) Achievement.achievements_unlocked_half.setProgress(Achievement.achievements_unlocked_half.goal);
+        
+        boolean saveCurrentVersion = false;
+        
+        String lastUsedVersion = JsonUtil.getString(persistentData.getData(), "global/lastUsedVersion");
+        if (lastUsedVersion == null) saveCurrentVersion = true;
+        else if (UpdateChecker.compareVersions(lastUsedVersion, ScathaPro.VERSION) != 0)
+        {
+            logDebug("Mod update detected");
+            MinecraftForge.EVENT_BUS.post(new ModUpdateEvent(lastUsedVersion, ScathaPro.VERSION));
+            saveCurrentVersion = true;
+        }
+        
+        if (saveCurrentVersion) 
+        {
+            JsonUtil.set(persistentData.getData(), "global/lastUsedVersion", new JsonPrimitive(ScathaPro.VERSION));
+            persistentData.saveData();
+        }
+        
+        
+        overlay.updateOverlayFull();
     }
     
     
-    public void resetPreviousScathaPets() {
-        previousScathaPets = null;
+    public void log(String message)
+    {
+        log(Level.INFO, message);
     }
     
-    /*
-    public boolean profilesDataRequestNeeded() {
-        return Util.inCrystalHollows() && (overallRegularWormKills < 0 || overallScathaKills < 0);
+    public void logWarning(String message)
+    {
+        log(Level.WARN, message);
     }
-    */
+    
+    public void logError(String message)
+    {
+        log(Level.ERROR, message);
+    }
+    
+    public void logDebug(String message)
+    {
+        if (config.getBoolean(Config.Key.debugLogs)) log(Level.INFO, "(DEBUG) " + message);
+    }
+    
+    public void log(Level level, String message)
+    {
+        logger.log(level, "[" + MODNAME + "] " + message);
+    }
+    
+    
+    public boolean isInCrystalHollows()
+    {
+        return variables.currentArea == SkyblockArea.CRYSTAL_HOLLOWS;
+    }
+    
+    public boolean isScappaModeActive()
+    {
+        return variables.scappaModeUnlocked && (variables.scappaModeActiveTemp || getConfig().getBoolean(Config.Key.scappaMode));
+    }
+    
 }

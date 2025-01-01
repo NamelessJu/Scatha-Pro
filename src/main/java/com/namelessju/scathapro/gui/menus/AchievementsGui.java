@@ -4,24 +4,27 @@ import java.io.IOException;
 
 import org.lwjgl.input.Mouse;
 
+import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.gui.elements.AchievementsList;
-import com.namelessju.scathapro.gui.elements.DoneButton;
+import com.namelessju.scathapro.gui.elements.SubMenuButton;
 
-import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 
-public class AchievementsGui extends ScathaProGui {
-    
+public class AchievementsGui extends ScathaProGui
+{
+    private float heightFactor = 1f;
     private AchievementsList achievementsList;
     
     @Override
-    public String getTitle() {
+    public String getTitle()
+    {
         return "Achievements";
     }
 
-    public AchievementsGui(GuiScreen parentGui) {
-        super(parentGui);
+    public AchievementsGui(ScathaPro scathaPro, GuiScreen parentGui)
+    {
+        super(scathaPro, parentGui);
     }
 
     @Override
@@ -30,29 +33,27 @@ public class AchievementsGui extends ScathaProGui {
         super.initGui();
         
         ScaledResolution scaledResolution = new ScaledResolution(mc);
-        float heightFactor = (height * scaledResolution.getScaleFactor()) / 1080f;
-
+        heightFactor = (height * scaledResolution.getScaleFactor()) / 1080f;
         
+        initializeAchievementsList();
+        
+        elements.add(new SubMenuButton(1, width / 2 - 100, Math.round(height - 24 - 50 * heightFactor), 200, 20, "Achievement Settings...", this, AchievementSettingsGui.class));
+        
+        addDoneButton("Close", width / 2 - 100, Math.round(height - 50 * heightFactor), 200, 20);
+    }
+    
+    private void initializeAchievementsList()
+    {
         int achievementsListWidth = 310;
         int achievementsListX = width / 2 - achievementsListWidth / 2;
-        int achievementsListY = 41;
+        int achievementsListY = 42;
         int achievementsListHeight = Math.round(height - achievementsListY - 20 - 50 * heightFactor - 10);
         achievementsList = new AchievementsList(achievementsListX, achievementsListY, achievementsListWidth, achievementsListHeight);
-        
-        buttonList.add(new DoneButton(504704399, width / 2 - 100, Math.round(height - 20 - 50 * heightFactor), 200, 20, "Close", this));
     }
     
     @Override
-    protected void actionPerformed(GuiButton button) throws IOException
+    public void handleMouseInput() throws IOException
     {
-    	super.actionPerformed(button);
-    	
-        if (button.enabled && button.id == 504704399)
-            openParentGui();
-    }
-    
-    @Override
-    public void handleMouseInput() throws IOException {
         super.handleMouseInput();
         
         int mouseY = this.height - Mouse.getEventY() * this.height / this.mc.displayHeight - 1;

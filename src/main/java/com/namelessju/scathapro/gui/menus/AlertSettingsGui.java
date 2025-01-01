@@ -2,71 +2,96 @@ package com.namelessju.scathapro.gui.menus;
 
 import java.io.IOException;
 
-import com.namelessju.scathapro.Config;
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.gui.elements.BooleanSettingButton;
-import com.namelessju.scathapro.gui.elements.DoneButton;
+import com.namelessju.scathapro.alerts.alertmodes.AlertMode;
+import com.namelessju.scathapro.alerts.alertmodes.AlertModeButtonOption;
+import com.namelessju.scathapro.alerts.alertmodes.customalertmode.CustomAlertMode;
+import com.namelessju.scathapro.gui.elements.CycleButton;
+import com.namelessju.scathapro.gui.elements.CycleButton.IOptionChangedListener;
+import com.namelessju.scathapro.gui.elements.ScathaProButton;
+import com.namelessju.scathapro.gui.elements.SubMenuButton;
+import com.namelessju.scathapro.gui.lists.AlertsGuiList;
+import com.namelessju.scathapro.managers.Config;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraftforge.fml.client.config.GuiSlider;
+import net.minecraft.util.EnumChatFormatting;
 
-public class AlertSettingsGui extends ScathaProGui implements GuiSlider.ISlider {
+public class AlertSettingsGui extends ScathaProGui
+{
+    private ScathaProButton customAlertModeEditButton;
+    
+    private boolean modeChanged = false;
+    
+    public AlertSettingsGui(ScathaPro scathaPro, GuiScreen parentGui)
+    {
+        super(scathaPro, parentGui);
+    }
     
     @Override
-    public String getTitle() {
+    public String getTitle()
+    {
         return "Alert Settings";
     }
     
-
-    public AlertSettingsGui(GuiScreen parentGui) {
-        super(parentGui);
-    }
-
     @Override
-    public void initGui() {
+    public void initGui()
+    {
         super.initGui();
         
-        double volume = Config.instance.getDouble(Config.Key.volume);
-        buttonList.add(new GuiSlider(504704401, width / 2 - 155, height / 6 - 12, 310, 20, "Alert Volume: ", "%", 0, 100, volume * 100, false, true, this));
-
-        buttonList.add(new BooleanSettingButton(504704404, width / 2 - 155, height / 6 + 48 - 6, 150, 20, "Worm Pre-Spawn Alert", Config.Key.wormPreAlert));
-        buttonList.add(new BooleanSettingButton(504704402, width / 2 + 5, height / 6 + 48 - 6, 150, 20, "Worm Spawn Alert", Config.Key.wormAlert));
-        buttonList.add(new BooleanSettingButton(504704403, width / 2 - 155, height / 6 + 72 - 6, 150, 20, "Scatha Spawn Alert", Config.Key.scathaAlert));
-        buttonList.add(new BooleanSettingButton(504704405, width / 2 + 5, height / 6 + 72 - 6, 150, 20, "Bedrock Wall Alert", Config.Key.wallAlert));
-        buttonList.add(new BooleanSettingButton(504704406, width / 2 - 155, height / 6 + 96 - 6, 150, 20, "Scatha Pet Drop Alert", Config.Key.petAlert));
+        elements.add(new CycleButton<AlertMode>(1, width / 2 - 155, 35, 150, 20, "Alert Mode", AlertModeButtonOption.getAllOptions(), scathaPro.getAlertModeManager().getCurrentMode(), new IOptionChangedListener<AlertMode>() {
+            @Override
+            public void onChange(CycleButton<AlertMode> button)
+            {
+                Config config = scathaPro.getConfig();
+                config.set(Config.Key.mode, button.getSelectedValue().id);
+                config.save();
+            }
+        }));
+        elements.add(customAlertModeEditButton = new SubMenuButton(2, width / 2 + 5, 35, 150, 20, "Custom Alert Modes...", this, CustomAlertModeGui.class));
+        updateModeButtons();
         
-        buttonList.add(new DoneButton(504704499, width / 2 - 100, height / 6 + 168, 200, 20, "Done", this));
+        scrollList = new AlertsGuiList(this);
+        
+        addDoneButton(this.width / 2 - 100, this.height - 30, 200, 20);
     }
     
     @Override
-    protected void actionPerformed(GuiButton button) throws IOException {
-    	super.actionPerformed(button);
-    	
-        if (button.enabled) {
-            switch (button.id) {
-            	
-                case 504704406:
-                    if (Config.instance.getBoolean(Config.Key.petAlert)) {
-                    	ScathaPro.getInstance().resetPreviousScathaPets();
-                    }
-                    break;
-            }
-        }
-    }
-
-    @Override
-    public void onChangeSliderValue(GuiSlider slider) {
-        if (slider.enabled) {
-            switch (slider.id) {
-                case 504704401:
-                    double volume = (double) slider.getValueInt() / 100;
-                    
-                    Config.instance.set(Config.Key.volume, volume);
-                    Config.instance.save();
-                    break;
-            }
+    protected void actionPerformed(GuiButton button)
+    {
+        super.actionPerformed(button);
+        
+        switch (button.id)
+        {
+            case 1:
+                modeChanged = true;
+                break;
         }
     }
     
+    @Override
+    protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException
+    {
+        super.mouseClicked(mouseX, mouseY, mouseButton);
+        
+        if (modeChanged)
+        {
+            updateModeButtons();
+            modeChanged = false;
+        }
+    }
+    
+    private void updateModeButtons()
+    {
+        if (scathaPro.getAlertModeManager().getCurrentMode() instanceof CustomAlertMode)
+        {
+            customAlertModeEditButton.enabled = true;
+            customAlertModeEditButton.getTooltip().setText(null);
+        }
+        else
+        {
+            customAlertModeEditButton.enabled = false;
+            customAlertModeEditButton.getTooltip().setText(EnumChatFormatting.YELLOW + "Select \"Custom\" to access custom alert mode settings", 150);
+        }
+    }
 }
