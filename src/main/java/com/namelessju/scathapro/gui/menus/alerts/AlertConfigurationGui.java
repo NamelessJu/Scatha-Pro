@@ -1,19 +1,20 @@
-package com.namelessju.scathapro.gui.menus;
+package com.namelessju.scathapro.gui.menus.alerts;
 
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.alerts.Alert;
 import com.namelessju.scathapro.gui.elements.ScathaProSlider;
+import com.namelessju.scathapro.gui.menus.ScathaProGui;
 import com.namelessju.scathapro.gui.elements.ScathaProLabel;
 import com.namelessju.scathapro.managers.Config;
 
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraftforge.fml.client.config.GuiSlider;
 
-public class AlertIndividualConfigGui extends ScathaProGui implements GuiSlider.ISlider
+public class AlertConfigurationGui extends ScathaProGui implements GuiSlider.ISlider
 {
     private final Config config;
     
-    public AlertIndividualConfigGui(ScathaPro scathaPro, GuiScreen parentGui)
+    public AlertConfigurationGui(ScathaPro scathaPro, GuiScreen parentGui)
     {
         super(scathaPro, parentGui);
         

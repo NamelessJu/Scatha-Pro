@@ -6,7 +6,20 @@ public abstract class OverlayElement
 {
     public static enum Alignment
     {
-        LEFT, CENTER, RIGHT;
+        LEFT("Left"), CENTER("Center"), RIGHT("Right");
+        
+        private String name;
+        
+        Alignment(String name)
+        {
+            this.name = name;
+        }
+        
+        @Override
+        public String toString()
+        {
+            return name;
+        }
     }
     
     protected int x, y;
@@ -14,6 +27,7 @@ public abstract class OverlayElement
     protected Alignment alignment = Alignment.LEFT;
     protected boolean visible = true;
     protected int marginRight = 0, marginBottom = 0;
+    public boolean expandsContainerSize = true;
     
     public OverlayElement(int x, int y, float scale)
     {
@@ -39,45 +53,37 @@ public abstract class OverlayElement
     
     public void draw()
     {
-        draw(true, this.alignment);
+        draw(true, true, this.alignment);
     }
     
-    public void drawUnaligned()
-    {
-        draw(false, null);
-    }
-    
-    public void draw(boolean positioned, Alignment alignment)
+    public void draw(boolean positioned, boolean scaled, Alignment alignment)
     {
         if (!visible) return;
-
-        GlStateManager.enableBlend();
-        GlStateManager.enableAlpha();
         
         GlStateManager.pushMatrix();
         
         if (positioned) GlStateManager.translate(x, y, 0);
-        
-        GlStateManager.scale(scale, scale, scale);
         
         if (alignment != null)
         {
             switch (alignment)
             {
                 case CENTER:
-                    GlStateManager.translate(-getWidth() / 2, 0, 0);
+                    GlStateManager.translate(-Math.floor((getWidth() * scale) / 2f), 0, 0);
                     break;
                 case RIGHT:
-                    GlStateManager.translate(-getWidth(), 0, 0);
+                    GlStateManager.translate(-Math.floor(getWidth() * scale), 0, 0);
                     break;
                 default: break;
             }
         }
         
+        if (scaled) GlStateManager.scale(scale, scale, 1f);
+        
         drawSpecific();
         
         GlStateManager.popMatrix();
-        GlStateManager.color(1f, 1f, 1f);
+        GlStateManager.resetColor();
     }
     
     protected abstract void drawSpecific();

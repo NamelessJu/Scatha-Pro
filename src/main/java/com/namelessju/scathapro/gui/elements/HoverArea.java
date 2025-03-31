@@ -10,7 +10,7 @@ public class HoverArea extends ScathaProButton
     
     public void setText(String text)
     {
-        super.displayString = "[HOVER] " + text;
+        super.displayString = "[Hover] " + text;
     }
     
     @Override

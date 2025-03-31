@@ -1,6 +1,7 @@
 package com.namelessju.scathapro.gui.elements;
 
 import com.namelessju.scathapro.ScathaPro;
+import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiIngame;
@@ -32,14 +33,13 @@ public class ImageButton extends ScathaProButton
     
     protected void drawImage()
     {
-        GlStateManager.enableAlpha();
-        GlStateManager.color(1f, 1f, 1f);
         Minecraft.getMinecraft().renderEngine.bindTexture(resourceLocation);
-        
         GlStateManager.pushMatrix();
         GlStateManager.translate(xPosition + width/2 - (textureWidth * textureScale)/2, yPosition + height/2 - (textureHeight * textureScale)/2 - 0.5f, 0);
         GlStateManager.scale(textureScale, textureScale, 1);
+        Util.startImageRendering();
         GuiIngame.drawModalRectWithCustomSizedTexture(0, 0, 0, 0, textureWidth, textureHeight, textureWidth, textureHeight);
+        Util.endImageRendering();
         GlStateManager.popMatrix();
     }
 

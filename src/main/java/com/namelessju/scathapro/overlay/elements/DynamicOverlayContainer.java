@@ -1,6 +1,8 @@
 package com.namelessju.scathapro.overlay.elements;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 
 public class DynamicOverlayContainer extends OverlayContainer
@@ -11,17 +13,18 @@ public class DynamicOverlayContainer extends OverlayContainer
     }
     
     public Direction direction;
-    protected Alignment contentAlignment = null;
+    protected Alignment contentAlignment = Alignment.LEFT;
     
     public DynamicOverlayContainer(int x, int y, float scale, Direction direction)
     {
         super(x, y, scale);
+        if (direction == null) throw new IllegalArgumentException("DynamicOverlayContainer direction cannot be null!");
         this.direction = direction;
     }
     
     public void setContentAlignment(Alignment alignment)
     {
-        this.contentAlignment = alignment;
+        this.contentAlignment = alignment != null ? alignment : Alignment.LEFT;
     }
     
     public Alignment getContentAlignment()
@@ -34,7 +37,7 @@ public class DynamicOverlayContainer extends OverlayContainer
     {
         int contentWidth = getContentWidth();
         
-        if (backgroundColor >= 0) Gui.drawRect(0, 0, getWidth(contentWidth), getHeight(), backgroundColor);
+        if (backgroundColor != null) Gui.drawRect(0, 0, getWidth(contentWidth), getHeight(), backgroundColor);
         
         boolean firstVisible = true;
         int previousChildMargin = 0;
@@ -67,7 +70,7 @@ public class DynamicOverlayContainer extends OverlayContainer
                             break;
                     }
                     
-                    child.draw(false, contentAlignment);
+                    child.draw(false, true, contentAlignment);
                     
                     previousChildMargin = child.marginBottom;
                     break;
@@ -76,7 +79,7 @@ public class DynamicOverlayContainer extends OverlayContainer
                     directionOffset = firstVisible ? 0 : Math.max(child.getX(), previousChildMargin);
                     GlStateManager.translate(directionOffset, child.getY(), 0);
                     
-                    child.drawUnaligned();
+                    child.draw(false, true, null);
                     
                     previousChildMargin = child.marginRight;
                     break;
@@ -120,7 +123,7 @@ public class DynamicOverlayContainer extends OverlayContainer
         
         for (OverlayElement child : children)
         {
-            if (!child.isVisible() || isElementEmptyContainer(child)) continue;
+            if (!child.expandsContainerSize || !child.isVisible() || isElementEmptyContainer(child)) continue;
             
             int currentWidth;
             switch (direction)
@@ -165,7 +168,7 @@ public class DynamicOverlayContainer extends OverlayContainer
         
         for (OverlayElement child : children)
         {
-            if (!child.isVisible() || isElementEmptyContainer(child)) continue;
+            if (!child.expandsContainerSize || !child.isVisible() || isElementEmptyContainer(child)) continue;
             
             int currentHeight;
             switch (direction)
@@ -188,5 +191,37 @@ public class DynamicOverlayContainer extends OverlayContainer
         }
         
         return height;
+    }
+    
+    public void setResponsivePosition(float screenXPercentage, float screenYPercentage, int fallbackX, int fallbackY, OverlayElement.Alignment contentAlignment)
+    {
+        ScaledResolution scaledResolution = new ScaledResolution(Minecraft.getMinecraft());
+        
+        int positionX, positionY;
+        
+        if (0f <= screenXPercentage && screenXPercentage <= 1f)
+        {
+            positionX = (int) Math.round((scaledResolution.getScaledWidth() - getScaledWidth()) * screenXPercentage);
+        }
+        else positionX = fallbackX;
+        
+        if (0f <= screenYPercentage && screenYPercentage <= 1f)
+        {
+            positionY = (int) Math.round((scaledResolution.getScaledHeight() - getScaledHeight()) * screenYPercentage);
+        }
+        else positionY = fallbackY;
+        
+        setPosition(positionX, positionY);
+        
+        if (contentAlignment != null)
+        {
+            setContentAlignment(contentAlignment);
+        }
+        else
+        {
+            if (screenXPercentage == 0.5) setContentAlignment(OverlayElement.Alignment.CENTER);
+            else if (screenXPercentage > 0.5) setContentAlignment(OverlayElement.Alignment.RIGHT);
+            else setContentAlignment(OverlayElement.Alignment.LEFT);
+        }
     }
 }

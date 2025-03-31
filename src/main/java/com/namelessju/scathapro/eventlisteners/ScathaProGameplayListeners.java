@@ -17,7 +17,10 @@ import com.namelessju.scathapro.events.WormKillEvent;
 import com.namelessju.scathapro.events.WormPreSpawnEvent;
 import com.namelessju.scathapro.events.WormSpawnEvent;
 import com.namelessju.scathapro.managers.Config;
+import com.namelessju.scathapro.managers.ScreenshotManager;
+import com.namelessju.scathapro.miscellaneous.enums.Rarity;
 import com.namelessju.scathapro.miscellaneous.enums.WormStatsType;
+import com.namelessju.scathapro.parsing.PlayerListParser;
 import com.namelessju.scathapro.util.TextUtil;
 import com.namelessju.scathapro.util.NBTUtil;
 import com.namelessju.scathapro.util.SoundUtil;
@@ -136,7 +139,7 @@ public class ScathaProGameplayListeners extends ScathaProListener
             
             if (scathaPro.isScappaModeActive())
             {
-                SoundUtil.playMovingSound(ScathaPro.MODID + ":scappa", 1f, 1f, event.worm.getEntity());
+                event.worm.playScappaSound();
             }
         }
         // Regular worm spawn
@@ -153,7 +156,7 @@ public class ScathaProGameplayListeners extends ScathaProListener
                 int secondsSinceLastSpawn = (int) Math.floor(event.timeSincePreviousSpawn / 1000D);
                 String timeString;
                 if (secondsSinceLastSpawn < 60) timeString = secondsSinceLastSpawn + " seconds";
-                else timeString = Util.numberToString(secondsSinceLastSpawn / 60D, 1, true, RoundingMode.FLOOR) + " minutes";
+                else timeString = TextUtil.numberToString(secondsSinceLastSpawn / 60D, 1, true, RoundingMode.FLOOR) + " minutes";
                 TextUtil.sendModChatMessage(EnumChatFormatting.GRAY + "Worm spawned " + timeString + " after previous worm");
             }
         }
@@ -176,15 +179,31 @@ public class ScathaProGameplayListeners extends ScathaProListener
     @SubscribeEvent(priority = EventPriority.HIGH)
     public void onWormKill(WormKillEvent event)
     {
+        PlayerListParser.parseProfileStats();
+        
         DetectedWorm worm = event.worm;
         if (worm.isScatha)
         {
             scathaPro.variables.addScathaKill();
             scathaPro.variables.lastScathaKillTime = TimeUtil.now();
             
-            if (worm.getHitWeaponsCount() >= Achievement.kill_weapons_scatha.goal) Achievement.kill_weapons_scatha.unlock();
+            if (TimeUtil.isAprilFools && TimeUtil.getCurrentYear() != scathaPro.variables.lastAprilFoolsJokeShownYear)
+            {
+                TextUtil.sendPetDropMessage(Rarity.RARE, 123);
+                
+                if (scathaPro.getConfig().getBoolean(Config.Key.scathaPetDropAlert))
+                {
+                    SoundUtil.playSound("random.chestopen", 1.5f, 0.95f);
+                    Alert.scathaPetDrop.play(EnumChatFormatting.BLUE + "RARE");
+                }
+                
+                scathaPro.variables.aprilFoolsJokeRevealTickTimer = 40;
+            }
+            
             if (worm.getHitWeaponsCount() > 0)
             {
+                if (worm.getHitWeaponsCount() >= Achievement.kill_weapons_scatha.goal) Achievement.kill_weapons_scatha.unlock();
+                
                 String lastHitWeapon = worm.getHitWeapons()[worm.getHitWeaponsCount() - 1];
                 if (lastHitWeapon.equals("TERMINATOR")) Achievement.scatha_kill_terminator.unlock();
                 else if (lastHitWeapon.equals("JUJU_SHORTBOW")) Achievement.scatha_kill_juju.unlock();
@@ -216,7 +235,7 @@ public class ScathaProGameplayListeners extends ScathaProListener
                     scathaPro.getPersistentData().saveMiscData();
                     
                     TextUtil.sendChatDivider();
-                    TextUtil.sendModChatMessage(TextUtil.getRainbowText("Scappa mode unlocked!") + "\n" + EnumChatFormatting.GRAY + "This was a 1/250 chance per Scatha kill. It will stay active for this game session, afterwards you can from now on toggle it freely under Scatha-Pro Settings > Miscellaneous.");
+                    TextUtil.sendModChatMessage(TextUtil.getRainbowText("Scappa mode unlocked!") + "\n" + EnumChatFormatting.GRAY + "This was a 1/250 chance per Scatha kill. It will stay active for this game session, afterwards you can from now on toggle it freely under " + ScathaPro.DYNAMIC_MODNAME + " Settings > Miscellaneous.");
                     TextUtil.sendChatDivider();
                     
                     Achievement.scappa_mode.unlock();
@@ -255,7 +274,7 @@ public class ScathaProGameplayListeners extends ScathaProListener
     public void onScathaPetDrop(ScathaPetDropEvent event)
     {
         String rarityTitle;
-
+        
         switch (event.petDrop.rarity)
         {
             case RARE:
@@ -335,11 +354,18 @@ public class ScathaProGameplayListeners extends ScathaProListener
             scathaPro.getAchievementLogicManager().updateDryStreakAchievements();
         }
         
+        scathaPro.variables.dropDryStreakInvalidated = false;
         scathaPro.variables.lastPetDropTime = TimeUtil.now(); 
         
         scathaPro.getPersistentData().savePetDrops();
         
         scathaPro.getOverlay().updatePetDrops();
+        
+        
+        if (scathaPro.getConfig().getBoolean(Config.Key.automaticPetDropScreenshot))
+        {
+            ScreenshotManager.takeChatScreenshot();
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)

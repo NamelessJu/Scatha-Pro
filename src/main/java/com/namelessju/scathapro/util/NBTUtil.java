@@ -125,6 +125,20 @@ public class NBTUtil
         
         return -1;
     }
+    
+    public static NBTTagList getLore(ItemStack itemStack)
+    {
+        if (itemStack != null && itemStack.getTagCompound() != null)
+        {
+            NBTTagCompound displayTagCompound = itemStack.getTagCompound().getCompoundTag("display");
+            if (displayTagCompound != null)
+            {
+                return displayTagCompound.getTagList("Lore", 8);
+            }
+        }
+        
+        return null;
+    }
 
 
     private NBTUtil() {}

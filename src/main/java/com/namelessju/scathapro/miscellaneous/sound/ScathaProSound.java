@@ -1,4 +1,4 @@
-package com.namelessju.scathapro.miscellaneous;
+package com.namelessju.scathapro.miscellaneous.sound;
 
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.managers.Config;
@@ -41,7 +41,7 @@ public class ScathaProSound implements ISound
     @Override
     public float getVolume()
     {
-        return volume * MathHelper.clamp_float((float) ScathaPro.getInstance().getConfig().getDouble(Config.Key.soundsVolume), 0f, 1f);
+        return MathHelper.clamp_float(volume * (float) ScathaPro.getInstance().getConfig().getDouble(Config.Key.soundsVolume), 0f, 1f);
     }
     
     @Override

@@ -86,13 +86,13 @@ public class FileChooser
                 if (activeFileChooser.dialogFrame == thisFrame)
                 {
                     activeFileChooser = null;
-                    if (!mc.gameSettings.fullScreen && fullscreenBeforeOpeningFileDialog) ScathaPro.getInstance().variables.runnableNextTick = new Runnable() {
+                    if (!mc.gameSettings.fullScreen && fullscreenBeforeOpeningFileDialog) ScathaPro.getInstance().variables.runNextTick.add(new Runnable() {
                         @Override
                         public void run()
                         {
                             mc.toggleFullscreen();
                         }
-                    };
+                    });
                     fullscreenBeforeOpeningFileDialog = false;
                 }
                 

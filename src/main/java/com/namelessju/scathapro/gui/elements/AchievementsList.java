@@ -209,7 +209,7 @@ public class AchievementsList extends Gui
             }
             else emptyListText = "No achievements found";
             
-            fontRenderer.drawString(emptyListText, xPosition + width/2 - TextUtil.getStringWidth(emptyListText)/2, yPosition + height/2 - 4, Util.Color.GRAY.getValue(), true);
+            fontRenderer.drawString(emptyListText, xPosition + width/2 - TextUtil.getStringWidth(emptyListText)/2, yPosition + height/2 - 4, Util.Color.GRAY, true);
         }
 
         int scrollBarWidth = 2;
@@ -226,7 +226,7 @@ public class AchievementsList extends Gui
         this.scrollBarHovered = mouseX >= scrollBarX - 2 && mouseY >= scrollBarY && mouseX < scrollBarX + scrollBarWidth + 2 && mouseY < scrollBarY + scrollBarHeight;
         
         
-        fontRenderer.drawString(unlockedAchievementsString, xPosition + width/2 - TextUtil.getStringWidth(unlockedAchievementsString)/2, yPosition - 12, Util.Color.WHITE.getValue(), true);
+        fontRenderer.drawString(unlockedAchievementsString, xPosition + width/2 - TextUtil.getStringWidth(unlockedAchievementsString)/2, yPosition - 12, Util.Color.WHITE, true);
     }
     
     public void handleMouseInput(int mouseY)
@@ -372,7 +372,7 @@ public class AchievementsList extends Gui
         protected void draw(int scrolledY)
         {
             Gui.drawRect(entryX, scrolledY, entryX + entryWidth, scrolledY + entryHeight, 0xA008080A);
-            fontRenderer.drawString(text, entryX + entryWidth/2 - TextUtil.getStringWidth(text) / 2, scrolledY + 6, Util.Color.WHITE.getValue(), true);
+            fontRenderer.drawString(text, entryX + entryWidth/2 - TextUtil.getStringWidth(text) / 2, scrolledY + 6, Util.Color.WHITE, true);
         }
     }
 
@@ -402,18 +402,19 @@ public class AchievementsList extends Gui
             if (unlocked)
             {
                 // Name
-                fontRenderer.drawString(EnumChatFormatting.RESET + (achievement.type.typeName != null ? EnumChatFormatting.GREEN + "[" + EnumChatFormatting.RESET + achievement.type.getFormattedName() + EnumChatFormatting.RESET + EnumChatFormatting.GREEN + "] " : "") + EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + EnumChatFormatting.BOLD + achievement.achievementName, entryX + cardPadding, scrolledY + cardPadding, Util.Color.WHITE.getValue(), true);
+                fontRenderer.drawString(EnumChatFormatting.RESET + (achievement.type.typeName != null ? EnumChatFormatting.GREEN + "[" + EnumChatFormatting.RESET + achievement.type.getFormattedName() + EnumChatFormatting.RESET + EnumChatFormatting.GREEN + "] " : "") + EnumChatFormatting.RESET.toString() + EnumChatFormatting.GREEN + EnumChatFormatting.BOLD + achievement.achievementName, entryX + cardPadding, scrolledY + cardPadding, Util.Color.WHITE, true);
                 
                 // Unlock time
                 String unlockedString = EnumChatFormatting.RESET.toString() + contrastableGray + TimeUtil.formatUnixDateTime(achievementManager.getUnlockedAchievement(achievement).unlockedAtTimestamp);
-                fontRenderer.drawString(unlockedString, entryX + entryWidth - cardPadding - TextUtil.getStringWidth(unlockedString), scrolledY + cardPadding, Util.Color.WHITE.getValue(), true);
+                fontRenderer.drawString(unlockedString, entryX + entryWidth - cardPadding - TextUtil.getStringWidth(unlockedString), scrolledY + cardPadding, Util.Color.WHITE, true);
             }
             else
             {
                 // Name
-                fontRenderer.drawString(EnumChatFormatting.RESET + (achievement.type.typeName != null ? "[" + achievement.type.getFormattedName() + EnumChatFormatting.RESET + "] " : "") + EnumChatFormatting.RESET + achievement.achievementName, entryX + cardPadding, scrolledY + cardPadding, Util.Color.WHITE.getValue(), true);
+                fontRenderer.drawString(EnumChatFormatting.RESET + (achievement.type.typeName != null ? "[" + achievement.type.getFormattedName() + EnumChatFormatting.RESET + "] " : "") + EnumChatFormatting.RESET + achievement.achievementName, entryX + cardPadding, scrolledY + cardPadding, Util.Color.WHITE, true);
             }
             
+            Util.startImageRendering();
             GlStateManager.color(1f, 1f, 1f, 1f);
             mc.getTextureManager().bindTexture(progressBarResourceLocation);
             
@@ -430,32 +431,34 @@ public class AchievementsList extends Gui
                 drawModalRectWithCustomSizedTexture(entryX + cardPadding, scrolledY + cardPadding + 24, 0, 0, progressBarWidth, 3, 512, 16);
                 if (progressBarForegroundWidth > 0) drawModalRectWithCustomSizedTexture(entryX + cardPadding, scrolledY + cardPadding + 24, 0, 4, progressBarForegroundWidth, 3, 512, 16);
             }
-
+            
+            Util.endImageRendering();
+            
             // Progress
             
             String progressString;
             if (detailsHidden) progressString = EnumChatFormatting.YELLOW.toString() + EnumChatFormatting.OBFUSCATED + "?" + EnumChatFormatting.RESET + EnumChatFormatting.YELLOW + "/" + EnumChatFormatting.OBFUSCATED + "?";
             else
             {
-                progressString = "/" + Util.numberToString(achievement.goal, 2);
+                progressString = "/" + TextUtil.numberToString(achievement.goal, 2);
                 if (unlocked)
                 {
                     if (achievement.isRepeatable && repeatCountShown)
                     {
                         if (achievement.getProgress() >= 0.01f)
                         {
-                            progressString = unlockedAchievement.getRepeatCountUnlockString() + EnumChatFormatting.RESET + " " + UnlockedAchievement.repeatFormatting + Util.numberToString(achievement.getProgress(), 2, false, RoundingMode.FLOOR) + EnumChatFormatting.RESET + EnumChatFormatting.GREEN + progressString;
+                            progressString = unlockedAchievement.getRepeatCountUnlockString() + EnumChatFormatting.RESET + " " + UnlockedAchievement.repeatFormatting + TextUtil.numberToString(achievement.getClampedProgress(), 2, false, RoundingMode.FLOOR) + EnumChatFormatting.RESET + EnumChatFormatting.GREEN + progressString;
                         }
                         else
                         {
-                            progressString = unlockedAchievement.getRepeatCountUnlockString() + EnumChatFormatting.RESET + " " + EnumChatFormatting.GREEN + Util.numberToString(achievement.goal, 2) + progressString;
+                            progressString = unlockedAchievement.getRepeatCountUnlockString() + EnumChatFormatting.RESET + " " + EnumChatFormatting.GREEN + TextUtil.numberToString(achievement.goal, 2) + progressString;
                         }
                     }
-                    else progressString = EnumChatFormatting.GREEN + Util.numberToString(achievement.goal, 2) + progressString;
+                    else progressString = EnumChatFormatting.GREEN + TextUtil.numberToString(achievement.goal, 2) + progressString;
                 }
-                else progressString = EnumChatFormatting.YELLOW + Util.numberToString(Math.min(achievement.getProgress(), achievement.goal), 2, false, RoundingMode.FLOOR) + progressString;
+                else progressString = EnumChatFormatting.YELLOW + TextUtil.numberToString(Math.min(achievement.getClampedProgress(), achievement.goal), 2, false, RoundingMode.FLOOR) + progressString;
             }
-            fontRenderer.drawString(progressString, entryX + cardPadding + progressBarWidth - TextUtil.getStringWidth(progressString), scrolledY + cardPadding + 12, Util.Color.WHITE.getValue(), true);
+            fontRenderer.drawString(progressString, entryX + cardPadding + progressBarWidth - TextUtil.getStringWidth(progressString), scrolledY + cardPadding + 12, Util.Color.WHITE, true);
             
             // Description
             
@@ -466,7 +469,7 @@ public class AchievementsList extends Gui
             int descriptionOffset = Math.max(TextUtil.getStringWidth(descriptionString) - maxDescriptionWidth, 0);
             int animatedDescriptionOffset = descriptionOffset != 0 && DESCRIPTION_SCROLL_SPEED != 0 ? MathHelper.clamp_int((int) ((TimeUtil.getAnimationTime() / (1000/DESCRIPTION_SCROLL_SPEED)) % (descriptionOffset + DESCRIPTION_SCROLL_STAY_DURATION * 2)) - DESCRIPTION_SCROLL_STAY_DURATION, 0, descriptionOffset) : 0;
             if (descriptionOffset != 0) StackedScissorCheck.pushCheck(entryX + cardPadding, scrolledY + cardPadding + 12, maxDescriptionWidth, fontRenderer.FONT_HEIGHT);
-            fontRenderer.drawString(descriptionString, entryX + cardPadding - animatedDescriptionOffset, scrolledY + cardPadding + 12, Util.Color.WHITE.getValue(), true);
+            fontRenderer.drawString(descriptionString, entryX + cardPadding - animatedDescriptionOffset, scrolledY + cardPadding + 12, Util.Color.WHITE, true);
             if (descriptionOffset != 0) StackedScissorCheck.popCheck();
         }
     }

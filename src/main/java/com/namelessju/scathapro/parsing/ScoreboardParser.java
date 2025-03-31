@@ -1,4 +1,4 @@
-package com.namelessju.scathapro.miscellaneous;
+package com.namelessju.scathapro.parsing;
 
 import java.util.Collection;
 import java.util.function.Predicate;
@@ -15,26 +15,11 @@ public class ScoreboardParser
 {
     private static ScathaPro scathaPro = ScathaPro.getInstance();
     
-    private static class ValueContainer<T>
-    {
-        private T value = null;
-        
-        public T getValue(T nullValue)
-        {
-            return value != null ? value : nullValue;
-        }
-        
-        public void setValue(T value)
-        {
-            this.value = value;
-        }
-    }
-    
     public static int parseHeat()
     {
         // scathaPro.logDebug("Parsing scoreboard heat value...");
         
-        ValueContainer<Integer> heat = new ValueContainer<Integer>();
+        ParsedValue<Integer> heat = new ParsedValue<Integer>();
         
         parse(new Predicate<String>() {
             @Override
@@ -48,7 +33,7 @@ public class ScoreboardParser
                     while (valueString.length() > 0)
                     {
                         char firstChar = valueString.charAt(0);
-                        if (firstChar >= '0' && firstChar <= '9' && firstChar != '.') break;
+                        if (firstChar >= '0' && firstChar <= '9') break;
                         if (valueString.startsWith("IMMUNE"))
                         {
                             valueString = null;

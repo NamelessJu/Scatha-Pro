@@ -196,7 +196,7 @@ public class ScathaProTextField extends Gui implements IGuiElement, ITooltipElem
     {
         if (!this.getVisible()) return;
         
-        int outlineColor = this.isEnabled ? -6250336 : Util.Color.DARK_GRAY.getValue();
+        int outlineColor = this.isEnabled ? -6250336 : Util.Color.DARK_GRAY;
         drawRect(this.xPosition - 1, this.yPosition - 1, this.xPosition + this.width + 1, this.yPosition + this.height + 1, outlineColor);
         drawRect(this.xPosition, this.yPosition, this.xPosition + this.width, this.yPosition + this.height, -16777216);
 
@@ -219,7 +219,7 @@ public class ScathaProTextField extends Gui implements IGuiElement, ITooltipElem
         }
         else if (this.placeholder != null)
         {
-            this.fontRenderer.drawStringWithShadow(TextUtil.trimStringToWidth(this.placeholder, this.getInnerWidth()), textBaseX, textY, Util.Color.DARK_GRAY.getValue());
+            this.fontRenderer.drawStringWithShadow(TextUtil.trimStringToWidth(this.placeholder, this.getInnerWidth()), textBaseX, textY, Util.Color.DARK_GRAY);
         }
         
         // Caret

@@ -28,7 +28,6 @@ public class CustomAlertModeGui extends ScathaProGui
         super.initGui();
         
         scrollList = new CustomAlertModeGuiList(this);
-        
-        addDoneButton(this.width / 2 - 100, this.height - 30, 200, 20);
+        addScrollListDoneButton();
     }
 }

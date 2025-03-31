@@ -29,7 +29,7 @@ public class KeybindingsGui extends ScathaProGui
         super.initGui();
         
         scrollList = new KeybindingsGuiList(this);
-        addDoneButton(this.width / 2 - 100, this.height - 30, 200, 20);
+        addScrollListDoneButton();
     }
     
     @Override

@@ -12,6 +12,7 @@ public class CycleButton<T> extends ScathaProButton implements IClickActionButto
     public String text;
     public IOption<T>[] options;
     public IOptionChangedListener<T> changeListener;
+    public String nullOptionName = null;
     
     private int selectedOptionIndex = 0;
     
@@ -38,8 +39,7 @@ public class CycleButton<T> extends ScathaProButton implements IClickActionButto
     
     public void updateText()
     {
-        String selectedOptionName = getSelectedOptionName();
-        this.displayString = text + ": " + (selectedOptionName != null ? selectedOptionName : "none");
+        this.displayString = text + ": " + getSelectedOptionName();
     }
     
     @Override
@@ -64,14 +64,23 @@ public class CycleButton<T> extends ScathaProButton implements IClickActionButto
     
     public String getSelectedOptionName()
     {
-        if (options.length <= 0) return null;
-        return options[selectedOptionIndex].getOptionName();
+        IOption<T> selectedOption = getSelectedOption();
+        String name = selectedOption != null ? selectedOption.getOptionName() : null;
+        if (name == null) return nullOptionName != null ? nullOptionName : "OFF";
+        return name;
     }
     
     public T getSelectedValue()
     {
-        if (options.length <= 0) return null;
-        return options[selectedOptionIndex].getOptionValue();
+        IOption<T> selectedOption = getSelectedOption();
+        if (selectedOption == null) return null;
+        return selectedOption.getOptionValue();
+    }
+    
+    public void setNullOptionName(String name)
+    {
+        nullOptionName = name;
+        if (getSelectedValue() == null) updateText();
     }
     
     
@@ -106,7 +115,7 @@ public class CycleButton<T> extends ScathaProButton implements IClickActionButto
         @Override
         public String getOptionName()
         {
-            return value != null ? value.toString() : "OFF";
+            return value != null ? value.toString() : null;
         }
         
         @Override

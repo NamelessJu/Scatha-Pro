@@ -45,7 +45,7 @@ public class GuiListeners
         
         if (event.gui instanceof GuiOptions)
         {
-            GuiButton modMenuButton = new GuiButton(504703001, event.gui.width / 2 - 155, event.gui.height / 6 + 24 - 6, 150, 20, ScathaPro.MODNAME + " Settings...");
+            GuiButton modMenuButton = new GuiButton(504703001, event.gui.width / 2 - 155, event.gui.height / 6 + 24 - 6, 150, 20, ScathaPro.DYNAMIC_MODNAME + " Settings...");
             event.buttonList.add(modMenuButton);
             
             if (isButtonOverlapping(modMenuButton, event.buttonList))
@@ -67,7 +67,7 @@ public class GuiListeners
         if (event.gui instanceof GuiIngameMenu)
         {
             achievementMenuButton = new ImageButton(504703002, event.gui.width / 2 - 100 - 24, event.gui.height / 4 + 48 - 16, 20, 20, "gui/achievements/button_icon.png", 64, 64, 0.2f);
-            achievementMenuButton.getTooltip().setText(EnumChatFormatting.GRAY + ScathaPro.MODNAME + " Achievements");
+            achievementMenuButton.getTooltip().setText(EnumChatFormatting.GRAY + ScathaPro.DYNAMIC_MODNAME + " Achievements");
             
             if (isButtonOverlapping(achievementMenuButton, event.buttonList))
             {

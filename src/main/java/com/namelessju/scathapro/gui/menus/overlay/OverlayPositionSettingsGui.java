@@ -1,8 +1,10 @@
 package com.namelessju.scathapro.gui.menus.overlay;
 
 import com.namelessju.scathapro.ScathaPro;
+import com.namelessju.scathapro.gui.elements.CycleButton;
 import com.namelessju.scathapro.gui.elements.ScathaProSlider;
 import com.namelessju.scathapro.managers.Config;
+import com.namelessju.scathapro.overlay.elements.OverlayElement;
 
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraftforge.fml.client.config.GuiSlider;
@@ -26,16 +28,29 @@ public class OverlayPositionSettingsGui extends OverlaySettingsGui implements Gu
         super.initGui();
         
         double overlayX = config.getDouble(Config.Key.overlayX);
-        ScathaProSlider overlayXSlider = new ScathaProSlider(1, width / 2 - 155, height - 45 - 24 - 6, 150, 20, "Overlay X Position: ", "%", -1, 100, overlayX >= 0 ? overlayX * 100 : -1, false, true, this);
+        ScathaProSlider overlayXSlider = new ScathaProSlider(1, width / 2 - 155, height - 45 - 24 - 6, 150, 20, "X Position: ", "%", -1, 100, overlayX >= 0 ? overlayX * 100 : -1, false, true, this);
         if (overlayX < 0) setSliderTextDefault(overlayXSlider);
         elements.add(overlayXSlider);
         
         double overlayY = config.getDouble(Config.Key.overlayY);
-        ScathaProSlider overlayYSlider = new ScathaProSlider(2, width / 2 + 5, height - 45 - 24 - 6, 150, 20, "Overlay Y Position: ", "%", -1, 100, overlayY >= 0 ? overlayY * 100 : -1, false, true, this);
+        ScathaProSlider overlayYSlider = new ScathaProSlider(2, width / 2 + 5, height - 45 - 24 - 6, 150, 20, "Y Position: ", "%", -1, 100, overlayY >= 0 ? overlayY * 100 : -1, false, true, this);
         if (overlayY < 0) setSliderTextDefault(overlayYSlider);
         elements.add(overlayYSlider);
         
-        elements.add(new ScathaProSlider(3, width / 2 - 155, height - 45 - 48 - 6, 310, 20, "Overlay Scale: ", "%", 50, 150, config.getDouble(Config.Key.overlayScale) * 100, false, true, this));
+        elements.add(new ScathaProSlider(3, width / 2 - 155, height - 45 - 48 - 6, 310, 20, "Scale: ", "%", 25, 175, config.getDouble(Config.Key.overlayScale) * 100, false, true, this));
+        
+        CycleButton<OverlayElement.Alignment> alignmentButton = new CycleButton<OverlayElement.Alignment>(4, width / 2 - 155, height - 45 - 72 - 6, 310, 20, "Alignment", CycleButton.EnumOption.from(OverlayElement.Alignment.class, true), config.getEnum(Config.Key.overlayAlignment, OverlayElement.Alignment.class), new CycleButton.IOptionChangedListener<OverlayElement.Alignment>() {
+            @Override
+            public void onChange(CycleButton<OverlayElement.Alignment> button) {
+                OverlayElement.Alignment value = button.getSelectedValue();
+                config.set(Config.Key.overlayAlignment, value != null ? value.name() : "");
+                config.save();
+                
+                scathaPro.getOverlay().updateContentAlignment();
+            }
+        });
+        alignmentButton.setNullOptionName("Automatic");
+        elements.add(alignmentButton);
         
         addDoneButton(width / 2 - 100, height - 45, 200, 20);
         

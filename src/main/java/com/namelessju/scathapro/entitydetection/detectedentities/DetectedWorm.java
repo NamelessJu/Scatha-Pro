@@ -9,6 +9,7 @@ import com.namelessju.scathapro.events.WormDespawnEvent;
 import com.namelessju.scathapro.events.WormHitEvent;
 import com.namelessju.scathapro.events.WormKillEvent;
 import com.namelessju.scathapro.events.WormSpawnEvent;
+import com.namelessju.scathapro.miscellaneous.sound.ScappaSound;
 import com.namelessju.scathapro.util.NBTUtil;
 import com.namelessju.scathapro.util.TimeUtil;
 import com.namelessju.scathapro.util.Util;
@@ -41,6 +42,7 @@ public class DetectedWorm extends DetectedEntity
     
     private ArrayList<String> hitWeapons = new ArrayList<String>();
     
+    public ScappaSound scappaSound = null;
     public boolean lootsharePossible = false;
     
     public DetectedWorm(EntityArmorStand entity, boolean isScatha)
@@ -61,50 +63,73 @@ public class DetectedWorm extends DetectedEntity
         MinecraftForge.EVENT_BUS.post(new WormSpawnEvent(this));
     }
     
-    @Override
-    protected void onLeaveWorld(boolean despawned)
+    public void playScappaSound()
     {
-        ScathaPro sp = ScathaPro.getInstance();
+        if (this.scappaSound != null) return;
         
-        // check for direct kill
-        boolean countAsKilled = getLastAttackTime() >= 0 && TimeUtil.now() - getLastAttackTime() < Constants.pingTreshold;
+        this.scappaSound = ScappaSound.play(1f, 1f, this.getEntity());
+    }
+    
+    @Override
+    protected void onChangedEntity()
+    {
+        if (this.scappaSound != null) this.scappaSound.entity = this.getEntity();
+    }
+    
+    @Override
+    protected void onLeaveWorld(LeaveWorldReason leaveWorldReason)
+    {
+        ScathaPro scathaPro = ScathaPro.getInstance();
         
-        if (!countAsKilled) // check for kill by fire aspect
+        switch (leaveWorldReason)
         {
-            countAsKilled = isFireAspectActive() && (getMaxLifetime() < 0 || getCurrentLifetime() < getMaxLifetime());
-        }
-        if (!countAsKilled && this.lootsharePossible) // check for lootshare
-        {
-            EntityPlayer player = sp.getMinecraft().thePlayer;
-            AxisAlignedBB playerDetectionAABB = Util.getEntityPositionAABB(this.getEntity()).expand(30f, 30f, 30f);
-            
-            if (Util.getEntityPositionAABB(player).intersectsWith(playerDetectionAABB))
-            {
-                int nearbyOtherPlayerCount =  sp.getMinecraft().theWorld.getEntitiesInAABBexcluding(player, playerDetectionAABB, new Predicate<Entity>() {
-                    @Override
-                    public boolean apply(Entity input)
-                    {
-                        return input instanceof EntityPlayer;
-                    }
-                }).size();
+            case KILLED:
+                // check for direct kill
+                boolean countAsKilled = getLastAttackTime() >= 0 && TimeUtil.now() - getLastAttackTime() < Constants.pingTreshold;
                 
-                if (nearbyOtherPlayerCount > 0)
+                if (!countAsKilled) // check for kill by fire aspect
                 {
-                    sp.logDebug("Worm treated as lootshared");
-                    countAsKilled = true;
+                    countAsKilled = isFireAspectActive() && (getMaxLifetime() < 0 || getCurrentLifetime() < getMaxLifetime());
                 }
-            }
-        }
-        
-        if (countAsKilled)
-        {
-            sp.logDebug("Worm left world, counted as kill");
-            MinecraftForge.EVENT_BUS.post(new WormKillEvent(this));
-        }
-        else if (despawned)
-        {
-            sp.logDebug("Worm left world, counted as despawn");
-            MinecraftForge.EVENT_BUS.post(new WormDespawnEvent(this));
+                if (!countAsKilled && this.lootsharePossible) // check for lootshare
+                {
+                    EntityPlayer player = scathaPro.getMinecraft().thePlayer;
+                    AxisAlignedBB playerDetectionAABB = Util.getEntityPositionAABB(this.getEntity()).expand(30f, 30f, 30f);
+                    
+                    if (Util.getEntityPositionAABB(player).intersectsWith(playerDetectionAABB))
+                    {
+                        int nearbyOtherPlayerCount =  scathaPro.getMinecraft().theWorld.getEntitiesInAABBexcluding(player, playerDetectionAABB, new Predicate<Entity>() {
+                            @Override
+                            public boolean apply(Entity input)
+                            {
+                                return input instanceof EntityPlayer;
+                            }
+                        }).size();
+                        
+                        if (nearbyOtherPlayerCount > 0)
+                        {
+                            scathaPro.logDebug("Worm treated as lootshared");
+                            countAsKilled = true;
+                        }
+                    }
+                }
+                
+                if (countAsKilled)
+                {
+                    if (scappaSound != null) scappaSound.stop();
+                    MinecraftForge.EVENT_BUS.post(new WormKillEvent(this));
+                    scathaPro.logDebug("Worm left world, counted as kill");
+                }
+                break;
+                
+            case LIFETIME_ENDED:
+                if (scappaSound != null) scappaSound.stop();
+                MinecraftForge.EVENT_BUS.post(new WormDespawnEvent(this));
+                scathaPro.logDebug("Worm left world, counted as despawn");
+                break;
+                
+            default:
+                break;
         }
     }
     

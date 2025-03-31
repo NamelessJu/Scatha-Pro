@@ -12,7 +12,7 @@ import com.namelessju.scathapro.events.WormPreSpawnEvent;
 import com.namelessju.scathapro.gui.menus.FakeBanGui;
 import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.managers.Config.Key;
-import com.namelessju.scathapro.miscellaneous.ScathaProSound;
+import com.namelessju.scathapro.miscellaneous.sound.ScathaProSound;
 import com.namelessju.scathapro.util.TextUtil;
 import com.namelessju.scathapro.util.NBTUtil;
 import com.namelessju.scathapro.util.TimeUtil;
@@ -20,6 +20,7 @@ import com.namelessju.scathapro.util.TimeUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.init.Items;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.EnumChatFormatting;
@@ -33,15 +34,11 @@ import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientConnectedToServerEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
-@SideOnly(Side.CLIENT)
 public class MiscListeners
 {
     private final ScathaPro scathaPro;
@@ -93,14 +90,14 @@ public class MiscListeners
         
         DetectedWorm worm = null;
         
-        // [Dev mode only] Check for attacked armor stand being the worm itself (= the name tag)
+        // [Dev mode only] Check for attacked armor stand being the worm itself
         if (scathaPro.getConfig().getBoolean(Config.Key.devMode))
         {
             worm = DetectedWorm.getById(attackedArmorStand.getEntityId());
         }
         
         // Check for main worm armor stand (= name tag) nearby
-        if(worm == null && NBTUtil.isWormSkull(attackedArmorStand.getEquipmentInSlot(4)))
+        if (worm == null && NBTUtil.isWormSkull(attackedArmorStand.getEquipmentInSlot(4)))
         {
             World world = attackedArmorStand.worldObj;
             List<EntityArmorStand> nearbyArmorStands = world.getEntitiesWithinAABB(EntityArmorStand.class, new AxisAlignedBB(attackedArmorStand.posX, attackedArmorStand.posY, attackedArmorStand.posZ, attackedArmorStand.posX, attackedArmorStand.posY, attackedArmorStand.posZ).expand(8f, 2f, 8f), new Predicate<EntityArmorStand>() {
@@ -142,23 +139,13 @@ public class MiscListeners
         if (event.action == PlayerInteractEvent.Action.LEFT_CLICK_BLOCK) return;
         
         ItemStack heldItem = event.entityPlayer.getHeldItem();
-        if (heldItem != null)
+        if (heldItem != null && scathaPro.isInCrystalHollows())
         {
-            if (heldItem.getItem() == Items.fishing_rod)
+            Item item = heldItem.getItem();
+            if (item != null && (item == Items.fishing_rod || item == Items.bow))
             {
                 scathaPro.variables.lastProjectileWeaponUsed = heldItem;
             }
-        }
-    }
-    
-    @SubscribeEvent
-    public void onUseItemStop(PlayerUseItemEvent.Stop event)
-    {
-        if (!scathaPro.isInCrystalHollows()) return;
-        
-        if (event.item != null && event.item.getItem() == Items.bow)
-        {
-            scathaPro.variables.lastProjectileWeaponUsed = event.item;
         }
     }
     
@@ -173,12 +160,12 @@ public class MiscListeners
         String unformattedText = StringUtils.stripControlCodes(event.message.getFormattedText());
         
         if (scathaPro.getConfig().getBoolean(Key.hideWormSpawnMessage)
-            && unformattedText.equals("You hear the sound of something approaching..."))
+            && unformattedText.equalsIgnoreCase("You hear the sound of something approaching..."))
         {
             event.setCanceled(true);
             return;
         }
-        else if (unformattedText.equals("You used your Anomalous Desire Pickaxe Ability!"))
+        else if (unformattedText.equalsIgnoreCase("You used your Anomalous Desire Pickaxe Ability!"))
         {
             long now = TimeUtil.now();
             
@@ -203,14 +190,37 @@ public class MiscListeners
                 }
             }
         }
+        else if (unformattedText.equalsIgnoreCase("Anomalous Desire is now available!"))
+        {
+            if (scathaPro.variables.anomalousDesireCooldownEndTime >= 0L)
+            {
+                scathaPro.variables.anomalousDesireReadyTime = TimeUtil.now();
+                scathaPro.variables.anomalousDesireCooldownEndTime = -1L;
+                scathaPro.variables.anomalousDesireWastedForRecovery = false;
+                scathaPro.variables.anomalousDesireStartTime = -1L;
+            }
+        }
+        else if (unformattedText.toLowerCase().startsWith("your pickaxe ability is on cooldown for "))
+        {
+            String cooldownNumberString = unformattedText.substring(40);
+            if (cooldownNumberString.endsWith(".")) cooldownNumberString = cooldownNumberString.substring(0, cooldownNumberString.length() - 1);
+            cooldownNumberString = cooldownNumberString.trim().substring(0, cooldownNumberString.length() - 1); // remove "s"
+            Integer cooldownRemainingSeconds = TextUtil.parseInt(cooldownNumberString);
+            
+            long now = TimeUtil.now();
+            long newCooldownEndTime = now + cooldownRemainingSeconds * 1000L;
+            if (cooldownRemainingSeconds != null && (int) Math.abs(scathaPro.variables.anomalousDesireCooldownEndTime - newCooldownEndTime) >= Constants.pingTreshold)
+            {
+                scathaPro.variables.anomalousDesireCooldownEndTime = newCooldownEndTime;
+                scathaPro.variables.anomalousDesireReadyTime = scathaPro.variables.anomalousDesireCooldownEndTime;
+            }
+        }
     }
     
     @SubscribeEvent(priority = EventPriority.LOW)
-    public void onChatReceived(ClientChatReceivedEvent event)
+    public void onChatReceivedLate(ClientChatReceivedEvent event)
     {
         if (event.type == 2) return;
-        
-        scathaPro.variables.lastChatMessageIsDivider = event.message.getUnformattedText().equals(TextUtil.chatDividerComponent.getUnformattedText());
         
         TextUtil.addChatCopyButton(event.message);
     }
@@ -252,12 +262,24 @@ public class MiscListeners
         
         if
         (
-            scathaPro.getConfig().getBoolean(Config.Key.muteCrystalHollowsSounds)
-            && scathaPro.isInCrystalHollows()
-            && !(event.sound instanceof ScathaProSound) && !event.name.equals("gui.button.press")
+            scathaPro.isInCrystalHollows()
+            && !(event.sound instanceof ScathaProSound)
+            && scathaPro.getConfig().getBoolean(Config.Key.muteCrystalHollowsSounds)
         ) {
-            event.result = null;
-            return;
+            boolean cancel = true;
+            
+            if (event.name.equals("gui.button.press")) cancel = false;
+            else if (
+                (event.name.equals("mob.enderdragon.growl") || event.name.equals("mob.enderdragon.wings"))
+                && 
+                scathaPro.getConfig().getBoolean(Config.Key.keepDragonLairSounds)
+            ) cancel = false;
+            
+            if (cancel)
+            {
+                event.result = null;
+                return;
+            }
         }
     }
     

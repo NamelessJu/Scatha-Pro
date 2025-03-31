@@ -15,6 +15,7 @@ public class Config
         overlayX("overlay", "x", -1D),
         overlayY("overlay", "y", -1D),
         overlayScale("overlay", "scale", 1D),
+        overlayAlignment("overlay", "alignment", ""),
         statsType("overlay", "statsType", ""),
         scathaPercentageAlternativePosition("overlay", "scathaPercentageAlternativePosition", false),
         scathaPercentageCycleAmountDuration("overlay", "scathaPercentageCycleAmountDuration", 3),
@@ -26,10 +27,16 @@ public class Config
         // Sounds
         soundsVolume("sounds", "volume", 1D),
         muteCrystalHollowsSounds("sounds", "muteCrystalHollowsSounds", false),
+        keepDragonLairSounds("sounds", "muteCrystalHollowsSounds.keepDragonLairSounds", false),
         
         // Alerts
         mode("alerts", "mode", ""),
         customModeSubmode("alerts", "customModeSubmode", ""),
+        
+        alertTitleScale("alerts.title", "scale", 1D),
+        alertTitlePositionX("alerts.title", "positionX", 0.5D),
+        alertTitlePositionY("alerts.title", "positionY", 0.5D),
+        alertTitleAlignment("alerts.title", "alignment", ""),
         
         bedrockWallAlert("alerts", "wall", true),
         bedrockWallAlertTriggerDistance("alerts", "wall.triggerDistance", 15),
@@ -52,23 +59,35 @@ public class Config
         repeatCountsShown("achievements", "repeatCountsShown", true),
         
         // Other
+        
+        // Chat stuff
         shortChatPrefix("other", "shortChatPrefix", false),
         hideWormSpawnMessage("other", "hideWormSpawnMessage", false),
+        dryStreakMessage("other", "dryStreakMessage", true),
+        dailyScathaFarmingStreakMessage("other", "dailyScathaFarmingStreakMessage", true),
+        chatCopy("other", "chatCopy", false),
+        wormSpawnTimer("other", "wormSpawnTimer", false),
+        // Rotation angles display
         showRotationAngles("other", "showRotationAngles", false),
         rotationAnglesYawOnly("other", "rotationAnglesYawOnly", false),
         rotationAnglesDecimalDigits("other", "rotationAnglesDecimalPlaces", 2),
         rotationAnglesMinimalYaw("other", "rotationAnglesMinimalYaw", false),
-        wormSpawnTimer("other", "wormSpawnTimer", false),
-        dryStreakMessage("other", "dryStreakMessage", true),
-        chatCopy("other", "chatCopy", false),
+        // Automatic stuff
         automaticBackups("other", "automaticBackups", true),
         automaticUpdateChecks("other", "automaticUpdateChecks", true),
-        automaticStatsParsing("other", "automaticStatsParsing", true),
-        dailyScathaFarmingStreakMessage("other", "dailyScathaFarmingStreakMessage", true),
+        automaticWormStatsParsing("other", "automaticStatsParsing", true),
+        automaticPetDropScreenshot("other", "automaticPetDropScreenshot", false),
+        // Drop message extension
         dropMessageRarityMode("other", "dropMessageRarityMode", ""),
         dropMessageRarityColored("other", "dropMessageRarityColored", true),
         dropMessageRarityUppercase("other", "dropMessageRarityUppercase", false),
+        dropMessageStatsMode("other", "dropMessageStatsMode", ""),
+        dropMessageCleanMagicFind("other", "dropMessageCleanMagicFind", false),
+        dropMessageStatAbbreviations("other", "dropMessageStatAbbreviations", false),
+        
         scappaMode("other", "scappaMode", false),
+        overlayIconGooglyEyes("other", "overlayIconGooglyEyes", false),
+        
         
         // Accessibility
         highContrastColors("accessibility", "highContrastColors", false),

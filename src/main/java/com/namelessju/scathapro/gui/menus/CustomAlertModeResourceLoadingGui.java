@@ -15,29 +15,34 @@ import net.minecraft.util.StringUtils;
 
 public class CustomAlertModeResourceLoadingGui extends GuiScreen
 {
+    private enum State
+    {
+        CONVERT, RELOAD_RESOURCES, RETURN;
+    }
+    
     private final ScathaPro scathaPro = ScathaPro.getInstance();
     private final GuiScreen returnScreen;
     private String mainMessage = null;
     private String processMessage = null;
     private String progressMessage = null;
     private int ellipsisAnimationTicks = 0;
-
-    private int state = -1;
+    
+    private State state = null;
     private ICustomAlertModeSaveable.SaveResults saveResults = null;
     private boolean forceResourceReload = false;
     
     private boolean conversionStarted = false;
-    private int subMenuReturnState = -1;
+    private State subMenuReturnState = null;
     private int resourceReloadStartTimer = 0;
-
+    
     private int currentConversionAudio = 0;
     private List<File> failedConversionFiles = Lists.newArrayList();
-
+    
     public CustomAlertModeResourceLoadingGui(GuiScreen returnScreen)
     {
         this.returnScreen = returnScreen;
         forceResourceReload = true;
-        setState(1);
+        setState(State.RELOAD_RESOURCES);
     }
     
     public CustomAlertModeResourceLoadingGui(GuiScreen returnScreen, ICustomAlertModeSaveable.SaveResults saveResults)
@@ -49,30 +54,30 @@ public class CustomAlertModeResourceLoadingGui extends GuiScreen
             this.saveResults = saveResults;
             if (saveResults.hasAudioConversions())
             {
-                setState(0);
+                setState(State.CONVERT);
                 return;
             }
         }
         
-        setState(1);
+        setState(State.RELOAD_RESOURCES);
     }
     
     @Override
     public void initGui()
     {
-        if (subMenuReturnState >= 0)
+        if (subMenuReturnState != null)
         {
             setState(subMenuReturnState);
-            subMenuReturnState = -1;
+            subMenuReturnState = null;
             return;
         }
         
-        if (state == 0)
+        if (state == State.CONVERT)
         {
             if (!FFmpegWrapper.isFFmpegInstalled())
             {
-                state = -1;
-                subMenuReturnState = 1;
+                state = null;
+                subMenuReturnState = State.RELOAD_RESOURCES;
                 mc.displayGuiScreen(new InfoMessageGui(this, "FFmpeg not found", "No FFmpeg installation was found, which means that sounds cannot be converted to the required format (ogg).\n" + EnumChatFormatting.YELLOW + "You are only able to save files that are already in the ogg format!" + EnumChatFormatting.RESET + "\nClick \"Continue\" to acknowledge this and, if necessary, reload resources...", "Continue"));
                 return;
             }
@@ -86,8 +91,8 @@ public class CustomAlertModeResourceLoadingGui extends GuiScreen
     private void convertNext()
     {
         if (saveResults == null || !saveResults.hasAudioConversions()) return;
-
-        setState(0);
+        
+        setState(State.CONVERT);
         
         ICustomAlertModeSaveable.SaveResults.AudioConversion[] audioConversions = saveResults.getAudioConversions();
         
@@ -104,13 +109,12 @@ public class CustomAlertModeResourceLoadingGui extends GuiScreen
                     fileNamesString.append(file.getName().replace(TextUtil.formattingStartCharacter, ""));
                 }
                 
-                subMenuReturnState = 1;
-                
+                subMenuReturnState = State.RELOAD_RESOURCES;
                 mc.displayGuiScreen(new InfoMessageGui(this, EnumChatFormatting.RED + "Audio conversions failed", EnumChatFormatting.RESET + "The following files couldn't be converted to .ogg:\n" + fileNamesString.toString() + "\n\n" + EnumChatFormatting.GRAY + "Make sure that your FFmpeg installation includes the libvorbis encoder!"));
                 return;
             }
             
-            setState(1);
+            setState(State.RELOAD_RESOURCES);
             return;
         }
         else progressMessage = EnumChatFormatting.YELLOW.toString() + currentConversionAudio + "/" + audioConversions.length + " audio file" + (audioConversions.length > 1 ? "s" : "") + " processed";
@@ -148,7 +152,7 @@ public class CustomAlertModeResourceLoadingGui extends GuiScreen
     {
         switch (state)
         {
-            case 0:
+            case CONVERT:
                 ellipsisAnimationTicks ++;
                 if (ellipsisAnimationTicks >= 40)
                 {
@@ -156,22 +160,25 @@ public class CustomAlertModeResourceLoadingGui extends GuiScreen
                 }
                 break;
                 
-            case 1:
+            case RELOAD_RESOURCES:
                 resourceReloadStartTimer ++;
                 if (resourceReloadStartTimer < 5) break;
                 
                 scathaPro.getCustomAlertModeManager().reloadResourcePack();
                 mc.displayGuiScreen(returnScreen);
-                setState(2);
+                setState(State.RETURN);
+                break;
+                
+            default:
                 break;
         }
     }
     
-    private void setState(int state)
+    private void setState(State state)
     {
         switch (state)
         {
-            case 0:
+            case CONVERT:
                 if (conversionStarted) break;
                 conversionStarted = true;
                 
@@ -180,12 +187,10 @@ public class CustomAlertModeResourceLoadingGui extends GuiScreen
                 failedConversionFiles.clear();
                 break;
                 
-            case 1:
-                
-                
+            case RELOAD_RESOURCES:
                 if (!forceResourceReload && (saveResults == null || !saveResults.isResourceReloadRequired()))
                 {
-                    setState(2);
+                    setState(State.RETURN);
                     return;
                 }
                 
@@ -195,9 +200,12 @@ public class CustomAlertModeResourceLoadingGui extends GuiScreen
                 ellipsisAnimationTicks = -1;
                 break;
                 
-            case 2:
+            case RETURN:
                 mc.displayGuiScreen(returnScreen);
-                return;
+                break;
+            
+            default:
+                break;
         }
         this.state = state;
     }

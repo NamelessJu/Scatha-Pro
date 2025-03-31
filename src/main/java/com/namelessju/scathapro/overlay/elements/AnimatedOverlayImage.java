@@ -1,6 +1,7 @@
 package com.namelessju.scathapro.overlay.elements;
 
 import com.namelessju.scathapro.util.TimeUtil;
+import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiIngame;
@@ -32,8 +33,10 @@ public class AnimatedOverlayImage extends OverlayImage
         int v = currentFrame * textureHeight;
         
         Minecraft.getMinecraft().renderEngine.bindTexture(resourceLocation);
-        GlStateManager.color(r, g, b);
+        Util.startImageRendering();
+        GlStateManager.color(r, g, b, 1f);
         GuiIngame.drawModalRectWithCustomSizedTexture(0, 0, 0, v, textureWidth, textureHeight, textureWidth, textureHeight * frameCount);
+        Util.endImageRendering();
     }
     
     @Override

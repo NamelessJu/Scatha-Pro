@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.GlStateManager;
 public class OverlayContainer extends OverlayElement
 {
     protected List<OverlayElement> children = new ArrayList<OverlayElement>();
-    public int backgroundColor = -1;
+    public Integer backgroundColor = null;
     public int padding = 0;
     
     public OverlayContainer(int x, int y, float scale)
@@ -20,7 +20,7 @@ public class OverlayContainer extends OverlayElement
     @Override
     protected void drawSpecific()
     {
-        if (backgroundColor >= 0) Gui.drawRect(0, 0, getWidth(), getHeight(), backgroundColor);
+        if (backgroundColor != null) Gui.drawRect(0, 0, getWidth(), getHeight(), backgroundColor);
         
         GlStateManager.pushMatrix();
         if (padding != 0) GlStateManager.translate(padding, padding, 0);
@@ -38,9 +38,14 @@ public class OverlayContainer extends OverlayElement
         children.add(element);
     }
     
-    public void addAtIndex(OverlayElement element, int index)
+    public void clearChildren()
     {
-        children.add(index, element);
+        children.clear();
+    }
+    
+    public List<OverlayElement> getChildren()
+    {
+        return children;
     }
     
     @Override
@@ -50,7 +55,7 @@ public class OverlayContainer extends OverlayElement
         
         for (OverlayElement child : children)
         {
-            if (!child.isVisible() || isElementEmptyContainer(child)) continue;
+            if (!child.expandsContainerSize || !child.isVisible() || isElementEmptyContainer(child)) continue;
             
             int elementRequiredWidth = child.getX() + child.getScaledWidth() + child.marginRight;
             if (elementRequiredWidth > width) width = elementRequiredWidth;
@@ -66,7 +71,7 @@ public class OverlayContainer extends OverlayElement
         
         for (OverlayElement child : children)
         {
-            if (!child.isVisible() || isElementEmptyContainer(child)) continue;
+            if (!child.expandsContainerSize || !child.isVisible() || isElementEmptyContainer(child)) continue;
             
             int elementRequiredHeight = child.getY() + child.getScaledHeight() + child.marginBottom;
             if (elementRequiredHeight > height) height = elementRequiredHeight;

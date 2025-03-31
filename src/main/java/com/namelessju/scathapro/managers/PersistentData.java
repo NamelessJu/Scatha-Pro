@@ -34,6 +34,7 @@ public class PersistentData
     private static final String petDropsKey = "petDrops";
     private static final String wormKillsKey = "wormKills";
     private static final String dayKey = "daily";
+    private static final String profileStatsKey = "profileStats";
     
     
     private final ScathaPro scathaPro;
@@ -53,7 +54,7 @@ public class PersistentData
         
         if (!file.canRead())
         {
-            scathaPro.logError("Couldn't load persistent data (failed to read file)");
+            scathaPro.logError("Couldn't load persistent data (file can't be read by this application)");
             onLoadError();
             return;
         }
@@ -85,7 +86,7 @@ public class PersistentData
             
             loadCurrentPlayer();
             
-            if (updateSaveData()) loadCurrentPlayer();
+            if (updatePlayerSaveData()) loadCurrentPlayer();
             
             scathaPro.log("Persistent data loaded");
         }
@@ -100,11 +101,14 @@ public class PersistentData
     {
         loadedPlayerUuid = Util.getPlayerUUID();
         loadedPlayerUuidString = Util.getUUIDString(loadedPlayerUuid);
+
+        scathaPro.variables.cheaterDetected = false;
         
         loadPetDrops();
         loadWormKills();
         loadDayData();
         loadAchievements();
+        loadProfileStats();
         loadMiscData();
         loadGlobalData();
         
@@ -127,7 +131,10 @@ public class PersistentData
         }
     }
     
-    public boolean updateSaveData()
+    /**
+     * @return Whether player data should be reloaded
+     */
+    public boolean updatePlayerSaveData()
     {
         JsonObject playerData = getCurrentPlayerObject();
         if (playerData == null) return false;
@@ -136,6 +143,7 @@ public class PersistentData
         boolean saveRequired = false;
         
         // Update old save files that weren't per-account yet
+        
         JsonElement unlockedAchievementsOld = data.get("unlockedAchievements");
         if (unlockedAchievementsOld != null && JsonUtil.getJsonElement(playerData, "unlockedAchievements") == null)
         {
@@ -153,14 +161,32 @@ public class PersistentData
             reloadRequired = true;
         }
         
-        // Remove unused keys (only stuff that is REALLY not needed anymore!)
+        // Update / remove old keys
+        
+        if (playerData.get("scappaModeV2Unlocked") != null)
+        {
+            Boolean scappaModeV2Unlocked = JsonUtil.getBoolean(playerData, "scappaModeV2Unlocked");
+            if (scappaModeV2Unlocked != null && scappaModeV2Unlocked == true && JsonUtil.getJsonElement(playerData, "misc/unlockables/scappaModeUnlocked") == null)
+            {
+                JsonUtil.set(playerData, "misc/unlockables/scappaModeUnlocked", new JsonPrimitive(true));
+                reloadRequired = true;
+            }
+            
+            playerData.remove("scappaModeV2Unlocked");
+            saveRequired = true;
+        }
+        
         if (playerData.get("scappaModeUnlocked") != null)
         {
             playerData.remove("scappaModeUnlocked");
             saveRequired = true;
         }
         
-        if (saveRequired) saveData();
+        if (saveRequired)
+        {
+            saveData();
+            scathaPro.log("Persistent player data updated");
+        }
         
         return reloadRequired;
     }
@@ -206,11 +232,11 @@ public class PersistentData
     }
     
     
-    private void loadAchievements() {
-        
+    private void loadAchievements()
+    {
         AchievementManager achievementManager = scathaPro.getAchievementManager();
         achievementManager.clearUnlockedAchievements();
-
+        
         JsonObject playerData = getCurrentPlayerObject();
         if (playerData == null) return;
         
@@ -282,16 +308,14 @@ public class PersistentData
     
     private void loadPetDrops()
     {
+        scathaPro.variables.rarePetDrops = 0;
+        scathaPro.variables.epicPetDrops = 0;
+        scathaPro.variables.legendaryPetDrops = 0;
+        scathaPro.variables.scathaKillsAtLastDrop = -1;
+        scathaPro.variables.dropDryStreakInvalidated = false;
+        
         JsonObject playerData = getCurrentPlayerObject();
-        if (playerData == null)
-    	{
-        	scathaPro.variables.rarePetDrops = 0;
-        	scathaPro.variables.epicPetDrops = 0;
-        	scathaPro.variables.legendaryPetDrops = 0;
-        	scathaPro.variables.scathaKillsAtLastDrop = -1;
-        	
-        	return;
-    	}
+        if (playerData == null) return;
         
         Integer rarePetDrops = JsonUtil.getInt(playerData, petDropsKey + "/rare");
         Integer epicPetDrops = JsonUtil.getInt(playerData, petDropsKey + "/epic");
@@ -313,6 +337,9 @@ public class PersistentData
         
         Integer scathaKillsAtLastDrop = JsonUtil.getInt(playerData, petDropsKey + "/scathaKillsAtLastDrop");
         if (scathaKillsAtLastDrop != null) scathaPro.variables.scathaKillsAtLastDrop = scathaKillsAtLastDrop;
+
+        Boolean dropDryStreakInvalidated = JsonUtil.getBoolean(playerData, petDropsKey + "/dropDryStreakInvalidated");
+        if (dropDryStreakInvalidated != null) scathaPro.variables.dropDryStreakInvalidated = dropDryStreakInvalidated;
         
         scathaPro.getOverlay().updatePetDrops();
         scathaPro.getOverlay().updateScathaKillsSinceLastDrop();
@@ -321,14 +348,12 @@ public class PersistentData
     public void savePetDrops()
     {
         JsonObject petDropsJsonObject = new JsonObject();
+        
         petDropsJsonObject.add("rare", new JsonPrimitive(scathaPro.variables.rarePetDrops));
         petDropsJsonObject.add("epic", new JsonPrimitive(scathaPro.variables.epicPetDrops));
         petDropsJsonObject.add("legendary", new JsonPrimitive(scathaPro.variables.legendaryPetDrops));
-        
-        if (scathaPro.variables.scathaKillsAtLastDrop >= 0)
-        {
-            petDropsJsonObject.add("scathaKillsAtLastDrop", new JsonPrimitive(scathaPro.variables.scathaKillsAtLastDrop));
-        }
+        petDropsJsonObject.add("scathaKillsAtLastDrop", new JsonPrimitive(scathaPro.variables.scathaKillsAtLastDrop));
+        petDropsJsonObject.add("dropDryStreakInvalidated", new JsonPrimitive(scathaPro.variables.dropDryStreakInvalidated));
         
         setInCurrentPlayer(petDropsKey, petDropsJsonObject);
         saveData();
@@ -337,13 +362,11 @@ public class PersistentData
     
     private void loadWormKills()
     {
+        scathaPro.variables.regularWormKills = 0;
+        scathaPro.variables.scathaKills = 0;
+        
         JsonObject playerData = getCurrentPlayerObject();
-        if (playerData == null)
-        {
-            scathaPro.variables.regularWormKills = 0;
-            scathaPro.variables.scathaKills = 0;
-            return;
-        }
+        if (playerData == null) return;
         
         Integer regularWormKills = JsonUtil.getInt(playerData, wormKillsKey + "/regularWorms");
         Integer scathaKills = JsonUtil.getInt(playerData, wormKillsKey + "/scathas");
@@ -366,20 +389,19 @@ public class PersistentData
         saveData();
     }
     
+    
     private void loadDayData()
     {
+        scathaPro.variables.lastPlayedDate = null;
+        WormStatsType.PER_DAY.regularWormKills = 0;
+        WormStatsType.PER_DAY.scathaKills = 0;
+        WormStatsType.PER_DAY.scathaSpawnStreak = 0;
+        scathaPro.variables.scathaFarmingStreak = 0;
+        scathaPro.variables.scathaFarmingStreakHighscore = 0;
+        scathaPro.variables.lastScathaFarmedDate = null;
+        
         JsonObject playerData = getCurrentPlayerObject();
-        if (playerData == null)
-        {
-            scathaPro.variables.lastPlayedDate = null;
-            WormStatsType.PER_DAY.regularWormKills = 0;
-            WormStatsType.PER_DAY.scathaKills = 0;
-            WormStatsType.PER_DAY.scathaSpawnStreak = 0;
-            scathaPro.variables.scathaFarmingStreak = 0;
-            scathaPro.variables.scathaFarmingStreakHighscore = 0;
-            scathaPro.variables.lastScathaFarmedDate = null;
-            return;
-        }
+        if (playerData == null) return;
         
         JsonObject dayData = JsonUtil.getJsonObject(playerData, dayKey);
         
@@ -497,40 +519,97 @@ public class PersistentData
         return dayData;
     }
     
+    
+    private void loadProfileStats()
+    {
+        scathaPro.variables.magicFind = -1f;
+        scathaPro.variables.wormBestiaryMagicFind = -1f;
+        scathaPro.variables.petLuck = -1f;
+        
+        JsonObject playerData = getCurrentPlayerObject();
+        if (playerData == null) return;
+        
+        Double magicFind = JsonUtil.getDouble(playerData, profileStatsKey + "/magicFind");
+        if (magicFind != null) scathaPro.variables.magicFind = magicFind.floatValue();
+        Double wormBestiaryMagicFind = JsonUtil.getDouble(playerData, profileStatsKey + "/wormBestiaryMagicFind");
+        if (wormBestiaryMagicFind != null) scathaPro.variables.wormBestiaryMagicFind = wormBestiaryMagicFind.floatValue();
+        Double petLuck = JsonUtil.getDouble(playerData, profileStatsKey + "/petLuck");
+        if (petLuck != null) scathaPro.variables.petLuck = petLuck.floatValue();
+    }
+    
+    public void saveProfileStats()
+    {
+        JsonObject profileStatsObject = new JsonObject();
+        
+        profileStatsObject.add("magicFind", new JsonPrimitive(scathaPro.variables.magicFind));
+        profileStatsObject.add("wormBestiaryMagicFind", new JsonPrimitive(scathaPro.variables.wormBestiaryMagicFind));
+        profileStatsObject.add("petLuck", new JsonPrimitive(scathaPro.variables.petLuck));
+        
+        setInCurrentPlayer(profileStatsKey, profileStatsObject);
+        saveData();
+    }
+    
+    
     public void loadMiscData()
     {
-        JsonObject playerJson = getCurrentPlayerObject();
-        if (playerJson == null)
-        {
-            scathaPro.variables.scappaModeUnlocked = false;
-            
-            scathaPro.variables.avgMoneyCalcScathaPriceRare = -1f;
-            scathaPro.variables.avgMoneyCalcScathaPriceEpic = -1f;
-            scathaPro.variables.avgMoneyCalcScathaPriceLegendary = -1f;
-            return;
-        }
+        scathaPro.variables.scappaModeUnlocked = false;
+        scathaPro.variables.lastAprilFoolsJokeShownYear = -1;
+        scathaPro.variables.overlayIconGooglyEyesUnlocked = false;
         
-        Boolean scappaModeUnlocked = JsonUtil.getBoolean(playerJson, "scappaModeV2Unlocked");
-        if (scappaModeUnlocked != null) scathaPro.variables.scappaModeUnlocked = scappaModeUnlocked;
+        JsonObject playerJson = getCurrentPlayerObject();
+        if (playerJson == null) return;
+        
+        JsonObject miscJson = JsonUtil.getJsonObject(playerJson, "misc");
+        if (miscJson != null)
+        {
+            JsonObject unlockablesJson = JsonUtil.getJsonObject(miscJson, "unlockables");
+            if (unlockablesJson != null)
+            {
+                Boolean scappaModeUnlocked = JsonUtil.getBoolean(unlockablesJson, "scappaModeUnlocked");
+                if (scappaModeUnlocked != null) scathaPro.variables.scappaModeUnlocked = scappaModeUnlocked;
+                
+                Boolean overlayIconGooglyEyesUnlocked = JsonUtil.getBoolean(unlockablesJson, "overlayIconGooglyEyesUnlocked");
+                if (overlayIconGooglyEyesUnlocked != null) scathaPro.variables.overlayIconGooglyEyesUnlocked = overlayIconGooglyEyesUnlocked;
+            }
+            
+            Number lastAprilFoolsJokeShownYear = JsonUtil.getNumber(miscJson, "lastAprilFoolsJokeShownYear");
+            if (lastAprilFoolsJokeShownYear != null)
+            {
+                scathaPro.variables.lastAprilFoolsJokeShownYear = lastAprilFoolsJokeShownYear.shortValue();
+                if ((scathaPro.variables.lastAprilFoolsJokeShownYear >= 0 && scathaPro.variables.lastAprilFoolsJokeShownYear <= 2024)
+                    || scathaPro.variables.lastAprilFoolsJokeShownYear >= 3000)
+                {
+                    scathaPro.variables.cheaterDetected = true;
+                }
+            }
+        }
     }
     
     public void saveMiscData()
     {
-        setInCurrentPlayer("scappaModeV2Unlocked", new JsonPrimitive(scathaPro.variables.scappaModeUnlocked));
+        JsonObject miscDataObject = new JsonObject();
+        
+        JsonObject unlockablesObject = new JsonObject();
+        if (scathaPro.variables.scappaModeUnlocked) unlockablesObject.add("scappaModeUnlocked", new JsonPrimitive(scathaPro.variables.scappaModeUnlocked));
+        if (scathaPro.variables.overlayIconGooglyEyesUnlocked) unlockablesObject.add("overlayIconGooglyEyesUnlocked", new JsonPrimitive(scathaPro.variables.overlayIconGooglyEyesUnlocked));
+        if (unlockablesObject.entrySet().size() > 0) miscDataObject.add("unlockables", unlockablesObject);
+        
+        if (scathaPro.variables.lastAprilFoolsJokeShownYear >= 0) miscDataObject.add("lastAprilFoolsJokeShownYear", new JsonPrimitive(scathaPro.variables.lastAprilFoolsJokeShownYear));
+        
+        setInCurrentPlayer("misc", miscDataObject);
         
         saveData();
     }
     
+    
     public void loadGlobalData()
     {
+        scathaPro.variables.avgMoneyCalcScathaPriceRare = -1f;
+        scathaPro.variables.avgMoneyCalcScathaPriceEpic = -1f;
+        scathaPro.variables.avgMoneyCalcScathaPriceLegendary = -1f;
+        
         JsonObject globalData = JsonUtil.getJsonObject(data, "global");
-        if (globalData == null)
-        {
-            scathaPro.variables.avgMoneyCalcScathaPriceRare = -1f;
-            scathaPro.variables.avgMoneyCalcScathaPriceEpic = -1f;
-            scathaPro.variables.avgMoneyCalcScathaPriceLegendary = -1f;
-            return;
-        }
+        if (globalData == null) return;
         
         Double avgMoneyCalcScathaPriceRare = JsonUtil.getDouble(globalData, "averageMoneyCalculator/scathaPriceRare");
         if (avgMoneyCalcScathaPriceRare != null) scathaPro.variables.avgMoneyCalcScathaPriceRare = avgMoneyCalcScathaPriceRare.floatValue();

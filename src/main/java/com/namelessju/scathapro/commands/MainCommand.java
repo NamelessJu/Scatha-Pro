@@ -10,14 +10,21 @@ import com.namelessju.scathapro.gui.menus.SettingsGui;
 import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.managers.PersistentData;
 import com.namelessju.scathapro.managers.SaveManager;
+import com.namelessju.scathapro.managers.ScreenshotManager;
 import com.namelessju.scathapro.managers.UpdateChecker;
 import com.namelessju.scathapro.util.TextUtil;
 import com.namelessju.scathapro.util.TimeUtil;
+import com.namelessju.scathapro.util.UnicodeSymbol;
 import com.namelessju.scathapro.util.Util;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.event.ClickEvent;
+import net.minecraft.event.HoverEvent;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 
 public class MainCommand extends CommandBase
@@ -65,26 +72,28 @@ public class MainCommand extends CommandBase
             if (page < 1 || page > 2) throw new CommandException("Invalid page number (only 1 and 2 allowed)");
             
             TextUtil.sendChatDivider();
-            TextUtil.sendModChatMessage(Constants.msgHighlightingColor + ScathaPro.MODNAME + " commands:");
+            TextUtil.sendModChatMessage(Constants.msgHighlightingColor + ScathaPro.DYNAMIC_MODNAME + " commands:");
             
             switch (page)
             {
                 case 1:
                     sendHelpMessageEntry(COMMAND_NAME, "(\"help\")", "/sp", "Shows this help message");
-                    sendHelpMessageEntry(null, "settings", null, "Opens the mod's settings menu");
-                    sendHelpMessageEntry(null, "achievements", null, "Opens the achievements menu");
-                    sendHelpMessageEntry(ChancesCommand.COMMAND_NAME, "(\"help\")", "/scacha", "Check/calculate Scatha pet drop chances");
+                    sendHelpMessageEntry(null, "settings", null, "Opens the mod's settings menu", true);
+                    sendHelpMessageEntry(null, "achievements", null, "Opens the achievements menu", true);
+                    sendHelpMessageEntry(ChancesCommand.COMMAND_NAME, "(\"help\")", "/scacha", "Check/calculate Scatha pet drop chances", true, "/scacha help");
                     sendHelpMessageEntry(AverageMoneyCommand.COMMAND_NAME, null, "/sp averageMoney/avgMoney", "Calculate average Scatha farming profits");
-                    sendHelpMessageEntry(null, "dailyStreak", "daily, streak", "Shows information about your daily Scatha farming streak");
+                    sendHelpMessageEntry(null, "dailyStreak", "daily, streak", "Shows information about your daily Scatha farming streak", true);
+                    sendHelpMessageEntry(null, "profileStats", null, "Check/update the values that the mod uses when displaying profile stats", true);
                     break;
                 
                 case 2:
                     sendHelpMessageEntry(null, "setPetDrops <rare> <epic> <legendary>", null, "Set your pet drop counter to the specified numbers");
-                    sendHelpMessageEntry(null, "toggleOverlay", "to", "Toggles the overlay visibility");
-                    sendHelpMessageEntry(null, "checkUpdate", null, "Check for mod updates");
+                    sendHelpMessageEntry(null, "screenshot (<type>)", null, "Take a screenshot of a specific area of the screen", true, "/" + this.getCommandName() + " screenshot");
+                    sendHelpMessageEntry(null, "toggleOverlay", "to", "Toggles the overlay visibility", true);
+                    sendHelpMessageEntry(null, "checkUpdate", null, "Check for mod updates", true);
                     sendHelpMessageEntry(null, "resetSettings", null, "Reset all settings");
-                    sendHelpMessageEntry(null, "backup/backupPersistentData", null, "Creates a backup of this mod's save folder/persistent data file");
-                    sendHelpMessageEntry(null, "persistentDataFile", null, "Open the mod's persistent data file path in the file explorer");
+                    sendHelpMessageEntry(null, "backup/backupPersistentData", null, "Creates a backup of this mod's whole save folder or just the persistent data file");
+                    sendHelpMessageEntry(null, "persistentDataFile", null, "Open the mod's persistent data file path in the file explorer", true);
                     break;
                 
                 default:
@@ -123,9 +132,55 @@ public class MainCommand extends CommandBase
                 Constants.msgHighlightingColor + "Daily Scatha farming streak:\n"
                 + EnumChatFormatting.RESET + EnumChatFormatting.WHITE + "Current streak: " + EnumChatFormatting.GREEN + scathaPro.variables.scathaFarmingStreak + " day" + (scathaPro.variables.scathaFarmingStreak != 1 ? "s" : "") + "\n"
                 + EnumChatFormatting.RESET + EnumChatFormatting.WHITE + "Highest streak: " + EnumChatFormatting.GOLD + scathaPro.variables.scathaFarmingStreakHighscore + " day" + (scathaPro.variables.scathaFarmingStreakHighscore != 1 ? "s" : "") + "\n"
-                + EnumChatFormatting.RESET + (farmedToday ? EnumChatFormatting.GREEN + "\u2714" + " You have farmed Scathas today!" : EnumChatFormatting.RED + "\u2716" + " You haven't farmed Scathas today yet...")
+                + EnumChatFormatting.RESET + (farmedToday ? EnumChatFormatting.GREEN.toString() + UnicodeSymbol.heavyCheckMark + " You have farmed Scathas today!" : EnumChatFormatting.RED.toString() + UnicodeSymbol.heavyX + " You haven't farmed Scathas yet today...")
             );
             TextUtil.sendChatDivider();
+        }
+        
+        else if (subCommand.equalsIgnoreCase("profileStats"))
+        {
+            if (args.length > 1 && args[1].equalsIgnoreCase("update"))
+            {
+                if (args.length > 2 && args[2].equalsIgnoreCase("confirm"))
+                {
+                    scathaPro.getChestGuiParsingManager().profileStatsParser.enabled = true;
+                    
+                    EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;
+                    if (player != null) player.sendChatMessage("/sbmenu");
+                }
+                else
+                {
+                    ChatComponentText message = new ChatComponentText(Constants.msgHighlightingColor + "Equip everything (armor, pet, weapon) you use when killing a Scatha and then ");
+                    ChatComponentText confirmationButton = new ChatComponentText(EnumChatFormatting.GREEN.toString() + EnumChatFormatting.UNDERLINE + "click here to confirm");
+                    confirmationButton.getChatStyle()
+                        .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.GRAY + "Opens the Skyblock menu and updates the saved profile stats")))
+                        .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/sp profileStats update confirm"));
+                    message.appendSibling(confirmationButton);
+                    message.appendSibling(new ChatComponentText(EnumChatFormatting.GRAY + " (or use \"/sp profileStats update confirm\")"));
+                    TextUtil.sendModChatMessage(message);
+                }
+            }
+            else
+            {
+                TextUtil.sendModChatMessage(Constants.msgHighlightingColor + "Saved Scatha farming profile stats:");
+                TextUtil.sendModChatMessage(" " + scathaPro.variables.getMagicFindString() + " Magic Find", false);
+                TextUtil.sendModChatMessage(" " + scathaPro.variables.getBestiaryMagicFindString() + " Worm Bestiary Magic Find", false);
+                TextUtil.sendModChatMessage(" " + scathaPro.variables.getPetLuckString() + " Pet Luck", false);
+                
+                ChatComponentText updateInfoMessage = new ChatComponentText(EnumChatFormatting.GRAY + "Update Magic Find and Pet Luck using ");
+                ChatComponentText updateCommandButton = new ChatComponentText(EnumChatFormatting.GRAY.toString() + EnumChatFormatting.UNDERLINE + "/sp profileStats update");
+                updateCommandButton.getChatStyle()
+                    .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.GRAY + "Click to run the command")))
+                    .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/sp profileStats update"));
+                updateInfoMessage.appendSibling(updateCommandButton);
+                updateInfoMessage.appendSibling(new ChatComponentText(EnumChatFormatting.GRAY + " and bestiary Magic Find by "));
+                ChatComponentText openBestiaryButton = new ChatComponentText(EnumChatFormatting.GRAY.toString() + EnumChatFormatting.UNDERLINE + "opening the worm bestiary");
+                openBestiaryButton.getChatStyle()
+                    .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.GRAY + "Click to run \"/be worms\"")))
+                    .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/be worms"));
+                updateInfoMessage.appendSibling(openBestiaryButton);
+                TextUtil.sendModChatMessage(updateInfoMessage, false);
+            }
         }
         
         else if (subCommand.equalsIgnoreCase("setPetDrops"))
@@ -230,19 +285,56 @@ public class MainCommand extends CommandBase
             }
         }
         
+        else if (subCommand.equalsIgnoreCase("screenshot"))
+        {
+            if (args.length <= 1)
+            {
+                TextUtil.sendModChatMessage(
+                    EnumChatFormatting.RESET + "Available screenshot types:\n"
+                    + EnumChatFormatting.GRAY + " - " + EnumChatFormatting.RESET + "Chat\n"
+                    + EnumChatFormatting.GRAY + " - " + EnumChatFormatting.RESET + "Overlay\n"
+                    + EnumChatFormatting.GRAY + "Use /sp screenshot <type> to take the according screenshot"
+                );
+                return;
+            }
+            
+            String screenshotType = args[1];
+            if (screenshotType.equalsIgnoreCase("overlay")) ScreenshotManager.takeOverlayScreenshot();
+            else if (screenshotType.equalsIgnoreCase("chat")) ScreenshotManager.takeChatScreenshot();
+            else throw new CommandException("Invalid screenshot type (leave empty to show available types)");
+        }
+        
         else throw new CommandException("Invalid sub-command - Get a list of all sub-commands using " + getCommandUsage(null));
     }
     
-    private void sendHelpMessageEntry(String commandName, String parameters, String alias, String description)
+    public static void sendHelpMessageEntry(String commandName, String parameters, String alias, String description)
     {
-        TextUtil.sendModChatMessage(
-            EnumChatFormatting.WHITE + "/" + (commandName != null ? commandName : "sp")
-            + (parameters != null ? " " + parameters : "")
-            + (alias != null ? " " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "(alias: " + alias + ")" : "")
+        sendHelpMessageEntry(commandName, parameters, alias, description, false);
+    }
+    public static void sendHelpMessageEntry(String commandName, String parameters, String alias, String description, boolean allowClick)
+    {
+        sendHelpMessageEntry(commandName, parameters, alias, description, allowClick, null);
+    }
+    public static void sendHelpMessageEntry(String commandName, String parameters, String alias, String description, boolean allowClick, String clickCommand)
+    {
+        ChatComponentText message = new ChatComponentText("");
+        String command = "/" + (commandName != null ? commandName : "sp") + (parameters != null ? " " + parameters : "");
+        ChatComponentText commandSyntaxText = new ChatComponentText(EnumChatFormatting.WHITE.toString() + "/" + (commandName != null ? commandName : "sp") + (parameters != null ? " " + parameters : ""));
+        
+        if (allowClick)
+        {
+            if (clickCommand == null) clickCommand = command;
+            commandSyntaxText.getChatStyle()
+                .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(EnumChatFormatting.GRAY + "Click to run \"" + clickCommand + "\"")))
+                .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, clickCommand));
+        }
+        
+        message.appendSibling(commandSyntaxText);
+        message.appendSibling(new ChatComponentText(
+            (alias != null ? " " + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + "(alias: " + alias + ")" : "")
             + EnumChatFormatting.WHITE + ":"
             + EnumChatFormatting.GRAY + EnumChatFormatting.ITALIC + " " + description
-            ,
-            false
-        );
+        ));
+        TextUtil.sendModChatMessage(message, false);
     }
 }

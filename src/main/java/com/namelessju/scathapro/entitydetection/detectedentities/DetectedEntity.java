@@ -22,25 +22,29 @@ import net.minecraftforge.common.MinecraftForge;
 
 public abstract class DetectedEntity
 {
-    private static final EntityDetector[] ENTITY_DETECTORS = new EntityDetector[] {new WormDetector(), new GoblinDetector(), new JerryDetector()};
+    private static final EntityDetector[] ENTITY_DETECTORS = new EntityDetector[] {
+        new WormDetector(),
+        new GoblinDetector(),
+        new JerryDetector()
+    };
     
     
-    // These have been detected and are remembered even if the actual entity is unloaded
+    /** These have been detected and are remembered even if the actual entity is unloaded */
     private static final HashMap<Integer, DetectedEntity> registeredEntities = new HashMap<Integer, DetectedEntity>();
-    // These are currently loaded in the world
-    private static final List<DetectedEntity> detectedEntities = new ArrayList<DetectedEntity>();
+    /** These are currently loaded in the world */
+    private static final List<DetectedEntity> activeEntities = new ArrayList<DetectedEntity>();
     
     public static void clearLists()
     {
         registeredEntities.clear();
-        detectedEntities.clear();
+        activeEntities.clear();
     }
     
     public static DetectedEntity getById(int id)
     {
-        for (int i = 0; i < detectedEntities.size(); i ++)
+        for (int i = 0; i < activeEntities.size(); i ++)
         {
-            DetectedEntity entity = detectedEntities.get(i);
+            DetectedEntity entity = activeEntities.get(i);
             if (entity.getEntity().getEntityId() == id) return entity;
         }
         return null;
@@ -54,43 +58,45 @@ public abstract class DetectedEntity
         
         // Remove detected entities when the entity isn't in the world anymore
         
-        for (int i = detectedEntities.size() - 1; i >= 0; i --)
+        for (int i = activeEntities.size() - 1; i >= 0; i --)
         {
-            DetectedEntity detectedEntity = detectedEntities.get(i);
+            DetectedEntity detectedEntity = activeEntities.get(i);
             
             if (detectedEntity.getEntity() == null)
             {
-                detectedEntities.remove(i);
+                activeEntities.remove(i);
                 continue;
             }
             
             if (!isInWorld(detectedEntity.entity, player.worldObj))
             {
-                boolean despawned = false;
+                LeaveWorldReason leaveWorldReason = null;
                 
                 if (registeredEntities.containsKey(detectedEntity.entity.getEntityId()))
                 {
                     if (detectedEntity.getMaxLifetime() >= 0 && detectedEntity.getCurrentLifetime() >= detectedEntity.getMaxLifetime() - (long) Math.min(Constants.pingTreshold, detectedEntity.getMaxLifetime() * 0.2))
                     {
-                        despawned = true;
                         registeredEntities.remove(detectedEntity.entity.getEntityId());
-                        
-                        ScathaPro.getInstance().logDebug("Entity \"" + detectedEntity.entity.getName() + "\" unloaded right before lifetime end, unregistered (" + registeredEntities.size() + " total)");
+
+                        leaveWorldReason = LeaveWorldReason.LIFETIME_ENDED;
+                        ScathaPro.getInstance().logDebug("Entity " + getEntityString(detectedEntity) + " unloaded right before lifetime end, unregistered (" + registeredEntities.size() + " total)");
                     }
                     else if (killAABB.isVecInside(detectedEntity.entity.getPositionVector()))
                     {
                         registeredEntities.remove(detectedEntity.entity.getEntityId());
-                        
-                        ScathaPro.getInstance().logDebug("Entity \"" + detectedEntity.entity.getName() + "\" unloaded close to player, unregistered (" + registeredEntities.size() + " total)");
+
+                        leaveWorldReason = LeaveWorldReason.KILLED;
+                        ScathaPro.getInstance().logDebug("Entity " + getEntityString(detectedEntity) + " unloaded close to player, unregistered (" + registeredEntities.size() + " total)");
                     }
                     else
                     {
-                        ScathaPro.getInstance().logDebug("Entity \"" + detectedEntity.entity.getName() + "\" unloaded away from player, was either killed or has left the simulation distance...");
+                        leaveWorldReason = LeaveWorldReason.LEFT_SIMULATION_DISTANCE;
+                        ScathaPro.getInstance().logDebug("Entity " + getEntityString(detectedEntity) + " unloaded away from player, has likely left the simulation distance...");
                     }
                 }
                 
-                detectedEntities.remove(i).onLeaveWorld(despawned);
-                ScathaPro.getInstance().logDebug("Entity \"" + detectedEntity.entity.getName() + "\" is not in world anymore, removed from detected entities (" + detectedEntities.size() + " total)");
+                activeEntities.remove(i).onLeaveWorld(leaveWorldReason);
+                ScathaPro.getInstance().logDebug("Entity " + getEntityString(detectedEntity) + " is not in world anymore, removed from active entities (" + activeEntities.size() + " total)");
             }
         }
         
@@ -106,7 +112,7 @@ public abstract class DetectedEntity
             {
                 registeredEntities.remove(entityId);
                 
-                ScathaPro.getInstance().logDebug("Entity \"" + detectedEntity.entity.getName() + "\" lifetime ran out, unregistered (" + registeredEntities.size() + " total)");
+                ScathaPro.getInstance().logDebug("Entity " + getEntityString(detectedEntity) + " lifetime ran out, unregistered (" + registeredEntities.size() + " total)");
             }
         }
         
@@ -124,18 +130,24 @@ public abstract class DetectedEntity
             for (EntityDetector detector : ENTITY_DETECTORS)
             {
                 DetectedEntity detectedEntity = detector.detectEntity(armorStand, entityName);
-                DetectedEntity.register(detectedEntity);
+                if (detectedEntity != null)
+                {
+                    DetectedEntity registeredEntity = registeredEntities.get(detectedEntity.entity.getEntityId());
+                    if (registeredEntity != null) update(registeredEntity, detectedEntity);
+                    else DetectedEntity.register(detectedEntity);
+                    break;
+                }
             }
         }
     }
     
     private static void register(DetectedEntity detectedEntity)
     {
-        if (detectedEntity == null || detectedEntity.entity == null || detectedEntities.contains(detectedEntity)) return;
+        if (detectedEntity == null || detectedEntity.entity == null || activeEntities.contains(detectedEntity)) return;
         
-        detectedEntities.add(detectedEntity);
+        activeEntities.add(detectedEntity);
         
-        ScathaPro.getInstance().logDebug("Entity \"" + detectedEntity.entity.getName() + "\" detected (" + detectedEntities.size() + " total)");
+        ScathaPro.getInstance().logDebug("Entity " + getEntityString(detectedEntity) + " detected (" + activeEntities.size() + " total)");
         
         int entityId = detectedEntity.entity.getEntityId();
         if (!registeredEntities.containsKey(entityId))
@@ -143,10 +155,23 @@ public abstract class DetectedEntity
             registeredEntities.put(entityId, detectedEntity);
             detectedEntity.onRegistration();
             
-            ScathaPro.getInstance().logDebug("Entity \"" + detectedEntity.entity.getName() + "\" registered (" + registeredEntities.size() + " total)");
+            ScathaPro.getInstance().logDebug("Entity " + getEntityString(detectedEntity) + " registered (" + registeredEntities.size() + " total)");
             
             MinecraftForge.EVENT_BUS.post(new DetectedEntityRegisteredEvent(detectedEntity));
         }
+    }
+    
+    private static void update(DetectedEntity oldEntity, DetectedEntity newEntity)
+    {
+        oldEntity.entity = newEntity.entity;
+        oldEntity.onChangedEntity();
+        
+        activeEntities.add(oldEntity);
+        
+        registeredEntities.remove(oldEntity.entity.getEntityId());
+        registeredEntities.put(newEntity.entity.getEntityId(), oldEntity);
+        
+        ScathaPro.getInstance().logDebug("Entity " + getEntityString(oldEntity) + " is already registered, replaced previous entity " + getEntityString(newEntity));
     }
     
     private static boolean isInWorld(EntityArmorStand entity, World world)
@@ -154,34 +179,27 @@ public abstract class DetectedEntity
         return world.loadedEntityList.contains(entity);
     }
     
+    private static String getEntityString(DetectedEntity detectedEntity)
+    {
+        return "\"" + detectedEntity.entity.getName() + "\" (" + detectedEntity.entity.getEntityId() + ")";
+    }
+    
 
     public final long spawnTime;
-    private final EntityArmorStand entity;
+    private EntityArmorStand entity;
     
     public DetectedEntity(EntityArmorStand entity)
     {
         this.entity = entity;
         
-        int entityId = entity.getEntityId();
-        
-        DetectedEntity registeredEntity = registeredEntities.get(entityId);
-        if (registeredEntity != null)
-        {
-            spawnTime = registeredEntity.spawnTime;
-            registeredEntities.put(entityId, this);
-
-            ScathaPro.getInstance().logDebug("Entity \"" + this.entity.getName() + "\" is already registered, replaced previous entity");
-        }
-        else
-        {
-            spawnTime = TimeUtil.now();
-        }
+        spawnTime = TimeUtil.now();
     }
     
     public abstract long getMaxLifetime();
     
     protected void onRegistration() {}
-    protected void onLeaveWorld(boolean despawned) {}
+    protected void onChangedEntity() {}
+    protected void onLeaveWorld(LeaveWorldReason leaveWorldReason) {}
     
     
     public long getCurrentLifetime()
@@ -192,5 +210,11 @@ public abstract class DetectedEntity
     public EntityArmorStand getEntity()
     {
         return entity;
+    }
+    
+    
+    public static enum LeaveWorldReason
+    {
+        LIFETIME_ENDED, KILLED, LEFT_SIMULATION_DISTANCE
     }
 }

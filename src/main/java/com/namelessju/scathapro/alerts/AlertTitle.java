@@ -1,6 +1,6 @@
 package com.namelessju.scathapro.alerts;
 
-import com.namelessju.scathapro.util.TextUtil;
+import com.namelessju.scathapro.ScathaPro;
 
 import net.minecraft.util.EnumChatFormatting;
 
@@ -60,7 +60,7 @@ public class AlertTitle
             displaySubtitle = subtitleDefaultFormatting + this.subtitle.replace(EnumChatFormatting.RESET.toString(), subtitleDefaultFormatting);
         }
         
-        TextUtil.displayTitle(displayTitle, displaySubtitle, fadeInTicks, stayTicks, fadeOutTicks);
+        ScathaPro.getInstance().getAlertTitleOverlay().displayTitle(displayTitle, displaySubtitle, fadeInTicks, stayTicks, fadeOutTicks);
     }
     
     public AlertTitle replaceWith(AlertTitle other, String variableSubtitle)

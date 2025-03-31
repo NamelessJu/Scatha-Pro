@@ -3,6 +3,7 @@ package com.namelessju.scathapro.util;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
 import java.util.Date;
 
 import net.minecraft.client.Minecraft;
@@ -10,6 +11,8 @@ import net.minecraft.client.Minecraft;
 public class TimeUtil
 {
     public static final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("uuuu-MM-dd");
+    
+    public static final boolean isAprilFools = isDate(04, 01);
     
     /**
      * Returns the current time in milliseconds since midnight, January 1, 1970 UTC
@@ -27,9 +30,9 @@ public class TimeUtil
         return Minecraft.getSystemTime();
     }
     
-    public static boolean getAnimationState(int trueDuration, int falseDuration)
+    public static boolean getAnimationState(int trueDurationMs, int falseDurationMs)
     {
-        return getAnimationTime() % (trueDuration + falseDuration) < trueDuration;
+        return getAnimationTime() % (trueDurationMs + falseDurationMs) < trueDurationMs;
     }
     
     /**
@@ -49,6 +52,11 @@ public class TimeUtil
     public static LocalDate today()
     {
         return LocalDate.now();
+    }
+    
+    public static short getCurrentYear()
+    {
+        return (short) today().getYear();
     }
     
     public static LocalDate parseDate(String dateString)
@@ -99,4 +107,23 @@ public class TimeUtil
         return (hours >= 1 ? hours + "h " : "") + (minutes >= 1 ? minutes + "m " : "") + seconds + "s";
     }
     
+    public static final boolean isDate(int month, int day)
+    {
+        return isDateBetween(month, day, month, day);
+    }
+    
+    /**
+     * Both <code>from<code> and <code>to</code> dates are inclusive
+     */
+    public static final boolean isDateBetween(int monthFrom, int dayFrom, int monthTo, int dayTo)
+    {
+        Calendar calendar = Calendar.getInstance();
+        int month = calendar.get(2) + 1;
+        int day = calendar.get(5);
+        return (
+            ((monthFrom == month && dayFrom <= day) || monthFrom < month)
+            &&
+            ((month == monthTo && day <= dayTo) || month < monthTo)
+        );
+    }
 }

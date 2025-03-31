@@ -3,6 +3,7 @@ package com.namelessju.scathapro.achievements;
 import com.namelessju.scathapro.ScathaPro;
 
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.MathHelper;
 
 public enum Achievement
 {
@@ -116,8 +117,9 @@ public enum Achievement
     anomalous_desire_recover(AchievementCategory.MISCELLANEOUS, "Anomalous Recovery", "Spawn a worm with Anomalous Desire after wasting more than half of it during the worm spawn cooldown", 1, Type.SECRET),
     easter_egg_overlay_title(AchievementCategory.MISCELLANEOUS, "Scappa (pre-release ver.)", "Got the easter egg overlay title (1/200 chance per game start)", 1, Type.LEGACY),
     scappa_mode(AchievementCategory.MISCELLANEOUS, "Scappa", "Unlock Scappa mode (1/250 chance per Scatha kill)", 1, Type.HIDDEN),
-    meet_developer(AchievementCategory.MISCELLANEOUS, "The Creator", "Be in a lobby with the " + ScathaPro.MODNAME + " developer", 1, Type.HIDDEN),
-    cheat(AchievementCategory.MISCELLANEOUS, "Cheater", "Put impossible values into the " + ScathaPro.MODNAME + " savefile", 1, Type.HIDDEN);
+    april_fools(AchievementCategory.MISCELLANEOUS, "April Fools", "Kill a Scatha on April 1st", 1, Type.HIDDEN),
+    meet_developer(AchievementCategory.MISCELLANEOUS, "The Creator", "Be in a lobby with the " + ScathaPro.DYNAMIC_MODNAME + " developer", 1, Type.HIDDEN),
+    cheat(AchievementCategory.MISCELLANEOUS, "Cheater", "Put impossible values into the " + ScathaPro.DYNAMIC_MODNAME + " savefile", 1, Type.HIDDEN);
     
     
     public enum Type
@@ -221,6 +223,14 @@ public enum Achievement
     public float getProgress()
     {
         return progress;
+    }
+    
+    /**
+     * Progress clamped between 0 and goal
+     */
+    public float getClampedProgress()
+    {
+        return MathHelper.clamp_float(progress, 0f, goal);
     }
     
     public void unlock()

@@ -1,17 +1,22 @@
 package com.namelessju.scathapro.util;
 
+import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.util.UUID;
+
+import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.NetHandlerPlayClient;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.scoreboard.ScoreObjective;
@@ -21,36 +26,29 @@ import net.minecraft.util.Session;
 
 public class Util
 {
-    public enum Color
+    /**
+     * Utility class for hex codes of Minecraft vanilla text colors
+     */
+    public class Color
     {
-        DARK_RED(0xFFAA0000),
-        RED(0xFFFF5555),
-        GOLD(0xFFFFAA00),
-        YELLOW(0xFFFFFF55),
-        DARK_GREEN(0xFF00AA00),
-        GREEN(0xFF55FF55),
-        AQUA(0xFF55FFFF),
-        DARK_AQUA(0xFF00AAAA),
-        DARK_BLUE(0xFF0000AA),
-        BLUE(0xFF5555FF),
-        LIGHT_PURPLE(0xFFFF55FF),
-        DARK_PURPLE(0xFFAA00AA),
-        WHITE(0xFFFFFFFF),
-        GRAY(0xFFAAAAAA),
-        DARK_GRAY(0xFF555555),
-        BLACK(0xFF000000);
+        public static final int DARK_RED = 0xFFAA0000;
+        public static final int RED = 0xFFFF5555;
+        public static final int GOLD = 0xFFFFAA00;
+        public static final int YELLOW = 0xFFFFFF55;
+        public static final int DARK_GREEN = 0xFF00AA00;
+        public static final int GREEN = 0xFF55FF55;
+        public static final int AQUA = 0xFF55FFFF;
+        public static final int DARK_AQUA = 0xFF00AAAA;
+        public static final int DARK_BLUE = 0xFF0000AA;
+        public static final int BLUE = 0xFF5555FF;
+        public static final int LIGHT_PURPLE = 0xFFFF55FF;
+        public static final int DARK_PURPLE = 0xFFAA00AA;
+        public static final int WHITE = 0xFFFFFFFF;
+        public static final int GRAY = 0xFFAAAAAA;
+        public static final int DARK_GRAY = 0xFF555555;
+        public static final int BLACK = 0xFF000000;
         
-        private final int value;
-        
-        Color(int value)
-        {
-            this.value = value;
-        }
-        
-        public int getValue()
-        {
-            return value;
-        }
+        private Color() {}
     }
 
     
@@ -91,30 +89,6 @@ public class Util
     public static String getPlayerUUIDString()
     {
         return getUUIDString(getPlayerUUID());
-    }
-
-    public static String numberToString(int number)
-    {
-        return numberToString(number, 0);
-    }
-    public static String numberToString(double number, int maxDecimalPlaces)
-    {
-        return numberToString(number, maxDecimalPlaces, false);
-    }
-    public static String numberToString(double number, int maxDecimalPlaces, boolean showTrailingDecimalZeros)
-    {
-        return numberToString(number, maxDecimalPlaces, showTrailingDecimalZeros, RoundingMode.HALF_EVEN);
-    }
-    public static String numberToString(double number, int maxDecimalPlaces, boolean showTrailingDecimalZeros, RoundingMode roundingMode)
-    {
-        DecimalFormatSymbols decimalSymbols = new DecimalFormatSymbols();
-        decimalSymbols.setDecimalSeparator('.');
-        decimalSymbols.setGroupingSeparator(',');
-        DecimalFormat decimalFormat = new DecimalFormat("#,###.#", decimalSymbols);
-        decimalFormat.setMaximumFractionDigits(maxDecimalPlaces);
-        decimalFormat.setRoundingMode(roundingMode);
-        if (showTrailingDecimalZeros) decimalFormat.setMinimumFractionDigits(maxDecimalPlaces);
-        return decimalFormat.format(number);
     }
     
     /**
@@ -161,18 +135,6 @@ public class Util
         return Minecraft.getMinecraft().gameSettings.keyBindPlayerList.isKeyDown() && (!Minecraft.getMinecraft().isIntegratedServerRunning() || handler.getPlayerInfoMap().size() > 1 || scoreobjective != null);
     }
     
-    public static void copyToClipboard(String str)
-    {
-        StringSelection selection = new StringSelection(str);
-        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        clipboard.setContents(selection, selection);
-    }
-    
-    public static float calculatePetChance(float initialChance, float magicFind, float petLuck, int looting)
-    {
-        return initialChance * (1f + (magicFind + petLuck)/100f) * (1 + looting * 0.15f);
-    }
-    
     public static boolean openFileInExplorer(File file)
     {
         if (!file.exists()) return false;
@@ -199,6 +161,77 @@ public class Util
         return integer == null ? 0 : integer;
     }
     
+    /**
+     * Prepares GL for image rendering
+     */
+    public static void startImageRendering()
+    {
+        GlStateManager.enableAlpha();
+        GlStateManager.enableBlend();
+        GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
+        GlStateManager.color(1f, 1f, 1f, 1f);
+    }
+    
+    public static void endImageRendering()
+    {
+        GlStateManager.disableBlend();
+        GlStateManager.disableAlpha();
+    }
+    
+    public static void copyToClipboard(String string)
+    {
+        copyToClipboard(new StringSelection(string));
+    }
+    
+    public static void copyToClipboard(BufferedImage image)
+    {
+        copyToClipboard(new ImageTransferable(image));
+    }
+
+    private static void copyToClipboard(Transferable transferable)
+    {
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(transferable, null);
+    }
+    
     
     private Util() {}
+    
+    
+    private static class ImageTransferable implements Transferable
+    {
+        private Image image;
+
+        public ImageTransferable(Image image)
+        {
+            this.image = image;
+        }
+        
+        @Override
+        public DataFlavor[] getTransferDataFlavors()
+        {
+            return new DataFlavor[] {DataFlavor.imageFlavor};
+        }
+
+        @Override
+        public boolean isDataFlavorSupported(DataFlavor flavor)
+        {
+            DataFlavor[] flavors = getTransferDataFlavors();
+            for (int i = 0; i < flavors.length; i ++)
+            {
+                if (flavor.equals(flavors[i])) return true;
+            }
+            return false;
+        }
+
+        @Override
+        public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException
+        {
+            if (flavor.equals(DataFlavor.imageFlavor) && image != null)
+            {
+                return image;
+            }
+            else throw new UnsupportedFlavorException(flavor);
+        }
+    }
 }

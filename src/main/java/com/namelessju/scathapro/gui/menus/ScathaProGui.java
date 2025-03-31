@@ -88,7 +88,7 @@ public abstract class ScathaProGui extends GuiScreen
         String title = getTitle();
         if (title != null && !title.replace(" ", "").isEmpty())
         {
-            titleLabel = new ScathaProLabel(1, width / 2 - 155, 15, 310, "Scatha-Pro - " + title).setCentered();
+            titleLabel = new ScathaProLabel(1, width / 2 - 155, 15, 310, ScathaPro.DYNAMIC_MODNAME + " - " + title).setCentered();
         }
     }
     
@@ -99,7 +99,7 @@ public abstract class ScathaProGui extends GuiScreen
         
         if (hasBackground())
         {
-            drawDefaultBackground();   
+            drawDefaultBackground();
         }
         else if (mc.theWorld == null)
         {
@@ -153,6 +153,7 @@ public abstract class ScathaProGui extends GuiScreen
                 {
                     this.clickingElement = element;
                     if (element instanceof GuiButton) actionPerformed((GuiButton) element);
+                    if (mc.currentScreen != this) return;
                 }
             }
         }
@@ -221,7 +222,7 @@ public abstract class ScathaProGui extends GuiScreen
     }
 
     
-    protected enum GridElementMode
+    public enum GridElementMode
     {
         HALF_WIDTH, FULL_WIDTH, CUSTOM_X;
     }
@@ -299,13 +300,18 @@ public abstract class ScathaProGui extends GuiScreen
         return button;
     }
     
+    protected DoneButton addScrollListDoneButton()
+    {
+        return addDoneButton(this.width / 2 - 100, this.height - 30, 200, 20);
+    }
+    
     
     protected static void setSliderTextDefault(GuiSlider slider)
     {
         slider.displayString = slider.dispString + "default";
     }
     
-    public static void drawTooltip(GuiScreen screen, FontRenderer fontRenderer, final int mouseX, final int mouseY, String[] textLines, final int maxTextWidth)
+    public static void drawTooltip(GuiScreen screen, FontRenderer fontRenderer, int mouseX, int mouseY, String[] textLines, int maxTextWidth)
     {
         if (textLines.length == 0) return;
         
@@ -419,19 +425,7 @@ public abstract class ScathaProGui extends GuiScreen
             tooltipY = screen.height - tooltipHeight - 6;
         }
         
-        final int zLevel = 300;
-        final int backgroundColor = 0xF0100010;
-        GuiUtils.drawGradientRect(zLevel, tooltipX - 3, tooltipY - 4, tooltipX + tooltipTextWidth + 3, tooltipY - 3, backgroundColor, backgroundColor);
-        GuiUtils.drawGradientRect(zLevel, tooltipX - 3, tooltipY + tooltipHeight + 3, tooltipX + tooltipTextWidth + 3, tooltipY + tooltipHeight + 4, backgroundColor, backgroundColor);
-        GuiUtils.drawGradientRect(zLevel, tooltipX - 3, tooltipY - 3, tooltipX + tooltipTextWidth + 3, tooltipY + tooltipHeight + 3, backgroundColor, backgroundColor);
-        GuiUtils.drawGradientRect(zLevel, tooltipX - 4, tooltipY - 3, tooltipX - 3, tooltipY + tooltipHeight + 3, backgroundColor, backgroundColor);
-        GuiUtils.drawGradientRect(zLevel, tooltipX + tooltipTextWidth + 3, tooltipY - 3, tooltipX + tooltipTextWidth + 4, tooltipY + tooltipHeight + 3, backgroundColor, backgroundColor);
-        final int borderColorStart = 0x505000FF;
-        final int borderColorEnd = (borderColorStart & 0xFEFEFE) >> 1 | borderColorStart & 0xFF000000;
-        GuiUtils.drawGradientRect(zLevel, tooltipX - 3, tooltipY - 3 + 1, tooltipX - 3 + 1, tooltipY + tooltipHeight + 3 - 1, borderColorStart, borderColorEnd);
-        GuiUtils.drawGradientRect(zLevel, tooltipX + tooltipTextWidth + 2, tooltipY - 3 + 1, tooltipX + tooltipTextWidth + 3, tooltipY + tooltipHeight + 3 - 1, borderColorStart, borderColorEnd);
-        GuiUtils.drawGradientRect(zLevel, tooltipX - 3, tooltipY - 3, tooltipX + tooltipTextWidth + 3, tooltipY - 3 + 1, borderColorStart, borderColorStart);
-        GuiUtils.drawGradientRect(zLevel, tooltipX - 3, tooltipY + tooltipHeight + 2, tooltipX + tooltipTextWidth + 3, tooltipY + tooltipHeight + 3, borderColorEnd, borderColorEnd);
+        drawTooltipBox(tooltipX, tooltipY, tooltipTextWidth, tooltipHeight);
         
         for (int lineNumber = 0; lineNumber < textLines.length; ++lineNumber)
         {
@@ -444,5 +438,22 @@ public abstract class ScathaProGui extends GuiScreen
         GlStateManager.enableDepth();
         RenderHelper.enableStandardItemLighting();
         GlStateManager.enableRescaleNormal();
+    }
+    
+    public static void drawTooltipBox(int x, int y, int width, int height)
+    {
+        final int zLevel = 300;
+        final int backgroundColor = 0xF0100010;
+        GuiUtils.drawGradientRect(zLevel, x - 3, y - 4, x + width + 3, y - 3, backgroundColor, backgroundColor);
+        GuiUtils.drawGradientRect(zLevel, x - 3, y + height + 3, x + width + 3, y + height + 4, backgroundColor, backgroundColor);
+        GuiUtils.drawGradientRect(zLevel, x - 3, y - 3, x + width + 3, y + height + 3, backgroundColor, backgroundColor);
+        GuiUtils.drawGradientRect(zLevel, x - 4, y - 3, x - 3, y + height + 3, backgroundColor, backgroundColor);
+        GuiUtils.drawGradientRect(zLevel, x + width + 3, y - 3, x + width + 4, y + height + 3, backgroundColor, backgroundColor);
+        final int borderColorStart = 0x505000FF;
+        final int borderColorEnd = (borderColorStart & 0xFEFEFE) >> 1 | borderColorStart & 0xFF000000;
+        GuiUtils.drawGradientRect(zLevel, x - 3, y - 3 + 1, x - 3 + 1, y + height + 3 - 1, borderColorStart, borderColorEnd);
+        GuiUtils.drawGradientRect(zLevel, x + width + 2, y - 3 + 1, x + width + 3, y + height + 3 - 1, borderColorStart, borderColorEnd);
+        GuiUtils.drawGradientRect(zLevel, x - 3, y - 3, x + width + 3, y - 3 + 1, borderColorStart, borderColorStart);
+        GuiUtils.drawGradientRect(zLevel, x - 3, y + height + 2, x + width + 3, y + height + 3, borderColorEnd, borderColorEnd);
     }
 }

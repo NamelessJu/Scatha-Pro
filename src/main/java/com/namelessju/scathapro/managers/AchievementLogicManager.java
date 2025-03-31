@@ -1,15 +1,17 @@
-package com.namelessju.scathapro.achievements;
+package com.namelessju.scathapro.managers;
 
 import java.time.LocalDate;
 
 import com.namelessju.scathapro.Constants;
 import com.namelessju.scathapro.GlobalVariables;
 import com.namelessju.scathapro.ScathaPro;
+import com.namelessju.scathapro.achievements.Achievement;
+import com.namelessju.scathapro.achievements.AchievementManager;
 import com.namelessju.scathapro.achievements.Achievement.Type.Visibility;
 import com.namelessju.scathapro.entitydetection.detectedentities.DetectedWorm;
 import com.namelessju.scathapro.events.WormSpawnEvent;
-import com.namelessju.scathapro.miscellaneous.ScoreboardParser;
 import com.namelessju.scathapro.miscellaneous.enums.WormStatsType;
+import com.namelessju.scathapro.parsing.ScoreboardParser;
 import com.namelessju.scathapro.util.JsonUtil;
 import com.namelessju.scathapro.util.NBTUtil;
 import com.namelessju.scathapro.util.TimeUtil;
@@ -63,7 +65,7 @@ public class AchievementLogicManager
         updateKillsTodayAchievements(true);
     }
     
-    private void updateTotalKillsAchievements(boolean allowUnlock)
+    public void updateTotalKillsAchievements(boolean allowUnlock)
     {
         int highestWormKills = Math.max(WormStatsType.PER_SESSION.regularWormKills + WormStatsType.PER_SESSION.scathaKills, variables.regularWormKills + variables.scathaKills);
         Achievement.worm_bestiary_max.setProgress(highestWormKills, allowUnlock);
@@ -86,7 +88,7 @@ public class AchievementLogicManager
     {
         updateKillsTodayAchievements(true);
     }
-    private void updateKillsTodayAchievements(boolean allowUnlock)
+    public void updateKillsTodayAchievements(boolean allowUnlock)
     {
         int totalWormKillsToday = WormStatsType.PER_DAY.regularWormKills + WormStatsType.PER_DAY.scathaKills;
         Achievement.day_kills_1.setProgress(totalWormKillsToday);
@@ -98,12 +100,16 @@ public class AchievementLogicManager
     {
         updateDryStreakAchievements(true);
     }
-    private void updateDryStreakAchievements(boolean allowUnlock)
+    public void updateDryStreakAchievements(boolean allowUnlock)
     {
-        int dryStreak;
-        if (scathaPro.variables.scathaKillsAtLastDrop >= 0) dryStreak = scathaPro.variables.scathaKills - scathaPro.variables.scathaKillsAtLastDrop;
-        else dryStreak = scathaPro.variables.scathaKills;
-        if (dryStreak < 0) dryStreak = 0;
+        int dryStreak = 0;
+        if (!scathaPro.variables.dropDryStreakInvalidated)
+        {
+            if (scathaPro.variables.scathaKillsAtLastDrop < 0) dryStreak = scathaPro.variables.scathaKills;
+            else dryStreak = scathaPro.variables.scathaKills - scathaPro.variables.scathaKillsAtLastDrop;
+            if (dryStreak < 0) dryStreak = 0;
+        }
+        
         Achievement.scatha_pet_drop_dry_streak_1.setProgress(dryStreak, allowUnlock);
         Achievement.scatha_pet_drop_dry_streak_2.setProgress(dryStreak, allowUnlock);
     }
@@ -223,7 +229,7 @@ public class AchievementLogicManager
     {
         updateProgressAchievements(true);
     }
-    private void updateProgressAchievements(boolean allowUnlock)
+    public void updateProgressAchievements(boolean allowUnlock)
     {
         int achievementsCount = 0;
         int unlockedAchievementsCount = 0;

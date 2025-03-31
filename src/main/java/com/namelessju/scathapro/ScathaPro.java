@@ -7,7 +7,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.google.gson.JsonPrimitive;
-import com.namelessju.scathapro.achievements.AchievementLogicManager;
 import com.namelessju.scathapro.achievements.AchievementManager;
 import com.namelessju.scathapro.alerts.alertmodes.AlertModeManager;
 import com.namelessju.scathapro.alerts.alertmodes.customalertmode.CustomAlertModeManager;
@@ -19,15 +18,19 @@ import com.namelessju.scathapro.eventlisteners.ScathaProGameplayListeners;
 import com.namelessju.scathapro.eventlisteners.ScathaProMiscListeners;
 import com.namelessju.scathapro.eventlisteners.ScathaProTickListeners;
 import com.namelessju.scathapro.events.ModUpdateEvent;
+import com.namelessju.scathapro.managers.AchievementLogicManager;
 import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.managers.PersistentData;
 import com.namelessju.scathapro.managers.SaveManager;
 import com.namelessju.scathapro.managers.UpdateChecker;
 import com.namelessju.scathapro.miscellaneous.enums.SkyblockArea;
+import com.namelessju.scathapro.overlay.AlertTitleOverlay;
 import com.namelessju.scathapro.overlay.Overlay;
+import com.namelessju.scathapro.parsing.chestguiparsing.ChestGuiParsingManager;
 import com.namelessju.scathapro.managers.InputManager;
 import com.namelessju.scathapro.util.JsonUtil;
 import com.namelessju.scathapro.util.TextUtil;
+import com.namelessju.scathapro.util.TimeUtil;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IResourcePack;
@@ -35,14 +38,17 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
-@Mod(modid = ScathaPro.MODID, version = ScathaPro.VERSION, name = ScathaPro.MODNAME, clientSideOnly = true)
+@Mod(modid = ScathaPro.MODID, version = ScathaPro.VERSION, name = ScathaPro.TRUE_MODNAME, clientSideOnly = true)
 public class ScathaPro
 {
-    public static final String MODNAME = "Scatha-Pro";
+    public static final String TRUE_MODNAME = "Scatha-Pro";
     public static final String MODID = "scathapro";
-    public static final String VERSION = "1.3";
+    public static final String VERSION = "1.3.1";
+    
+    public static final String DYNAMIC_MODNAME = TimeUtil.isAprilFools ? "Schata-Por" : TRUE_MODNAME;
     
     
     private static ScathaPro instance;
@@ -55,11 +61,13 @@ public class ScathaPro
     private Config config;
     private PersistentData persistentData;
     private Overlay overlay;
+    private AlertTitleOverlay alertTitleOverlay;
     private AlertModeManager alertModeManager;
     private CustomAlertModeManager customAlertModeManager;
     private AchievementManager achievementManager;
     private AchievementLogicManager achievementLogicManager;
     private InputManager inputManager;
+    private ChestGuiParsingManager chestGuiParsingManager;
     
     public final CommandRegistry commandRegistry;
     
@@ -74,11 +82,13 @@ public class ScathaPro
     public Config getConfig() { return config; }
     public PersistentData getPersistentData() { return persistentData; }
     public Overlay getOverlay() { return overlay; }
+    public AlertTitleOverlay getAlertTitleOverlay() { return alertTitleOverlay; }
     public AlertModeManager getAlertModeManager() { return alertModeManager; }
     public CustomAlertModeManager getCustomAlertModeManager() { return customAlertModeManager; }
     public AchievementManager getAchievementManager() { return achievementManager; }
     public AchievementLogicManager getAchievementLogicManager() { return achievementLogicManager; }
     public InputManager getInputManager() { return inputManager; }
+    public ChestGuiParsingManager getChestGuiParsingManager() { return chestGuiParsingManager; }
     
     
     public ScathaPro()
@@ -99,9 +109,11 @@ public class ScathaPro
         achievementManager = new AchievementManager(this);
         achievementLogicManager = new AchievementLogicManager(this);
         overlay = new Overlay(this);
+        alertTitleOverlay = new AlertTitleOverlay(config);
         alertModeManager = new AlertModeManager(config);
         customAlertModeManager = new CustomAlertModeManager(this);
         inputManager = new InputManager(this);
+        chestGuiParsingManager = new ChestGuiParsingManager(this);
         
         
         persistentData = new PersistentData(this);
@@ -112,7 +124,17 @@ public class ScathaPro
     }
     
     @EventHandler
-    public void init(FMLInitializationEvent event)
+    private void preInit(FMLPreInitializationEvent event)
+    {
+        if (TimeUtil.isAprilFools)
+        {
+            event.getModMetadata().name = DYNAMIC_MODNAME;
+            event.getModMetadata().logoFile = "icon_aprilfools.png";
+        }
+    }
+    
+    @EventHandler
+    private void init(FMLInitializationEvent event)
     {
         MinecraftForge.EVENT_BUS.register(new LoopListeners(this));
         MinecraftForge.EVENT_BUS.register(new GuiListeners(this));
@@ -125,19 +147,17 @@ public class ScathaPro
         
         inputManager.register();
         
-        try
+
+        List<IResourcePack> defaultResourcePacks = ReflectionHelper.getPrivateValue(Minecraft.class, minecraft, "field_110449_ao", "defaultResourcePacks");
+        if (defaultResourcePacks != null)
         {
-            List<IResourcePack> defaultResourcePacks = ReflectionHelper.getPrivateValue(Minecraft.class, minecraft, "field_110449_ao", "defaultResourcePacks");
             defaultResourcePacks.add(customAlertModeManager.resourcePack);
-            
             log("Custom alert mode resource pack injected as a default resource pack");
         }
-        catch (Exception e)
+        else
         {
-            TextUtil.sendModErrorMessage("Failed to set up custom alert mode resource pack - vanilla sounds will play instead!");
-            
-            e.printStackTrace();
             logError("Custom alert mode resource pack injection failed");
+            TextUtil.sendModErrorMessage("Failed to set up custom alert mode resource pack - vanilla sounds will play instead!");
         }
         
         
@@ -185,7 +205,7 @@ public class ScathaPro
     
     public void log(Level level, String message)
     {
-        logger.log(level, "[" + MODNAME + "] " + message);
+        logger.log(level, "[" + TRUE_MODNAME + "] " + message);
     }
     
     

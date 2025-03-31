@@ -9,7 +9,7 @@ import com.namelessju.scathapro.events.TickEvent.FirstIngameTickEvent;
 import com.namelessju.scathapro.events.TickEvent.FirstWorldTickEvent;
 import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.managers.UpdateChecker;
-import com.namelessju.scathapro.miscellaneous.ScoreboardParser;
+import com.namelessju.scathapro.parsing.ScoreboardParser;
 import com.namelessju.scathapro.util.TextUtil;
 
 import net.minecraft.util.EnumChatFormatting;
@@ -33,7 +33,7 @@ public class ScathaProTickListeners extends ScathaProListener
         {
             UpdateChecker.checkForUpdate(false);
         }
-
+        
         scathaPro.getAchievementLogicManager().updatePetDropAchievements();
         scathaPro.getAchievementLogicManager().updateProgressAchievements();
         scathaPro.getAchievementLogicManager().updateDailyScathaStreakAchievements();
@@ -54,7 +54,7 @@ public class ScathaProTickListeners extends ScathaProListener
     {
         heatCheckTickTimer = 0;
         
-        if (scathaPro.variables.regularWormKills == 0 && scathaPro.variables.scathaKills == 0 && scathaPro.getConfig().getBoolean(Config.Key.automaticStatsParsing))
+        if (scathaPro.variables.regularWormKills == 0 && scathaPro.variables.scathaKills == 0 && scathaPro.getConfig().getBoolean(Config.Key.automaticWormStatsParsing))
         {
             TextUtil.sendModChatMessage(EnumChatFormatting.YELLOW + "Open the worm bestiary once to load previous worm kills into the overlay!");
         }

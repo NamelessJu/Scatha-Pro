@@ -1,9 +1,7 @@
 package com.namelessju.scathapro.eventlisteners;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 import com.google.common.base.Predicate;
@@ -31,6 +29,7 @@ import com.namelessju.scathapro.overlay.elements.OverlayContainer;
 import com.namelessju.scathapro.overlay.elements.OverlayElement.Alignment;
 import com.namelessju.scathapro.overlay.elements.OverlayImage;
 import com.namelessju.scathapro.overlay.elements.OverlayText;
+import com.namelessju.scathapro.parsing.PlayerListParser;
 import com.namelessju.scathapro.util.JsonUtil;
 import com.namelessju.scathapro.util.TextUtil;
 import com.namelessju.scathapro.util.NBTUtil;
@@ -38,26 +37,18 @@ import com.namelessju.scathapro.util.TimeUtil;
 import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.network.NetHandlerPlayClient;
-import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.entity.projectile.EntityFishHook;
-import net.minecraft.inventory.ContainerChest;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IChatComponent;
-import net.minecraft.util.StringUtils;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
@@ -79,6 +70,7 @@ public class LoopListeners
     private final OverlayImage rotationLockOverlay;
     
     
+    private boolean fakeBanScreenPending = true;
     private boolean firstIngameTickPending = true;
     
     private long lastDeveloperCheckTime = -1;
@@ -91,8 +83,6 @@ public class LoopListeners
     private List<PetDrop> receivedPets = new ArrayList<PetDrop>();
     private HashMap<Integer, String> arrowOwners = new HashMap<Integer, String>();
     
-    private GuiChest lastChestCheckedForKillInfo = null;
-    
     private boolean wormSpawnCooldownRunningBefore = false;
     
     private int dailyStatsCheckTickTimer = 0;
@@ -104,8 +94,8 @@ public class LoopListeners
         mc = scathaPro.getMinecraft();
         
         rotationAnglesOverlay = new OverlayContainer(0, 0, 0.75f);
-        rotationAnglesOverlay.add(yawText = new OverlayText(EnumChatFormatting.OBFUSCATED + "?", Util.Color.WHITE.getValue(), 10, -3, 1f));
-        rotationAnglesOverlay.add(pitchText = new OverlayText(EnumChatFormatting.OBFUSCATED + "?", Util.Color.WHITE.getValue(), 0, 10, 1f));
+        rotationAnglesOverlay.add(yawText = new OverlayText(EnumChatFormatting.OBFUSCATED + "?", Util.Color.WHITE, 10, -3, 1f));
+        rotationAnglesOverlay.add(pitchText = new OverlayText(EnumChatFormatting.OBFUSCATED + "?", Util.Color.WHITE, 0, 10, 1f));
         pitchText.setAlignment(Alignment.CENTER);
         
         rotationLockOverlay = new OverlayImage("lock.png", 16, 16, -8, -20, 1f);
@@ -117,19 +107,20 @@ public class LoopListeners
         if (event.type != ElementType.TEXT) return;
         
         // Overlay
-        
         scathaPro.getOverlay().drawOverlayIfAllowed();
         
         EntityPlayer player = mc.thePlayer;
         if (player != null)
         {
+            // Alert titles
+            scathaPro.getAlertTitleOverlay().draw(event.partialTicks);
+            
+            
             ScaledResolution scaledResolution = new ScaledResolution(mc);
             GlStateManager.pushMatrix();
             GlStateManager.translate(Math.round(scaledResolution.getScaledWidth() / 2), Math.round(scaledResolution.getScaledHeight() / 2), 0);
             
-            
             // Rotation Angles
-            
             if (scathaPro.getConfig().getBoolean(Config.Key.showRotationAngles))
             {
                 updateRotationAngles(player);
@@ -137,9 +128,7 @@ public class LoopListeners
             }
             
             // Rotation Lock
-            
             if (scathaPro.getInputManager().isRotationLocked()) rotationLockOverlay.draw();
-
             
             GlStateManager.popMatrix();
         }
@@ -151,7 +140,7 @@ public class LoopListeners
         
         float yaw = player.rotationYaw % 360f;
         if (yaw < 0) yaw += 360f;
-        String yawString = Util.numberToString(yaw, decimalDigits, true);
+        String yawString = TextUtil.numberToString(yaw, decimalDigits, true);
         if (scathaPro.getConfig().getBoolean(Config.Key.rotationAnglesMinimalYaw))
         {
             int dotIndex = yawString.indexOf('.');
@@ -166,7 +155,22 @@ public class LoopListeners
         else
         {
             pitchText.setVisible(true);
-            pitchText.setText(TextUtil.contrastableGray() + Util.numberToString(player.rotationPitch, decimalDigits, true));
+            pitchText.setText(TextUtil.contrastableGray() + TextUtil.numberToString(player.rotationPitch, decimalDigits, true));
+        }
+    }
+    
+    @SubscribeEvent
+    public void onRender(TickEvent.RenderTickEvent event)
+    {
+        if (event.phase != TickEvent.Phase.END) return;
+
+        if (scathaPro.variables.runAfterNextRender.size() > 0)
+        {
+            for (Runnable runnable : scathaPro.variables.runAfterNextRender)
+            {
+                runnable.run();
+            }
+            scathaPro.variables.runAfterNextRender.clear();
         }
     }
 
@@ -186,10 +190,13 @@ public class LoopListeners
             dailyStatsCheckTickTimer = 20;
         }
         
-        if (scathaPro.variables.runnableNextTick != null)
+        if (scathaPro.variables.runNextTick.size() > 0)
         {
-            scathaPro.variables.runnableNextTick.run();
-            scathaPro.variables.runnableNextTick = null;
+            for (Runnable runnable : scathaPro.variables.runNextTick)
+            {
+                runnable.run();
+            }
+            scathaPro.variables.runNextTick.clear();
         }
         
         if (scathaPro.variables.openGuiNextTick != null)
@@ -198,16 +205,48 @@ public class LoopListeners
             scathaPro.variables.openGuiNextTick = null;
         }
         
+        if (scathaPro.variables.aprilFoolsJokeRevealTickTimer > 0)
+        {
+            scathaPro.variables.aprilFoolsJokeRevealTickTimer --;
+            
+            if (scathaPro.variables.aprilFoolsJokeRevealTickTimer <= 0)
+            {
+                Alert.scathaPetDrop.stopSound();
+                TextUtil.displayTitle(TextUtil.getRainbowText("April Fools"), EnumChatFormatting.GRAY + "It's that day of the year...", 3, 60, 20);
+                
+                Achievement.april_fools.unlock();
+                
+                TextUtil.sendModChatMessage(EnumChatFormatting.GRAY + "Hopefully the fake pet drop didn't disappoint you too much, sorry!\nKeep farming and you could get a real one very soon!");
+                
+                scathaPro.variables.overlayIconGooglyEyesUnlocked = true;
+                TextUtil.sendChatDivider();
+                TextUtil.sendModChatMessage(EnumChatFormatting.YELLOW + "Overlay icon googly eyes permanently unlocked!\n" + EnumChatFormatting.GRAY + "You can from now on toggle them freely under " + ScathaPro.DYNAMIC_MODNAME + " Settings > Miscellaneous.");
+                TextUtil.sendChatDivider();
+                
+                scathaPro.variables.lastAprilFoolsJokeShownYear = TimeUtil.getCurrentYear();
+                scathaPro.getPersistentData().saveMiscData();
+            }
+        }
+        
         final EntityPlayer player = mc.thePlayer;
         final World world = player != null ? player.worldObj : null;
         if (world != null)
         {
+            scathaPro.getAlertTitleOverlay().tick();
+            
             long now = TimeUtil.now();
             
-            if (scathaPro.variables.cheaterDetected && mc.currentScreen == null)
+            if (fakeBanScreenPending && mc.currentScreen == null)
             {
-                mc.displayGuiScreen(new FakeBanGui());
-                scathaPro.variables.cheaterDetected = false;
+                if (scathaPro.variables.cheaterDetected)
+                {
+                    mc.displayGuiScreen(new FakeBanGui("Savefile Manipulation", () -> {
+                        Achievement.cheat.unlock();
+                        TextUtil.displayTitle("", EnumChatFormatting.GREEN + "We do a little trolling", 5, 60, 40);
+                    }));
+                }
+                
+                fakeBanScreenPending = false;
             }
             
             if (mc.currentScreen == null)
@@ -259,7 +298,8 @@ public class LoopListeners
                 }
             }
             
-            if (scathaPro.getConfig().getBoolean(Config.Key.automaticStatsParsing)) parseOpenedChest();
+            
+            scathaPro.getChestGuiParsingManager().tick();
             
             
             if (scathaPro.isInCrystalHollows())
@@ -581,112 +621,12 @@ public class LoopListeners
         
         if (mc.isSingleplayer()) return SkyblockArea.NONE;
         
-        NetHandlerPlayClient netHandler = mc.getNetHandler();
-        if (netHandler != null)
+        String areaName = PlayerListParser.parseArea();
+        if (areaName != null)
         {
-            Collection<NetworkPlayerInfo> playerInfos = netHandler.getPlayerInfoMap();
-            for (Iterator<NetworkPlayerInfo> iterator = playerInfos.iterator(); iterator.hasNext();)
-            {
-                NetworkPlayerInfo p = iterator.next();
-                IChatComponent displayName = p.getDisplayName();
-                if (displayName != null && displayName.getUnformattedText().contains("Area:"))
-                {
-                    if (displayName.getUnformattedText().contains("Crystal Hollows")) return SkyblockArea.CRYSTAL_HOLLOWS;
-                    else return SkyblockArea.OTHER;
-                }
-            }
+            if (areaName.equalsIgnoreCase("Crystal Hollows")) return SkyblockArea.CRYSTAL_HOLLOWS;
+            return SkyblockArea.OTHER;            
         }
-        
         return null;
-    }
-    
-    private void parseOpenedChest()
-    {
-        GuiScreen guiScreen = mc.currentScreen;
-        if (guiScreen == null || !(guiScreen instanceof GuiChest)) return;
-        GuiChest chestGui = (GuiChest) guiScreen;
-        
-        if (lastChestCheckedForKillInfo != null && lastChestCheckedForKillInfo == chestGui) return;
-        
-        IInventory chestInventory = ((ContainerChest) chestGui.inventorySlots).getLowerChestInventory();
-        
-        if (!chestInventory.hasCustomName())
-        {
-            lastChestCheckedForKillInfo = chestGui;
-            return;
-        }
-        
-        // Bestiary worms
-        String wormBestiaryTitle = "Crystal Hollows \u279C Worm";
-        
-        if (chestInventory.getDisplayName().getUnformattedText().equals(wormBestiaryTitle))
-        {
-            int regularWormKills = parseWormKillsFromStack(chestInventory.getStackInSlot(21));
-            int scathaKills = parseWormKillsFromStack(chestInventory.getStackInSlot(23));
-            
-            boolean killsUpdated = false;
-            
-            if (regularWormKills >= 0)
-            {
-                if (scathaPro.variables.regularWormKills != regularWormKills)
-                {
-                    scathaPro.variables.regularWormKills = regularWormKills;
-                    scathaPro.getOverlay().updateWormKills();
-                    killsUpdated = true;
-                }
-                else
-                {
-                    lastChestCheckedForKillInfo = chestGui;
-                }
-            }
-            if (scathaKills >= 0)
-            {
-                if (scathaPro.variables.scathaKills != scathaKills)
-                {
-                    scathaPro.variables.scathaKills = scathaKills;
-                    scathaPro.getOverlay().updateScathaKills();
-                    killsUpdated = true;
-                }
-                else
-                {
-                    lastChestCheckedForKillInfo = chestGui;
-                }
-            }
-            
-            if (killsUpdated)
-            {
-                scathaPro.getPersistentData().saveWormKills();
-                TextUtil.sendModChatMessage("Updated overall worm kills from bestiary");
-                lastChestCheckedForKillInfo = chestGui;
-            }
-        }
-        else
-        {
-            lastChestCheckedForKillInfo = chestGui;
-        }
-    }
-    
-    private int parseWormKillsFromStack(ItemStack stack)
-    {
-        if (stack != null && stack.getTagCompound() != null)
-        {
-            NBTTagCompound displayTagCompound = stack.getTagCompound().getCompoundTag("display");
-            if (displayTagCompound != null)
-            {
-                NBTTagList loreTagList = displayTagCompound.getTagList("Lore", 8);
-                
-                String killsLine = StringUtils.stripControlCodes(loreTagList.getStringTagAt(4));
-                killsLine = killsLine.replace("Kills: ", "");
-                killsLine = killsLine.replace(",", "");
-                try
-                {
-                    int kills = Integer.parseInt(killsLine);
-                    return kills;
-                }
-                catch (NumberFormatException ignored) {}
-            }
-        }
-        
-        return -1;
     }
 }

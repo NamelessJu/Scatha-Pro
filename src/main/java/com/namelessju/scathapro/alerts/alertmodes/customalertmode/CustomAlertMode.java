@@ -16,7 +16,7 @@ public class CustomAlertMode extends AlertMode
 {
     public CustomAlertMode(String id, String name)
     {
-        super(id, name);
+        super(id, name, getDefaultIconEyePositions());
     }
     
     @Override

@@ -4,6 +4,7 @@ import com.google.common.base.Predicate;
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.gui.elements.ScathaProLabel;
 import com.namelessju.scathapro.gui.elements.ScathaProTextField;
+import com.namelessju.scathapro.util.TextUtil;
 import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.client.gui.GuiScreen;
@@ -35,7 +36,7 @@ public class AverageMoneyGui extends ScathaProGui
     {
         super.initGui();
         
-        elements.add(setGridPosition(new ScathaProLabel(0, 0, 0, 0, "Scatha Pet Prices (In Million):", Util.Color.YELLOW.getValue()), GridElementMode.FULL_WIDTH));
+        elements.add(setGridPosition(new ScathaProLabel(0, 0, 0, 0, "Scatha Pet Prices (In Million):", Util.Color.YELLOW), GridElementMode.FULL_WIDTH));
         gridNewLine(2);
         elements.add(setGridPosition(scathaPetPriceRareInput = (NumberTextField) new NumberTextField(1, 0, 0, 97, 0).setPlaceholder("Rare").setDefaultFormatting(EnumChatFormatting.BLUE.toString()), GridElementMode.CUSTOM_X));
         setDefaultNumber(scathaPetPriceRareInput, scathaPro.variables.avgMoneyCalcScathaPriceRare);
@@ -46,9 +47,9 @@ public class AverageMoneyGui extends ScathaProGui
         
         addGridGap();
         
-        elements.add(setGridPosition(new ScathaProLabel(0, 0, 0, 97, "Magic Find:", Util.Color.AQUA.getValue()), GridElementMode.CUSTOM_X));
-        elements.add(setGridPosition(new ScathaProLabel(0, 10, 0, 96, "Pet Luck:", Util.Color.LIGHT_PURPLE.getValue()), GridElementMode.CUSTOM_X));
-        elements.add(setGridPosition(new ScathaProLabel(0, 10, 0, 97, "Scathas Per Hour:", Util.Color.RED.getValue()), GridElementMode.CUSTOM_X));
+        elements.add(setGridPosition(new ScathaProLabel(0, 0, 0, 97, "Magic Find:", Util.Color.AQUA), GridElementMode.CUSTOM_X));
+        elements.add(setGridPosition(new ScathaProLabel(0, 10, 0, 96, "Pet Luck:", Util.Color.LIGHT_PURPLE), GridElementMode.CUSTOM_X));
+        elements.add(setGridPosition(new ScathaProLabel(0, 10, 0, 97, "Scathas Per Hour:", Util.Color.RED), GridElementMode.CUSTOM_X));
         gridNewLine(2);
         elements.add(setGridPosition(magicFindInput = (NumberTextField) new NumberTextField(4, 0, 0, 97, 0).setPlaceholder("0").setDefaultFormatting(EnumChatFormatting.AQUA.toString()), GridElementMode.CUSTOM_X));
         setDefaultNumber(magicFindInput, scathaPro.variables.avgMoneyCalcMagicFind);
@@ -60,7 +61,7 @@ public class AverageMoneyGui extends ScathaProGui
         gridNewLine(20);
         
         elements.add(setGridPosition(resultLabel = new ScathaProLabel(0, 0, 0, 0, "[RESULT]"), GridElementMode.FULL_WIDTH));
-        elements.add(setGridPosition(new ScathaProLabel(0, 0, 0, 0, "This is just the earned money from pet drops.\nPassive money from mined blocks etc. isn't included in\nthis calculation and gets added on top of this result!", Util.Color.GRAY.getValue()), GridElementMode.FULL_WIDTH));
+        elements.add(setGridPosition(new ScathaProLabel(0, 0, 0, 0, "This is just the earned money from pet drops.\nPassive money from mined blocks etc. isn't included in\nthis calculation and gets added on top of this result!", Util.Color.GRAY), GridElementMode.FULL_WIDTH));
         
         addDoneButton();
         
@@ -71,7 +72,7 @@ public class AverageMoneyGui extends ScathaProGui
     private void setDefaultNumber(NumberTextField textField, float number)
     {
         if (number < 0f) return;
-        textField.setText(Util.numberToString(number, 3, false));
+        textField.setText(TextUtil.numberToString(number, 3, false));
     }
     
     @Override
@@ -113,7 +114,7 @@ public class AverageMoneyGui extends ScathaProGui
         float result = 0f;
         if (scathaSpawns > 0f) result = priceAverage / ((100f/(0.4f * (1f + emf/100f)))/scathaSpawns);
         
-        resultLabel.setText(EnumChatFormatting.RESET + "Average Scatha farming profit: " + EnumChatFormatting.UNDERLINE + Util.numberToString(result, 2) + " M coins/h");
+        resultLabel.setText(EnumChatFormatting.RESET + "Average Scatha farming profit: " + EnumChatFormatting.UNDERLINE + TextUtil.numberToString(result, 2) + " M coins/h");
     }
     
     private float floatOrZero(Float f)
@@ -132,7 +133,8 @@ public class AverageMoneyGui extends ScathaProGui
                 @Override
                 public boolean apply(String input)
                 {
-                    return !input.contains("-") && getValue(input) != null;
+                    input = input.toLowerCase();
+                    return !input.contains("-") && !input.contains("d") && !input.contains("f") && getValue(input) != null;
                 }
             });
         }

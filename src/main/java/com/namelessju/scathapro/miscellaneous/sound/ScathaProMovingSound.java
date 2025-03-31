@@ -1,4 +1,4 @@
-package com.namelessju.scathapro.miscellaneous;
+package com.namelessju.scathapro.miscellaneous.sound;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.ITickableSound;
@@ -7,8 +7,8 @@ import net.minecraft.entity.Entity;
 public class ScathaProMovingSound extends ScathaProSound implements ITickableSound
 {
     public Entity entity;
-    private boolean isDone = false;
-    
+    protected boolean isDone = false;
+    private boolean muted = false;
     private float x = 0f, y = 0f, z = 0f;
     
     public ScathaProMovingSound(String soundPath, float volume, float pitch, Entity entity)
@@ -16,21 +16,41 @@ public class ScathaProMovingSound extends ScathaProSound implements ITickableSou
         super(soundPath, volume, pitch);
         this.entity = entity;
     }
-
+    
     @Override
     public void update()
     {
-        if (entity == null || entity.isDead
-            || Minecraft.getMinecraft().theWorld == null || Minecraft.getMinecraft().theWorld.getEntityByID(entity.getEntityId()) == null)
+        updatePosition(true);
+    }
+    
+    protected void updatePosition(boolean stopIfEntityIsInvalid)
+    {
+        boolean isEntityInvalid = entity == null || entity.isDead || entity.worldObj == null;
+        if (isEntityInvalid)
         {
-            isDone = true;
-            entity = null;
-            return;
+            if (stopIfEntityIsInvalid)
+            {
+                isDone = true;
+                entity = null;
+                return;
+            }
+            
+            muted = true;
         }
-        
-        x = (float) entity.posX;
-        y = (float) entity.posY;
-        z = (float) entity.posZ;
+        else
+        {
+            muted = false;
+            
+            x = (float) entity.posX;
+            y = (float) entity.posY;
+            z = (float) entity.posZ;
+        }
+    }
+    
+    @Override
+    public float getVolume()
+    {
+        return muted ? 0f : super.getVolume();
     }
 
     @Override
@@ -44,7 +64,7 @@ public class ScathaProMovingSound extends ScathaProSound implements ITickableSou
     {
         return y;
     }
-
+    
     @Override
     public float getZPosF()
     {
@@ -54,9 +74,9 @@ public class ScathaProMovingSound extends ScathaProSound implements ITickableSou
     @Override
     public boolean isDonePlaying()
     {
-        return isDone;
+        return isDone || Minecraft.getMinecraft().theWorld == null;
     }
-
+    
     @Override
     public AttenuationType getAttenuationType()
     {

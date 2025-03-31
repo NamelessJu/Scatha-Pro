@@ -11,6 +11,7 @@ import com.namelessju.scathapro.achievements.AchievementManager;
 import com.namelessju.scathapro.alerts.Alert;
 import com.namelessju.scathapro.managers.Config;
 import com.namelessju.scathapro.managers.UpdateChecker;
+import com.namelessju.scathapro.miscellaneous.enums.Rarity;
 import com.namelessju.scathapro.util.TextUtil;
 import com.namelessju.scathapro.util.Util;
 
@@ -21,7 +22,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 
@@ -64,8 +64,21 @@ public class DevCommand extends CommandBase
     {
         if (trigger.equalsIgnoreCase("drop"))
         {
-            String f = TextUtil.formattingStartCharacter;
-            TextUtil.sendChatMessage(new ChatComponentText(f+"6"+f+"lPET DROP! "+f+"r"+f+"5Scatha "+f+"r"+f+"b"+"(+"+f+"r"+f+"b"+"125% "+f+"r"+f+"b"+"\u272F Magic Find"+f+"r"+f+"b"+")"));
+            Rarity rarity;
+            if (arguments.length > 0)
+            {
+                try
+                {
+                    rarity = Rarity.valueOf(arguments[0].toUpperCase());
+                }
+                catch (Exception e)
+                {
+                    throw new CommandException("Invalid rarity!");
+                }
+            }
+            else rarity = Rarity.LEGENDARY;
+            
+            TextUtil.sendPetDropMessage(rarity, 300);
             return true;
         }
         else if (trigger.equalsIgnoreCase("heat"))

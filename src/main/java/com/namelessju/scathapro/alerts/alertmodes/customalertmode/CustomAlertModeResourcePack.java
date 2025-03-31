@@ -152,7 +152,7 @@ public class CustomAlertModeResourcePack implements IResourcePack
     @Override
     public String getPackName()
     {
-        return "Scatha-Pro Custom Alert Mode Resources";
+        return ScathaPro.DYNAMIC_MODNAME + " Custom Alert Mode Resources";
     }
 
 }

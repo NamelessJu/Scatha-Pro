@@ -140,7 +140,7 @@ public class CustomAlertModeEditGuiList extends ScathaProGuiList implements ICus
             this.alert = alert;
             alertAudioFile = CustomAlertModeManager.getAlertAudioFile(customModeId, alert);
             
-            addElement(new ScathaProLabel(0, 0, 5, getListWidth(), 10, alert.alertName, Util.Color.YELLOW.getValue()).setCentered());
+            addElement(new ScathaProLabel(0, 0, 5, getListWidth(), 10, alert.alertName, Util.Color.YELLOW).setCentered());
             
             // Titles
             
@@ -153,7 +153,7 @@ public class CustomAlertModeEditGuiList extends ScathaProGuiList implements ICus
             String subtitle = JsonUtil.getString(modeProperties, "titles/" + alert.alertId + "/subtitle");
             initialSubtitle = subtitle != null ? subtitle : "";
             
-            addElement(titleLabel = new ScathaProLabel(1, 0, 23, getListWidth() / 2 - 5, 10, "Title", Util.Color.GRAY.getValue()));
+            addElement(titleLabel = new ScathaProLabel(1, 0, 23, getListWidth() / 2 - 5, 10, "Title", Util.Color.GRAY));
             
             titleTextField = new ScathaProTextField(0, 0, 33, getListWidth() / 2 - 5, 20);
             titleTextField.setDefaultFormatting(alert.getDefaultTitle().titleFormatting);
@@ -163,7 +163,7 @@ public class CustomAlertModeEditGuiList extends ScathaProGuiList implements ICus
             titleTextField.getTooltip().setText(titleTextFieldTooltip);
             addElement(titleTextField);
             
-            addElement(subtitleLabel = new ScathaProLabel(2, getListWidth() / 2 + 5, 23, getListWidth() / 2 - 5, 10, "Subtitle", (canEditSubtitle ? Util.Color.GRAY : Util.Color.DARK_GRAY).getValue()));
+            addElement(subtitleLabel = new ScathaProLabel(2, getListWidth() / 2 + 5, 23, getListWidth() / 2 - 5, 10, "Subtitle", (canEditSubtitle ? Util.Color.GRAY : Util.Color.DARK_GRAY)));
             
             subtitleTextField = new ScathaProTextField(1, getListWidth() / 2 + 5, 33, getListWidth() / 2 - 5, 20);
             subtitleTextField.setDefaultFormatting(alert.getDefaultTitle().subtitleFormatting);
@@ -193,7 +193,7 @@ public class CustomAlertModeEditGuiList extends ScathaProGuiList implements ICus
             if (audioExists) audioText = "Custom audio";
             else audioText = EnumChatFormatting.GRAY.toString() + EnumChatFormatting.ITALIC + "Default";
             int audioTitleWidth = TextUtil.getStringWidth("Audio: ");
-            addElement(new ScathaProLabel(3, 0, 61, audioTitleWidth, 10, "Audio: ", Util.Color.GRAY.getValue()));
+            addElement(new ScathaProLabel(3, 0, 61, audioTitleWidth, 10, "Audio: ", Util.Color.GRAY));
             addElement(new ScathaProLabel(4, audioTitleWidth, 61, getListWidth() - audioTitleWidth, audioText));
             
             playButton = new ScathaProButton(0, 0, 75, 150, 20, "");

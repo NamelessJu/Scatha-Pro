@@ -1,13 +1,12 @@
 package com.namelessju.scathapro.util;
 
 import com.namelessju.scathapro.ScathaPro;
-import com.namelessju.scathapro.miscellaneous.ScathaProMovingSound;
-import com.namelessju.scathapro.miscellaneous.ScathaProSound;
+import com.namelessju.scathapro.miscellaneous.sound.ScathaProSound;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.ISound;
 import net.minecraft.client.audio.SoundEventAccessorComposite;
 import net.minecraft.client.audio.SoundHandler;
-import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
 
 public abstract class SoundUtil
@@ -20,15 +19,13 @@ public abstract class SoundUtil
     public static ScathaProSound playSound(String soundId, float volume, float pitch)
     {
         ScathaProSound sound = new ScathaProSound(soundId, volume, pitch);
-        Minecraft.getMinecraft().getSoundHandler().playSound(sound);
+        playSound(sound);
         return sound;
     }
     
-    public static ScathaProMovingSound playMovingSound(String soundId, float volume, float pitch, Entity entity)
+    public static void playSound(ISound sound)
     {
-        ScathaProMovingSound sound = new ScathaProMovingSound(soundId, volume, pitch, entity);
         Minecraft.getMinecraft().getSoundHandler().playSound(sound);
-        return sound;
     }
     
     public static ScathaProSound playModSound(String sound)

@@ -28,7 +28,7 @@ public class ScathaProLabel extends Gui implements IGuiElement, ITooltipElement
 
     public ScathaProLabel(int id, int x, int y, int width, String initialText)
     {
-        this(id, x, y, width, initialText, Util.Color.WHITE.getValue());
+        this(id, x, y, width, initialText, Util.Color.WHITE);
     }
     
     public ScathaProLabel(int id, int x, int y, int width, String initialText, int color)
@@ -38,7 +38,7 @@ public class ScathaProLabel extends Gui implements IGuiElement, ITooltipElement
     
     public ScathaProLabel(int id, int x, int y, int width, int height, String initialText)
     {
-        this(id, x, y, width, height, initialText, Util.Color.WHITE.getValue());
+        this(id, x, y, width, height, initialText, Util.Color.WHITE);
     }
     
     public ScathaProLabel(int id, int x, int y, int width, int height, String initialText, int color)

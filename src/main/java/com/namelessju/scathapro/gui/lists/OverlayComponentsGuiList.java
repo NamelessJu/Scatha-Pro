@@ -8,6 +8,8 @@ import com.namelessju.scathapro.overlay.Overlay.ToggleableOverlayElement;
 
 public class OverlayComponentsGuiList extends ScathaProGuiList
 {
+    private ToggleableOverlayElement hoveredElement = null;
+    
     public OverlayComponentsGuiList(ScathaProGui gui)
     {
         super(gui, 63, gui.height - 40, 25);
@@ -20,12 +22,30 @@ public class OverlayComponentsGuiList extends ScathaProGuiList
         }
     }
     
+    public ToggleableOverlayElement getHoveredElement()
+    {
+        return hoveredElement;
+    }
+    
+    @Override
+    public void drawScreen(int mouseXIn, int mouseYIn, float partialTicks)
+    {
+        hoveredElement = null;
+        
+        super.drawScreen(mouseXIn, mouseYIn, partialTicks);
+
+        if (!this.isMouseYWithinSlotBounds(mouseY))
+        {
+            hoveredElement = null;
+        }
+    }
+    
     
     private class OverlayBackgroundEntry extends ListEntry
     {
         public OverlayBackgroundEntry()
         {
-            addElement(new BooleanSettingButton(0, 0, 2, getListWidth(), 20, "Background", Config.Key.overlayBackgroundEnabled));
+            addElement(new BooleanSettingButton(0, 0, 2, getListWidth(), 20, "Darkened Background", Config.Key.overlayBackgroundEnabled));
         }
     }
     
@@ -56,6 +76,17 @@ public class OverlayComponentsGuiList extends ScathaProGuiList
                     toggleableElement.toggle();
                     updateButtonText();
                     break;
+            }
+        }
+        
+        @Override
+        public void drawEntry(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected)
+        {
+            super.drawEntry(slotIndex, x, y, listWidth, slotHeight, mouseX, mouseY, isSelected);
+            
+            if (isEntryWithinSlotBounds(y, slotHeight) && button.isHovered(mouseX, mouseY))
+            {
+                hoveredElement = toggleableElement;
             }
         }
     }

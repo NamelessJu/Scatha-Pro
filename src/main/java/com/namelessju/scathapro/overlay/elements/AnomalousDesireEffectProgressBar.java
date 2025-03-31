@@ -2,10 +2,10 @@ package com.namelessju.scathapro.overlay.elements;
 
 import com.namelessju.scathapro.ScathaPro;
 import com.namelessju.scathapro.util.TimeUtil;
+import com.namelessju.scathapro.util.Util;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ResourceLocation;
 
 public class AnomalousDesireEffectProgressBar extends OverlayElement
@@ -28,9 +28,11 @@ public class AnomalousDesireEffectProgressBar extends OverlayElement
     protected void drawSpecific()
     {
         int yOffset = (int) ((TimeUtil.now() / 100L) % 32);
+
         Minecraft.getMinecraft().renderEngine.bindTexture(resourceLocation);
-        GlStateManager.color(1f, 1f, 1f);
+        Util.startImageRendering();
         Gui.drawModalRectWithCustomSizedTexture(0, 0, 0, yOffset, Math.round(width * progress), height, 32, 32);
+        Util.endImageRendering();
     }
     
     @Override

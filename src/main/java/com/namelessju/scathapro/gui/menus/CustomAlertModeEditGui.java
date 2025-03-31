@@ -94,7 +94,7 @@ public class CustomAlertModeEditGui extends ScathaProGui implements GuiYesNoCall
     {
         super.initGui();
         
-        customModeNameLabel = new ScathaProLabel(1, this.width / 2 - 155, 35, 225, 10, "Mode Name", Util.Color.GRAY.getValue());
+        customModeNameLabel = new ScathaProLabel(1, this.width / 2 - 155, 35, 225, 10, "Mode Name", Util.Color.GRAY);
         elements.add(customModeNameLabel);
         
         String editModeName = nameTextField != null ? nameTextField.getText() : currentModeName;

@@ -46,8 +46,20 @@ public class KeybindingsGuiList extends ScathaProGuiList
                 maxListLabelWidth = nameWidth;
             }
         }
+        
+        String currentCategory = null;
         for (KeyBinding keybinding : keybindings)
         {
+            String category = keybinding.getKeyCategory();
+            if (!category.equals(currentCategory))
+            {
+                if (!category.equals(InputManager.KeybindingCategory.MAIN.getCategoryID()))
+                {
+                    listEntries.add(new CategoryEntry(category));
+                }
+                currentCategory = category;
+            }
+            
             listEntries.add(new KeyEntry(keybinding));
         }
         
@@ -70,6 +82,14 @@ public class KeybindingsGuiList extends ScathaProGuiList
                     mc.displayGuiScreen(new GuiControls(gui, mc.gameSettings));
                     break;
             }
+        }
+    }
+
+    public class CategoryEntry extends ListEntry
+    {
+        public CategoryEntry(String category)
+        {
+            addElement(new ScathaProLabel(0, 0, slotHeight / 2 - KeybindingsGuiList.this.mc.fontRendererObj.FONT_HEIGHT / 2, KeybindingsGuiList.this.getListWidth(), I18n.format(category)).setCentered());
         }
     }
     

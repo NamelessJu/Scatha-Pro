@@ -40,7 +40,7 @@ public class UpdateChecker
                     connection.setRequestMethod("GET");
                     connection.setDoInput(true);
                     connection.setDoOutput(false);
-                    connection.setRequestProperty("User-Agent", "NamelessJu/" + ScathaPro.MODNAME + "/" + ScathaPro.VERSION);
+                    connection.setRequestProperty("User-Agent", "NamelessJu/" + ScathaPro.TRUE_MODNAME + "/" + ScathaPro.VERSION);
                     connection.setRequestProperty("Accept", "application/json");
                     connection.setRequestProperty("Accept-Charset", "utf-8");
                     connection.connect();
@@ -90,7 +90,7 @@ public class UpdateChecker
                                 {
                                     String updateLink = MODRINTH_VERSIONS_BASE_URL + latestVersion;
                                     
-                                    ChatComponentText updateNotice = new ChatComponentText(EnumChatFormatting.GOLD.toString() + "A newer Scatha-Pro version (" + latestVersion + ") is available! You can download it ");
+                                    ChatComponentText updateNotice = new ChatComponentText(EnumChatFormatting.GOLD.toString() + "A newer " + ScathaPro.TRUE_MODNAME + " version (" + latestVersion + ") is available! You can download it ");
                                     ChatComponentText downloadLink = new ChatComponentText(EnumChatFormatting.BLUE.toString() + EnumChatFormatting.UNDERLINE + "here");
                                     /*
                                     if (updateLink != null)
@@ -165,6 +165,8 @@ public class UpdateChecker
     public static int compareVersions(String from, String to)
     {
         if (from == null || to == null) throw new NullPointerException("Versions cannot be null");
+        
+        if (from.equals(to)) return 0;
         
         from = getComparableVersion(from);
         to = getComparableVersion(to);

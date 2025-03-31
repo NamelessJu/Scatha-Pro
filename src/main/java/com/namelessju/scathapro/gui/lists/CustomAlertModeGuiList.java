@@ -137,7 +137,7 @@ public class CustomAlertModeGuiList extends ScathaProGuiList
             
             int modeNameWidth = getListWidth() - 165;
             addElement(new ScathaProLabel(0, 0, isModeActive ? 5 : 10, modeNameWidth, TextUtil.ellipsis(customModeName, modeNameWidth)));
-            if (isModeActive) addElement(new ScathaProLabel(1, 0, 15, modeNameWidth, "Selected", Util.Color.GREEN.getValue()));
+            if (isModeActive) addElement(new ScathaProLabel(1, 0, 15, modeNameWidth, "Selected", Util.Color.GREEN));
             
             ScathaProButton btnSelect = new ScathaProButton(0, getListWidth() - 160, 5, 50, 20, "Select");
             btnSelect.enabled = !isModeActive;

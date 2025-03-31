@@ -3,6 +3,7 @@ import java.util.LinkedHashMap;
 
 import com.namelessju.scathapro.alerts.alertmodes.customalertmode.CustomAlertMode;
 import com.namelessju.scathapro.managers.Config;
+import com.namelessju.scathapro.miscellaneous.OverlayIconEyePositions;
 
 public class AlertModeManager
 {
@@ -15,8 +16,8 @@ public class AlertModeManager
         this.config = config;
         
         registerMode(AlertMode.DEFAULT_MODE);
-        registerMode(new PresetAlertMode("meme", "Meme"));
-        registerMode(new PresetAlertMode("anime", "Anime"));
+        registerMode(new PresetAlertMode("meme", "Meme", new OverlayIconEyePositions(0.5f, 0.42f, 0.84f, 0.32f)));
+        registerMode(new PresetAlertMode("anime", "Anime", new OverlayIconEyePositions(0.5f, 0.48f, 0.85f, 0.34f)));
         registerMode(new CustomAlertMode("custom", "Custom"));
     }
     

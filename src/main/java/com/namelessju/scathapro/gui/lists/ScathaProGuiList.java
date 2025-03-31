@@ -103,15 +103,15 @@ public abstract class ScathaProGuiList extends GuiListExtended
             GlStateManager.disableFog();
             Tessellator tessellator = Tessellator.getInstance();
             WorldRenderer worldrenderer = tessellator.getWorldRenderer();
-            this.drawContainerBackground(tessellator);
+            if (mc.theWorld == null) this.drawContainerBackground(tessellator);
             int k = this.left + this.width / 2 - this.getListWidth() / 2;
-            int l = this.top + 4 - (int)this.amountScrolled;
-
+            int l = this.top + 4 - (int) this.amountScrolled;
+            
             if (this.hasListHeader)
             {
                 this.drawListHeader(k, l, tessellator);
             }
-
+            
             this.drawSelectionBox(k, l, mouseXIn, mouseYIn);
             GlStateManager.disableDepth();
             int i1 = 4;
@@ -297,7 +297,6 @@ public abstract class ScathaProGuiList extends GuiListExtended
             	
                 if (entryElement.element instanceof ScathaProTextField)
                 {
-
                     ScathaProTextField textField = (ScathaProTextField) entryElement.element;
                     if (textField.isFocused()) onTextFieldTyped(textField);
                 }
