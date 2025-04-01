@@ -159,6 +159,8 @@ public class MiscListeners
         
         String unformattedText = StringUtils.stripControlCodes(event.message.getFormattedText());
         
+        long now = TimeUtil.now();
+        
         if (scathaPro.getConfig().getBoolean(Key.hideWormSpawnMessage)
             && unformattedText.equalsIgnoreCase("You hear the sound of something approaching..."))
         {
@@ -167,13 +169,11 @@ public class MiscListeners
         }
         else if (unformattedText.equalsIgnoreCase("You used your Anomalous Desire Pickaxe Ability!"))
         {
-            long now = TimeUtil.now();
-            
             int cooldown = NBTUtil.getAnomalousDesireCooldown(mc.thePlayer.getHeldItem());
             if (cooldown >= 0)
             {
-                scathaPro.variables.anomalousDesireReadyTime = now + cooldown * 1000L;
-                scathaPro.variables.anomalousDesireCooldownEndTime = scathaPro.variables.anomalousDesireReadyTime;
+                scathaPro.variables.anomalousDesireCooldownEndTime = now + cooldown * 1000L;
+                scathaPro.variables.anomalousDesireReadyTime = scathaPro.variables.anomalousDesireCooldownEndTime;
             }
             
             scathaPro.variables.anomalousDesireWastedForRecovery = false;
@@ -192,9 +192,9 @@ public class MiscListeners
         }
         else if (unformattedText.equalsIgnoreCase("Anomalous Desire is now available!"))
         {
-            if (scathaPro.variables.anomalousDesireCooldownEndTime >= 0L)
+            if (scathaPro.variables.anomalousDesireCooldownEndTime >= 0L && now - scathaPro.variables.anomalousDesireStartTime >= 3000 + Constants.pingTreshold)
             {
-                scathaPro.variables.anomalousDesireReadyTime = TimeUtil.now();
+                scathaPro.variables.anomalousDesireReadyTime = now;
                 scathaPro.variables.anomalousDesireCooldownEndTime = -1L;
                 scathaPro.variables.anomalousDesireWastedForRecovery = false;
                 scathaPro.variables.anomalousDesireStartTime = -1L;
@@ -207,9 +207,9 @@ public class MiscListeners
             cooldownNumberString = cooldownNumberString.trim().substring(0, cooldownNumberString.length() - 1); // remove "s"
             Integer cooldownRemainingSeconds = TextUtil.parseInt(cooldownNumberString);
             
-            long now = TimeUtil.now();
             long newCooldownEndTime = now + cooldownRemainingSeconds * 1000L;
-            if (cooldownRemainingSeconds != null && (int) Math.abs(scathaPro.variables.anomalousDesireCooldownEndTime - newCooldownEndTime) >= Constants.pingTreshold)
+            if (cooldownRemainingSeconds != null &&
+                (scathaPro.variables.anomalousDesireCooldownEndTime < 0L || (int) Math.abs(scathaPro.variables.anomalousDesireCooldownEndTime - newCooldownEndTime) >= Constants.pingTreshold))
             {
                 scathaPro.variables.anomalousDesireCooldownEndTime = newCooldownEndTime;
                 scathaPro.variables.anomalousDesireReadyTime = scathaPro.variables.anomalousDesireCooldownEndTime;

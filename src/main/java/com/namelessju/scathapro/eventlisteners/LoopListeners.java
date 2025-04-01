@@ -561,7 +561,7 @@ public class LoopListeners
             
             if (scathaPro.variables.anomalousDesireReadyTime >= 0L && now >= scathaPro.variables.anomalousDesireReadyTime)
             {
-                if (now - scathaPro.variables.wormSpawnCooldownStartTime < Constants.wormSpawnCooldown) // spawn cooldown still running
+                if (scathaPro.variables.wormSpawnCooldownStartTime >= 0L && now - scathaPro.variables.wormSpawnCooldownStartTime < Constants.wormSpawnCooldown) // spawn cooldown still running
                 {
                     // delay ability ready time until after cooldown runs out
                     scathaPro.variables.anomalousDesireReadyTime = scathaPro.variables.wormSpawnCooldownStartTime + Constants.wormSpawnCooldown + 1000;

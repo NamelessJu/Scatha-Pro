@@ -13,4 +13,9 @@ public class ParsedValue<T>
     {
         this.value = value;
     }
+    
+    public boolean hasValue()
+    {
+        return value != null;
+    }
 }

@@ -38,14 +38,13 @@ public class PlayerListParser
     public static String parseArea()
     {
         ParsedValue<String> areaName = new ParsedValue<String>();
+
+        Consumer<String> listEntryConsumer = name -> {
+            if (name != null && name.length() > 6 && name.startsWith("Area:")) areaName.setValue(name.substring(6));
+        };
         
-        parseIndex(41, new Consumer<String>() {
-            @Override
-            public void accept(String name)
-            {
-                if (name != null && name.length() > 6 && name.startsWith("Area:")) areaName.setValue(name.substring(6));
-            }
-        });
+        parseIndex(21, listEntryConsumer);
+        if (!areaName.hasValue()) parseIndex(41, listEntryConsumer);
         
         return areaName.getValue(null);
     }

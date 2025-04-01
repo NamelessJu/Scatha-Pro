@@ -771,7 +771,7 @@ public class Overlay
         boolean showProgressBar = false;
         float progress = 0f;
         if (
-            scathaPro.variables.anomalousDesireStartTime >= 0f
+            scathaPro.variables.anomalousDesireStartTime >= 0L
             && (progress = 1f - ((anomalousDesireElapsedTime = now - scathaPro.variables.anomalousDesireStartTime) / (float) Constants.anomalousDesireEffectDuration)) > 0f
         )
         {

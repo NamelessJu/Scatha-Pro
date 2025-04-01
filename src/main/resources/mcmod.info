@@ -2,7 +2,7 @@
     {
       "modid": "scathapro",
       "name": "Scatha-Pro",
-      "description": "A mod for pro Scatha farmers\n\"/scathapro\" for more info",
+      "description": "A mod for pro Scatha farmers${newLine}\"/scathapro\" for more info",
       "version": "${version}",
       "mcversion": "${mcversion}",
       "url": "https://modrinth.com/mod/scatha-pro",
