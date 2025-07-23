@@ -14,6 +14,14 @@
         }]
     },
     
+
+    "alert.anti_sleep": {
+        "category": "player",
+        "sounds": [{
+            "name": "scathapro:metal_pipe_falling",
+            "stream": true
+        }]
+    },
     
     "alert_modes.meme.bedrock_wall": {
         "category": "master",
