@@ -106,6 +106,8 @@ tasks.withType(org.gradle.jvm.tasks.Jar::class) {
         if (transformerFile.exists())
             this["FMLAT"] = "${modid}_at.cfg"
     }
+
+    exclude("LICENSE*") // Nuke the stupid license file that somehow gets generated
 }
 
 tasks.processResources {
