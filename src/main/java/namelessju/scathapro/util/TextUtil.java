@@ -154,7 +154,7 @@ public abstract class TextUtil
     {
         // Prevent consecutive dividers
         List<ChatLine> chatLines = ScathaPro.getInstance().variables.chatLines;
-        if (chatLines != null && chatLines.size() > 0)
+        if (chatLines != null && !chatLines.isEmpty())
         {
             String lastChatLine = chatLines.get(0).getChatComponent().getFormattedText();
             if (StringUtils.stripControlCodes(lastChatLine).equals(StringUtils.stripControlCodes(chatDividerComponent.getFormattedText())))
@@ -356,7 +356,7 @@ public abstract class TextUtil
         {
             for (int i = 1; i < lines.length; i ++)
             {
-                String formatting = "";
+                StringBuilder formatting = new StringBuilder();
                 Matcher formattingCodeMatcher = Pattern.compile(TextUtil.formattingStartCharacter + TextUtil.formattingCodesRegex).matcher(lines[i - 1]);
                 while (formattingCodeMatcher.find())
                 {
@@ -365,10 +365,10 @@ public abstract class TextUtil
                     boolean isResetCode = codeChar == 'r' || codeChar == 'R';
                     if (isResetCode || TextUtil.isColorFormattingCode(codeChar))
                     {
-                        formatting = isResetCode ? "" : code;
+                        formatting = new StringBuilder(isResetCode ? "" : code);
                         continue;
                     }
-                    formatting += code;
+                    formatting.append(code);
                 }
                 
                 lines[i] = formatting + lines[i];
@@ -543,7 +543,7 @@ public abstract class TextUtil
             char c = text.charAt(i);
             if (c != ' ')
             {
-                formattedString.append(formattingOrder[formattingIndex].toString() + c);
+                formattedString.append(formattingOrder[formattingIndex].toString()).append(c);
                 formattingIndex = (formattingIndex + 1) % formattingOrder.length;
             }
             else formattedString.append(c);
@@ -562,7 +562,7 @@ public abstract class TextUtil
         
         String f = TextUtil.formattingStartCharacter;
         String aqua = f+"r"+f+"b";
-        String patternString = f+"6"+f+"lPET DROP! "+f+"r"+f+"([a-f0-9])Scatha "+aqua+"\\(\\+"+aqua+"(\\d+)% "+aqua+UnicodeSymbol.magicFind+" Magic Find"+aqua+"\\)";
+        String patternString = f+"6"+f+"lPET DROP! "+f+"r"+f+"([a-f0-9])Scatha "+aqua+"\\(\\+"+aqua+"(\\d+)%? "+aqua+UnicodeSymbol.magicFind+" Magic Find"+aqua+"\\)";
         Matcher messageMatcher = Pattern.compile(patternString).matcher(message);
         if (messageMatcher.find())
         {
@@ -577,9 +577,18 @@ public abstract class TextUtil
             if (rarityMode != null)
             {
                 String rarityText = null;
-                if (rarityColorCode.equals("9")) rarityText = "Rare";
-                else if (rarityColorCode.equals("5")) rarityText = "Epic";
-                else if (rarityColorCode.equals("6")) rarityText = "Legendary";
+                switch (rarityColorCode)
+                {
+                    case "9":
+                        rarityText = "Rare";
+                        break;
+                    case "5":
+                        rarityText = "Epic";
+                        break;
+                    case "6":
+                        rarityText = "Legendary";
+                        break;
+                }
                 
                 if (rarityText != null)
                 {

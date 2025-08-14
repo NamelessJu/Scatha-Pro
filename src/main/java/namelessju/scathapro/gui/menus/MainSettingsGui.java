@@ -10,6 +10,11 @@ import net.minecraft.client.gui.GuiScreen;
 
 public class MainSettingsGui extends ConfigGui
 {
+    public MainSettingsGui(GuiScreen parentGui)
+    {
+        this(ScathaPro.getInstance(), parentGui);
+    }
+    
     public MainSettingsGui(ScathaPro scathaPro, GuiScreen parentGui)
     {
         super(scathaPro, parentGui);

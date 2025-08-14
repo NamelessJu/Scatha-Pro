@@ -44,14 +44,15 @@ public class WormBestiaryParser extends ChestGuiParser
     
     private void parseGenericSlot(ItemStack itemStack, ScathaPro scathaPro)
     {
-        NBTTagList itemLore = NBTUtil.getLore(itemStack);
-        if (itemLore == null || itemLore.tagCount() < 7) return;
+        String magicFindLine = searchLoreWithExpectedIndex(
+            itemStack,
+            8,
+            line -> line.endsWith("Magic Find")
+        );
+        if (magicFindLine == null) return;
+        magicFindLine = magicFindLine.substring(1).split(" ", 2)[0];
         
-        String killsLine = StringUtils.stripControlCodes(itemLore.getStringTagAt(6));
-        if (!killsLine.endsWith("Magic Find")) return;
-        killsLine = killsLine.substring(1).split(" ", 2)[0];
-        
-        Float bestiaryMagicFind = TextUtil.parseFloat(killsLine);
+        Float bestiaryMagicFind = TextUtil.parseFloat(magicFindLine);
         if (bestiaryMagicFind == null) return;
         
         if (scathaPro.variables.wormBestiaryMagicFind != bestiaryMagicFind)
@@ -67,10 +68,12 @@ public class WormBestiaryParser extends ChestGuiParser
     
     private void parseKills(ItemStack itemStack, int slotNumber, ScathaPro scathaPro)
     {
-        NBTTagList itemLore = NBTUtil.getLore(itemStack);
-        if (itemLore == null) return;
-        String killsLine = StringUtils.stripControlCodes(itemLore.getStringTagAt(4));
-        if (!killsLine.startsWith("Kills: ")) return;
+        String killsLine = searchLoreWithExpectedIndex(
+            itemStack,
+            10,
+            line -> line.startsWith("Kills: ")
+        );
+        if (killsLine == null) return;
         killsLine = killsLine.substring(7).replace(",", "");
         
         Integer kills = TextUtil.parseInt(killsLine);

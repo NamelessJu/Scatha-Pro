@@ -165,7 +165,6 @@ public class MiscListeners
             && unformattedText.equalsIgnoreCase("You hear the sound of something approaching..."))
         {
             event.setCanceled(true);
-            return;
         }
         else if (unformattedText.equalsIgnoreCase("You used your Anomalous Desire Pickaxe Ability!"))
         {
@@ -207,9 +206,9 @@ public class MiscListeners
             cooldownNumberString = cooldownNumberString.trim().substring(0, cooldownNumberString.length() - 1); // remove "s"
             Integer cooldownRemainingSeconds = TextUtil.parseInt(cooldownNumberString);
             
+            if (cooldownRemainingSeconds == null) return;
             long newCooldownEndTime = now + cooldownRemainingSeconds * 1000L;
-            if (cooldownRemainingSeconds != null &&
-                (scathaPro.variables.anomalousDesireCooldownEndTime < 0L || (int) Math.abs(scathaPro.variables.anomalousDesireCooldownEndTime - newCooldownEndTime) >= Constants.pingTreshold))
+            if (scathaPro.variables.anomalousDesireCooldownEndTime < 0L || (int) Math.abs(scathaPro.variables.anomalousDesireCooldownEndTime - newCooldownEndTime) >= Constants.pingTreshold)
             {
                 scathaPro.variables.anomalousDesireCooldownEndTime = newCooldownEndTime;
                 scathaPro.variables.anomalousDesireReadyTime = scathaPro.variables.anomalousDesireCooldownEndTime;
