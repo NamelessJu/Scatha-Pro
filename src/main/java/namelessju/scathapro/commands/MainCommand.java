@@ -146,7 +146,7 @@ public class MainCommand extends CommandBase
                     scathaPro.getChestGuiParsingManager().profileStatsParser.enabled = true;
                     
                     EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;
-                    if (player != null) player.sendChatMessage("/sbmenu");
+                    if (player != null) player.sendChatMessage("/stats");
                 }
                 else
                 {

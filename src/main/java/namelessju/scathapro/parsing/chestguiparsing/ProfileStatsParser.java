@@ -19,13 +19,13 @@ public class ProfileStatsParser extends ChestGuiParser
     @Override
     public String getGuiName()
     {
-        return "SkyBlock Menu";
+        return "Your Equipment and Stats";
     }
     
     @Override
     public int[] getSlotNumbers()
     {
-        return new int[] {13};
+        return new int[] {25};
     }
     
     @Override
