@@ -20,7 +20,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 
-import java.io.File;
 import java.math.RoundingMode;
 
 public final class ScathaProGameplayListeners
@@ -414,7 +413,7 @@ public final class ScathaProGameplayListeners
         if (scathaPro.config.miscellaneous.automaticPetDropScreenshotEnabled.get())
         {
             scathaPro.runNextTick(() -> Screenshot.grab(scathaPro.minecraft.gameDirectory,
-                ScathaPro.MOD_NAME + "_Pet_Drop_" + net.minecraft.util.Util.getFilenameFormattedDateTime() + ".png",
+                ScathaPro.MOD_NAME + "_Pet_Drop_" + net.minecraft.Util.getFilenameFormattedDateTime() + ".png",
                 scathaPro.minecraft.getMainRenderTarget(), 1,
                 scathaPro.chatManager::sendChatMessage
             ));

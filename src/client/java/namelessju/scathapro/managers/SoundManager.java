@@ -6,7 +6,7 @@ import namelessju.scathapro.gui.menus.screens.FakeBanScreen;
 import namelessju.scathapro.sounds.instances.ScathaProSound;
 import namelessju.scathapro.util.TimeUtil;
 import net.minecraft.client.resources.sounds.SoundInstance;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
 public class SoundManager
@@ -24,7 +24,7 @@ public class SoundManager
         return sound;
     }
     
-    public ScathaProSound playModSound(Identifier identifier, float volume, float pitch)
+    public ScathaProSound playModSound(ResourceLocation identifier, float volume, float pitch)
     {
         return play(new ScathaProSound(scathaPro, identifier, volume, pitch));
     }
@@ -39,7 +39,7 @@ public class SoundManager
         scathaPro.minecraft.getSoundManager().stop(sound);
     }
     
-    public boolean soundExists(Identifier identifier)
+    public boolean soundExists(ResourceLocation identifier)
     {
         return scathaPro.minecraft.getSoundManager().getSoundEvent(identifier) != null;
     }
@@ -97,6 +97,6 @@ public class SoundManager
     
     private boolean isVanillaSound(SoundInstance sound, String path)
     {
-        return sound.getIdentifier().equals(Identifier.withDefaultNamespace(path));
+        return sound.getLocation().equals(ResourceLocation.withDefaultNamespace(path));
     }
 }

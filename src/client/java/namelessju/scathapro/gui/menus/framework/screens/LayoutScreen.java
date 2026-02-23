@@ -24,6 +24,7 @@ public abstract class LayoutScreen extends ScathaProScreen
     @Override
     protected void init()
     {
+        super.init();
         layout = new HeaderAndFooterLayout(this);
         initLayout(layout);
         layout.visitWidgets(this::addRenderableWidget);

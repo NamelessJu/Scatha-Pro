@@ -4,11 +4,11 @@ import namelessju.scathapro.ScathaPro;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 public class GuiImage extends GuiElement
 {
-    protected Identifier imageIdentifier;
+    protected ResourceLocation imageIdentifier;
     protected int textureWidth, textureHeight;
     protected int color = -1;
     

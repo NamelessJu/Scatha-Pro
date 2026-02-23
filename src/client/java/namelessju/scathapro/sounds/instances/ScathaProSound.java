@@ -3,7 +3,7 @@ package namelessju.scathapro.sounds.instances;
 import namelessju.scathapro.ScathaPro;
 import net.minecraft.client.resources.sounds.AbstractSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 
@@ -11,7 +11,7 @@ public class ScathaProSound extends AbstractSoundInstance
 {
     protected final ScathaPro scathaPro;
     
-    public ScathaProSound(ScathaPro scathaPro, Identifier identifier, float volume, float pitch)
+    public ScathaProSound(ScathaPro scathaPro, ResourceLocation identifier, float volume, float pitch)
     {
         super(identifier, SoundSource.MASTER, SoundInstance.createUnseededRandom());
         this.scathaPro = scathaPro;

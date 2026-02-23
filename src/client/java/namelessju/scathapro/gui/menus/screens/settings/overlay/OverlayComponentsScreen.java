@@ -17,7 +17,7 @@ import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositione
 import net.minecraft.client.gui.screens.inventory.tooltip.MenuTooltipPositioner;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.apache.commons.compress.utils.Lists;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
@@ -101,7 +101,7 @@ public class OverlayComponentsScreen extends ConfigScreen
     
     private static class GuiElementTooltip implements ClientTooltipComponent
     {
-        private final Identifier tooltipBackgroundIdentifier = Identifier.withDefaultNamespace("textures/block/stone.png");
+        private final ResourceLocation tooltipBackgroundIdentifier = ResourceLocation.withDefaultNamespace("textures/block/stone.png");
         @SuppressWarnings("FieldCanBeLocal")
         private final int tooltipBackgroundTextureWidth = 16;
         @SuppressWarnings("FieldCanBeLocal")

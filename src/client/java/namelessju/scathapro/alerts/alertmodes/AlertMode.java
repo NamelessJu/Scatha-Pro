@@ -4,7 +4,7 @@ import namelessju.scathapro.alerts.Alert;
 import namelessju.scathapro.miscellaneous.data.OverlayIconEyePositions;
 import namelessju.scathapro.util.Util;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -46,7 +46,7 @@ public class AlertMode
     }
 
     
-    public @Nullable Identifier getSoundBaseIdentifier()
+    public @Nullable ResourceLocation getSoundBaseIdentifier()
     {
         return null;
     }

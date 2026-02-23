@@ -23,7 +23,7 @@ import namelessju.scathapro.files.legacy.LegacyPersistentData;
 import namelessju.scathapro.util.TimeUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandBuildContext;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,9 +44,9 @@ public abstract class ScathaPro
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     
     
-    public static Identifier getIdentifier(String path)
+    public static ResourceLocation getIdentifier(String path)
     {
-        return Identifier.fromNamespaceAndPath(ScathaPro.MOD_ID, path);
+        return ResourceLocation.fromNamespaceAndPath(ScathaPro.MOD_ID, path);
     }
     
     private static ScathaPro instance = null;

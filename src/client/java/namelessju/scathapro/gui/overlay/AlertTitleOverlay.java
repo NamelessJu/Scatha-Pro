@@ -130,8 +130,8 @@ public class AlertTitleOverlay
     
     private void updateColor(int opacity)
     {
-        mainTitleText.setColor(ARGB.white(opacity));
-        subTitleText.setColor(ARGB.white(opacity));
+        mainTitleText.setColor(ARGB.white(opacity / 255f));
+        subTitleText.setColor(ARGB.white(opacity / 255f));
     }
     
     private int getTotalAnimationTicks()

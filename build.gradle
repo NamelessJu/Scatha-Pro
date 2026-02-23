@@ -55,6 +55,8 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
     modImplementation("com.terraformersmc:modmenu:${project.modmenu_version}")
     implementation "net.hypixel:mod-api:${project.hypixel_mod_api_version}"
+
+    api("org.jspecify:jspecify:1.0.0")
 }
 
 processResources {

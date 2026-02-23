@@ -7,7 +7,7 @@ import namelessju.scathapro.alerts.Alert;
 import namelessju.scathapro.util.Util;
 import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.BuiltInMetadata;
 import net.minecraft.server.packs.PackLocationInfo;
 import net.minecraft.server.packs.PackResources;
@@ -80,7 +80,7 @@ public class CustomAlertModePackResources implements PackResources
             
             // sounds.json
             output.accept(
-                Identifier.fromNamespaceAndPath(NAMESPACE, "sounds.json"),
+                ResourceLocation.fromNamespaceAndPath(NAMESPACE, "sounds.json"),
                 () -> new ByteArrayInputStream(
                     generateSoundsJson().toString()
                         .getBytes(StandardCharsets.UTF_8)
@@ -100,7 +100,7 @@ public class CustomAlertModePackResources implements PackResources
                 if (!file.isFile() || !file.getName().endsWith(".ogg")) continue;
                 
                 String path = "sounds/" + file.getName();
-                Identifier id = Identifier.fromNamespaceAndPath(NAMESPACE, path);
+                ResourceLocation id = ResourceLocation.fromNamespaceAndPath(NAMESPACE, path);
                 
                 output.accept(id, () -> new FileInputStream(file));
                 if (ScathaPro.LOGGER.isDebugEnabled()) ScathaPro.LOGGER.debug(" -> accepted {}", file.getAbsolutePath());
@@ -109,7 +109,7 @@ public class CustomAlertModePackResources implements PackResources
     }
     
     @Override
-    public @Nullable IoSupplier<InputStream> getResource(@NonNull PackType type, @NonNull Identifier identifier)
+    public @Nullable IoSupplier<InputStream> getResource(@NonNull PackType type, @NonNull ResourceLocation identifier)
     {
         if (type != PackType.CLIENT_RESOURCES) return null;
         if (!identifier.getNamespace().equals(NAMESPACE)) return null;

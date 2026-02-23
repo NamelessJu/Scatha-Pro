@@ -1,18 +1,18 @@
 package namelessju.scathapro.gui.menus.framework.widgets;
 
 import namelessju.scathapro.ScathaPro;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.CommonComponents;
-import net.minecraft.resources.Identifier;
-import org.jspecify.annotations.NonNull;
+import net.minecraft.resources.ResourceLocation;
 
 public class ImageButton extends Button
 {
     private static final float PADDING = 3.75f;
     
-    private final Identifier imageIdentifier;
+    private final ResourceLocation imageIdentifier;
     private final int textureWidth;
     private final int textureHeight;
     
@@ -25,9 +25,9 @@ public class ImageButton extends Button
     }
     
     @Override
-    protected void renderContents(@NonNull GuiGraphics guiGraphics, int i, int j, float f)
+    protected void renderWidget(GuiGraphics guiGraphics, int i, int j, float f)
     {
-        this.renderDefaultSprite(guiGraphics);
+        super.renderWidget(guiGraphics, i, j, f);
         
         guiGraphics.nextStratum();
         guiGraphics.pose().pushMatrix();
@@ -36,8 +36,8 @@ public class ImageButton extends Button
             getY() + getHeight() * 0.5f
         );
         guiGraphics.pose().scale(Math.min(
-            (float) (getWidth() - PADDING * 2) / textureWidth,
-            (float) (getHeight() - PADDING * 2) / textureHeight
+            (getWidth() - PADDING * 2) / textureWidth,
+            (getHeight() - PADDING * 2) / textureHeight
         ));
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, imageIdentifier,
             -textureWidth/2, -textureHeight/2, 0f, 0f,
@@ -45,5 +45,11 @@ public class ImageButton extends Button
             textureWidth, textureHeight
         );
         guiGraphics.pose().popMatrix();
+    }
+    
+    @Override
+    public void renderString(GuiGraphics guiGraphics, Font font, int i)
+    {
+        // No string for image button
     }
 }

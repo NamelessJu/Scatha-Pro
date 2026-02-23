@@ -9,7 +9,6 @@ import namelessju.scathapro.sounds.SoundData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.Identifier;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;

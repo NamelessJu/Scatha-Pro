@@ -7,7 +7,7 @@ import namelessju.scathapro.files.framework.JsonFile;
 import namelessju.scathapro.sounds.SoundData;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -78,10 +78,10 @@ public class Alert
             }
         }
         
-        Identifier soundParentIdentifier = mode.getSoundBaseIdentifier();
+        ResourceLocation soundParentIdentifier = mode.getSoundBaseIdentifier();
         if (soundParentIdentifier != null)
         {
-            Identifier soundIdentifier = Identifier.fromNamespaceAndPath(
+            ResourceLocation soundIdentifier = ResourceLocation.fromNamespaceAndPath(
                 soundParentIdentifier.getNamespace(),
                 soundParentIdentifier.getPath().isEmpty()
                     ? alertId

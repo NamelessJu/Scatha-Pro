@@ -23,8 +23,9 @@ public class OverlayMiscellaneousSettingsScreen extends OverlaySettingsScreen
         
         GridBuilder gridBuilder = new GridBuilder();
         gridBuilder.addSingleCell(CycleButton
-            .builder(value -> Component.literal(value.toString()), config.overlay.statsType.get())
+            .<SecondaryWormStatsType>builder(value -> Component.literal(value.toString()))
             .withValues(SecondaryWormStatsType.values())
+            .withInitialValue(config.overlay.statsType.get())
             .create(Component.literal("Worm Stats Per"), (button, value) -> {
                 config.overlay.statsType.set(value);
                 scathaPro.mainOverlay.updateStatsType();

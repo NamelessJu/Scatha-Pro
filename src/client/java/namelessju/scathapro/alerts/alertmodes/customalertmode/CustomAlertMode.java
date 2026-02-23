@@ -8,7 +8,7 @@ import namelessju.scathapro.managers.CustomAlertModeManager;
 import namelessju.scathapro.util.JsonUtil;
 import namelessju.scathapro.util.TimeUtil;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ARGB;
 import org.jspecify.annotations.NonNull;
 
@@ -80,9 +80,9 @@ public class CustomAlertMode extends AlertMode
     }
     
     @Override
-    public Identifier getSoundBaseIdentifier()
+    public ResourceLocation getSoundBaseIdentifier()
     {
-        return Identifier.fromNamespaceAndPath(CustomAlertModePackResources.NAMESPACE, "");
+        return ResourceLocation.fromNamespaceAndPath(CustomAlertModePackResources.NAMESPACE, "");
     }
     
     @Override

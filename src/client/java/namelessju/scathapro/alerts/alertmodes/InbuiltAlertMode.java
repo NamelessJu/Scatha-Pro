@@ -2,7 +2,7 @@ package namelessju.scathapro.alerts.alertmodes;
 
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.miscellaneous.data.OverlayIconEyePositions;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.jspecify.annotations.NonNull;
 
 public class InbuiltAlertMode extends AlertMode
@@ -19,7 +19,7 @@ public class InbuiltAlertMode extends AlertMode
     }
 
     @Override
-    public Identifier getSoundBaseIdentifier()
+    public ResourceLocation getSoundBaseIdentifier()
     {
         return ScathaPro.getIdentifier("alert_modes." + id);
     }

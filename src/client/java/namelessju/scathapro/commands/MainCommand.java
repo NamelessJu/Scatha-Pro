@@ -11,7 +11,6 @@ import namelessju.scathapro.gui.menus.screens.AchievementListScreen;
 import namelessju.scathapro.gui.menus.screens.settings.MainSettingsScreen;
 import namelessju.scathapro.managers.ChatManager;
 import namelessju.scathapro.util.FileUtil;
-import namelessju.scathapro.util.PartialScreenshot;
 import namelessju.scathapro.util.TimeUtil;
 import namelessju.scathapro.util.UnicodeSymbol;
 import net.minecraft.ChatFormatting;

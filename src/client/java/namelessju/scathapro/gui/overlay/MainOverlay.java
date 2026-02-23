@@ -263,7 +263,7 @@ public class MainOverlay
     public boolean isOverlayRenderAllowed()
     {
         return scathaPro.coreManager.isInCrystalHollows() && !(minecraft.screen instanceof OverlaySettingsScreen)
-            && !minecraft.debugEntries.isOverlayVisible() && !((PlayerTabOverlayAccessor) minecraft.gui.getTabList()).isVisible();
+            && !minecraft.debugEntries.isF3Visible() && !((PlayerTabOverlayAccessor) minecraft.gui.getTabList()).isVisible();
     }
     
     public void renderIfAllowed(GuiGraphics guiGraphics, DeltaTracker deltaTracker)

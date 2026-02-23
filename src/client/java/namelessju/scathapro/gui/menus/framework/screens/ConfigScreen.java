@@ -90,15 +90,13 @@ public abstract class ConfigScreen extends LayoutScreen
     )
     {
         return CycleButton
-            .builder(
-                optionalValue -> {
+            .<Optional<T>>builder(optionalValue -> {
                     if (optionalValue.isPresent()) return Component.literal(optionalValue.get().toString());
                     else if (nullText != null) return Component.literal(nullText);
                     return CommonComponents.OPTION_OFF;
-                },
-                Optional.ofNullable(configValue.get())
-            )
+            })
             .withValues(getNullableOptions(enumClass.getEnumConstants()))
+            .withInitialValue(Optional.ofNullable(configValue.get()))
             .withTooltip(tooltipSupplier != null ? tooltipSupplier : value -> null)
             .create(
                 Component.literal(text),

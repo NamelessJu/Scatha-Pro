@@ -89,11 +89,9 @@ public class AlertConfigurationScreen extends ConfigScreen
                     "Trigger Day", 1, 30, config.alerts.oldLobbyAlertTriggerDay, null
                 ),
                 
-                CycleButton.builder(
-                        value -> Component.literal(value.toString()),
-                        config.alerts.oldLobbyAlertTriggerMode.get()
-                    )
+                CycleButton.<OldLobbyAlertTriggerMode>builder(value -> Component.literal(value.toString()))
                     .withValues(OldLobbyAlertTriggerMode.values())
+                    .withInitialValue(config.alerts.oldLobbyAlertTriggerMode.get())
                     .create(Component.literal("Trigger On"),
                         (button, value)
                             -> config.alerts.oldLobbyAlertTriggerMode.set(value)

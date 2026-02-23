@@ -28,7 +28,7 @@ public abstract class ScathaProScreen extends Screen
         this.scathaPro = scathaPro;
         this.parentScreen = parentScreen;
         this.addModTitle = addModTitle;
-        titleWidget = new StringWidget(CommonComponents.EMPTY, font);
+        titleWidget = new StringWidget(CommonComponents.EMPTY, scathaPro.minecraft.font);
     }
     
     @Override
@@ -74,11 +74,9 @@ public abstract class ScathaProScreen extends Screen
     private static final CycleButton.ValueListSupplier<Boolean> BOOLEAN_VALUES_SUPPLIER = CycleButton.ValueListSupplier.create(List.of(true, false));
     public static CycleButton.Builder<Boolean> booleanButtonBuilder(boolean initialValue)
     {
-        return CycleButton.builder(
-            value -> value ? CommonComponents.OPTION_ON : CommonComponents.OPTION_OFF,
-                initialValue
-            )
-            .withValues(BOOLEAN_VALUES_SUPPLIER);
+        return CycleButton.<Boolean>builder(value -> value ? CommonComponents.OPTION_ON : CommonComponents.OPTION_OFF)
+            .withValues(BOOLEAN_VALUES_SUPPLIER)
+            .withInitialValue(initialValue);
     }
     
     public Button subScreenButton(String text, BiFunction<ScathaPro, Screen, Screen> screenConstructor)

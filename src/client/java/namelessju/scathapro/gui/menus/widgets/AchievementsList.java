@@ -24,7 +24,7 @@ import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -39,8 +39,8 @@ public class AchievementsList extends AbstractWidget
     private static final int TEXT_SCROLL_SPEED = 40; // in pixels per second
     private static final int TEXT_SCROLL_STAY_DURATION = 70; // in pixels scrolled (affected by scroll speed)
     
-    private static final Identifier progressBarIdentifier = ScathaPro.getIdentifier("textures/screen/achievements/progress_bar.png");
-    private static final Identifier caretsIdentifier = ScathaPro.getIdentifier("textures/screen/achievements/dropdown_carets.png");
+    private static final ResourceLocation progressBarIdentifier = ScathaPro.getIdentifier("textures/screen/achievements/progress_bar.png");
+    private static final ResourceLocation caretsIdentifier = ScathaPro.getIdentifier("textures/screen/achievements/dropdown_carets.png");
     
     private static final AchievementType[] extraAchievementTypes = {
         AchievementType.SECRET, AchievementType.BONUS, AchievementType.HIDDEN, AchievementType.LEGACY
@@ -506,7 +506,7 @@ public class AchievementsList extends AbstractWidget
             int scrolledY = getScrolledY();
             
             guiGraphics.fill(entryX, scrolledY, entryX + entryWidth, scrolledY + entryHeight, 0xA008080A);
-            if (this.isHovered) guiGraphics.renderOutline(entryX, scrolledY, entryWidth, entryHeight, Util.Color.WHITE);
+            if (this.isHovered) guiGraphics.submitOutline(entryX, scrolledY, entryWidth, entryHeight, Util.Color.WHITE);
             
             guiGraphics.drawString(font, component,
                 entryX + entryWidth/2 - font.width(component)/2, scrolledY + 6,

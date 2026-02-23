@@ -30,10 +30,9 @@ public class MainAlertSettingsScreen extends ConfigScreen
         
         GridBuilder gridBuilder = new GridBuilder();
         
-        CycleButton<AlertMode> modeButton = CycleButton.builder(
-            value -> Component.literal(value.name), scathaPro.alertModeManager.getCurrentMode()
-            )
+        CycleButton<AlertMode> modeButton = CycleButton.<AlertMode>builder(value -> Component.literal(value.name))
             .withValues(scathaPro.alertModeManager.getAllModes())
+            .withInitialValue(scathaPro.alertModeManager.getCurrentMode())
             .withTooltip(value -> Tooltip.create(
                 Component.literal("Plays different sounds\n(and titles in custom mode)").withStyle(ChatFormatting.GRAY)
             ))

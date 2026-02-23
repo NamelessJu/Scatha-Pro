@@ -2,7 +2,7 @@ package namelessju.scathapro.sounds.instances;
 
 import namelessju.scathapro.ScathaPro;
 import net.minecraft.client.resources.sounds.TickableSoundInstance;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 
 public class ScathaProMovingEntitySound extends ScathaProSound implements TickableSoundInstance
@@ -13,7 +13,7 @@ public class ScathaProMovingEntitySound extends ScathaProSound implements Tickab
     
     private final boolean stopIfEntityIsRemoved;
     
-    public ScathaProMovingEntitySound(ScathaPro scathaPro, Identifier identifier, float volume, float pitch, Entity entity, boolean stopIfEntityIsRemoved)
+    public ScathaProMovingEntitySound(ScathaPro scathaPro, ResourceLocation identifier, float volume, float pitch, Entity entity, boolean stopIfEntityIsRemoved)
     {
         super(scathaPro, identifier, volume, pitch);
         this.entity = entity;

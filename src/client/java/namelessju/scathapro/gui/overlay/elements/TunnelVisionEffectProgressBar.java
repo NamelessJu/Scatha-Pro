@@ -5,12 +5,12 @@ import namelessju.scathapro.util.TimeUtil;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
 public class TunnelVisionEffectProgressBar extends GuiElement
 {
-    private static final Identifier textureIdentifier = ScathaPro.getIdentifier("textures/overlay/tunnel_vision_progress_bar.png");
+    private static final ResourceLocation textureIdentifier = ScathaPro.getIdentifier("textures/overlay/tunnel_vision_progress_bar.png");
     
     private final int width;
     private final int height;
