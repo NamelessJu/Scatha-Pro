@@ -1,0 +1,20 @@
+{
+    "key.category.scathapro.main": "Scatha-Pro",
+    "key.category.scathapro.player_rotation": "Scatha-Pro Player Rotation",
+    "key.category.scathapro.player_rotation.short": "Player Rotation",
+    "key.category.scathapro.screenshots": "Scatha-Pro Screenshots",
+    "key.category.scathapro.screenshots.short": "Screenshots",
+
+    "key.scathapro.lockRotation": "Lock Camera Rotation",
+    "key.scathapro.toggleOverlay": "Toggle Overlay Visibility",
+    "key.scathapro.toggleRotationAngles": "Toggle Pitch/Yaw Display",
+    "key.scathapro.cycleSelectedWormStatsType": "Cycle Worm Stats Type",
+    "key.scathapro.alternativeSensitivity": "Alternative Sensitivity (Hold)",
+    "key.scathapro.toggleAlternativeControls": "Toggle Alternative Controls",
+    "key.scathapro.alternativeAttack": "Alternative Attack/Destroy",
+    "key.scathapro.alternativeUse": "Alt. Use Item/Place Block",
+    "key.scathapro.alternativeForward": "Alternative Walk Forward",
+    "key.scathapro.overlayScreenshot": "Take Overlay Screenshot",
+    "key.scathapro.chatScreenshot": "Take Chat Screenshot"
+}
+        

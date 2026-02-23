@@ -1,0 +1,46 @@
+{
+	"schemaVersion": 1,
+	"id": "scathapro",
+	"version": "${version}",
+	"name": "Scatha-Pro",
+	"description": "A mod for improved Scatha farming on Hypixel Skyblock\n\"/scathapro\" for more info",
+	"authors": [
+		"NamelessJu"
+	],
+	"contact": {
+		"homepage": "https://modrinth.com/mod/scatha-pro",
+		"sources": "https://github.com/NamelessJu/Scatha-Pro"
+	},
+	"license": "ARR",
+	"icon": "assets/scathapro/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+            "namelessju.scathapro.ScathaProFabricClient"
+		],
+        "modmenu": [
+            "namelessju.scathapro.apis.ModMenuApiImplementation"
+        ]
+	},
+    "mixins": [
+		{
+			"config": "scathapro.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.18.4",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*",
+        "hypixel-mod-api": ">=1.0.1"
+	},
+    "custom": {
+        "modmenu": {
+            "links": {
+                "modmenu.discord": "https://discord.gg/GYrFjRnytV"
+            },
+            "update_checker": true
+        }
+    }
+}

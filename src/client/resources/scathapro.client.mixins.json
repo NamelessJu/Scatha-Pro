@@ -1,0 +1,26 @@
+{
+    "required": true,
+    "package": "namelessju.scathapro.mixin",
+    "compatibilityLevel": "JAVA_21",
+    "client": [
+        "ChatComponentAccessor",
+        "ChatComponentMixin",
+        "ClientLevelMixin",
+        "GuiMixin",
+        "MinecraftMixin",
+        "MouseHandlerMixin",
+        "MultiPlayerGameModeMixin",
+        "OptionsMixin",
+        "OptionsScreenMixin",
+        "PauseScreenMixin",
+        "PlayerMixin",
+        "PlayerTabOverlayAccessor",
+        "SoundEngineMixin"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    },
+    "mixins": [
+        "PackRepositoryMixin"
+    ]
+}
