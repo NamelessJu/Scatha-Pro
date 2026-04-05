@@ -16,7 +16,7 @@ public class CustomAlertModeDeleteButton extends Button
         super(0, 0, width, height, Component.literal("Delete"), button -> {
             Component modeName = scathaPro.customAlertModeManager.getSubModeDisplayName(subModeId);
             ConfirmScreen confirmGui = new ConfirmScreen(
-                    result -> {
+                result -> {
                     if (result) scathaPro.customAlertModeManager.deleteSubMode(subModeId);
                     scathaPro.minecraft.setScreen(screen);
                 },

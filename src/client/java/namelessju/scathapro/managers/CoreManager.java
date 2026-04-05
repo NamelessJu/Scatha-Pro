@@ -6,13 +6,13 @@ import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.achievements.Achievement;
 import namelessju.scathapro.alerts.Alert;
 import namelessju.scathapro.entitydetection.detectedentity.DetectedWorm;
+import namelessju.scathapro.events.ScathaProEvents;
+import namelessju.scathapro.files.PersistentData;
 import namelessju.scathapro.gui.menus.screens.FakeBanScreen;
+import namelessju.scathapro.miscellaneous.data.PetDrop;
 import namelessju.scathapro.miscellaneous.data.enums.OldLobbyAlertTriggerMode;
 import namelessju.scathapro.miscellaneous.data.enums.Rarity;
 import namelessju.scathapro.miscellaneous.data.enums.SkyblockArea;
-import namelessju.scathapro.events.ScathaProEvents;
-import namelessju.scathapro.miscellaneous.data.PetDrop;
-import namelessju.scathapro.files.PersistentData;
 import namelessju.scathapro.util.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -27,6 +27,9 @@ import net.minecraft.world.entity.projectile.FishingHook;
 import net.minecraft.world.entity.projectile.arrow.Arrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import org.jspecify.annotations.Nullable;
 
@@ -42,10 +45,6 @@ public class CoreManager
     
     private @Nullable SkyblockArea currentArea = null;
     
-    // TODO:
-    // try to make as many of these fields private
-    // by implementing fitting methods
-    
     public boolean firstLevelTickPending = true;
     public boolean firstCrystalHollowsTickPending = true;
     
@@ -55,6 +54,7 @@ public class CoreManager
     public long lastWormKillTime = -1;
     public long lastScathaKillTime = -1;
     public long lastPetDropTime = -1;
+    public boolean lastScathaHitHadShuriken = false;
     
     public HashMap<Rarity, Integer> previousScathaPets = null;
     public ItemStack lastProjectileWeaponUsed = null;
@@ -68,6 +68,8 @@ public class CoreManager
     public int lastOldLobbyAlertTriggerDay = -1;
     public int antiSleepAlertTickTimer = 0;
     public int nextAntiSleepAlertTriggerTickCount = -1;
+    private boolean obstacleFoundBefore = false;
+    private int obstacleChestTickTimer = 0;
     
     /** -1 = waiting for first time update packet; -2 = packet received, may now update this variable to the actual day */
     public int lastCrystalHollowsDay = -1;
@@ -155,7 +157,7 @@ public class CoreManager
     public void startWormSpawnCooldown(boolean forceRestart)
     {
         if (!forceRestart && wormSpawnCooldownStartTime >= Constants.pingTreshold) return;
-        wormSpawnCooldownStartTime = TimeUtil.now();
+        wormSpawnCooldownStartTime = TimeUtil.getEpochMilliseconds();
     }
     
     public void addRegularWormKill()
@@ -271,7 +273,8 @@ public class CoreManager
         aprilFoolsJokeRevealTickTimer--;
         if (aprilFoolsJokeRevealTickTimer > 0) return; // timer isn't finished
         
-        scathaPro.alertManager.scathaPetDropAlert.stopSound();
+        scathaPro.alertManager.scathaPetDropAlert.stopSound(scathaPro.soundManager);
+        scathaPro.itemPopupRenderer.clear();
         
         scathaPro.minecraft.gui.setTimes(3, 60, 20);
         scathaPro.minecraft.gui.setSubtitle(Component.literal("It's that day of the year...").withStyle(ChatFormatting.GRAY));
@@ -300,7 +303,7 @@ public class CoreManager
     
     private void tickLevel(LocalPlayer player, Level level)
     {
-        long now = TimeUtil.now();
+        long now = TimeUtil.getEpochMilliseconds();
         boolean isInCrystalHollows = isInCrystalHollows();
         
         if (scathaPro.minecraft.screen == null)
@@ -348,12 +351,15 @@ public class CoreManager
                     && OldLobbyAlertTriggerMode.ON_JOIN.isActive(scathaPro.config)
                     && day >= scathaPro.config.alerts.oldLobbyAlertTriggerDay.get())
                 {
-                    scathaPro.alertManager.oldLobbyAlert.play();
+                    scathaPro.alertManager.oldLobbyAlert.play(scathaPro);
                     lastOldLobbyAlertTriggerDay = day;
                 }
                 lastCrystalHollowsDay = day;
             }
         }
+        
+        BlockPos playerBlockPos = player.blockPosition();
+        Direction playerDirection = player.getDirection();
         
         
         // Entity detection
@@ -423,9 +429,6 @@ public class CoreManager
         // Bedrock detection
         
         boolean bedrockDetected = false;
-        
-        BlockPos playerBlockPos = player.blockPosition();
-        Direction playerDirection = player.getDirection();
         int distanceToWall = switch (playerDirection)
         {
             case NORTH -> playerBlockPos.getZ() - Constants.crystalHollowsBoundsMin;
@@ -444,7 +447,6 @@ public class CoreManager
         bedrockDirectionBefore = playerDirection;
         
         int triggerDistance = scathaPro.config.alerts.bedrockWallAlertTriggerDistance.get();
-        
         if (distanceToWallPrevious >= 0 && distanceToWallPrevious - distanceToWall == 1)
         {
             if (distanceToWall < triggerDistance) bedrockDetected = true;
@@ -459,6 +461,39 @@ public class CoreManager
             
             ScathaProEvents.bedrockWallDetectedEvent.trigger(scathaPro);
         }
+        
+        
+        // Obstacle detection
+        
+        BlockPos inFrontPos = playerBlockPos.offset(playerDirection.getUnitVec3i());
+        BlockState blockInFront = level.getBlockState(inFrontPos);
+        BlockState blockInFrontAbove = level.getBlockState(inFrontPos.above());
+        BlockState blockAbove = level.getBlockState(playerBlockPos.above());
+        Block obstacleBlockFound = null;
+        if ((blockInFront.is(Blocks.BEDROCK) || blockInFrontAbove.is(Blocks.BEDROCK))
+                && Constants.crystalHollowsBoundsMin < inFrontPos.getX()
+                && inFrontPos.getX() < Constants.crystalHollowsBoundsMax
+                && Constants.crystalHollowsBoundsMin < inFrontPos.getZ()
+                && inFrontPos.getZ() < Constants.crystalHollowsBoundsMax
+        ) {
+            obstacleBlockFound = Blocks.BEDROCK;
+        }
+        if (blockInFront.is(Blocks.CHEST) || blockInFrontAbove.is(Blocks.CHEST)
+            || blockAbove.is(Blocks.CHEST))
+        {
+            // Chests have delayed trigger since you can sometimes walk
+            // through them, in which case the alert shouldn't trigger
+            if (obstacleChestTickTimer > 20) obstacleBlockFound = Blocks.CHEST;
+            else obstacleChestTickTimer ++;
+        }
+        else obstacleChestTickTimer = 0;
+        if (obstacleBlockFound != null && !obstacleFoundBefore)
+        {
+            scathaPro.alertManager.obstacleAlert.play(scathaPro,
+                obstacleBlockFound.getName().withStyle(ChatFormatting.GRAY)
+            );
+        }
+        obstacleFoundBefore = obstacleBlockFound != null;
         
         
         // Scatha pet drop detection
@@ -480,13 +515,18 @@ public class CoreManager
                         if (petType == null || !petType.equals("SCATHA")) return;
                         
                         String petTier = JsonUtil.getString(petInfoParsed, "tier");
-                        Rarity rarity = switch (petTier)
+                        Rarity rarity = Rarity.UNKNOWN;
+                        if (petTier != null)
                         {
-                            case "RARE" -> Rarity.RARE;
-                            case "EPIC" -> Rarity.EPIC;
-                            case "LEGENDARY" -> Rarity.LEGENDARY;
-                            case null, default -> Rarity.UNKNOWN;
-                        };
+                            for (Rarity knownRarity : Rarity.KNOWN_RARITIES)
+                            {
+                                if (knownRarity.getTierString().equals(petTier))
+                                {
+                                    rarity = knownRarity;
+                                    break;
+                                }
+                            }
+                        }
                         
                         currentScathaPets.compute(rarity, (key, currentRarityAmount)
                             -> (currentRarityAmount != null ? currentRarityAmount : 0) + item.getCount());
@@ -519,7 +559,7 @@ public class CoreManager
         for (int i = receivedPets.size() - 1; i >= 0; i --) {
             PetDrop pet = receivedPets.get(i);
             
-            if (now - pet.dropTime >= Constants.pingTreshold)
+            if (now - pet.dropTime() >= Constants.pingTreshold)
             {
                 receivedPets.remove(i);
                 continue;
@@ -546,7 +586,10 @@ public class CoreManager
             }
             else
             {
-                if (wormSpawnCooldownRunningBefore) scathaPro.alertManager.wormSpawnCooldownEndAlert.play();
+                if (wormSpawnCooldownRunningBefore)
+                {
+                    scathaPro.alertManager.wormSpawnCooldownEndAlert.play(scathaPro);
+                }
                 wormSpawnCooldownRunningBefore = false;
                 wormSpawnCooldownStartTime = -1;
             }
@@ -598,12 +641,15 @@ public class CoreManager
             if (wormSpawnCooldownStartTime >= 0L && now - wormSpawnCooldownStartTime < Constants.wormSpawnCooldown)
             {
                 // delay ability ready time until after cooldown runs out
-                tunnelVisionReadyTime = wormSpawnCooldownStartTime + Constants.wormSpawnCooldown + 1000;
+                tunnelVisionReadyTime = wormSpawnCooldownStartTime + Constants.wormSpawnCooldown + 2000;
             }
             else
             {
                 tunnelVisionReadyTime = -1L;
-                if (isInCrystalHollows()) scathaPro.alertManager.tunnelVisionReadyAlert.play();
+                if (isInCrystalHollows())
+                {
+                    scathaPro.alertManager.tunnelVisionReadyAlert.play(scathaPro);
+                }
             }
         }
         if (tunnelVisionStartTime >= 0L && now - tunnelVisionStartTime >= Constants.tunnelVisionEffectDuration)
@@ -628,13 +674,17 @@ public class CoreManager
                     boolean isOtherAlertPlaying = false;
                     for (Alert alert : scathaPro.alertManager)
                     {
-                        if (alert.isSoundPlaying()) // also checks itself but that's okay
+                        // also checks itself but that's okay
+                        if (alert.isSoundPlaying(scathaPro.soundManager))
                         {
                             isOtherAlertPlaying = true;
                             break;
                         }
                     }
-                    if (!isOtherAlertPlaying) scathaPro.alertManager.antiSleepAlert.play();
+                    if (!isOtherAlertPlaying)
+                    {
+                        scathaPro.alertManager.antiSleepAlert.play(scathaPro);
+                    }
                     antiSleepAlertTickTimer = 0;
                 }
                 

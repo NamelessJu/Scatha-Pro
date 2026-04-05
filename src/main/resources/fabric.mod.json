@@ -9,7 +9,8 @@
 	],
 	"contact": {
 		"homepage": "https://modrinth.com/mod/scatha-pro",
-		"sources": "https://github.com/NamelessJu/Scatha-Pro"
+		"sources": "https://github.com/NamelessJu/Scatha-Pro",
+        "issues": "https://github.com/NamelessJu/Scatha-Pro/issues"
 	},
 	"license": "ARR",
 	"icon": "assets/scathapro/icon.png",

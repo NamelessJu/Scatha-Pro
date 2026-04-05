@@ -5,119 +5,115 @@ import namelessju.scathapro.alerts.alertmodes.AlertMode;
 import namelessju.scathapro.alerts.title.AlertTitleTemplate;
 import namelessju.scathapro.files.framework.JsonFile;
 import namelessju.scathapro.sounds.SoundData;
+import namelessju.scathapro.sounds.SoundManager;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 public class Alert
 {
-    private final @NonNull ScathaPro scathaPro;
-    
     public final @NonNull String alertId;
     public final @NonNull String alertName;
     public final @Nullable Component description;
-    public final JsonFile.@NonNull BooleanValue configValue;
+    public final JsonFile.@NonNull BooleanValue isEnabledConfigValue;
     
-    public final @NonNull SoundData defaultSound;
     public final @NonNull AlertTitleTemplate titleTemplate;
-    
+    public final @NonNull SoundData defaultSound;
+    /** Extra alert sounds that are unaffected by the alert mode */
     private @Nullable SoundData[] extraSounds = null;
-    private @Nullable SoundInstance lastSound = null;
     
-    public Alert(@NonNull ScathaPro scathaPro, @NonNull String alertId, @NonNull String alertName, @Nullable Component description,
+    private @Nullable SoundInstance lastPlayedSound = null;
+    
+    public Alert(@NonNull String alertId, @NonNull String alertName, @Nullable Component description,
                  @NonNull SoundData defaultSound, @NonNull AlertTitleTemplate titleTemplate,
-                 JsonFile.@NonNull BooleanValue configValue)
+                 JsonFile.@NonNull BooleanValue isEnabledConfigValue)
     {
-        this.scathaPro = scathaPro;
         this.alertId = alertId;
         this.alertName = alertName;
         this.description = description;
         
         this.defaultSound = defaultSound;
         this.titleTemplate = titleTemplate;
-        this.configValue = configValue;
+        this.isEnabledConfigValue = isEnabledConfigValue;
     }
     
-    /**
-     * Sets extra alert sounds that are unaffected by the alert mode
-     */
     public void setExtraSounds(@NonNull SoundData... extraSounds)
     {
         this.extraSounds = extraSounds;
     }
     
     
-    public void play()
+    public void play(ScathaPro scathaPro)
     {
-        play(null);
+        play(scathaPro, scathaPro.config.alerts.mode.get());
     }
     
-    public void play(@Nullable Component details)
+    public void play(ScathaPro scathaPro, @Nullable Component details)
     {
-        if (!configValue.get()) return;
-        playSound();
-        displayTitle(details);
+        play(scathaPro, scathaPro.config.alerts.mode.get(), details);
     }
     
-    public void playSound()
+    public void play(ScathaPro scathaPro, @NonNull AlertMode alertMode)
     {
-        stopSound();
+        play(scathaPro, alertMode, null);
+    }
+    
+    public void play(ScathaPro scathaPro, @NonNull AlertMode alertMode, @Nullable Component details)
+    {
+        if (!isEnabledConfigValue.get()) return;
+        playSound(scathaPro.soundManager, alertMode);
+        displayTitle(scathaPro, alertMode, details);
+    }
+    
+    @SuppressWarnings("UnusedReturnValue")
+    public SoundInstance playSound(SoundManager soundManager, @NonNull AlertMode alertMode)
+    {
+        return playSound(soundManager, alertMode, -1f);
+    }
+    
+    public SoundInstance playSound(SoundManager soundManager, @NonNull AlertMode alertMode, float volumeMultiplierOverride)
+    {
+        stopSound(soundManager);
         
-        AlertMode mode = scathaPro.alertModeManager.getCurrentMode();
-        float volume = mode.getAlertSoundVolume(this);
+        SoundData soundData = alertMode.getSoundData(this);
+        if (soundData == null)
+        {
+            soundData = defaultSound;
+        }
         
         if (extraSounds != null)
         {
             for (SoundData sound : extraSounds)
             {
                 if (sound == null) continue;
-                sound.playModSound(scathaPro.soundManager, volume);
+                sound.playAsScathaProSound(soundManager, volumeMultiplierOverride);
                 ScathaPro.LOGGER.debug("Played extra alert sound {}", sound.identifier().toString());
             }
         }
         
-        Identifier soundParentIdentifier = mode.getSoundBaseIdentifier();
-        if (soundParentIdentifier != null)
-        {
-            Identifier soundIdentifier = Identifier.fromNamespaceAndPath(
-                soundParentIdentifier.getNamespace(),
-                soundParentIdentifier.getPath().isEmpty()
-                    ? alertId
-                    : soundParentIdentifier.getPath() + "." + alertId
-            );
-            if (scathaPro.soundManager.soundExists(soundIdentifier))
-            {
-                lastSound = scathaPro.soundManager.playModSound(soundIdentifier, volume, 1f);
-                return;
-            }
-            else ScathaPro.LOGGER.debug("Couldn't play alert sound \"{}\": Sound not found - playing default sound instead", soundIdentifier);
-        }
+        float volumeMultiplier = volumeMultiplierOverride >= 0f
+            ? volumeMultiplierOverride
+            : alertMode.getSoundVolumeMultiplier(this);
         
-        playDefaultSound(volume);
+        lastPlayedSound = soundData.playAsScathaProSound(soundManager, volumeMultiplier);
+        return lastPlayedSound;
     }
     
-    public void playDefaultSound(float volume)
+    public void stopSound(SoundManager soundManager)
     {
-        lastSound = scathaPro.soundManager.playModSound(defaultSound.identifier(), volume * defaultSound.volume(), defaultSound.pitch());
+        if (lastPlayedSound != null) soundManager.stop(lastPlayedSound);
     }
     
-    public void stopSound()
+    public boolean isSoundPlaying(SoundManager soundManager)
     {
-        if (lastSound != null) scathaPro.soundManager.stop(lastSound);
+        return lastPlayedSound != null && soundManager.isPlaying(lastPlayedSound);
     }
     
-    public boolean isSoundPlaying()
+    public void displayTitle(ScathaPro scathaPro, @NonNull AlertMode alertMode, @Nullable Component details)
     {
-        return lastSound != null && scathaPro.soundManager.isPlaying(lastSound);
-    }
-    
-    
-    public void displayTitle(@Nullable Component details)
-    {
-        Component modeTitleOverride = scathaPro.alertModeManager.getCurrentMode().getTitleOverride(this);
-        Component modeSubtitleOverride = scathaPro.alertModeManager.getCurrentMode().getSubtitleOverride(this);
+        Component modeTitleOverride = alertMode.getTitleOverride(this);
+        Component modeSubtitleOverride = alertMode.getSubtitleOverride(this);
         scathaPro.alertTitleOverlay.displayTitle(titleTemplate.getDisplayable(modeTitleOverride, modeSubtitleOverride, details));
     }
 }

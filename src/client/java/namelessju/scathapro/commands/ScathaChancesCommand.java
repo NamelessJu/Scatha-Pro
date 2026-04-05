@@ -16,6 +16,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.Mth;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 public class ScathaChancesCommand extends ScathaProCommand
 {
@@ -71,13 +73,13 @@ public class ScathaChancesCommand extends ScathaProCommand
     
     private void calculateChances(float magicFind, float petLuck, int kills)
     {
-        boolean calculateSpecificChances = magicFind > 0 || petLuck > 0;
+        boolean hasAttributes = magicFind > 0 || petLuck > 0;
         
         float rareChance = Constants.scathaPetBaseChanceRare;
         float epicChance = Constants.scathaPetBaseChanceEpic;
         float legendaryChance = Constants.scathaPetBaseChanceLegendary;
         
-        if (calculateSpecificChances)
+        if (hasAttributes)
         {
             rareChance = calculatePetChance(rareChance, magicFind, petLuck);
             epicChance = calculatePetChance(epicChance, magicFind, petLuck);
@@ -94,123 +96,142 @@ public class ScathaChancesCommand extends ScathaProCommand
         
         anyChance = Math.min(1, anyChance);
         
-        
+        if (kills > 0)
+        {
+            calculateChancesForKills(
+                rareChance, epicChance, legendaryChance, anyChance,
+                kills,
+                getAttributesComponent(magicFind, petLuck)
+            );
+        }
+        else calculateRegularChances(
+            rareChance, epicChance, legendaryChance, anyChance,
+            hasAttributes ? getAttributesComponent(magicFind, petLuck) : null
+        );
+    }
+    
+    private Component getAttributesComponent(float magicFind, float petLuck)
+    {
         MutableComponent attributesComponent = Component.empty()
             .append(Component.literal(
                     UnicodeSymbol.magicFind + " " + TextUtil.numberToString(magicFind, 2) + " Magic Find"
                 ).withStyle(ChatFormatting.AQUA)
             );
-        if (petLuck > 0)
+        if (petLuck > 0f)
         {
             attributesComponent
                 .append(" and ")
                 .append(Component.literal(
-                    UnicodeSymbol.petLuck + " " + TextUtil.numberToString(petLuck, 2) + " Pet Luck"
+                        UnicodeSymbol.petLuck + " " + TextUtil.numberToString(petLuck, 2) + " Pet Luck"
                     ).withStyle(ChatFormatting.LIGHT_PURPLE)
                 );
         }
+        return attributesComponent;
+    }
+    
+    private void calculateRegularChances(
+        float finalChanceRare, float finalChanceEpic, float finalChanceLegendary, float finalChanceAny,
+        @Nullable Component attributesComponent
+    )
+    {
+        int rareKillsAverage = Mth.ceil(1 / finalChanceRare);
+        int epicKillsAverage = Mth.ceil(1 / finalChanceEpic);
+        int legendaryKillsAverage = Mth.ceil(1 / finalChanceLegendary);
+        int anyKillsAverage = Mth.ceil(1 / finalChanceAny);
         
+        scathaPro.chatManager.sendChatDivider();
+        scathaPro.chatManager.sendChatMessage(Component.empty().setStyle(ChatManager.HIGHLIGHT_STYLE)
+            .append(
+                attributesComponent != null
+                ? Component.literal("Scatha pet drop chances with ").append(attributesComponent)
+                : Component.literal("Scatha pet drop base chances:")
+            ));
+        scathaPro.chatManager.sendChatMessage(Component.empty()
+            .append(Component.literal(" - ").withStyle(ChatFormatting.GRAY))
+            .append(Component.literal("Any: " + TextUtil.numberToString(finalChanceAny * 100, 3) + "% ")
+                .withStyle(ChatFormatting.WHITE))
+            .append(Component.literal("(" + anyKillsAverage + " Scatha kills on average)").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC)),
+            false
+        );
+        scathaPro.chatManager.sendChatMessage(Component.empty()
+            .append(Component.literal(" - ").withStyle(ChatFormatting.GRAY))
+            .append(Component.literal("Rare: " + TextUtil.numberToString(finalChanceRare * 100, 3) + "% ")
+                .withStyle(ChatFormatting.BLUE))
+            .append(Component.literal("(" + rareKillsAverage + " Scatha kills on average)").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC)),
+            false
+        );
+        scathaPro.chatManager.sendChatMessage(Component.empty()
+            .append(Component.literal(" - ").withStyle(ChatFormatting.GRAY))
+            .append(Component.literal("Epic: " + TextUtil.numberToString(finalChanceEpic * 100, 3) + "% ")
+                .withStyle(ChatFormatting.DARK_PURPLE))
+            .append(Component.literal("(" + epicKillsAverage + " Scatha kills on average)").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC)),
+            false
+        );
+        scathaPro.chatManager.sendChatMessage(Component.empty()
+            .append(Component.literal(" - ").withStyle(ChatFormatting.GRAY))
+            .append(Component.literal("Legendary: " + TextUtil.numberToString(finalChanceLegendary * 100, 3) + "% ")
+                .withStyle(ChatFormatting.GOLD))
+            .append(Component.literal("(" + legendaryKillsAverage + " Scatha kills on average)").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC)),
+            false
+        );
+        scathaPro.chatManager.sendChatDivider();
+    }
+    
+    private void calculateChancesForKills(
+        float finalChanceRare, float finalChanceEpic, float finalChanceLegendary, float finalChanceAny,
+        int kills, @NonNull Component attributesComponent
+    )
+    {
+        float anyChanceAtKills = (float) (1 - Math.pow(1 - finalChanceAny, kills));
+        float rareChanceAtKills = (float) (1 - Math.pow(1 - finalChanceRare, kills));
+        float epicChanceAtKills = (float) (1 - Math.pow(1 - finalChanceEpic, kills));
+        float legendaryChanceAtKills = (float) (1 - Math.pow(1 - finalChanceLegendary, kills));
         
-        if (kills == 0)
-        {
-            int rareKillsAverage = Mth.ceil(1 / rareChance);
-            int epicKillsAverage = Mth.ceil(1 / epicChance);
-            int legendaryKillsAverage = Mth.ceil(1 / legendaryChance);
-            int anyKillsAverage = Mth.ceil(1 / anyChance);
-            
-            scathaPro.chatManager.sendChatDivider();
-            scathaPro.chatManager.sendChatMessage(Component.empty()
-                .append(Component.empty().setStyle(ChatManager.HIGHLIGHT_STYLE)
-                    .append(
-                        calculateSpecificChances
-                        ? Component.empty().append("Scatha pet drop chances with ").append(attributesComponent).append(":\n")
-                        : Component.literal("Scatha pet drop base chances:\n")
+        scathaPro.chatManager.sendChatDivider();
+        scathaPro.chatManager.sendChatMessage(Component.empty()
+            .setStyle(ChatManager.HIGHLIGHT_STYLE
+                .withHoverEvent(new HoverEvent.ShowText(Component.empty()
+                    .append(Component.literal("Note:\n").withStyle(ChatFormatting.YELLOW, ChatFormatting.BOLD))
+                    .append("Killing more Scathas does NOT\nincrease the drop chance per kill!\n")
+                    .append(Component.literal("""
+                        However, the more often you roll
+                        the chance (by killing more Scathas)
+                        the higher the chance to drop
+                        a Scatha pet overall becomes!""")
+                        .withStyle(ChatFormatting.GRAY)
                     )
-                )
-                .append(Component.empty()
-                    .append(Component.literal(" - ").withStyle(ChatFormatting.DARK_GRAY))
-                    .append(Component.literal("Any: " + TextUtil.numberToString(anyChance * 100, 3) + "% ")
-                        .withStyle(ChatFormatting.WHITE))
-                    .append(Component.literal("(" + anyKillsAverage + " Scatha kills on average)").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC))
-                    .append("\n")
-                )
-                .append(Component.empty()
-                    .append(Component.literal(" - ").withStyle(ChatFormatting.DARK_GRAY))
-                    .append(Component.literal("Rare: " + TextUtil.numberToString(rareChance * 100, 3) + "% ")
-                        .withStyle(ChatFormatting.BLUE))
-                    .append(Component.literal("(" + rareKillsAverage + " Scatha kills on average)").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC))
-                    .append("\n")
-                )
-                .append(Component.empty()
-                    .append(Component.literal(" - ").withStyle(ChatFormatting.DARK_GRAY))
-                    .append(Component.literal("Epic: " + TextUtil.numberToString(epicChance * 100, 3) + "% ")
-                        .withStyle(ChatFormatting.DARK_PURPLE))
-                    .append(Component.literal("(" + epicKillsAverage + " Scatha kills on average)").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC))
-                    .append("\n")
-                )
-                .append(Component.empty()
-                    .append(Component.literal(" - ").withStyle(ChatFormatting.DARK_GRAY))
-                    .append(Component.literal("Legendary: " + TextUtil.numberToString(legendaryChance * 100, 3) + "% ")
-                        .withStyle(ChatFormatting.GOLD))
-                    .append(Component.literal("(" + legendaryKillsAverage + " Scatha kills on average)").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC))
-                )
-            );
-            scathaPro.chatManager.sendChatDivider();
-        }
-        else
-        {
-            float anyChanceAtKills = (float) (1 - Math.pow(1 - anyChance, kills));
-            float rareChanceAtKills = (float) (1 - Math.pow(1 - rareChance, kills));
-            float epicChanceAtKills = (float) (1 - Math.pow(1 - epicChance, kills));
-            float legendaryChanceAtKills = (float) (1 - Math.pow(1 - legendaryChance, kills));
-            
-            scathaPro.chatManager.sendChatDivider();
-            scathaPro.chatManager.sendChatMessage(Component.empty()
-                .append(Component.empty().setStyle(
-                    ChatManager.HIGHLIGHT_STYLE
-                        .withHoverEvent(new HoverEvent.ShowText(Component.empty()
-                            .append(Component.literal("Note:\n").withStyle(ChatFormatting.YELLOW, ChatFormatting.BOLD))
-                            .append("Killing more Scathas does NOT\nincrease the drop chance per kill!\n")
-                            .append(Component.literal("""
-                                    However, the more often you roll
-                                    the chance (by killing more Scathas)
-                                    the higher the chance to drop
-                                    a Scatha pet overall becomes!""")
-                                .withStyle(ChatFormatting.GRAY)
-                            )
-                        ))
-                    )
-                    .append("You have the following chances to drop at least 1 Scatha pet during the process of killing ")
-                    .append(Component.literal(UnicodeSymbol.crossedSwords + " " + kills + " Scatha" + (kills == 1 ? "" : "s"))
-                        .withStyle(ChatFormatting.RED))
-                    .append(" with ").append(attributesComponent).append(":\n")
-                )
-                .append(Component.empty()
-                    .append(Component.literal(" - ").withStyle(ChatFormatting.DARK_GRAY))
-                    .append(Component.literal("Any: " + TextUtil.numberToString(Math.min(anyChanceAtKills * 100, 99.999f), 3) + "%")
-                        .withStyle(ChatFormatting.WHITE))
-                    .append("\n")
-                )
-                .append(Component.empty()
-                    .append(Component.literal(" - ").withStyle(ChatFormatting.DARK_GRAY))
-                    .append(Component.literal("Rare: " + TextUtil.numberToString(Math.min(rareChanceAtKills * 100, 99.999f), 3) + "%")
-                        .withStyle(ChatFormatting.BLUE))
-                    .append("\n")
-                )
-                .append(Component.empty()
-                    .append(Component.literal(" - ").withStyle(ChatFormatting.DARK_GRAY))
-                    .append(Component.literal("Epic: " + TextUtil.numberToString(Math.min(epicChanceAtKills * 100, 99.999f), 3) + "%")
-                        .withStyle(ChatFormatting.DARK_PURPLE))
-                    .append("\n")
-                )
-                .append(Component.empty()
-                    .append(Component.literal(" - ").withStyle(ChatFormatting.DARK_GRAY))
-                    .append(Component.literal("Legendary: " + TextUtil.numberToString(Math.min(legendaryChanceAtKills * 100, 99.999f), 3) + "%")
-                        .withStyle(ChatFormatting.GOLD))
-                )
-            );
-            scathaPro.chatManager.sendChatDivider();
-        }
+                ))
+            )
+            .append("You have the following chances to drop at least 1 Scatha pet during the process of killing ")
+            .append(Component.literal(UnicodeSymbol.sword + " " + kills + " Scatha" + (kills == 1 ? "" : "s"))
+                .withStyle(ChatFormatting.RED))
+            .append(" with ").append(attributesComponent).append(":")
+        );
+        scathaPro.chatManager.sendChatMessage(Component.empty()
+            .append(Component.literal(" - ").withStyle(ChatFormatting.GRAY))
+            .append(Component.literal("Any: " + TextUtil.numberToString(Math.min(anyChanceAtKills * 100, 99.999f), 3) + "%")
+                .withStyle(ChatFormatting.WHITE)),
+            false
+        );
+        scathaPro.chatManager.sendChatMessage(Component.empty()
+            .append(Component.literal(" - ").withStyle(ChatFormatting.GRAY))
+            .append(Component.literal("Rare: " + TextUtil.numberToString(Math.min(rareChanceAtKills * 100, 99.999f), 3) + "%")
+                .withStyle(ChatFormatting.BLUE)),
+            false
+        );
+        scathaPro.chatManager.sendChatMessage(Component.empty()
+            .append(Component.literal(" - ").withStyle(ChatFormatting.GRAY))
+            .append(Component.literal("Epic: " + TextUtil.numberToString(Math.min(epicChanceAtKills * 100, 99.999f), 3) + "%")
+                .withStyle(ChatFormatting.DARK_PURPLE)),
+            false
+        );
+        scathaPro.chatManager.sendChatMessage(Component.empty()
+            .append(Component.literal(" - ").withStyle(ChatFormatting.GRAY))
+            .append(Component.literal("Legendary: " + TextUtil.numberToString(Math.min(legendaryChanceAtKills * 100, 99.999f), 3) + "%")
+                .withStyle(ChatFormatting.GOLD)),
+            false
+        );
+        scathaPro.chatManager.sendChatDivider();
     }
     
     private float calculatePetChance(float initialChance, float magicFind, float petLuck)

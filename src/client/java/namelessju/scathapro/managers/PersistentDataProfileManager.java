@@ -43,6 +43,7 @@ public class PersistentDataProfileManager
     {
         UUID playerUUID = scathaPro.minecraft.getUser().getProfileId();
         String profileID = null; // TODO: actual multiple profiles support
+        //noinspection ConstantValue
         if (Objects.equals(playerUUID, currentPlayerUUID)
             && Objects.equals(profileID, currentProfileData.profileID.get())) return;
         
@@ -88,6 +89,8 @@ public class PersistentDataProfileManager
         currentProfileData = profileData;
         
         detectCheater();
+        
+        scathaPro.achievementLogicManager.updateAchievementsAfterDataLoading();
     }
     
     private void detectCheater()
@@ -97,7 +100,7 @@ public class PersistentDataProfileManager
         cheaterDetected = false;
         
         PersistentData.ProfileData profileData = getCurrentProfileData();
-        long now = TimeUtil.now();
+        long now = TimeUtil.getEpochMilliseconds();
         
         if (
             profileData.rarePetDrops.get() > Constants.maxLegitPetDropsAmount || profileData.rarePetDrops.get() < 0
@@ -137,70 +140,97 @@ public class PersistentDataProfileManager
     }
     
     
-    public float getTotalMagicFind()
+    public float getTotalMagicFind(boolean allowShuriken)
     {
-        float totalMagicFind = -1f;;
-        float magicFind = getCurrentProfileData().magicFind.getOr(-1f);
-        if (magicFind >= 0) totalMagicFind = magicFind;
-        float wormBestiaryMagicFind = getCurrentProfileData().wormBestiaryMagicFind.getOr(-1f);
-        if (wormBestiaryMagicFind >= 0)
+        PersistentData.ProfileData profileData = getCurrentProfileData();
+        float totalMagicFind = -1f;
+        
+        totalMagicFind = tryAddStatValue(totalMagicFind, profileData.globalMagicFind.getOr(-1f));
+        totalMagicFind = tryAddStatValue(totalMagicFind, profileData.wormBestiaryMagicFind.getOr(-1f));
+        totalMagicFind = tryAddStatValue(totalMagicFind, profileData.witchesStewsEaten.getMagicFind());
+        
+        if (allowShuriken && scathaPro.coreManager.lastScathaHitHadShuriken)
         {
-            if (totalMagicFind >= 0) totalMagicFind += wormBestiaryMagicFind;
-            else totalMagicFind = wormBestiaryMagicFind;
+            totalMagicFind = Constants.applyShurikenMagicFind(totalMagicFind);
         }
+        
         return totalMagicFind;
     }
     
-    public float getEffectiveMagicFind()
+    private float tryAddStatValue(float current, float value)
     {
-        float totalMagicFind = getTotalMagicFind();
+        if (value < 0f) return current;
+        
+        if (current >= 0) current += value;
+        else current = value;
+        return current;
+    }
+    
+    public float getEffectiveMagicFind(boolean allowShuriken)
+    {
+        float totalMagicFind = getTotalMagicFind(allowShuriken);
         float petLuck = getCurrentProfileData().petLuck.getOr(-1f);
         return totalMagicFind >= 0f && petLuck >= 0f ? totalMagicFind + petLuck : -1f;
     }
     
-    public MutableComponent getMagicFindComponent(boolean addSymbol)
+    public MutableComponent getGlobalMagicFindComponent(boolean addSymbol)
     {
-        MutableComponent component = Component.empty().withStyle(ChatFormatting.AQUA);
-        if (addSymbol) component.append(UnicodeSymbol.magicFind + " ");
-        return component.append(TextUtil.numberToComponentOrObf(
-            getCurrentProfileData().magicFind.getOr(-1f),
-            2, false, RoundingMode.FLOOR)
+        return getStatComponent(
+            getCurrentProfileData().globalMagicFind.getOr(-1f),
+            ChatFormatting.AQUA, String.valueOf(UnicodeSymbol.magicFind),
+            addSymbol
         );
     }
     
-    public MutableComponent getBestiaryMagicFindString(boolean addSymbol)
+    public MutableComponent getBestiaryMagicFindComponent(boolean addSymbol)
     {
-        MutableComponent component = Component.empty().withStyle(ChatFormatting.AQUA);
-        if (addSymbol) component.append(UnicodeSymbol.magicFind + " ");
-        return component.append(TextUtil.numberToComponentOrObf(
+        return getStatComponent(
             getCurrentProfileData().wormBestiaryMagicFind.getOr(-1f),
-            2, false, RoundingMode.FLOOR)
+            ChatFormatting.AQUA, String.valueOf(UnicodeSymbol.magicFind),
+            addSymbol
         );
     }
     
-    public MutableComponent getTotalMagicFindComponent(boolean addSymbol)
+    public MutableComponent getWitchesStewMagicFindComponent(boolean addSymbol)
     {
-        MutableComponent component = Component.empty().withStyle(ChatFormatting.AQUA);
-        if (addSymbol) component.append(UnicodeSymbol.magicFind + " ");
-        return component.append(TextUtil.numberToComponentOrObf(
-            getTotalMagicFind(), 2, false, RoundingMode.FLOOR)
+        return getStatComponent(
+            getCurrentProfileData().witchesStewsEaten.getMagicFind(),
+            ChatFormatting.AQUA, String.valueOf(UnicodeSymbol.magicFind),
+            addSymbol
+        );
+    }
+    
+    public MutableComponent getTotalMagicFindComponent(boolean allowShuriken, boolean addSymbol)
+    {
+        return getStatComponent(
+            getTotalMagicFind(allowShuriken),
+            ChatFormatting.AQUA, String.valueOf(UnicodeSymbol.magicFind),
+            addSymbol
         );
     }
     
     public MutableComponent getPetLuckComponent(boolean addSymbol)
     {
-        MutableComponent component = Component.empty().withStyle(ChatFormatting.LIGHT_PURPLE);
-        if (addSymbol) component.append(UnicodeSymbol.petLuck + " ");
-        return component.append(TextUtil.numberToComponentOrObf(
+        return getStatComponent(
             getCurrentProfileData().petLuck.getOr(-1f),
-            2, false, RoundingMode.FLOOR)
+            ChatFormatting.LIGHT_PURPLE, String.valueOf(UnicodeSymbol.petLuck),
+            addSymbol
         );
     }
     
-    public MutableComponent getEffectiveMagicFindComponent()
+    private MutableComponent getStatComponent(float value, ChatFormatting color, String symbol, boolean addSymbol)
+    {
+        MutableComponent component = Component.empty().withStyle(color);
+        if (addSymbol) component.append(symbol + " ");
+        return component.append(TextUtil.numberToComponentOrObf(
+            value, 2, false, RoundingMode.HALF_UP)
+        );
+    }
+    
+    public MutableComponent getEffectiveMagicFindComponent(boolean allowShuriken)
     {
         return Component.empty().withStyle(ChatFormatting.BLUE).append(
-            TextUtil.numberToComponentOrObf(getEffectiveMagicFind(), 2, false, RoundingMode.FLOOR)
+            TextUtil.numberToComponentOrObf(getEffectiveMagicFind(allowShuriken), 2, false, RoundingMode.HALF_UP)
         );
     }
 }

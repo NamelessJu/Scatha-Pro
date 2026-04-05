@@ -1,22 +1,24 @@
 package namelessju.scathapro.gui.menus.widgets;
 
 import namelessju.scathapro.ScathaPro;
+import namelessju.scathapro.alerts.alertmodes.customalertmode.CustomAlertModeManager;
+import namelessju.scathapro.files.customalertmode.CustomAlertModeMeta;
 import namelessju.scathapro.gui.menus.framework.widgets.lists.ScathaProGuiList;
 import namelessju.scathapro.gui.menus.screens.InfoMessageScreen;
 import namelessju.scathapro.gui.menus.screens.settings.alerts.customalertmode.CustomAlertModeEditScreen;
 import namelessju.scathapro.gui.menus.screens.settings.alerts.customalertmode.CustomAlertModeScreen;
-import namelessju.scathapro.managers.CustomAlertModeManager;
+import namelessju.scathapro.util.TimeUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.StringWidget;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.network.chat.Component;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Arrays;
+import java.util.Map;
 
-// TODO: can be put into screen class
 public class CustomAlertModeList extends ScathaProGuiList
 {
     private final ScathaPro scathaPro;
@@ -28,8 +30,7 @@ public class CustomAlertModeList extends ScathaProGuiList
         this.scathaPro = scathaPro;
         this.screen = screen;
         
-        Button btn;
-        addEntry(new Entry(btn = Button.builder(Component.literal("Create New Custom Alert Mode..."),
+        addEntry(new Entry(Button.builder(Component.literal("Create New Custom Alert Mode..."),
             button -> {
                 String newModeId = scathaPro.customAlertModeManager.getNewSubModeId();
                 if (newModeId == null)
@@ -43,21 +44,18 @@ public class CustomAlertModeList extends ScathaProGuiList
                 minecraft.setScreen(new CustomAlertModeEditScreen(scathaPro, CustomAlertModeList.this.screen, newModeId));
             }
         ).bounds(0, 5, getRowWidth(), 20).build()));
-        btn.active = false;
-        btn.setTooltip(Tooltip.create(Component.literal("Work in Progress").withStyle(ChatFormatting.YELLOW)));
         
         
         CustomAlertModeManager manager = scathaPro.customAlertModeManager;
-        manager.loadAllMeta();
+        Map<String, CustomAlertModeMeta> allMeta = manager.getAllMeta();
         
         String[] customModeIds = manager.findAllSubModeIds();
         Arrays.sort(customModeIds, (customModeId1, customModeId2) -> {
-            long lastUsedTime1 = manager.getSubModeLastUsed(customModeId1);
-            long lastUsedTime2 = manager.getSubModeLastUsed(customModeId2);
-            
-            if (manager.isSubModeActive(customModeId2)) return 1;
             if (manager.isSubModeActive(customModeId1)) return -1;
+            if (manager.isSubModeActive(customModeId2)) return 1;
             
+            long lastUsedTime1 = allMeta.get(customModeId1).lastUsedAtTimestamp.getOr(-1L);
+            long lastUsedTime2 = allMeta.get(customModeId2).lastUsedAtTimestamp.getOr(-1L);
             return Long.compare(lastUsedTime2, lastUsedTime1);
         });
         
@@ -67,7 +65,7 @@ public class CustomAlertModeList extends ScathaProGuiList
         }
     }
     
-    private Entry createSubModeEntry(String subModeId, Font font)
+    private Entry createSubModeEntry(@NonNull String subModeId, Font font)
     {
         Entry entry = new Entry();
         
@@ -75,36 +73,45 @@ public class CustomAlertModeList extends ScathaProGuiList
         boolean isModeActive = scathaPro.customAlertModeManager.isSubModeActive(subModeId);
         
         int modeNameWidth = getRowWidth() - 165;
-        entry.addPositionedChild(0, (isModeActive ? 5 : 10),
+        entry.addPositionedChild(0, 5,
             new StringWidget(modeName, font).setMaxWidth(modeNameWidth, StringWidget.TextOverflow.SCROLLING)
         );
         
-        if (isModeActive) entry.addPositionedChild(0, 15,
-            new StringWidget(Component.literal("Selected").withStyle(ChatFormatting.GREEN), font)
-                .setMaxWidth(modeNameWidth)
-        );
+        Component secondLineComponent;
+        if (isModeActive)
+        {
+            secondLineComponent = Component.literal("Selected").withStyle(ChatFormatting.GREEN);
+        }
+        else
+        {
+            CustomAlertModeMeta meta = scathaPro.customAlertModeManager.subModeMetas.getOrLoad(subModeId);
+            long lastUsed = meta.lastUsedAtTimestamp.getOr(-1L);
+            secondLineComponent = lastUsed >= 0L
+                ? Component.literal(TimeUtil.formatDateTime(scathaPro.config, lastUsed)).withStyle(ChatFormatting.DARK_GRAY)
+                : Component.literal("Never used").withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC);
+        }
+        entry.addPositionedChild(0, 15, new StringWidget(secondLineComponent, font)
+            .setMaxWidth(modeNameWidth, StringWidget.TextOverflow.SCROLLING));
         
-        Button selectButton;
-        entry.addPositionedChild(getRowWidth() - 160, 5,
-            selectButton = Button.builder(Component.literal("Select"),
-                button -> {
-                    scathaPro.customAlertModeManager.changeSubMode(subModeId);
-                    CustomAlertModeList.this.screen.refresh();
-                }
-            ).size(50, 20).build()
-        );
-        selectButton.active = !isModeActive;
+        if (!isModeActive)
+        {
+            entry.addPositionedChild(getRowWidth() - 160, 5,
+                Button.builder(Component.literal("Select"),
+                    button -> {
+                        scathaPro.customAlertModeManager.changeSubMode(subModeId);
+                        CustomAlertModeList.this.screen.refresh();
+                    }
+                ).size(50, 20).build()
+            );
+        }
         
-        Button btn;
         entry.addPositionedChild(getRowWidth() - 105, 5,
-            btn = Button.builder(Component.literal("Edit..."),
+            Button.builder(Component.literal("Edit..."),
                 button -> minecraft.setScreen(
                     new CustomAlertModeEditScreen(scathaPro, CustomAlertModeList.this.screen, subModeId)
                 )
             ).size(50, 20).build()
         );
-        btn.active = false;
-        btn.setTooltip(Tooltip.create(Component.literal("Work in Progress").withStyle(ChatFormatting.YELLOW)));
         
         entry.addPositionedChild(getRowWidth() - 50, 5,
             new CustomAlertModeDeleteButton(50, 20, scathaPro, CustomAlertModeList.this.screen, subModeId)

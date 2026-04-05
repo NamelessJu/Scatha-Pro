@@ -2,6 +2,7 @@ package namelessju.scathapro.util;
 
 import com.google.gson.*;
 import com.google.gson.stream.JsonWriter;
+import namelessju.scathapro.ScathaPro;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -10,7 +11,16 @@ import java.util.Objects;
 
 public final class JsonUtil
 {
-    private static final String jsonPathNodeSeparatorRegex = "\\.";
+    private static final String PATH_SEPARATOR = "\\.";
+    private static final Gson GSON_INSTANCE;
+    
+    static
+    {
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.serializeNulls();
+        gsonBuilder.disableHtmlEscaping();
+        GSON_INSTANCE = gsonBuilder.create();
+    }
     
     private JsonUtil() {}
     
@@ -32,7 +42,7 @@ public final class JsonUtil
         
         if (path == null) return object;
         
-        String[] pathNodes = path.split(jsonPathNodeSeparatorRegex);
+        String[] pathNodes = path.split(PATH_SEPARATOR);
         
         JsonElement currentElement = object;
         for (String pathSegment : pathNodes)
@@ -111,7 +121,7 @@ public final class JsonUtil
     {
         Objects.requireNonNull(object, "JsonObject cannot be null");
         
-        String[] pathNodes = path.split(jsonPathNodeSeparatorRegex);
+        String[] pathNodes = path.split(PATH_SEPARATOR);
         
         JsonObject currentObject = object;
         
@@ -139,7 +149,7 @@ public final class JsonUtil
     {
         if (object.isJsonNull() || path == null) return null;
         
-        String[] pathNodes = path.split(jsonPathNodeSeparatorRegex);
+        String[] pathNodes = path.split(PATH_SEPARATOR);
         
         JsonObject currentObject = object;
         for (int i = 0; i < pathNodes.length; i ++)
@@ -162,22 +172,32 @@ public final class JsonUtil
         return null;
     }
     
-    public static @Nullable String toString(JsonElement jsonElement, boolean usePrettyJson)
+    public static boolean move(@NonNull JsonObject object, @NonNull String originPath, @NonNull String targetPath)
     {
-        String jsonString = null;
+        JsonElement element = object.remove(originPath);
+        if (element != null)
+        {
+            object.add(targetPath, element);
+            return true;
+        }
+        return false;
+    }
+    
+    public static @NonNull String toString(JsonElement jsonElement, boolean usePrettyJson)
+    {
         try
         {
-            GsonBuilder jsonStringBuilder = new GsonBuilder();
-            jsonStringBuilder.serializeNulls();
-            Gson gson = jsonStringBuilder.create();
             StringWriter stringWriter = new StringWriter();
-            JsonWriter jsonWriter = gson.newJsonWriter(stringWriter);
+            JsonWriter jsonWriter = GSON_INSTANCE.newJsonWriter(stringWriter);
             if (usePrettyJson) jsonWriter.setIndent("    ");
             else jsonWriter.setFormattingStyle(FormattingStyle.COMPACT);
-            gson.toJson(jsonElement, jsonWriter);
-            jsonString = stringWriter.toString();
+            GSON_INSTANCE.toJson(jsonElement, jsonWriter);
+            return stringWriter.toString();
         }
-        catch (Exception ignored) {}
-        return jsonString;
+        catch (Exception e)
+        {
+            ScathaPro.LOGGER.warn("Exception while serializing JsonElement, returned basic toString() instead", e);
+            return jsonElement.toString();
+        }
     }
 }

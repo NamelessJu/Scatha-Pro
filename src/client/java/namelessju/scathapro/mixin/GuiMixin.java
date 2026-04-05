@@ -28,7 +28,7 @@ public abstract class GuiMixin
     )
     private void onRenderOverlay(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci)
     {
-        ScathaPro.getInstance().mainOverlay.renderIfAllowed(guiGraphics, deltaTracker);
+        ScathaPro.getInstance().mainOverlay.renderIfVisible(guiGraphics, deltaTracker);
     }
     
     @Inject(

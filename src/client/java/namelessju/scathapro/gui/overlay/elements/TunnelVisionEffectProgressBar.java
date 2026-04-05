@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
-public class TunnelVisionEffectProgressBar extends GuiElement
+public class TunnelVisionEffectProgressBar extends OverlayElement
 {
     private static final Identifier textureIdentifier = ScathaPro.getIdentifier("textures/overlay/tunnel_vision_progress_bar.png");
     
@@ -27,7 +27,7 @@ public class TunnelVisionEffectProgressBar extends GuiElement
     @Override
     protected void renderContent(GuiGraphics guiGraphics, DeltaTracker deltaTracker)
     {
-        int yOffset = (int) ((TimeUtil.now() / 100L) % 32);
+        int yOffset = (int) ((TimeUtil.getEpochMilliseconds() / 100L) % 32);
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, textureIdentifier,
             0, 0, 0f, yOffset,
             Math.round(width * progress), height, 32, 32

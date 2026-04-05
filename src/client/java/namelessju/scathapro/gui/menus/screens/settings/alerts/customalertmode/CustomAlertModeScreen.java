@@ -1,10 +1,14 @@
 package namelessju.scathapro.gui.menus.screens.settings.alerts.customalertmode;
 
 import namelessju.scathapro.ScathaPro;
+import namelessju.scathapro.files.customalertmode.CustomAlertModeMeta;
+import namelessju.scathapro.files.customalertmode.CustomAlertModeMetaUpdater;
+import namelessju.scathapro.files.customalertmode.CustomAlertModePropertiesUpdater;
 import namelessju.scathapro.gui.menus.framework.screens.LayoutScreen;
 import namelessju.scathapro.gui.menus.screens.InfoMessageScreen;
 import namelessju.scathapro.gui.menus.widgets.CustomAlertModeList;
 import namelessju.scathapro.util.FileUtil;
+import namelessju.scathapro.util.TimeUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
@@ -29,7 +33,7 @@ public class CustomAlertModeScreen extends LayoutScreen
     public CustomAlertModeScreen(ScathaPro scathaPro, Screen parentScreen)
     {
         super(scathaPro, Component.literal("Custom Alert Modes"), true, parentScreen);
-        directoryWatcher = DirectoryWatcher.create(scathaPro.customAlertModeManager.submodesDirectory);
+        directoryWatcher = DirectoryWatcher.create(scathaPro.customAlertModeManager.subModesDirectory);
     }
     
     @Override
@@ -112,7 +116,7 @@ public class CustomAlertModeScreen extends LayoutScreen
             }
             modeFolderName = modeFolderName.substring(0, dotIndex);
             
-            File importDirectory = FileUtil.getUniqueFile(scathaPro.customAlertModeManager.submodesDirectory.toFile(), modeFolderName);
+            File importDirectory = FileUtil.getUniqueFile(scathaPro.customAlertModeManager.subModesDirectory.toFile(), modeFolderName);
             
             if (!FileUtil.unzip(file, importDirectory.toPath(), null))
             {
@@ -121,9 +125,14 @@ public class CustomAlertModeScreen extends LayoutScreen
             }
             
             String subModeId = importDirectory.getName();
-            scathaPro.customAlertModeManager.loadMeta(subModeId);
-            scathaPro.customAlertModeManager.updateSubModeLastUsed(subModeId);
-            scathaPro.customAlertModeManager.saveMeta(subModeId);
+            
+            new CustomAlertModeMetaUpdater(scathaPro, subModeId).load();
+            new CustomAlertModePropertiesUpdater(scathaPro, subModeId).load();
+            
+            CustomAlertModeMeta meta = scathaPro.customAlertModeManager.subModeMetas.getOrLoad(subModeId);
+            // Done to make the new mode appear at the top of the list
+            meta.lastUsedAtTimestamp.set(TimeUtil.getEpochMilliseconds());
+            meta.save();
             
             anyFileImported = true;
         }

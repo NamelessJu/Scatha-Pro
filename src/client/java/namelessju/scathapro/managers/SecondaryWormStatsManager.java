@@ -1,7 +1,7 @@
 package namelessju.scathapro.managers;
 
-import namelessju.scathapro.miscellaneous.data.enums.SecondaryWormStatsType;
 import namelessju.scathapro.files.PersistentData;
+import namelessju.scathapro.miscellaneous.data.enums.SecondaryWormStatsType;
 import org.jspecify.annotations.NonNull;
 
 import java.util.HashMap;

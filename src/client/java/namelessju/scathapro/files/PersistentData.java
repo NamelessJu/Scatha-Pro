@@ -2,29 +2,28 @@ package namelessju.scathapro.files;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonPrimitive;
 import namelessju.scathapro.ScathaPro;
-import namelessju.scathapro.achievements.Achievement;
-import namelessju.scathapro.achievements.UnlockedAchievement;
 import namelessju.scathapro.achievements.UnlockedAchievements;
 import namelessju.scathapro.files.framework.JsonFile;
+import namelessju.scathapro.files.framework.ObjectRootJsonFile;
+import namelessju.scathapro.miscellaneous.data.enums.WitchesStew;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
-public class PersistentData extends JsonFile
+public class PersistentData extends ObjectRootJsonFile
 {
     public PersistentData(ScathaPro scathaPro)
     {
-        super(scathaPro, Path.of("persistentDataV2.json"), false);
+        super(scathaPro, scathaPro.getSaveDirectoryPath().resolve("persistentDataV2.json").toFile(), false);
     }
     
     
@@ -104,7 +103,7 @@ public class PersistentData extends JsonFile
                 = addPrimitiveWithDefault("wormKills.regularWorms", INTEGER_SERIALIZER, 0);
             public final PrimitiveValueWithDefault<Integer> scathaKills
                 = addPrimitiveWithDefault("wormKills.scathas", INTEGER_SERIALIZER, 0);
-            public final PrimitiveValueWithDefault<Integer> scathaSpawnStreak
+            public final JsonFile.PrimitiveValueWithDefault<Integer> scathaSpawnStreak
                 = addPrimitiveWithDefault("scathaSpawnStreak", INTEGER_SERIALIZER, 0);
         }
         public final PrimitiveValueNullable<LocalDate> lastScathaFarmedDate
@@ -114,12 +113,15 @@ public class PersistentData extends JsonFile
         public final PrimitiveValueWithDefault<Integer> scathaFarmingStreakHighscore
             = addPrimitiveWithDefault("realTime.scathaFarmingStreak.highscore", INTEGER_SERIALIZER, 0);
         
-        public final PrimitiveValueNullable<Float> magicFind
+        public final PrimitiveValueNullable<Float> globalMagicFind
             = addPrimitiveNullable("profileStats.magicFind", FLOAT_SERIALIZER);
         public final PrimitiveValueNullable<Float> wormBestiaryMagicFind
             = addPrimitiveNullable("profileStats.wormBestiaryMagicFind", FLOAT_SERIALIZER);
         public final PrimitiveValueNullable<Float> petLuck
             = addPrimitiveNullable("profileStats.petLuck", FLOAT_SERIALIZER);
+        
+        public final WitchesStewsEatenValue witchesStewsEaten
+            = addValue("profileStats.witchesStewsEaten", new WitchesStewsEatenValue());
         
         public final BooleanValue scappaModeUnlocked = addBoolean("misc.unlockables.scappaModeUnlocked", false);
         public final BooleanValue overlayIconGooglyEyesUnlocked = addBoolean("misc.unlockables.overlayIconGooglyEyesUnlocked", false);
@@ -166,4 +168,80 @@ public class PersistentData extends JsonFile
         }
     };
     
+    public static final class WitchesStewsEatenValue implements JsonValue
+    {
+        private static final JsonFile.EnumSerializer<WitchesStew> valueSerializer = new EnumSerializer<>(WitchesStew.class);
+        
+        private final Set<WitchesStew> unlockedStews = new HashSet<>();
+        private int magicFind = -1;
+        
+        public void setEaten(WitchesStew stew, boolean eaten)
+        {
+            if (eaten) unlockedStews.add(stew);
+            else unlockedStews.remove(stew);
+            updateMagicFind();
+        }
+        
+        public int getMagicFind()
+        {
+            return magicFind;
+        }
+        
+        private void updateMagicFind()
+        {
+            if (!hasValue())
+            {
+                magicFind = -1;
+                return;
+            }
+            
+            magicFind = unlockedStews.size();
+        }
+        
+        @Override
+        public void reset()
+        {
+            unlockedStews.clear();
+            updateMagicFind();
+        }
+        
+        @Override
+        public boolean hasValue()
+        {
+            return !unlockedStews.isEmpty();
+        }
+        
+        @Override
+        public void loadFromJson(@Nullable JsonElement jsonElement)
+        {
+            unlockedStews.clear();
+            
+            if (jsonElement instanceof JsonArray jsonArray)
+            {
+                for (JsonElement arrayElement : jsonArray)
+                {
+                    if (arrayElement instanceof JsonPrimitive jsonPrimitive)
+                    {
+                        WitchesStew stew = valueSerializer.jsonToValue(jsonPrimitive);
+                        if (stew != null) unlockedStews.add(stew);
+                    }
+                }
+            }
+            
+            updateMagicFind();
+        }
+        
+        @Override
+        public @NonNull JsonElement getAsJson(@NonNull JsonFile<?> jsonFile)
+        {
+            if (!hasValue()) return JsonNull.INSTANCE;
+            
+            JsonArray jsonArray = new JsonArray();
+            for (WitchesStew stew : unlockedStews)
+            {
+                jsonArray.add(valueSerializer.valueToJson(stew));
+            }
+            return jsonArray;
+        }
+    }
 }

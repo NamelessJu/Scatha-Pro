@@ -1,10 +1,10 @@
 package namelessju.scathapro.gui.menus.screens.settings.overlay;
 
 import namelessju.scathapro.ScathaPro;
+import namelessju.scathapro.files.framework.JsonFile;
 import namelessju.scathapro.gui.menus.framework.widgets.sliders.FloatSlider;
 import namelessju.scathapro.gui.menus.framework.widgets.sliders.IntegerSlider;
-import namelessju.scathapro.gui.overlay.elements.GuiElement;
-import namelessju.scathapro.files.framework.JsonFile;
+import namelessju.scathapro.gui.overlay.elements.OverlayElement;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -34,7 +34,7 @@ public class OverlayPositionScreen extends OverlaySettingsScreen
             }))
             .setStepSize(0.05f).setValueComponentSupplier(FloatSlider.PERCENTAGE_COMPONENT_SUPPLIER);
         gridBuilder.addSingleCell(nullableEnumCycleButton(
-            GuiElement.Alignment.class, "Alignment", config.overlay.alignmentOverride, "Automatic",
+            OverlayElement.Alignment.class, "Alignment", config.overlay.alignmentOverride, "Automatic",
             null, (button, value) -> scathaPro.mainOverlay.updateContentAlignment()
         ));
         addDoneButtonFooterWithWidget(gridBuilder.getGrid());

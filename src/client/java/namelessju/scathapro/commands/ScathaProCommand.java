@@ -4,9 +4,6 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.brigadier.tree.LiteralCommandNode;
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.managers.ChatManager;
 import net.minecraft.ChatFormatting;
@@ -51,7 +48,7 @@ public abstract class ScathaProCommand
     public <T> Command<T> getMissingArgumentsCommand()
     {
         return context -> {
-            scathaPro.chatManager.sendErrorChatMessage("Missing arguments");
+            scathaPro.chatManager.sendChatErrorMessage("Missing arguments");
             return Command.SINGLE_SUCCESS;
         };
     }

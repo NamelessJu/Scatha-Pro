@@ -1,6 +1,7 @@
 package namelessju.scathapro.gui.menus.framework.widgets.sliders;
 
 import net.minecraft.client.input.KeyEvent;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
@@ -11,6 +12,10 @@ import java.util.function.Function;
 public class IntegerSlider extends ScathaProSlider<Integer>
 {
     public static final Function<Integer, Component> COMPONENT_SUPPLIER = value -> Component.literal(Integer.toString(value));
+    public static final Function<Integer, Component> SECONDS_COMPONENT_SUPPLIER
+        = value -> Component.empty().append(COMPONENT_SUPPLIER.apply(value)).append("s");
+    public static final Function<Integer, Component> SECONDS_COMPONENT_SUPPLIER_WITH_OFF
+        = value -> value > 0 ? SECONDS_COMPONENT_SUPPLIER.apply(value) : CommonComponents.OPTION_OFF;
     
     private final int min;
     private final int max;

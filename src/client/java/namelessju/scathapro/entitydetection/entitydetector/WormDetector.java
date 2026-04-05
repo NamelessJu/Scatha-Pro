@@ -13,7 +13,7 @@ public class WormDetector extends EntityDetector
     @Override
     public DetectedEntity detectEntity(@NonNull ScathaPro scathaPro, @NonNull ArmorStand entity, @Nullable String unformattedEntityName)
     {
-        if (unformattedEntityName == null || !unformattedEntityName.contains(String.valueOf(UnicodeSymbol.heavyBlackHeart)))
+        if (unformattedEntityName == null || !unformattedEntityName.contains(String.valueOf(UnicodeSymbol.hypixelHeart)))
         {
             return null;
         }

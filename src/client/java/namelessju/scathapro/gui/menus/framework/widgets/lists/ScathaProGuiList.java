@@ -11,6 +11,7 @@ import net.minecraft.client.gui.screens.Screen;
 import org.apache.commons.compress.utils.Lists;
 import org.jspecify.annotations.NonNull;
 
+import java.util.Comparator;
 import java.util.List;
 
 public class ScathaProGuiList extends ContainerObjectSelectionList<ScathaProGuiList.Entry>
@@ -41,15 +42,21 @@ public class ScathaProGuiList extends ContainerObjectSelectionList<ScathaProGuiL
     }
     
     @Override
-    public int addEntry(Entry entry)
+    public int addEntry(@NonNull Entry entry)
     {
         return super.addEntry(entry);
     }
     
     @Override
-    public int addEntry(Entry entry, int height)
+    public int addEntry(@NonNull Entry entry, int height)
     {
         return super.addEntry(entry, height);
+    }
+    
+    @Override
+    public void sort(@NonNull Comparator<Entry> comparator)
+    {
+        super.sort(comparator);
     }
     
     public static class Entry extends ContainerObjectSelectionList.Entry<Entry>

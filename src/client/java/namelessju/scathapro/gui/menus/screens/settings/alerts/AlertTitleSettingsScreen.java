@@ -1,9 +1,9 @@
 package namelessju.scathapro.gui.menus.screens.settings.alerts;
 
 import namelessju.scathapro.ScathaPro;
-import namelessju.scathapro.gui.menus.framework.widgets.sliders.FloatSlider;
 import namelessju.scathapro.gui.menus.framework.screens.ConfigScreen;
-import namelessju.scathapro.gui.overlay.elements.GuiElement;
+import namelessju.scathapro.gui.menus.framework.widgets.sliders.FloatSlider;
+import namelessju.scathapro.gui.overlay.elements.OverlayElement;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
@@ -31,7 +31,7 @@ public class AlertTitleSettingsScreen extends ConfigScreen
         gridBuilder.addSingleCell(floatConfigSlider("Scale", 0.25f, 1.75f, config.alerts.titleScale, null))
             .setStepSize(0.05f).setValueComponentSupplier(FloatSlider.PERCENTAGE_COMPONENT_SUPPLIER);
         gridBuilder.addSingleCell(nullableEnumCycleButton(
-            GuiElement.Alignment.class, "Alignment", config.alerts.titleAlignmentOverride, "Automatic",
+            OverlayElement.Alignment.class, "Alignment", config.alerts.titleAlignmentOverride, "Automatic",
             null, null
         ));
         addDoneButtonFooterWithWidget(gridBuilder.getGrid());

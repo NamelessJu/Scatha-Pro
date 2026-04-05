@@ -4,7 +4,6 @@ import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.gui.menus.framework.screens.ConfigScreen;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NonNull;
 
 public abstract class OverlaySettingsScreen extends ConfigScreen

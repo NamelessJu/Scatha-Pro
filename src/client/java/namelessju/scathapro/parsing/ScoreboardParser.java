@@ -3,12 +3,9 @@ package namelessju.scathapro.parsing;
 import namelessju.scathapro.ScathaPro;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.numbers.NumberFormat;
-import net.minecraft.network.chat.numbers.StyledFormat;
 import net.minecraft.util.StringDecomposer;
 import net.minecraft.world.scores.*;
 
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;

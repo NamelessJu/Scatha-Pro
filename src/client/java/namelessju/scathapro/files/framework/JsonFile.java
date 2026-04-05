@@ -1,30 +1,31 @@
 package namelessju.scathapro.files.framework;
 
 import com.google.gson.*;
-import com.google.gson.stream.JsonWriter;
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.miscellaneous.IteratorWrapperImmutable;
 import namelessju.scathapro.util.JsonUtil;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.io.StringWriter;
-import java.nio.file.Path;
+import java.io.File;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-public abstract class JsonFile extends ScathaProFile
+public abstract class JsonFile<T extends JsonFile.JsonValue> extends ScathaProFile
 {
-    protected final ObjectValue root = new ObjectValue();
-    private final boolean usePrettyJson;
-    private boolean shouldInitializeWithDefaultValues = false;
+    public final T root;
+    public boolean prettyPrintEnabled;
+    public boolean savesDefaultValues = false;
     
-    public JsonFile(ScathaPro scathaPro, Path relativeFilePath, boolean usePrettyJson)
+    public JsonFile(ScathaPro scathaPro, File file, boolean prettyPrintEnabled)
     {
-        super(scathaPro, relativeFilePath);
-        this.usePrettyJson = usePrettyJson;
+        super(scathaPro, file);
+        this.root = initializeRoot();
+        this.prettyPrintEnabled = prettyPrintEnabled;
     }
+    
+    protected abstract T initializeRoot();
     
     @Override
     protected void deserialize(@Nullable String content)
@@ -37,19 +38,12 @@ public abstract class JsonFile extends ScathaProFile
     protected @NonNull String serialize()
     {
         JsonElement json = root.getAsJson(this);
-        String jsonString = JsonUtil.toString(json, usePrettyJson);
-        if (jsonString == null) jsonString = "";
-        return jsonString;
+        return JsonUtil.toString(json, prettyPrintEnabled);
     }
     
     public void reset()
     {
         root.reset();
-    }
-    
-    public void setShouldInitializeWithDefaultValues(boolean value)
-    {
-        this.shouldInitializeWithDefaultValues = value;
     }
     
     
@@ -64,7 +58,7 @@ public abstract class JsonFile extends ScathaProFile
          * If the JsonElement doesn't represent a valid value for this JsonValue, the value gets reset.
          */
         void loadFromJson(@Nullable JsonElement jsonElement);
-        @NonNull JsonElement getAsJson(@NonNull JsonFile jsonFile);
+        @NonNull JsonElement getAsJson(@NonNull JsonFile<?> jsonFile);
         
         interface Serializer<T, S extends JsonElement>
         {
@@ -134,12 +128,12 @@ public abstract class JsonFile extends ScathaProFile
         }
         
         @Override
-        public @NonNull JsonElement getAsJson(@NonNull JsonFile jsonFile)
+        public @NonNull JsonElement getAsJson(@NonNull JsonFile<?> jsonFile)
         {
             JsonObject jsonObject = new JsonObject();
             for (ChildValue child : childValues)
             {
-                if (child.jsonValue.hasValue() || jsonFile.shouldInitializeWithDefaultValues)
+                if (child.jsonValue.hasValue() || jsonFile.savesDefaultValues)
                 {
                     JsonUtil.set(jsonObject, child.path, child.jsonValue.getAsJson(jsonFile));
                 }
@@ -151,6 +145,7 @@ public abstract class JsonFile extends ScathaProFile
         {
             visit(null, valueConsumer);
         }
+        
         private void visit(String currentPath, BiConsumer<String, JsonValue> valueConsumer)
         {
             for (ChildValue childValue : childValues)
@@ -260,12 +255,12 @@ public abstract class JsonFile extends ScathaProFile
         }
         
         @Override
-        public @NonNull JsonElement getAsJson(@NonNull JsonFile jsonFile)
+        public @NonNull JsonElement getAsJson(@NonNull JsonFile<?> jsonFile)
         {
             JsonArray array = new JsonArray();
             for (T element : list)
             {
-                if (element.hasValue() || jsonFile.shouldInitializeWithDefaultValues)
+                if (element.hasValue() || jsonFile.savesDefaultValues)
                 {
                     array.add(element.getAsJson(jsonFile));
                 }
@@ -300,7 +295,7 @@ public abstract class JsonFile extends ScathaProFile
         }
         
         @Override
-        public @NonNull JsonElement getAsJson(@NonNull JsonFile jsonFile)
+        public @NonNull JsonElement getAsJson(@NonNull JsonFile<?> jsonFile)
         {
             JsonArray array = new JsonArray();
             for (T child : list)
@@ -375,7 +370,7 @@ public abstract class JsonFile extends ScathaProFile
         }
         
         @Override
-        public @NonNull JsonElement getAsJson(@NonNull JsonFile jsonFile)
+        public @NonNull JsonElement getAsJson(@NonNull JsonFile<?> jsonFile)
         {
             T currentValue = get();
             if (currentValue == null) return JsonNull.INSTANCE;
@@ -403,7 +398,7 @@ public abstract class JsonFile extends ScathaProFile
         }
         
         @Override
-        public @NonNull JsonElement getAsJson(@NonNull JsonFile jsonFile)
+        public @NonNull JsonElement getAsJson(@NonNull JsonFile<?> jsonFile)
         {
             return serializer.valueToJson(get());
         }

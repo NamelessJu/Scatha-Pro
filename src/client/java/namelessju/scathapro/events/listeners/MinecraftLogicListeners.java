@@ -34,13 +34,14 @@ public final class MinecraftLogicListeners
         
         scathaPro.entityDetectionManager.clearLists();
         
-        scathaPro.coreManager.lastWorldJoinTime = TimeUtil.now();
+        scathaPro.coreManager.lastWorldJoinTime = TimeUtil.getEpochMilliseconds();
         scathaPro.coreManager.resetForNewLobby();
         
         scathaPro.inputManager.disableCameraRotationLock();
         
         // Update overlay
         
+        scathaPro.mainOverlay.setShown(false);
         scathaPro.mainOverlay.updateAll();
         
         // Update achievements
@@ -84,7 +85,7 @@ public final class MinecraftLogicListeners
         }
         
         // Check for main worm armor stand (= name tag armor stand) nearby
-        if (attackedWorm == null && Constants.isWormSkull(attackedArmorStand.getItemBySlot(EquipmentSlot.HEAD)))
+        if (attackedWorm == null && Constants.isWormPlayerHead(attackedArmorStand.getItemBySlot(EquipmentSlot.HEAD)))
         {
             Level level = attackedArmorStand.level();
             List<ArmorStand> nearbyArmorStands = level.getEntitiesOfClass(ArmorStand.class,

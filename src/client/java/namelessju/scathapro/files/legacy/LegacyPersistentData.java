@@ -13,13 +13,12 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.nio.file.Path;
 
 public class LegacyPersistentData extends ScathaProFile
 {
     public LegacyPersistentData(ScathaPro scathaPro)
     {
-        super(scathaPro, Path.of("persistentData.json"));
+        super(scathaPro, scathaPro.getConfigDirectoryPath().resolve("persistentData.json").toFile());
     }
     
     @Override
@@ -31,11 +30,6 @@ public class LegacyPersistentData extends ScathaProFile
         updateGlobalData(jsonObject);
         
         String jsonString = JsonUtil.toString(jsonObject, false);
-        if (jsonString == null)
-        {
-            ScathaPro.LOGGER.error("Failed to convert legacy persistent data: Couldn't stringify JSON");
-            return;
-        }
         try
         {
             FileUtil.writeFile(scathaPro.persistentData.getFile(), jsonString);

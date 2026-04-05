@@ -1,17 +1,13 @@
 package namelessju.scathapro.managers;
 
-import namelessju.scathapro.Constants;
 import namelessju.scathapro.ScathaPro;
-import namelessju.scathapro.achievements.Achievement;
+import namelessju.scathapro.files.framework.JsonFile;
 import namelessju.scathapro.miscellaneous.data.enums.ChatCopyButtonMode;
 import namelessju.scathapro.miscellaneous.data.enums.DropMessageRarityMode;
 import namelessju.scathapro.miscellaneous.data.enums.DropMessageStatMode;
 import namelessju.scathapro.miscellaneous.data.enums.Rarity;
 import namelessju.scathapro.mixin.ChatComponentAccessor;
-import namelessju.scathapro.files.framework.JsonFile;
-import namelessju.scathapro.util.SkyblockItemUtil;
 import namelessju.scathapro.util.TextUtil;
-import namelessju.scathapro.util.TimeUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.GuiMessage;
 import net.minecraft.network.chat.*;
@@ -19,7 +15,10 @@ import net.minecraft.util.StringDecomposer;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Queue;
 
 public class ChatManager
 {
@@ -106,12 +105,17 @@ public class ChatManager
         }
     }
     
-    public void sendErrorChatMessage(String errorMessage)
+    public void sendChatErrorMessage(String errorMessage)
     {
         sendChatMessage(Component.literal(errorMessage).withStyle(ChatFormatting.RED));
     }
     
     public void sendDevChatMessage(String message)
+    {
+        sendDevChatMessage(Component.literal(message));
+    }
+    
+    public void sendDevChatMessage(Component message)
     {
         sendChatMessage(Component.empty().append(CHAT_PREFIX_DEV).append(message), false);
     }
@@ -172,96 +176,7 @@ public class ChatManager
         }
     }
     
-    /**
-     * Checks a message and potentially stops it from being added to chat
-     */
-    public boolean shouldCancelMessage(@NonNull Component message)
-    {
-        return scathaPro.config.miscellaneous.hideWormSpawnMessage.get()
-            && StringDecomposer.getPlainText(message)
-                .equalsIgnoreCase("You hear the sound of something approaching...");
-    }
-    
-    public @NonNull Component onMessageAddedEarly(@NonNull Component message)
-    {
-        String unformattedText = StringDecomposer.getPlainText(message);
-        handleTunnelVisionMessages(unformattedText);
-        return replaceMessage(message, unformattedText);
-    }
-    
-    public @NonNull Component onMessageAddedLate(@NonNull Component message)
-    {
-        return ScathaPro.getInstance().chatManager.addChatCopyButton(message);
-    }
-    
-    private @NonNull Component replaceMessage(@NonNull Component message, @NonNull String unformattedText)
-    {
-        Component extendedPetDropMessage = extendPetDropMessage(message, unformattedText, true);
-        if (extendedPetDropMessage != null) return extendedPetDropMessage;
-        
-        return message;
-    }
-    
-    private void handleTunnelVisionMessages(@NonNull String unformattedText)
-    {
-        long now = TimeUtil.now();
-        
-        if (unformattedText.equalsIgnoreCase("You used your Tunnel Vision Pickaxe Ability!"))
-        {
-            int cooldown = scathaPro.minecraft.player != null
-                ? SkyblockItemUtil.getTunnelVisionCooldown(scathaPro.minecraft.player.getMainHandItem())
-                : -1;
-            if (cooldown >= 0)
-            {
-                scathaPro.coreManager.tunnelVisionCooldownEndTime = now + cooldown * 1000L;
-                scathaPro.coreManager.tunnelVisionReadyTime = scathaPro.coreManager.tunnelVisionCooldownEndTime;
-            }
-            
-            scathaPro.coreManager.tunnelVisionWastedForRecovery = false;
-            scathaPro.coreManager.tunnelVisionStartTime = now;
-            
-            if (scathaPro.coreManager.wormSpawnCooldownStartTime >= 0L)
-            {
-                long spawnCooldownElapsedTime = now - scathaPro.coreManager.wormSpawnCooldownStartTime;
-                if (spawnCooldownElapsedTime < (long) (Constants.wormSpawnCooldown * 0.5D))
-                {
-                    scathaPro.coreManager.tunnelVisionWastedForRecovery = true;
-                    
-                    if (spawnCooldownElapsedTime < (long) (Constants.wormSpawnCooldown * 1D/3D))
-                    {
-                        Achievement.anomalous_desire_waste.unlock();
-                    }
-                }
-            }
-        }
-        else if (unformattedText.equalsIgnoreCase("Tunnel Vision is now available!"))
-        {
-            if (scathaPro.coreManager.tunnelVisionCooldownEndTime >= 0L && now - scathaPro.coreManager.tunnelVisionStartTime >= 3000 + Constants.pingTreshold)
-            {
-                scathaPro.coreManager.tunnelVisionReadyTime = now;
-                scathaPro.coreManager.tunnelVisionCooldownEndTime = -1L;
-                scathaPro.coreManager.tunnelVisionWastedForRecovery = false;
-                scathaPro.coreManager.tunnelVisionStartTime = -1L;
-            }
-        }
-        else if (unformattedText.toLowerCase().startsWith("your pickaxe ability is on cooldown for "))
-        {
-            String cooldownNumberString = unformattedText.substring(40);
-            if (cooldownNumberString.endsWith(".")) cooldownNumberString = cooldownNumberString.substring(0, cooldownNumberString.length() - 1);
-            cooldownNumberString = cooldownNumberString.trim().substring(0, cooldownNumberString.length() - 1); // remove "s"
-            Integer cooldownRemainingSeconds = TextUtil.parseInt(cooldownNumberString);
-            
-            if (cooldownRemainingSeconds == null) return;
-            long newCooldownEndTime = now + cooldownRemainingSeconds * 1000L;
-            if (scathaPro.coreManager.tunnelVisionCooldownEndTime < 0L || (int) Math.abs(scathaPro.coreManager.tunnelVisionCooldownEndTime - newCooldownEndTime) >= Constants.pingTreshold)
-            {
-                scathaPro.coreManager.tunnelVisionCooldownEndTime = newCooldownEndTime;
-                scathaPro.coreManager.tunnelVisionReadyTime = scathaPro.coreManager.tunnelVisionCooldownEndTime;
-            }
-        }
-    }
-    
-    public Component extendPetDropMessage(@NonNull Component message, @NonNull String unformattedText, boolean clickable)
+    public Component extendPetDropMessage(@NonNull Component message, @NonNull String unformattedText, boolean allowShuriken)
     {
         if (!unformattedText.equals("PET DROP! Scatha")) return null;
         
@@ -321,7 +236,7 @@ public class ChatManager
         MutableComponent statsComponent = null;
         statsComponent = addPetDropStatComponent(statsComponent,
             scathaPro.config.miscellaneous.dropMessageMagicFindMode,
-            scathaPro.persistentDataProfileManager.getMagicFindComponent(true),
+            scathaPro.persistentDataProfileManager.getTotalMagicFindComponent(allowShuriken, true),
             "Magic Find", "MF"
         );
         statsComponent = addPetDropStatComponent(statsComponent,
@@ -331,26 +246,23 @@ public class ChatManager
         );
         statsComponent = addPetDropStatComponent(statsComponent,
             scathaPro.config.miscellaneous.dropMessageEmfMode,
-            scathaPro.persistentDataProfileManager.getEffectiveMagicFindComponent(),
+            scathaPro.persistentDataProfileManager.getEffectiveMagicFindComponent(allowShuriken),
             "Effective Magic Find", "EMF"
         );
         if (statsComponent != null)
         {
-            Style style = Style.EMPTY.withColor(ChatFormatting.GRAY);
-            if (clickable)
-            {
-                String statsUpdateCommand = "/" + scathaPro.mainCommand.getCommandName() + " profileStats update";
-                style = style
-                    .withHoverEvent(new HoverEvent.ShowText(
-                        Component.literal("Click or use \"" + statsUpdateCommand
-                                + "\" to\nset the displayed stat values for future drops")
-                        .withStyle(ChatFormatting.GRAY)
-                    ))
-                    .withClickEvent(new ClickEvent.RunCommand(statsUpdateCommand));
-            }
-            
+            String statsUpdateCommand = "/" + scathaPro.mainCommand.getCommandName() + " profileStats";
             newMessage.append(" ").append(
-                Component.empty().setStyle(style).append("(").append(statsComponent).append(")")
+                Component.empty()
+                    .append("(").append(statsComponent).append(")")
+                    .setStyle(Style.EMPTY.withColor(ChatFormatting.GRAY)
+                        .withHoverEvent(new HoverEvent.ShowText(
+                            Component.literal("Click or use \"" + statsUpdateCommand
+                                    + "\" to\nset the displayed stat values for future drops")
+                                .withStyle(ChatFormatting.GRAY)
+                        ))
+                        .withClickEvent(new ClickEvent.RunCommand(statsUpdateCommand))
+                    )
             );
         }
         

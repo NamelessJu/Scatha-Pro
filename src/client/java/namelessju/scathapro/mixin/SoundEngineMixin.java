@@ -23,7 +23,8 @@ public abstract class SoundEngineMixin
     )
     private void onPlaySound(SoundInstance soundInstance, CallbackInfoReturnable<SoundEngine.PlayResult> cir)
     {
-        if (!ScathaPro.getInstance().soundManager.shouldPlaySound(soundInstance))
+        boolean canPlay = ScathaPro.getInstance().soundParser.handlePlaySound(soundInstance);
+        if (!canPlay)
         {
             cir.setReturnValue(SoundEngine.PlayResult.NOT_STARTED);
             cir.cancel();

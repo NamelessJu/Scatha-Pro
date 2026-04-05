@@ -55,7 +55,7 @@ public class AverageMoneyCalculatorScreen extends LayoutScreen
         ));
         gridBuilder.addSingleCell(Button.builder(Component.literal("Import Saved EMF"),
             button -> {
-                setValue(magicFindInput, scathaPro.persistentDataProfileManager.getTotalMagicFind());
+                setValue(magicFindInput, scathaPro.persistentDataProfileManager.getTotalMagicFind(false));
                 setValue(petLuckInput, scathaPro.getProfileData().petLuck.getOr(-1f));
             }
         ).build()).setTooltip(Tooltip.create(Component.literal("""

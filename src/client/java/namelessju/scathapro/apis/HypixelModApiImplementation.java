@@ -1,8 +1,8 @@
 package namelessju.scathapro.apis;
 
 import namelessju.scathapro.ScathaPro;
-import namelessju.scathapro.miscellaneous.data.enums.SkyblockArea;
 import namelessju.scathapro.events.ScathaProEvents;
+import namelessju.scathapro.miscellaneous.data.enums.SkyblockArea;
 import net.hypixel.modapi.HypixelModAPI;
 import net.hypixel.modapi.packet.impl.clientbound.event.ClientboundLocationPacket;
 

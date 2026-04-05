@@ -1,7 +1,6 @@
 package namelessju.scathapro.parsing.containerscreenparsing;
 
 import namelessju.scathapro.ScathaPro;
-import namelessju.scathapro.files.PersistentData;
 import namelessju.scathapro.util.TextUtil;
 import namelessju.scathapro.util.UnicodeSymbol;
 import net.minecraft.ChatFormatting;
@@ -15,8 +14,9 @@ import java.util.List;
 
 public class ProfileStatsParser extends ContainerScreenParser
 {
-    public ProfileStatsParser()
+    public ProfileStatsParser(ScathaPro scathaPro)
     {
+        super(scathaPro);
         this.enabled = false;
     }
     
@@ -33,7 +33,7 @@ public class ProfileStatsParser extends ContainerScreenParser
     }
     
     @Override
-    public void tryParse(ItemStack itemStack, int slotNumber, ScathaPro scathaPro)
+    public void tryParse(ItemStack itemStack, int slotNumber)
     {
         ItemLore itemLore = itemStack.get(DataComponents.LORE);
         if (itemLore == null) return;
@@ -63,10 +63,10 @@ public class ProfileStatsParser extends ContainerScreenParser
                     continue;
                 }
                 
-                float currentMagicFind = scathaPro.getProfileData().magicFind.getOr(-1f);
+                float currentMagicFind = scathaPro.getProfileData().globalMagicFind.getOr(-1f);
                 if (magicFind >= 0f && magicFind != currentMagicFind)
                 {
-                    scathaPro.getProfileData().magicFind.set(magicFind);
+                    scathaPro.getProfileData().globalMagicFind.set(magicFind);
                     scathaPro.persistentData.save();
                     scathaPro.mainOverlay.updateProfileStats();
                     

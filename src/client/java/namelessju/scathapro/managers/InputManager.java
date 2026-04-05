@@ -15,13 +15,15 @@ public class InputManager
 {
     private final KeyMapping.Category mainCategory = KeyMapping.Category.register(ScathaPro.getIdentifier("main"));
     private final KeyMapping.Category playerRotationCategory = KeyMapping.Category.register(ScathaPro.getIdentifier("player_rotation"));
-    // private final KeyMapping.Category screenshotsCategory = KeyMapping.Category.register(ScathaPro.getIdentifier("screenshots"));
     
     
     private final List<KeyMapping> keyMappings = Lists.newArrayList();
     
     private final KeyMapping toggleOverlayKeyMapping = registerKeyMapping(
         "toggleOverlay", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, mainCategory
+    );
+    private final KeyMapping toggleOverlayVisibilityKeyMapping = registerKeyMapping(
+        "toggleOverlayVisibility", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, mainCategory
     );
     private final KeyMapping cycleSelectedWormStatsTypeKeyMapping = registerKeyMapping(
         "cycleSelectedWormStatsType", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, mainCategory
@@ -36,15 +38,6 @@ public class InputManager
     private final KeyMapping alternativeSensitivityKeyMapping = registerKeyMapping(
         "alternativeSensitivity", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, playerRotationCategory
     );
-    
-    /*
-    private final KeyMapping overlayScreenshotKeyMapping = registerKeyMapping(
-        "overlayScreenshot", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, screenshotsCategory
-    );
-    private final KeyMapping chatScreenshotKeyMapping = registerKeyMapping(
-        "chatScreenshot", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, screenshotsCategory
-    );
-    */
     
     
     private final ScathaPro scathaPro;
@@ -70,9 +63,19 @@ public class InputManager
         
         while (toggleOverlayKeyMapping.consumeClick())
         {
-            if (scathaPro.mainOverlay.isOverlayRenderAllowed())
+            scathaPro.mainOverlay.toggleEnabled();
+        }
+        
+        while (toggleOverlayVisibilityKeyMapping.consumeClick())
+        {
+            scathaPro.mainOverlay.toggleShown();
+        }
+        
+        while (toggleOverlayKeyMapping.consumeClick())
+        {
+            if (scathaPro.mainOverlay.isVisible())
             {
-                scathaPro.mainOverlay.toggleVisibility();
+                scathaPro.mainOverlay.toggleEnabled();
             }
         }
         
@@ -101,17 +104,6 @@ public class InputManager
                     .withStyle(ChatFormatting.GRAY)
             );
         }
-        
-        /*
-        while (overlayScreenshotKeyMapping.consumeClick())
-        {
-            PartialScreenshot.takeOverlayScreenshot(scathaPro);
-        }
-        while (chatScreenshotKeyMapping.consumeClick())
-        {
-            PartialScreenshot.takeChatScreenshot(scathaPro, null);
-        }
-        */
     }
     
     public void disableCameraRotationLock()

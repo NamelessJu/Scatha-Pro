@@ -1,16 +1,17 @@
 package namelessju.scathapro.alerts.alertmodes.customalertmode;
 
-import com.google.gson.JsonElement;
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.alerts.Alert;
 import namelessju.scathapro.alerts.alertmodes.AlertMode;
-import namelessju.scathapro.managers.CustomAlertModeManager;
-import namelessju.scathapro.util.JsonUtil;
+import namelessju.scathapro.alerts.alertmodes.AlertModeManager;
+import namelessju.scathapro.files.customalertmode.CustomAlertModeProperties;
+import namelessju.scathapro.sounds.SoundData;
 import namelessju.scathapro.util.TimeUtil;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 public class CustomAlertMode extends AlertMode
 {
@@ -18,7 +19,7 @@ public class CustomAlertMode extends AlertMode
     
     public CustomAlertMode(ScathaPro scathaPro)
     {
-        super("custom", "Custom", getDefaultIconEyePositions());
+        super("custom", "Custom", AlertModeManager.DEFAULT_MODE.eyePositions);
         this.scathaPro = scathaPro;
     }
     
@@ -37,7 +38,7 @@ public class CustomAlertMode extends AlertMode
     @Override
     public int getIconColor()
     {
-        final int hue = (int) ((TimeUtil.now() / 8) % 360);
+        final int hue = (int) ((TimeUtil.getEpochMilliseconds() / 8) % 360);
         float h = hue / 60f;
         float x = 1 - Math.abs(h % 2 - 1);
         
@@ -80,37 +81,75 @@ public class CustomAlertMode extends AlertMode
     }
     
     @Override
-    public Identifier getSoundBaseIdentifier()
+    public @Nullable SoundData getSoundData(@NonNull Alert alert)
     {
-        return Identifier.fromNamespaceAndPath(CustomAlertModePackResources.NAMESPACE, "");
-    }
-    
-    @Override
-    public float getAlertSoundVolume(Alert alert)
-    {
-        Double volume = JsonUtil.getDouble(scathaPro.customAlertModeManager.getCurrentSubmodePropertyJsonElement(null), "soundVolumes." + alert.alertId);
-        return volume != null ? volume.floatValue() : 1f;
-    }
-    
-    @Override
-    public Component getTitleOverride(Alert alert)
-    {
-        JsonElement titlesJson = scathaPro.customAlertModeManager.getCurrentSubmodePropertyJsonElement("titles");
-        if (titlesJson == null) return null;
+        CustomAlertModeProperties.AlertPropertiesValue alertProperties = getAlertProperties(alert);
+        AlertMode sourceMode;
+        Alert sourceAlert;
+        if (alertProperties != null)
+        {
+            sourceMode = alertProperties.soundSourceAlertMode.get();
+            sourceAlert = alertProperties.soundSourceAlert.getOr(alert);
+        }
+        else
+        {
+            sourceMode = AlertModeManager.DEFAULT_MODE;
+            sourceAlert = alert;
+        }
         
-        String title = JsonUtil.getString(titlesJson, alert.alertId + ".title");
-        if (title != null) return CustomAlertModeManager.convertFormattingCodes(title);
+        if (sourceMode != this)
+        {
+            return sourceMode.getSoundData(sourceAlert);
+        }
+        
+        SoundData soundData = new SoundData(
+            Identifier.fromNamespaceAndPath(CustomAlertModePackResources.NAMESPACE, alert.alertId),
+            1f, 1f
+        );
+        if (!scathaPro.soundManager.soundExists(soundData.identifier()))
+        {
+            ScathaPro.LOGGER.warn(
+                "Couldn't play custom alert sound \"{}\" for {}: Sound not found - playing default sound instead",
+                soundData.identifier(), alert.alertId
+            );
+            return null;
+        }
+        return soundData;
+    }
+    
+    @Override
+    public float getSoundVolumeMultiplier(@NonNull Alert alert)
+    {
+        CustomAlertModeProperties.AlertPropertiesValue alertProperties = getAlertProperties(alert);
+        return alertProperties != null ? alertProperties.soundVolume.get() : 1f;
+    }
+    
+    @Override
+    public @Nullable Component getTitleOverride(@NonNull Alert alert)
+    {
+        CustomAlertModeProperties.AlertPropertiesValue alertProperties = getAlertProperties(alert);
+        if (alertProperties == null) return null;
+        
+        String title = alertProperties.title.get();
+        if (title != null) return CustomAlertModeManager.formattedStringToComponent(title);
         return null;
     }
     
     @Override
-    public Component getSubtitleOverride(Alert alert)
+    public @Nullable Component getSubtitleOverride(@NonNull Alert alert)
     {
-        JsonElement titlesJson = scathaPro.customAlertModeManager.getCurrentSubmodePropertyJsonElement("titles");
-        if (titlesJson == null) return null;
+        CustomAlertModeProperties.AlertPropertiesValue alertProperties = getAlertProperties(alert);
+        if (alertProperties == null) return null;
         
-        String subtitle = JsonUtil.getString(titlesJson, alert.alertId + ".subtitle");
-        if (subtitle != null) return CustomAlertModeManager.convertFormattingCodes(subtitle);
+        String subtitle = alertProperties.subtitle.get();
+        if (subtitle != null) return CustomAlertModeManager.formattedStringToComponent(subtitle);
         return null;
+    }
+    
+    private CustomAlertModeProperties.@Nullable AlertPropertiesValue getAlertProperties(Alert alert)
+    {
+        CustomAlertModeProperties properties = scathaPro.customAlertModeManager.getCurrentSubModeProperties();
+        if (properties == null) return null;
+        return properties.alertProperties.getPropertiesFor(alert);
     }
 }

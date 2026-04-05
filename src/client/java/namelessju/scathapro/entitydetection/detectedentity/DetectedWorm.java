@@ -78,7 +78,7 @@ public class DetectedWorm extends DetectedEntity
         {
             case KILLED:
                 // check for direct kill
-                boolean countAsKilled = getLastAttackTime() >= 0 && TimeUtil.now() - getLastAttackTime() < Constants.pingTreshold;
+                boolean countAsKilled = getLastAttackTime() >= 0 && TimeUtil.getEpochMilliseconds() - getLastAttackTime() < Constants.pingTreshold;
                 
                 if (!countAsKilled) // check for kill by fire aspect
                 {
@@ -119,7 +119,7 @@ public class DetectedWorm extends DetectedEntity
     
     public void attack(@Nullable ItemStack weapon, @Nullable ArmorStand attackedArmorStand)
     {
-        long now = TimeUtil.now();
+        long now = TimeUtil.getEpochMilliseconds();
         lastAttackTime = now;
         
         if (weapon != null)
@@ -153,7 +153,7 @@ public class DetectedWorm extends DetectedEntity
         }
         
         if (!lootsharePossible && attackedArmorStand != null
-            && Constants.isWormSkull(attackedArmorStand.getItemBySlot(EquipmentSlot.HEAD), true))
+            && Constants.isWormPlayerHead(attackedArmorStand.getItemBySlot(EquipmentSlot.HEAD), true))
         {
             lootsharePossible = true;
         }
@@ -187,7 +187,7 @@ public class DetectedWorm extends DetectedEntity
                 default -> 0f;
             };
             
-            return TimeUtil.now() - lastFireAspectAttackTime <= fireAspectDuration * 1000f + Constants.pingTreshold;
+            return TimeUtil.getEpochMilliseconds() - lastFireAspectAttackTime <= fireAspectDuration * 1000f + Constants.pingTreshold;
         }
         return false;
     }

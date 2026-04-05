@@ -2,7 +2,6 @@ package namelessju.scathapro.gui.menus.screens.settings.alerts;
 
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.alerts.alertmodes.AlertMode;
-import namelessju.scathapro.alerts.alertmodes.customalertmode.CustomAlertMode;
 import namelessju.scathapro.gui.menus.framework.screens.ConfigScreen;
 import namelessju.scathapro.gui.menus.screens.settings.alerts.customalertmode.CustomAlertModeScreen;
 import net.minecraft.ChatFormatting;
@@ -31,14 +30,14 @@ public class MainAlertSettingsScreen extends ConfigScreen
         GridBuilder gridBuilder = new GridBuilder();
         
         CycleButton<AlertMode> modeButton = CycleButton.builder(
-            value -> Component.literal(value.name), scathaPro.alertModeManager.getCurrentMode()
+                value -> Component.literal(value.name), scathaPro.config.alerts.mode.get()
             )
             .withValues(scathaPro.alertModeManager.getAllModes())
             .withTooltip(value -> Tooltip.create(
                 Component.literal("Plays different sounds\n(and titles in custom mode)").withStyle(ChatFormatting.GRAY)
             ))
             .create(Component.literal("Alert Mode"), (button, value) -> {
-                config.alerts.mode.set(value.id);
+                config.alerts.mode.set(value);
                 scathaPro.mainOverlay.updateScathaPetImage();
                 updateCustomModeButton();
             });
@@ -57,7 +56,7 @@ public class MainAlertSettingsScreen extends ConfigScreen
     
     private void updateCustomModeButton()
     {
-        if (scathaPro.alertModeManager.getCurrentMode() instanceof CustomAlertMode)
+        if (scathaPro.config.alerts.mode.get() == scathaPro.alertModeManager.customMode)
         {
             customModeButton.active = true;
             customModeButton.setTooltip(null);

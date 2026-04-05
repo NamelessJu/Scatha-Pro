@@ -1,43 +1,35 @@
 package namelessju.scathapro.util;
 
-import java.text.SimpleDateFormat;
+import namelessju.scathapro.files.Config;
+import org.jspecify.annotations.NonNull;
+
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Calendar;
-import java.util.Date;
 
 public class TimeUtil
 {
-    public static final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("uuuu-MM-dd");
-    
     /**
      * Returns the current time in milliseconds since midnight, January 1, 1970 UTC
      */
-    public static long now()
+    public static long getEpochMilliseconds()
     {
         return System.currentTimeMillis();
     }
     
+    public static @NonNull LocalDateTime epochMillisToLocalDateTime(long epochMilliseconds)
+    {
+        return LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMilliseconds), ZoneId.systemDefault());
+    }
+    
     public static boolean getAnimationState(int trueDurationMs, int falseDurationMs)
     {
-        return now() % (trueDurationMs + falseDurationMs) < trueDurationMs;
+        return getEpochMilliseconds() % (trueDurationMs + falseDurationMs) < trueDurationMs;
     }
     
-    /**
-     * Formats a timestamp the same way vanilla Minecraft does it
-     * @param timestamp The Unix timestamp in milliseconds to format
-     */
-    public static String formatUnixDateTime(long timestamp)
-    {
-        return new SimpleDateFormat().format(new Date(timestamp));
-    }
-    
-    public static String serializeDate(LocalDate date)
-    {
-        return date.format(dateFormat);
-    }
-    
-    public static LocalDate today()
+    public static @NonNull LocalDate today()
     {
         return LocalDate.now();
     }
@@ -47,25 +39,11 @@ public class TimeUtil
         return (short) today().getYear();
     }
     
-    public static LocalDate parseDate(String dateString)
+    public static @NonNull String formatDateTime(@NonNull Config config, long epochMilliseconds)
     {
-        try
-        {
-            return LocalDate.parse(dateString, dateFormat);
-        }
-        catch (Exception e)
-        {
-            return null;
-        }
-    }
-    
-    /**
-     * Ensures the number string is at least two digits long by adding a leading zero if required
-     * @param number The number to format
-     */
-    public static String padZero(int number)
-    {
-        return String.format("%02d", number);
+        return config.accessibility.timeFormat.get().format(epochMilliseconds, false)
+            + " " +
+            config.accessibility.dateFormat.get().format(epochMilliseconds);
     }
     
     /**
@@ -73,7 +51,7 @@ public class TimeUtil
      * E.g.: 1h 2m 3s
      * @param countDown When set to true rounds the seconds up instead of down
      */
-    public static String getHMSTimeString(long milliseconds, boolean countDown)
+    public static @NonNull String getHMSTimeString(long milliseconds, boolean countDown)
     {
         int seconds;
         {

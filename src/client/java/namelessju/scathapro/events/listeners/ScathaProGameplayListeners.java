@@ -1,11 +1,12 @@
 package namelessju.scathapro.events.listeners;
 
+import it.unimi.dsi.fastutil.ints.IntList;
 import namelessju.scathapro.Constants;
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.achievements.Achievement;
-import namelessju.scathapro.miscellaneous.data.enums.Rarity;
 import namelessju.scathapro.events.ScathaProEvents;
 import namelessju.scathapro.files.PersistentData;
+import namelessju.scathapro.miscellaneous.data.enums.Rarity;
 import namelessju.scathapro.parsing.PlayerListParser;
 import namelessju.scathapro.util.*;
 import net.minecraft.ChatFormatting;
@@ -15,13 +16,17 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
+import net.minecraft.util.Mth;
+import net.minecraft.util.StringDecomposer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.component.FireworkExplosion;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
-import java.io.File;
 import java.math.RoundingMode;
+import java.util.List;
 
 public final class ScathaProGameplayListeners
 {
@@ -41,13 +46,15 @@ public final class ScathaProGameplayListeners
     private static void onWormPreSpawn(ScathaPro scathaPro)
     {
         scathaPro.coreManager.startWormSpawnCooldown(true);
-        scathaPro.alertManager.wormPreSpawnAlert.play();
-        
+        scathaPro.alertManager.wormPreSpawnAlert.play(scathaPro);
+        scathaPro.mainOverlay.setShown(true);
         scathaPro.achievementLogicManager.handleTunnelVisionRecoverAchievement();
     }
     
     private static void onWormSpawn(ScathaPro scathaPro, ScathaProEvents.WormEventData data)
     {
+        scathaPro.mainOverlay.setShown(true);
+        
         LocalPlayer player = scathaPro.minecraft.player;
         if (player == null) return;
         
@@ -119,7 +126,7 @@ public final class ScathaProGameplayListeners
         // Scatha spawn
         if (data.worm().isScatha)
         {
-            scathaPro.alertManager.scathaSpawnAlert.play();
+            scathaPro.alertManager.scathaSpawnAlert.play(scathaPro);
             scathaPro.secondaryWormStatsManager.addScathaSpawn();
             
             scathaPro.achievementLogicManager.updateScathaSpawnAchievements(data.worm());
@@ -127,11 +134,11 @@ public final class ScathaProGameplayListeners
         // Regular worm spawn
         else
         {
-            scathaPro.alertManager.regularWormSpawnAlert.play();
+            scathaPro.alertManager.regularWormSpawnAlert.play(scathaPro);
             scathaPro.secondaryWormStatsManager.addRegularWormSpawn();
         }
         
-        long now = TimeUtil.now();
+        long now = TimeUtil.getEpochMilliseconds();
         
         long timeSincePreviousSpawn = scathaPro.coreManager.lastWormSpawnTime >= 0L ? now - scathaPro.coreManager.lastWormSpawnTime : -1L;
         if (timeSincePreviousSpawn >= 0L)
@@ -166,22 +173,36 @@ public final class ScathaProGameplayListeners
         {
             Achievement.scatha_hit_dirt.unlock();
         }
+        
+        if (data.worm().isScatha)
+        {
+            Component customName = data.worm().entity.getCustomName();
+            if (customName != null)
+            {
+                scathaPro.coreManager.lastScathaHitHadShuriken
+                    = StringDecomposer.getPlainText(customName).indexOf(UnicodeSymbol.magicFind) >= 0;
+            }
+            else scathaPro.coreManager.lastScathaHitHadShuriken = false;
+            
+            ScathaPro.LOGGER.debug("Scatha hit - has shuriken: {}", scathaPro.coreManager.lastScathaHitHadShuriken);
+        }
     }
     
     private static void onWormKill(ScathaPro scathaPro, ScathaProEvents.WormEventData data)
     {
+        scathaPro.mainOverlay.setShown(true);
         PlayerListParser.parseProfileStats(scathaPro);
         
         if (data.worm().isScatha)
         {
             scathaPro.coreManager.addScathaKill();
-            scathaPro.coreManager.lastScathaKillTime = TimeUtil.now();
+            scathaPro.coreManager.lastScathaKillTime = TimeUtil.getEpochMilliseconds();
             
             if (TimeUtil.isAprilFools() && TimeUtil.getCurrentYear() != scathaPro.getProfileData().lastAprilFoolsJokeShownYear.getOr(-1)
                 && scathaPro.config.miscellaneous.aprilFoolsFakeDropEnabled.get())
             {
-                scathaPro.chatManager.sendChatMessage(Constants.getPetDropMessage(Rarity.RARE), false);
-                scathaPro.alertManager.scathaPetDropAlert.play(
+                scathaPro.chatManager.sendChatMessage(Constants.generatePetDropMessage(Rarity.RARE), false);
+                scathaPro.alertManager.scathaPetDropAlert.play(scathaPro,
                     Component.literal("RARE").withStyle(ChatFormatting.BLUE)
                 );
                 scathaPro.coreManager.aprilFoolsJokeRevealTickTimer = 40;
@@ -202,6 +223,8 @@ public final class ScathaProGameplayListeners
                     case "FINE_TOPAZ_GEM", "FINE_AMETHYST_GEM", "FINE_JADE_GEM", "FINE_AMBER_GEM",
                          "FINE_SAPPHIRE_GEM" -> Achievement.scatha_kill_gemstone.unlock();
                 }
+                
+                if (data.worm().wasHitWithPerfectGemstoneGauntlet()) Achievement.kill_perfect_gemstone_gauntlet.unlock();
             }
             
             LocalPlayer player = scathaPro.minecraft.player;
@@ -263,15 +286,13 @@ public final class ScathaProGameplayListeners
             scathaPro.mainOverlay.updateWormKills();
         }
 
-        if (data.worm().wasHitWithPerfectGemstoneGauntlet()) Achievement.kill_perfect_gemstone_gauntlet.unlock();
-
         scathaPro.persistentData.save();
         
         scathaPro.achievementLogicManager.updateKillsAchievements();
         if (data.worm().getCurrentLifetime() <= 1000) Achievement.worm_kill_time_1.unlock();
         else if (data.worm().getCurrentLifetime() >= Constants.wormLifetime - 3000) Achievement.worm_kill_time_2.unlock();
         
-        scathaPro.coreManager.lastWormKillTime = TimeUtil.now();
+        scathaPro.coreManager.lastWormKillTime = TimeUtil.getEpochMilliseconds();
     }
     
     private static void onWormDespawn(ScathaPro scathaPro, ScathaProEvents.WormEventData data)
@@ -284,7 +305,7 @@ public final class ScathaProGameplayListeners
         PersistentData.ProfileData profileData = scathaPro.getProfileData();
         int scathaKillsAtLastDrop = profileData.scathaKillsAtLastDrop.getOr(-1);
         
-        switch (data.petDrop().rarity)
+        switch (data.petDrop().rarity())
         {
             case RARE:
                 profileData.rarePetDrops.set(profileData.rarePetDrops.get() + 1);
@@ -299,9 +320,36 @@ public final class ScathaProGameplayListeners
                 break;
         }
         
-        scathaPro.alertManager.scathaPetDropAlert.play(
-            Component.literal(data.petDrop().rarity.displayName.toUpperCase()).setStyle(data.petDrop().rarity.style)
+        scathaPro.alertManager.scathaPetDropAlert.play(scathaPro,
+            Component.literal(data.petDrop().rarity().displayName.toUpperCase()).setStyle(data.petDrop().rarity().style)
         );
+        
+        if (scathaPro.config.petDrop.itemPopupEnabled.get())
+        {
+            scathaPro.itemPopupRenderer.popup(
+                Constants.generateScathaPetItem(data.petDrop().rarity()),
+                Mth.clamp(scathaPro.config.petDrop.itemPopupAnimationTicks.get(), 1, 200),
+                scathaPro.config.petDrop.itemPopupUseAltRotAnimCurve.get(),
+                true
+            );
+        }
+        
+        if (scathaPro.config.petDrop.fireworkEnabled.get())
+        {
+            LocalPlayer player = scathaPro.minecraft.player;
+            if (player != null)
+            {
+                Vec3 particlePos = player.getEyePosition().add(player.getForward().scale(1f));
+                player.level().createFireworks(
+                    particlePos.x, particlePos.y, particlePos.z, 0f, 0f, 0f,
+                    List.of(new FireworkExplosion(
+                        FireworkExplosion.Shape.SMALL_BALL,
+                        IntList.of(data.petDrop().rarity().color), IntList.of(),
+                        false, true
+                    ))
+                );
+            }
+        }
         
         if (scathaPro.config.miscellaneous.dryStreakMessageEnabled.get()
             && profileData.scathaKills.get() >= 0)
@@ -368,7 +416,7 @@ public final class ScathaProGameplayListeners
         
         scathaPro.achievementLogicManager.updatePetDropAchievements();
         
-        switch (scathaPro.alertModeManager.getCurrentMode().id)
+        switch (scathaPro.config.alerts.mode.get().id)
         {
             case "normal":
                 Achievement.scatha_pet_drop_mode_normal.unlock();
@@ -404,7 +452,7 @@ public final class ScathaProGameplayListeners
         }
         
         profileData.isPetDropDryStreakInvalidated.set(false);
-        scathaPro.coreManager.lastPetDropTime = TimeUtil.now();
+        scathaPro.coreManager.lastPetDropTime = TimeUtil.getEpochMilliseconds();
         
         scathaPro.persistentData.save();
         
@@ -424,6 +472,6 @@ public final class ScathaProGameplayListeners
 
     private static void onBedrockWall(ScathaPro scathaPro)
     {
-        scathaPro.alertManager.bedrockWallAlert.play();
+        scathaPro.alertManager.bedrockWallAlert.play(scathaPro);
     }
 }

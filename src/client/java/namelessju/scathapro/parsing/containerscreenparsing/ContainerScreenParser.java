@@ -12,14 +12,26 @@ import java.util.function.Predicate;
 
 public abstract class ContainerScreenParser
 {
+    protected final ScathaPro scathaPro;
+    
     public boolean enabled = true;
+    protected boolean requiresFilledSlots = true;
+    
+    public ContainerScreenParser(ScathaPro scathaPro)
+    {
+        this.scathaPro = scathaPro;
+    }
     
     public abstract String getScreenTitle();
     public abstract int[] getSlotNumbers();
     
-    public abstract void tryParse(ItemStack itemStack, int slotNumber, ScathaPro scathaPro);
+    public final boolean requiresFilledSlots()
+    {
+        return requiresFilledSlots;
+    }
     
     public void onStartParsing() {}
+    public abstract void tryParse(ItemStack itemStack, int slotNumber);
     public void onFinishParsing() {}
     
     protected String searchLoreWithExpectedIndex(ItemStack itemStack, int expectedLoreIndex, Predicate<String> linePredicate)

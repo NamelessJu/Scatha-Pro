@@ -41,7 +41,7 @@ public class DetectedJerry extends DetectedEntity
     public void onRegistration()
     {
         if (!scathaPro.config.alerts.goblinSpawnAlertEnabled.get()) return;
-        scathaPro.alertManager.jerrySpawnAlert.play(switch (type) {
+        scathaPro.alertManager.jerrySpawnAlert.play(scathaPro, switch (type) {
             case GREEN -> Component.literal("Green").withStyle(ChatFormatting.GREEN);
             case BLUE -> Component.literal("Blue").withStyle(ChatFormatting.BLUE);
             case PURPLE -> Component.literal("Purple").withStyle(ChatFormatting.DARK_PURPLE);

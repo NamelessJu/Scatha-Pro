@@ -1,8 +1,9 @@
 package namelessju.scathapro.gui.menus.framework.screens;
 
 import namelessju.scathapro.ScathaPro;
-import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.components.*;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.CycleButton;
+import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
@@ -57,13 +58,6 @@ public abstract class ScathaProScreen extends Screen
     }
     
     
-    protected static <T extends AbstractWidget> T wip(T widget)
-    {
-        widget.active = false;
-        widget.setTooltip(Tooltip.create(Component.literal("Work in Progress").withStyle(ChatFormatting.YELLOW)));
-        return widget;
-    }
-    
     public StringWidget label(int x, int y, Component component)
     {
         StringWidget label = new StringWidget(component, font);
@@ -99,11 +93,6 @@ public abstract class ScathaProScreen extends Screen
     public Button doneButton(Component component, int width)
     {
         return Button.builder(component, button -> onClose()).width(width).build();
-    }
-    
-    public static Button placeholderButton(String text)
-    {
-        return Button.builder(Component.literal(text), button -> {}).build();
     }
     
     public static <T> Collection<Optional<T>> getNullableOptions(T[] options)

@@ -13,7 +13,7 @@ public class GoblinDetector extends EntityDetector
     @Override
     public DetectedEntity detectEntity(@NonNull ScathaPro scathaPro, @NonNull ArmorStand entity, @Nullable String unformattedEntityName)
     {
-        if (unformattedEntityName != null && unformattedEntityName.contains(String.valueOf(UnicodeSymbol.heavyBlackHeart)))
+        if (unformattedEntityName != null && unformattedEntityName.contains(String.valueOf(UnicodeSymbol.hypixelHeart)))
         {
             if (unformattedEntityName.contains("[Lv50]") && unformattedEntityName.contains("Golden Goblin"))
             {

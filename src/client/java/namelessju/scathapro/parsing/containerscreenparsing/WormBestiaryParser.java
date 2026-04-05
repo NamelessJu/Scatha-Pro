@@ -12,11 +12,16 @@ import net.minecraft.world.item.ItemStack;
 public class WormBestiaryParser extends ContainerScreenParser
 {
     private static final int SLOT_GENERIC = 4, SLOT_REGULAR_WORMS = 21, SLOT_SCATHAS = 23;
-
+    
+    public WormBestiaryParser(ScathaPro scathaPro)
+    {
+        super(scathaPro);
+    }
+    
     @Override
     public String getScreenTitle()
     {
-        return "Crystal Hollows " + UnicodeSymbol.heavyArrowRight + " Worm";
+        return "Crystal Hollows " + UnicodeSymbol.hypixelArrowRight + " Worm";
     }
 
     @Override
@@ -26,7 +31,7 @@ public class WormBestiaryParser extends ContainerScreenParser
     }
     
     @Override
-    public void tryParse(ItemStack itemStack, int slotNumber, ScathaPro scathaPro)
+    public void tryParse(ItemStack itemStack, int slotNumber)
     {
         switch (slotNumber)
         {

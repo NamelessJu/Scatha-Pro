@@ -1,8 +1,8 @@
 package namelessju.scathapro.gui.menus.screens.settings;
 
 import namelessju.scathapro.ScathaPro;
-import namelessju.scathapro.gui.menus.framework.widgets.sliders.FloatSlider;
 import namelessju.scathapro.gui.menus.framework.screens.ConfigScreen;
+import namelessju.scathapro.gui.menus.framework.widgets.sliders.FloatSlider;
 import namelessju.scathapro.sounds.instances.VolumePreviewSound;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.CycleButton;

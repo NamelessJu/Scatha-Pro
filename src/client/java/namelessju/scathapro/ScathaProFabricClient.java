@@ -17,7 +17,7 @@ public class ScathaProFabricClient extends ScathaPro implements ClientModInitial
     }
     
     @Override
-    public Path getBaseSaveDirectoryPath()
+    public Path getConfigDirectoryPath()
     {
         return FabricLoader.getInstance().getConfigDir();
     }

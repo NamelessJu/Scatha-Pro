@@ -2,9 +2,9 @@ package namelessju.scathapro.gui.menus.screens.settings.alerts;
 
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.alerts.Alert;
+import namelessju.scathapro.gui.menus.framework.screens.ConfigScreen;
 import namelessju.scathapro.gui.menus.framework.widgets.lists.TwoColumnGuiList;
 import namelessju.scathapro.gui.menus.framework.widgets.sliders.IntegerSlider;
-import namelessju.scathapro.gui.menus.framework.screens.ConfigScreen;
 import namelessju.scathapro.miscellaneous.data.enums.OldLobbyAlertTriggerMode;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -37,7 +37,7 @@ public class AlertConfigurationScreen extends ConfigScreen
         {
             list.addTitle(Component.literal(alert.alertName));
             CycleButton<Boolean> enabledButton = booleanConfigButton(
-                "Enabled", alert.configValue,
+                "Enabled", alert.isEnabledConfigValue,
                 value -> alert.description != null ? Tooltip.create(
                     Component.empty().withStyle(ChatFormatting.GRAY).append(alert.description)
                 ) : null,

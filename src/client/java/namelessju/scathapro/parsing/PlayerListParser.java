@@ -16,7 +16,6 @@ import net.minecraft.world.scores.PlayerTeam;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -96,13 +95,13 @@ public final class PlayerListParser
         boolean updated = false;
         
         int magicFind = Objects.requireNonNullElse(parsedMagicFind.get(), -1);
-        if (magicFind >= 0 && magicFind > profileData.magicFind.getOr(0f))
+        if (magicFind >= 0 && magicFind > profileData.globalMagicFind.getOr(0f))
         {
             scathaPro.chatManager.sendChatMessage(Component.empty().withStyle(ChatFormatting.GRAY)
                 .append("Updated Magic Find from tab list (")
-                .append(TextUtil.numberToComponentOrObf(profileData.magicFind.getOr(-1f)))
+                .append(TextUtil.numberToComponentOrObf(profileData.globalMagicFind.getOr(-1f)))
                 .append(" " + UnicodeSymbol.heavyArrowRight + " " + TextUtil.numberToString(magicFind, 2) + ")"));
-            profileData.magicFind.set((float) magicFind);
+            profileData.globalMagicFind.set((float) magicFind);
             updated = true;
         }
         

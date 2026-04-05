@@ -5,7 +5,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import namelessju.scathapro.util.JsonUtil;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.*;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.Style;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -16,7 +19,7 @@ public class UpdateChecker
 {
     private static final String MODRINTH_PROJECT_ID = "lPe25xOt";
     private static final String MODRINTH_API_VERSIONS_ENDPOINT = "https://api.modrinth.com/v2/project/"+MODRINTH_PROJECT_ID+"/version";
-    private static final String MODRINTH_VERSIONS_BASE_URL = "https://modrinth.com/mod/"+MODRINTH_PROJECT_ID+"/version/";
+    private static final String MODRINTH_VERSIONS_BASE_URL = "https://modrinth.com/mod/"+MODRINTH_PROJECT_ID+"/versions";
     private static final String MOD_LOADER = "fabric";
     
     public static void checkForUpdate(ScathaPro scathaPro, final boolean sendNoUpdateAvailableMessages)
@@ -82,15 +85,15 @@ public class UpdateChecker
                             
                             if (updateComparison > 0)
                             {
-                                String updateLink = MODRINTH_VERSIONS_BASE_URL + latestVersion;
+                                String downloadLink = MODRINTH_VERSIONS_BASE_URL + "?l=" + MOD_LOADER;
                                 
                                 String finalLatestVersion = latestVersion;
                                 scathaPro.runNextTick(() -> scathaPro.chatManager.sendChatMessage(Component.empty().withStyle(ChatFormatting.GOLD)
                                     .append("A newer " + ScathaPro.MOD_NAME + " version (" + finalLatestVersion + ") is available! You can download it ")
                                     .append(Component.literal("here").setStyle(Style.EMPTY
                                         .withColor(ChatFormatting.BLUE).withUnderlined(true)
-                                        .withHoverEvent(new HoverEvent.ShowText(Component.literal(updateLink).withStyle(ChatFormatting.GRAY)))
-                                        .withClickEvent(new ClickEvent.OpenUrl(URI.create(updateLink)))
+                                        .withHoverEvent(new HoverEvent.ShowText(Component.literal(downloadLink).withStyle(ChatFormatting.GRAY)))
+                                        .withClickEvent(new ClickEvent.OpenUrl(URI.create(downloadLink)))
                                     ))
                                     .append(".")
                                 ));
@@ -140,7 +143,7 @@ public class UpdateChecker
                 ScathaPro.LOGGER.error("Failed to check for update:\n{}", e.toString());
             }
             
-            scathaPro.runNextTick(() -> scathaPro.chatManager.sendErrorChatMessage("Error while checking for update!"));
+            scathaPro.runNextTick(() -> scathaPro.chatManager.sendChatErrorMessage("Error while checking for update!"));
         }).start();
     }
     

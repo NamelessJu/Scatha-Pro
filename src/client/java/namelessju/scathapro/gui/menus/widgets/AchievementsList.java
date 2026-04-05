@@ -3,12 +3,8 @@ package namelessju.scathapro.gui.menus.widgets;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import namelessju.scathapro.ScathaPro;
-import namelessju.scathapro.achievements.Achievement;
-import namelessju.scathapro.achievements.AchievementCategory;
-import namelessju.scathapro.achievements.AchievementType;
-import namelessju.scathapro.achievements.UnlockedAchievement;
+import namelessju.scathapro.achievements.*;
 import namelessju.scathapro.files.Config;
-import namelessju.scathapro.managers.AchievementManager;
 import namelessju.scathapro.util.TextUtil;
 import namelessju.scathapro.util.TimeUtil;
 import namelessju.scathapro.util.Util;
@@ -574,7 +570,7 @@ public class AchievementsList extends AbstractWidget
                 
                 // Unlock time
                 unlockTimeComponent = Component.literal(
-                    TimeUtil.formatUnixDateTime(unlockedAchievement.unlockTimestamp)
+                    TimeUtil.formatDateTime(scathaPro.config, unlockedAchievement.unlockTimestamp)
                 ).withStyle(contrastableGray);
             }
             else unlockTimeComponent = null;
@@ -698,7 +694,7 @@ public class AchievementsList extends AbstractWidget
     {
         int overflow = Math.max(font.width(component) - maxWidth, 0);
         int animatedOffset = overflow != 0 && TEXT_SCROLL_SPEED != 0
-            ? Mth.clamp((int) ((TimeUtil.now() / (1000/ TEXT_SCROLL_SPEED)) % (overflow + TEXT_SCROLL_STAY_DURATION * 2)) - TEXT_SCROLL_STAY_DURATION, 0, overflow)
+            ? Mth.clamp((int) ((TimeUtil.getEpochMilliseconds() / (1000/ TEXT_SCROLL_SPEED)) % (overflow + TEXT_SCROLL_STAY_DURATION * 2)) - TEXT_SCROLL_STAY_DURATION, 0, overflow)
             : 0;
         if (overflow != 0)
         {

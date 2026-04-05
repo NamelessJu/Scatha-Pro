@@ -33,7 +33,7 @@ public abstract class MouseHandlerMixin
             ci.cancel();
         }
     }
-
+    
     @WrapOperation(
         method = "turnPlayer",
         at = @At(

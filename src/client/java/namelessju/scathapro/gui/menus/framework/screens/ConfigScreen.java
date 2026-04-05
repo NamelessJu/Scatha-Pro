@@ -1,10 +1,10 @@
 package namelessju.scathapro.gui.menus.framework.screens;
 
 import namelessju.scathapro.ScathaPro;
-import namelessju.scathapro.gui.menus.framework.widgets.sliders.FloatSlider;
-import namelessju.scathapro.gui.menus.framework.widgets.sliders.IntegerSlider;
 import namelessju.scathapro.files.Config;
 import namelessju.scathapro.files.framework.JsonFile;
+import namelessju.scathapro.gui.menus.framework.widgets.sliders.FloatSlider;
+import namelessju.scathapro.gui.menus.framework.widgets.sliders.IntegerSlider;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.screens.Screen;

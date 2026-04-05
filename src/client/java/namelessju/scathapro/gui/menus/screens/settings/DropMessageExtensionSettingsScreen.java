@@ -97,7 +97,7 @@ public class DropMessageExtensionSettingsScreen extends ConfigScreen
     
     private void updatePreview()
     {
-        Component message = Constants.getPetDropMessage(Rarity.EPIC);
+        Component message = Constants.generatePetDropMessage(Rarity.EPIC);
         String unformattedText = StringDecomposer.getPlainText(message);
         previewWidget.setMessage(scathaPro.chatManager.extendPetDropMessage(message, unformattedText, false));
         getLayout().arrangeElements();

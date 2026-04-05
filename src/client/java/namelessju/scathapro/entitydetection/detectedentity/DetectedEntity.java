@@ -18,7 +18,7 @@ public abstract class DetectedEntity
     {
         this.scathaPro = scathaPro;
         this.entity = entity;
-        this.spawnTime = TimeUtil.now();
+        this.spawnTime = TimeUtil.getEpochMilliseconds();
     }
     
     public abstract long getMaxLifetime();
@@ -30,7 +30,7 @@ public abstract class DetectedEntity
     
     public long getCurrentLifetime()
     {
-        return TimeUtil.now() - spawnTime;
+        return TimeUtil.getEpochMilliseconds() - spawnTime;
     }
     
     

@@ -1,21 +1,22 @@
 package namelessju.scathapro.gui.overlay;
 
 import com.google.common.collect.Lists;
-import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.Constants;
+import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.events.ScathaProEvents;
-import namelessju.scathapro.gui.menus.screens.settings.overlay.OverlaySettingsScreen;
-import namelessju.scathapro.gui.overlay.elements.*;
-import namelessju.scathapro.gui.overlay.elements.GuiDynamicContainer.Direction;
-import namelessju.scathapro.gui.overlay.elements.GuiElement.Alignment;
-import namelessju.scathapro.managers.SecondaryWormStatsManager;
-import namelessju.scathapro.miscellaneous.data.OverlayIconEyePositions;
 import namelessju.scathapro.files.Config;
 import namelessju.scathapro.files.PersistentData;
 import namelessju.scathapro.files.framework.JsonFile;
+import namelessju.scathapro.gui.menus.screens.settings.overlay.OverlaySettingsScreen;
+import namelessju.scathapro.gui.overlay.elements.*;
+import namelessju.scathapro.gui.overlay.elements.OverlayDynamicContainer.Direction;
+import namelessju.scathapro.gui.overlay.elements.OverlayElement.Alignment;
+import namelessju.scathapro.managers.SecondaryWormStatsManager;
+import namelessju.scathapro.miscellaneous.data.OverlayIconEyePositions;
 import namelessju.scathapro.mixin.PlayerTabOverlayAccessor;
 import namelessju.scathapro.util.TextUtil;
 import namelessju.scathapro.util.TimeUtil;
+import namelessju.scathapro.util.UnicodeSymbol;
 import namelessju.scathapro.util.Util;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.DeltaTracker;
@@ -34,6 +35,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.TimeZone;
 
 public class MainOverlay
@@ -45,42 +47,43 @@ public class MainOverlay
     private final Minecraft minecraft;
     
     
-    private GuiDynamicContainer mainContainer;
+    private OverlayDynamicContainer mainContainer;
     
-    private GuiText titleText;
-    private GuiAnimatedImage scathaIcon;
-    private GuiImage scathaIconOverlay;
-    private GuiText regularWormKillsText;
-    private GuiText secondaryRegularWormKillsText;
-    private GuiText scathaKillsTitleText;
-    private GuiText scathaKillsText;
-    private GuiText secondaryScathaKillsText;
-    private GuiProgressBar spawnCooldownProgressBar;
+    private OverlayText titleText;
+    private OverlayAnimatedImage scathaIcon;
+    private OverlayImage scathaIconOverlay;
+    private OverlayText regularWormKillsText;
+    private OverlayText secondaryRegularWormKillsText;
+    private OverlayText scathaKillsTitleText;
+    private OverlayText scathaKillsText;
+    private OverlayText secondaryScathaKillsText;
+    private OverlayProgressBar spawnCooldownProgressBar;
     private TunnelVisionEffectProgressBar tunnelVisionEffectProgressBar;
-    private GuiText totalKillsText;
-    private GuiText secondaryTotalKillsText;
-    private GuiText wormStreakText;
-    private GuiText coordsText;
-    private GuiText lobbyTimeText;
-    private GuiText rarePetDropsText;
-    private GuiText epicPetDropsText;
-    private GuiText legendaryPetDropsText;
-    private GuiText scathaKillsSinceLastDropText;
-    private GuiText spawnCooldownTimerText;
-    private GuiText tunnelVisionStatusText;
-    private GuiText wormSpawnTimerText;
-    private GuiText profileStatsText;
-    private GuiText realTimeClockText;
+    private OverlayText totalKillsText;
+    private OverlayText secondaryTotalKillsText;
+    private OverlayText wormStreakText;
+    private OverlayText coordsText;
+    private OverlayText lobbyTimeText;
+    private OverlayText rarePetDropsText;
+    private OverlayText epicPetDropsText;
+    private OverlayText legendaryPetDropsText;
+    private OverlayText scathaKillsSinceLastDropText;
+    private OverlayText spawnCooldownTimerText;
+    private OverlayText tunnelVisionStatusText;
+    private OverlayText wormSpawnTimerText;
+    private OverlayText profileStatsText;
+    private OverlayText realTimeClockText;
     
-    private GuiContainer googlyEyeLeftContainer;
-    private GuiImage googlyEyeLeftInnerImage;
-    private GuiContainer googlyEyeRightContainer;
-    private GuiImage googlyEyeRightInnerImage;
+    private OverlayContainer googlyEyeLeftContainer;
+    private OverlayImage googlyEyeLeftInnerImage;
+    private OverlayContainer googlyEyeRightContainer;
+    private OverlayImage googlyEyeRightInnerImage;
     
     
     public final List<ToggleableOverlayElement> toggleableElements = Lists.newArrayList();
     
     
+    private boolean isShown = false;
     private Alignment contentAlignment = null;
     private SecondaryWormStatsManager.SecondaryWormStats secondaryWormStats;
     
@@ -99,78 +102,78 @@ public class MainOverlay
         Config.OverlaySettings.ToggleableElementStates elementStatesConfig = scathaPro.config.overlay.elementStates;
         
         
-        mainContainer = new GuiDynamicContainer(0, 0, 1f, Direction.VERTICAL);
+        mainContainer = new OverlayDynamicContainer(0, 0, 1f, Direction.VERTICAL);
         mainContainer.padding = 5;
         
-        GuiContainer headerContainer = new GuiContainer(0, 0, 1f).setMargin(0, 5);
+        OverlayContainer headerContainer = new OverlayContainer(0, 0, 1f).setMargin(0, 5);
         
-        GuiContainer iconContainer = new GuiContainer(0, 0, 0.25f);
+        OverlayContainer iconContainer = new OverlayContainer(0, 0, 0.25f);
         
-        iconContainer.add(scathaIcon = new GuiAnimatedImage(0, 0, 0.688f));
-        iconContainer.add(scathaIconOverlay = new GuiImage(0, 0, 0.688f));
+        iconContainer.add(scathaIcon = new OverlayAnimatedImage(0, 0, 0.688f));
+        iconContainer.add(scathaIconOverlay = new OverlayImage(0, 0, 0.688f));
         
-        googlyEyeRightContainer = new GuiContainer(0, 0, 0.4f);
+        googlyEyeRightContainer = new OverlayContainer(0, 0, 0.4f);
         googlyEyeRightContainer.expandsContainerSize = false;
-        GuiImage googlyEyeRightOuterImage;
-        googlyEyeRightContainer.add(googlyEyeRightOuterImage = new GuiImage(0, 0, 1f));
+        OverlayImage googlyEyeRightOuterImage;
+        googlyEyeRightContainer.add(googlyEyeRightOuterImage = new OverlayImage(0, 0, 1f));
         googlyEyeRightOuterImage.setImage("overlay/googly_eye_outer.png", 32, 32);
-        googlyEyeRightContainer.add(googlyEyeRightInnerImage = new GuiImage(0, 0, 1f));
+        googlyEyeRightContainer.add(googlyEyeRightInnerImage = new OverlayImage(0, 0, 1f));
         googlyEyeRightInnerImage.setImage("overlay/googly_eye_inner.png", 32, 32);
         googlyEyeRightInnerImage.expandsContainerSize = false;
         iconContainer.add(googlyEyeRightContainer);
         
-        googlyEyeLeftContainer = new GuiContainer(0, 0, 0.44f);
+        googlyEyeLeftContainer = new OverlayContainer(0, 0, 0.44f);
         googlyEyeLeftContainer.expandsContainerSize = false;
-        GuiImage googlyEyeLeftOuterImage;
-        googlyEyeLeftContainer.add(googlyEyeLeftOuterImage = new GuiImage(0, 0, 1f));
+        OverlayImage googlyEyeLeftOuterImage;
+        googlyEyeLeftContainer.add(googlyEyeLeftOuterImage = new OverlayImage(0, 0, 1f));
         googlyEyeLeftOuterImage.setImage("overlay/googly_eye_outer.png", 32, 32);
-        googlyEyeLeftContainer.add(googlyEyeLeftInnerImage = new GuiImage(0, 0, 1f));
+        googlyEyeLeftContainer.add(googlyEyeLeftInnerImage = new OverlayImage(0, 0, 1f));
         googlyEyeLeftInnerImage.setImage("overlay/googly_eye_inner.png", 32, 32);
         googlyEyeLeftInnerImage.expandsContainerSize = false;
         iconContainer.add(googlyEyeLeftContainer);
         
         headerContainer.add(iconContainer);
         
-        headerContainer.add(titleText = new GuiText(minecraft.font, Util.Color.GOLD, 16, 0, 1.3f));
+        headerContainer.add(titleText = new OverlayText(minecraft.font, Util.Color.GOLD, 16, 0, 1.3f));
         mainContainer.add(headerContainer);
         addToggleableElement("header", "Title", headerContainer, elementStatesConfig.headerShown);
         
         
-        GuiDynamicContainer countersContainer = new GuiDynamicContainer(0, 0, 1f, Direction.HORIZONTAL).setMargin(0, 4);
+        OverlayDynamicContainer countersContainer = new OverlayDynamicContainer(0, 0, 1f, Direction.HORIZONTAL).setMargin(0, 4);
         
         
-        GuiContainer petDropsContainer = new GuiContainer(0, 0, 1f);
-        petDropsContainer.add(new GuiText("Pets", minecraft.font, Util.Color.GREEN, 0, 0, 1f));
-        petDropsContainer.add(new GuiImage("overlay/scatha_pet_rare.png", 64, 64, 0, 10, 0.145f));
-        petDropsContainer.add(rarePetDropsText = new GuiText(minecraft.font, Util.Color.BLUE, 12, 11, 1f));
-        petDropsContainer.add(new GuiImage("overlay/scatha_pet_epic.png", 64, 64, 0, 21, 0.145f));
-        petDropsContainer.add(epicPetDropsText = new GuiText(minecraft.font, Util.Color.DARK_PURPLE, 12, 22, 1f));
-        petDropsContainer.add(new GuiImage("overlay/scatha_pet_legendary.png", 64, 64, 0, 32, 0.145f));
-        petDropsContainer.add(legendaryPetDropsText = new GuiText(minecraft.font, Util.Color.GOLD, 12, 33, 1f));
+        OverlayContainer petDropsContainer = new OverlayContainer(0, 0, 1f);
+        petDropsContainer.add(new OverlayText("Pets", minecraft.font, Util.Color.GREEN, 0, 0, 1f));
+        petDropsContainer.add(new OverlayImage("overlay/scatha_pet_rare.png", 64, 64, 0, 10, 0.145f));
+        petDropsContainer.add(rarePetDropsText = new OverlayText(minecraft.font, Util.Color.BLUE, 12, 11, 1f));
+        petDropsContainer.add(new OverlayImage("overlay/scatha_pet_epic.png", 64, 64, 0, 21, 0.145f));
+        petDropsContainer.add(epicPetDropsText = new OverlayText(minecraft.font, Util.Color.DARK_PURPLE, 12, 22, 1f));
+        petDropsContainer.add(new OverlayImage("overlay/scatha_pet_legendary.png", 64, 64, 0, 32, 0.145f));
+        petDropsContainer.add(legendaryPetDropsText = new OverlayText(minecraft.font, Util.Color.GOLD, 12, 33, 1f));
         countersContainer.add(petDropsContainer);
         addToggleableElement("petDrops", "Pet Drop Counters", petDropsContainer, elementStatesConfig.petDropCountersShown);
         
         
-        GuiContainer killsContainer = new GuiContainer(8, 0, 1f);
+        OverlayContainer killsContainer = new OverlayContainer(8, 0, 1f);
 
         killsContainer.add(tunnelVisionEffectProgressBar = new TunnelVisionEffectProgressBar(0, 10, 77, 21, 1f));
-        killsContainer.add(spawnCooldownProgressBar = new GuiProgressBar(0, 10, 77, 21, 1f, 0x50FFFFFF, -1));
+        killsContainer.add(spawnCooldownProgressBar = new OverlayProgressBar(0, 10, 77, 21, 1f, 0x50FFFFFF, -1));
         
-        killsContainer.add(new GuiText("Worms", minecraft.font, Util.Color.YELLOW, 15, 0, 1f).setAlignment(Alignment.CENTER));
-        killsContainer.add(new GuiImage("overlay/worm.png", 512, 256, -5, 10, 0.08f));
-        killsContainer.add(regularWormKillsText = new GuiText(minecraft.font, Util.Color.WHITE, 15, 11, 1f).setAlignment(Alignment.CENTER));
-        killsContainer.add(secondaryRegularWormKillsText = new GuiText(minecraft.font, Util.Color.GRAY, 15, 22, 1f).setAlignment(Alignment.CENTER));
+        killsContainer.add(new OverlayText("Worms", minecraft.font, Util.Color.YELLOW, 15, 0, 1f).setAlignment(Alignment.CENTER));
+        killsContainer.add(new OverlayImage("overlay/worm.png", 512, 256, -5, 10, 0.08f));
+        killsContainer.add(regularWormKillsText = new OverlayText(minecraft.font, Util.Color.WHITE, 15, 11, 1f).setAlignment(Alignment.CENTER));
+        killsContainer.add(secondaryRegularWormKillsText = new OverlayText(minecraft.font, Util.Color.GRAY, 15, 22, 1f).setAlignment(Alignment.CENTER));
         
-        killsContainer.add(scathaKillsTitleText = new GuiText(minecraft.font, Util.Color.YELLOW, 58, 0, 1f).setAlignment(Alignment.CENTER));
-        killsContainer.add(new GuiImage("overlay/scatha.png", 512, 256, 38, 10, 0.08f));
-        killsContainer.add(scathaKillsText = new GuiText(minecraft.font, Util.Color.WHITE, 58, 11, 1f).setAlignment(Alignment.CENTER));
-        killsContainer.add(secondaryScathaKillsText = new GuiText(minecraft.font, Util.Color.GRAY, 58, 22, 1f).setAlignment(Alignment.CENTER));
+        killsContainer.add(scathaKillsTitleText = new OverlayText(minecraft.font, Util.Color.YELLOW, 58, 0, 1f).setAlignment(Alignment.CENTER));
+        killsContainer.add(new OverlayImage("overlay/scatha.png", 512, 256, 38, 10, 0.08f));
+        killsContainer.add(scathaKillsText = new OverlayText(minecraft.font, Util.Color.WHITE, 58, 11, 1f).setAlignment(Alignment.CENTER));
+        killsContainer.add(secondaryScathaKillsText = new OverlayText(minecraft.font, Util.Color.GRAY, 58, 22, 1f).setAlignment(Alignment.CENTER));
         
-        killsContainer.add(new GuiText("Total", minecraft.font, Util.Color.WHITE, 86, 0, 1f));
-        killsContainer.add(totalKillsText = new GuiText(minecraft.font, Util.Color.WHITE, 86, 11, 1f));
-        killsContainer.add(secondaryTotalKillsText = new GuiText(minecraft.font, Util.Color.GRAY, 86, 22, 1f));
+        killsContainer.add(new OverlayText("Total", minecraft.font, Util.Color.WHITE, 86, 0, 1f));
+        killsContainer.add(totalKillsText = new OverlayText(minecraft.font, Util.Color.WHITE, 86, 11, 1f));
+        killsContainer.add(secondaryTotalKillsText = new OverlayText(minecraft.font, Util.Color.GRAY, 86, 22, 1f));
         
-        killsContainer.add(wormStreakText = new GuiText(minecraft.font, Util.Color.GRAY, 0, 33, 1f));
+        killsContainer.add(wormStreakText = new OverlayText(minecraft.font, Util.Color.GRAY, 0, 33, 1f));
         
         addToggleableElement("wormStats", "Worm Stats", killsContainer, elementStatesConfig.wormStatsShown);
         countersContainer.add(killsContainer);
@@ -179,30 +182,30 @@ public class MainOverlay
         mainContainer.add(countersContainer);
 
         
-        mainContainer.add(scathaKillsSinceLastDropText = new GuiText(minecraft.font, Util.Color.WHITE, 0, 2, 1f));
+        mainContainer.add(scathaKillsSinceLastDropText = new OverlayText(minecraft.font, Util.Color.WHITE, 0, 2, 1f));
         addToggleableElement("scathaKillsSinceLastPetDrop", "Scathas Since Pet Drop", scathaKillsSinceLastDropText, elementStatesConfig.scathaKillsSinceLastPetDropShown);
         
-        mainContainer.add(spawnCooldownTimerText = new GuiText(minecraft.font, Util.Color.WHITE, 0, 2, 1f));
+        mainContainer.add(spawnCooldownTimerText = new OverlayText(minecraft.font, Util.Color.WHITE, 0, 2, 1f));
         addToggleableElement("spawnCooldownTimer", "Spawn Cooldown Status", spawnCooldownTimerText, elementStatesConfig.wormSpawnCooldownTimerShown);
         
-        mainContainer.add(tunnelVisionStatusText = new GuiText(minecraft.font, Util.Color.WHITE, 0, 2, 1f));
+        mainContainer.add(tunnelVisionStatusText = new OverlayText(minecraft.font, Util.Color.WHITE, 0, 2, 1f));
         addToggleableElement("tunnelVisionStatusText", "Tunnel Vision Status", tunnelVisionStatusText, elementStatesConfig.tunnelVisionStatusTextShown);
         
-        mainContainer.add(wormSpawnTimerText = new GuiText(minecraft.font, Util.Color.GRAY, 0, 2, 1f));
+        mainContainer.add(wormSpawnTimerText = new OverlayText(minecraft.font, Util.Color.GRAY, 0, 2, 1f));
         addToggleableElement("timeSinceWormSpawn", "Time Since Last Spawn", wormSpawnTimerText, elementStatesConfig.timeSinceWormSpawnShown);
         
-        mainContainer.add(lobbyTimeText = new GuiText(minecraft.font, Util.Color.WHITE, 0, 2, 1f));
+        mainContainer.add(lobbyTimeText = new OverlayText(minecraft.font, Util.Color.WHITE, 0, 2, 1f));
         addToggleableElement("time", "Lobby Time", lobbyTimeText, elementStatesConfig.lobbyTimeShown);
         
-        mainContainer.add(coordsText = new GuiText(minecraft.font, Util.Color.WHITE, 0, 2, 1f));
+        mainContainer.add(coordsText = new OverlayText(minecraft.font, Util.Color.WHITE, 0, 2, 1f));
         addToggleableElement("coords", "Coordinates/Orientation", coordsText, elementStatesConfig.coordinatesShown);
         
-        mainContainer.add(profileStatsText = new GuiText(minecraft.font, Util.Color.WHITE, 0, 2, 1f));
+        mainContainer.add(profileStatsText = new OverlayText(minecraft.font, Util.Color.WHITE, 0, 2, 1f));
         addToggleableElement("profileStats", "Scatha Farming Profile Stats", profileStatsText, elementStatesConfig.profileStatsShown,
             Component.literal("\"/" + scathaPro.mainCommand.getCommandName() + " profileStats\"\nto update values")
                 .withStyle(ChatFormatting.YELLOW, ChatFormatting.ITALIC));
         
-        mainContainer.add(realTimeClockText = new GuiText(minecraft.font, Util.Color.WHITE, 0, 2, 1f));
+        mainContainer.add(realTimeClockText = new OverlayText(minecraft.font, Util.Color.WHITE, 0, 2, 1f));
         addToggleableElement("realTimeClock", "Real Time Clock", realTimeClockText, elementStatesConfig.realTimeClockShown);
     }
     
@@ -215,17 +218,48 @@ public class MainOverlay
         updateAll();
     }
     
-    public GuiElement getMainElement()
+    public void toggleShown()
+    {
+        if (!scathaPro.coreManager.isInCrystalHollows())
+        {
+            scathaPro.chatManager.sendChatErrorMessage("Overlay visibility cannot be changed outside of Crystal Hollows");
+            return;
+        }
+        if (!isEnabled())
+        {
+            scathaPro.chatManager.sendChatErrorMessage("Overlay isn't enabled");
+            return;
+        }
+        isShown = !isShown;
+        scathaPro.chatManager.sendChatMessage("Overlay is now " + (isShown ? "shown" : "hidden"));
+    }
+    
+    public void setShown(boolean value)
+    {
+        this.isShown = value;
+    }
+    
+    public OverlayElement getMainElement()
     {
         return mainContainer;
     }
     
-    private void addToggleableElement(String id, String name, GuiElement element, JsonFile.BooleanValue configValue)
+    private String icon(char icon)
+    {
+        return icon(String.valueOf(icon));
+    }
+    
+    private String icon(String icon)
+    {
+        return scathaPro.config.overlay.iconsEnabled.get() ? icon + " " : "";
+    }
+    
+    private void addToggleableElement(String id, String name, OverlayElement element, JsonFile.BooleanValue configValue)
     {
         addToggleableElement(id, name, element, configValue, null);
     }
     
-    private void addToggleableElement(String id, String name, GuiElement element, JsonFile.BooleanValue configValue, Component description)
+    private void addToggleableElement(String id, String name, OverlayElement element, JsonFile.BooleanValue configValue, Component description)
     {
         toggleableElements.add(new ToggleableOverlayElement(id, name, element, configValue, description));
     }
@@ -238,12 +272,11 @@ public class MainOverlay
         }
     }
     
-    public void toggleVisibility()
+    public void toggleEnabled()
     {
-        boolean overlayVisible = scathaPro.config.overlay.enabled.get();
-        scathaPro.config.overlay.enabled.set(!overlayVisible);
+        scathaPro.config.overlay.enabled.set(!isEnabled());
         scathaPro.config.save();
-        updateVisibility();
+        scathaPro.chatManager.sendChatMessage("Overlay " + (scathaPro.mainOverlay.isEnabled() ? "enabled" : "disabled"));
     }
     
     private void updateStatsTypeInternal()
@@ -260,19 +293,21 @@ public class MainOverlay
         updateWormStreak();
     }
     
-    public boolean isOverlayRenderAllowed()
+    public boolean isVisible()
     {
-        return scathaPro.coreManager.isInCrystalHollows() && !(minecraft.screen instanceof OverlaySettingsScreen)
+        return scathaPro.coreManager.isInCrystalHollows() && isShown && !(minecraft.screen instanceof OverlaySettingsScreen)
             && !minecraft.debugEntries.isOverlayVisible() && !((PlayerTabOverlayAccessor) minecraft.gui.getTabList()).isVisible();
     }
     
-    public void renderIfAllowed(GuiGraphics guiGraphics, DeltaTracker deltaTracker)
+    public void renderIfVisible(GuiGraphics guiGraphics, DeltaTracker deltaTracker)
     {
-        if (isOverlayRenderAllowed()) render(guiGraphics, deltaTracker);
+        mainContainer.setVisible(isEnabled() && isVisible());
+        mainContainer.render(guiGraphics, deltaTracker);
     }
-
+    
     public void render(GuiGraphics guiGraphics, DeltaTracker deltaTracker)
     {
+        mainContainer.setVisible(isEnabled());
         mainContainer.render(guiGraphics, deltaTracker);
     }
     
@@ -296,7 +331,7 @@ public class MainOverlay
     
     public void tick()
     {
-        if (mainContainer.isVisible() && isOverlayRenderAllowed())
+        if (mainContainer.isVisible() && isVisible())
         {
             requestUpdateTick();
         }
@@ -366,7 +401,6 @@ public class MainOverlay
         
         updatePosition();
         updateScale();
-        updateVisibility();
         updateContrast();
     }
     
@@ -424,14 +458,9 @@ public class MainOverlay
         return mainContainer.getScale();
     }
     
-    public void updateVisibility()
+    public boolean isEnabled()
     {
-        mainContainer.setVisible(scathaPro.config.overlay.enabled.get());
-    }
-    
-    public boolean isVisible()
-    {
-        return mainContainer.isVisible();
+        return scathaPro.config.overlay.enabled.get();
     }
     
     public void updateBackground()
@@ -462,9 +491,9 @@ public class MainOverlay
         }
         else
         {
-            scathaIcon.setImage(scathaPro.alertModeManager.getCurrentMode().getIconPath(), 64, 64);
+            scathaIcon.setImage(scathaPro.config.alerts.mode.get().getIconPath(), 64, 64);
             
-            String overlayPath = scathaPro.alertModeManager.getCurrentMode().getIconOverlayPath();
+            String overlayPath = scathaPro.config.alerts.mode.get().getIconOverlayPath();
             if (overlayPath != null)
             {
                 scathaIconOverlay.setVisible(true);
@@ -490,7 +519,7 @@ public class MainOverlay
         if (!TimeUtil.isAprilFools() && !scathaPro.config.unlockables.overlayIconGooglyEyesEnabled.get()) return;
         if (scathaPro.coreManager.isScappaModeActive()) return;
         
-        OverlayIconEyePositions eyePositions = scathaPro.alertModeManager.getCurrentMode().eyePositions;
+        OverlayIconEyePositions eyePositions = scathaPro.config.alerts.mode.get().eyePositions;
         
         int iconWidth = scathaIcon.getScaledWidth();
         int iconHeight = scathaIcon.getScaledHeight();
@@ -523,7 +552,7 @@ public class MainOverlay
             int eyeWidth = googlyEyeLeftContainer.getWidth();
             int eyeHeight = googlyEyeLeftContainer.getHeight();
 
-            float angle = - (float) ((TimeUtil.now() % 876L) / 876D * 2 * Math.PI);
+            float angle = - (float) ((TimeUtil.getEpochMilliseconds() % 876L) / 876D * 2 * Math.PI);
             float unitX = (float) Math.sin(angle);
             float unitY = - (float) Math.cos(angle);
             
@@ -538,7 +567,7 @@ public class MainOverlay
             int eyeWidth = googlyEyeRightContainer.getWidth();
             int eyeHeight = googlyEyeRightContainer.getHeight();
             
-            float angle = (float) ((TimeUtil.now() % 1000L) / 1000D * 2 * Math.PI);
+            float angle = (float) ((TimeUtil.getEpochMilliseconds() % 1000L) / 1000D * 2 * Math.PI);
             float unitX = (float) Math.sin(angle);
             float unitY = - (float) Math.cos(angle);
             
@@ -557,7 +586,7 @@ public class MainOverlay
             return;
         }
         
-        scathaIcon.setColor(scathaPro.alertModeManager.getCurrentMode().getIconColor());
+        scathaIcon.setColor(scathaPro.config.alerts.mode.get().getIconColor());
     }
     
     public void updateScappaMode()
@@ -695,12 +724,12 @@ public class MainOverlay
         int worldDay = worldTime >= 0L ? (int) Math.floor(worldTime / 24000f) : 0;
         float worldDayProgress = worldTime >= 0L ? (worldTime % 24000f) / 24000f : 0f;
         
-        long lobbyTime = level != null && scathaPro.coreManager.isInCrystalHollows() ? TimeUtil.now() - scathaPro.coreManager.lastWorldJoinTime : 0L;
+        long lobbyTime = level != null && scathaPro.coreManager.isInCrystalHollows() ? TimeUtil.getEpochMilliseconds() - scathaPro.coreManager.lastWorldJoinTime : 0L;
         SimpleDateFormat timerFormat = new SimpleDateFormat("HH:mm:ss");
         timerFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
         
         lobbyTimeText.setText(Component.empty()
-            .append("Day " + worldDay)
+            .append(icon(UnicodeSymbol.sun) + "Day " + worldDay)
             .append(Component.literal(
                     " ("
                     + TextUtil.numberToString(worldDayProgress * 100f, 0, false, RoundingMode.DOWN)
@@ -752,10 +781,8 @@ public class MainOverlay
 
         ChatFormatting contrastableGray = TextUtil.contrastableGray(scathaPro);
         coordsText.setText(Component.empty()
-            .append(coordinatesString)
-            .append(Component.literal(" / ").withStyle(contrastableGray))
-            .append(facingAxisString)
-            .append(Component.literal(" (" + wallProgressString + "% to wall)").withStyle(contrastableGray)));
+            .append(Component.literal(coordinatesString + " " + facingAxisString + ": ").withStyle(contrastableGray))
+            .append(wallProgressString + "% to wall"));
     }
     
     public void updateScathaKillsSinceLastDrop()
@@ -769,39 +796,38 @@ public class MainOverlay
         }
         
         scathaKillsSinceLastDropText.setText(Component.empty()
-            .append((scathaPro.coreManager.isScappaModeActive() ? "Scappas" : "Scathas") + " since last pet drop: ")
+            .append(icon(UnicodeSymbol.sword) + (scathaPro.coreManager.isScappaModeActive() ? "Scappas" : "Scathas") + " since last pet: ")
             .append(TextUtil.numberToComponentOrObf(dryStreak)));
     }
     
     public void updateSpawnCooldown()
     {
-        long cooldownTimer = TimeUtil.now() - scathaPro.coreManager.wormSpawnCooldownStartTime;
+        long cooldownTimer = TimeUtil.getEpochMilliseconds() - scathaPro.coreManager.wormSpawnCooldownStartTime;
         float progress;
         
         if (scathaPro.coreManager.wormSpawnCooldownStartTime >= 0f
             && (
                 progress = 1f - (cooldownTimer / (float) Constants.wormSpawnCooldown)
             ) > 0f
-        )
-        {
+        ) {
             spawnCooldownProgressBar.setVisible(true);
             spawnCooldownProgressBar.setProgress(progress);
             spawnCooldownTimerText.setText(Component.literal(
-                "Worm spawn cooldown: " + TimeUtil.getHMSTimeString(Constants.wormSpawnCooldown - cooldownTimer, true)
-            ).withStyle(ChatFormatting.YELLOW));
+                icon(UnicodeSymbol.hourglass) + "Worm spawn cooldown: " + TimeUtil.getHMSTimeString(Constants.wormSpawnCooldown - cooldownTimer, true)
+            ).withStyle(ChatFormatting.RED));
         }
         else
         {
             spawnCooldownProgressBar.setVisible(false);
-            spawnCooldownTimerText.setText(Component.literal("Worms ready to spawn").withStyle(ChatFormatting.GREEN));
+            spawnCooldownTimerText.setText(Component.literal(icon(UnicodeSymbol.heavyCheckMark) + "Worms ready to spawn").withStyle(ChatFormatting.GREEN));
         }
     }
     
     public void updateTunnelVision()
     {
-        final Component prefix = Component.literal("Tunnel Vision ").withStyle(ChatFormatting.GOLD);
+        final Component abilityName = Component.literal("Tunnel Vision").withStyle(ChatFormatting.GOLD);
         
-        long now = TimeUtil.now();
+        long now = TimeUtil.getEpochMilliseconds();
         long tunnelVisionElapsedTime;
         
         boolean showProgressBar = false;
@@ -814,8 +840,7 @@ public class MainOverlay
                     / (float) Constants.tunnelVisionEffectDuration
                 )
             ) > 0f
-        )
-        {
+        ) {
             if (scathaPro.coreManager.wormSpawnCooldownStartTime < 0L
                 || now - scathaPro.coreManager.wormSpawnCooldownStartTime >= Constants.wormSpawnCooldown)
             {
@@ -823,8 +848,9 @@ public class MainOverlay
             }
             
             tunnelVisionStatusText.setText(Component.empty()
-                .append(prefix)
-                .append(Component.literal("active: "
+                .append(Component.literal(icon(UnicodeSymbol.lightingBolt)).withStyle(ChatFormatting.YELLOW))
+                .append(abilityName)
+                .append(Component.literal(" active: "
                         + TimeUtil.getHMSTimeString(Constants.tunnelVisionEffectDuration - tunnelVisionElapsedTime, true))
                     .withStyle(ChatFormatting.YELLOW)
                 )
@@ -835,8 +861,9 @@ public class MainOverlay
             if (scathaPro.coreManager.tunnelVisionCooldownEndTime >= 0L && now < scathaPro.coreManager.tunnelVisionCooldownEndTime)
             {
                 tunnelVisionStatusText.setText(Component.empty()
-                    .append(prefix)
-                    .append(Component.literal("cooldown: "
+                    .append(Component.literal(icon(UnicodeSymbol.hourglass)).withStyle(ChatFormatting.RED))
+                    .append(abilityName)
+                    .append(Component.literal(" cooldown: "
                             + TimeUtil.getHMSTimeString(scathaPro.coreManager.tunnelVisionCooldownEndTime - now, true))
                         .withStyle(ChatFormatting.RED)
                     )
@@ -845,7 +872,8 @@ public class MainOverlay
             else
             {
                 tunnelVisionStatusText.setText(Component.empty()
-                    .append(prefix).append(Component.literal("ready").withStyle(ChatFormatting.GREEN))
+                    .append(Component.literal(icon(UnicodeSymbol.heavyCheckMark)).withStyle(ChatFormatting.GREEN))
+                    .append(abilityName).append(Component.literal(" available").withStyle(ChatFormatting.GREEN))
                 );
             }
         }
@@ -864,7 +892,7 @@ public class MainOverlay
         if (scathaPro.coreManager.lastWormSpawnTime >= 0L && minecraft.level != null)
         {
             timeComponent = Component.literal(
-                TimeUtil.getHMSTimeString(TimeUtil.now() - scathaPro.coreManager.lastWormSpawnTime, false)
+                TimeUtil.getHMSTimeString(TimeUtil.getEpochMilliseconds() - scathaPro.coreManager.lastWormSpawnTime, false)
             );
         }
         else timeComponent = Component.literal("?").withStyle(ChatFormatting.OBFUSCATED);
@@ -877,29 +905,39 @@ public class MainOverlay
     {
         ChatFormatting contrastableGray = TextUtil.contrastableGray(scathaPro);
         profileStatsText.setText(Component.empty()
-            .append(scathaPro.persistentDataProfileManager.getTotalMagicFindComponent(true))
+            .append(scathaPro.persistentDataProfileManager.getTotalMagicFindComponent(false, true))
             .append(Component.literal(" ").withStyle(contrastableGray))
             .append(scathaPro.persistentDataProfileManager.getPetLuckComponent(true))
             .append(Component.literal(" / ").withStyle(contrastableGray))
-            .append(scathaPro.persistentDataProfileManager.getEffectiveMagicFindComponent().append(" EMF"))
+            .append(scathaPro.persistentDataProfileManager.getEffectiveMagicFindComponent(false).append(" EMF"))
         );
     }
     
     public void updateRealTimeClock()
     {
         LocalDateTime now = LocalDateTime.now();
-        String clockStringMain = DateTimeFormatter.ofPattern("HH:mm", Locale.ENGLISH).format(now);
-        String clockStringSeconds = DateTimeFormatter.ofPattern(":ss", Locale.ENGLISH).format(now);
+        String timeStringMain = scathaPro.config.accessibility.timeFormat.get().formatHoursMinutes(now);
+        String timeStringSecondary
+                = scathaPro.config.accessibility.timeFormat.get().formatSeconds(now)
+                + Objects.requireNonNullElse(scathaPro.config.accessibility.timeFormat.get().formatSuffix(now), "");
+        String dateStringDay = DateTimeFormatter.ofPattern("EEE.", Locale.ENGLISH).format(now);
+        String dateStringDate = scathaPro.config.accessibility.dateFormat.get().format(now);
         
         ChatFormatting contrastableGray = TextUtil.contrastableGray(scathaPro);
         realTimeClockText.setText(Component.empty()
-            .append(Component.literal("Real Time: ").withStyle(contrastableGray))
-            .append(clockStringMain)
-            .append(Component.literal(clockStringSeconds).withStyle(contrastableGray)));
+            .append(icon(UnicodeSymbol.clock) + timeStringMain)
+            .append(
+                Component.literal(
+                    timeStringSecondary
+                    + ", " + dateStringDay
+                    + " " + dateStringDate
+                ).withStyle(contrastableGray)
+            )
+        );
     }
     
     
-    public record ToggleableOverlayElement(String id, String elementName, GuiElement element, JsonFile.BooleanValue configValue, Component description)
+    public record ToggleableOverlayElement(String id, String elementName, OverlayElement element, JsonFile.BooleanValue configValue, Component description)
     {
         public void updateVisibility()
         {

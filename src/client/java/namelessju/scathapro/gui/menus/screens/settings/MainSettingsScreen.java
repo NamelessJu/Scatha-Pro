@@ -4,8 +4,11 @@ import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.gui.menus.framework.screens.ConfigScreen;
 import namelessju.scathapro.gui.menus.screens.settings.alerts.MainAlertSettingsScreen;
 import namelessju.scathapro.gui.menus.screens.settings.overlay.MainOverlaySettingsScreen;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NonNull;
 
 public class MainSettingsScreen extends ConfigScreen
@@ -19,15 +22,27 @@ public class MainSettingsScreen extends ConfigScreen
     protected void initLayout(@NonNull HeaderAndFooterLayout layout)
     {
         addTitleHeader(
-            booleanConfigButton("Autom. Update Checks", scathaPro.config.miscellaneous.automaticUpdateCheckEnabled),
-            booleanConfigButton("Automatic Backups", scathaPro.config.miscellaneous.automaticBackupsEnabled)
+            booleanConfigButton("Autom. Update Checks", scathaPro.config.miscellaneous.automaticUpdateCheckEnabled,
+                value -> Tooltip.create(
+                    Component.literal("Checks Modrinth for new mod versions once per game start")
+                        .withStyle(ChatFormatting.GRAY)
+                ),
+                null
+            ),
+            booleanConfigButton("Automatic Backups", scathaPro.config.miscellaneous.automaticBackupsEnabled,
+                value -> Tooltip.create(
+                    Component.literal("Creates a full backup of this mod's save files when a new version is installed")
+                        .withStyle(ChatFormatting.GRAY)
+                ),
+                null
+            )
         );
         
         GridBuilder gridBuilder = new GridBuilder();
         gridBuilder.addSingleCell(subScreenButton("UI Overlay...", MainOverlaySettingsScreen::new));
         gridBuilder.addSingleCell(subScreenButton("Alerts...", MainAlertSettingsScreen::new));
+        gridBuilder.addSingleCell(subScreenButton("Scatha Pet Drop...", PetDropSettingsScreen::new));
         gridBuilder.addSingleCell(subScreenButton("Player Rotation...", PlayerRotationSettingsScreen::new));
-        gridBuilder.addSingleCell(subScreenButton("Drop Message Extension...", DropMessageExtensionSettingsScreen::new));
         gridBuilder.addSingleCell(subScreenButton("Chat Messages...", ChatMessageSettingsScreen::new));
         gridBuilder.addSingleCell(subScreenButton("Sounds...", SoundSettingsScreen::new));
         gridBuilder.addSingleCell(subScreenButton("Achievement Settings...", AchievementSettingsScreen::new));

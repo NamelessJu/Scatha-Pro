@@ -48,10 +48,10 @@ public final class Util
         return optional.map(t -> t.equals(value)).orElse(false);
     }
     
-    public static Path resolvePath(Path parent, String... pathNode)
+    public static Path resolvePath(Path parent, String... pathNodes)
     {
         Path currentNode = parent;
-        for (String node : pathNode)
+        for (String node : pathNodes)
         {
             currentNode = currentNode.resolve(node);
         }

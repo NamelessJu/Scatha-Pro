@@ -3,10 +3,9 @@ package namelessju.scathapro.events.listeners;
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.UpdateChecker;
 import namelessju.scathapro.achievements.Achievement;
-import namelessju.scathapro.events.*;
+import namelessju.scathapro.events.ScathaProEvents;
 import namelessju.scathapro.managers.ChatManager;
 import namelessju.scathapro.miscellaneous.data.enums.OldLobbyAlertTriggerMode;
-import namelessju.scathapro.files.PersistentData;
 import namelessju.scathapro.util.TimeUtil;
 import net.minecraft.network.chat.Component;
 
@@ -51,7 +50,7 @@ public final class ScathaProMiscListeners
             if ((scathaPro.coreManager.lastOldLobbyAlertTriggerDay < 0 || lobbyDay < scathaPro.coreManager.lastOldLobbyAlertTriggerDay)
                 && lobbyDay >= scathaPro.config.alerts.oldLobbyAlertTriggerDay.get())
             {
-                scathaPro.alertManager.oldLobbyAlert.play();
+                scathaPro.alertManager.oldLobbyAlert.play(scathaPro);
                 scathaPro.coreManager.lastOldLobbyAlertTriggerDay = lobbyDay;
             }
         }

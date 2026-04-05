@@ -1,6 +1,7 @@
 package namelessju.scathapro.managers;
 
 import namelessju.scathapro.ScathaPro;
+import org.jspecify.annotations.NonNull;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -13,6 +14,8 @@ import java.util.stream.Stream;
 
 public class FFmpegManager
 {
+    private static final String EXTENSION_OGG = ".ogg";
+    
     private final ScathaPro scathaPro;
     private final String executablePath;
     private final boolean isWindows;
@@ -22,6 +25,17 @@ public class FFmpegManager
         this.scathaPro = scathaPro;
         isWindows = System.getProperty("os.name").startsWith("Windows");
         executablePath = searchForExecutablePath();
+    }
+    
+    public String[] getSupportedFileExtensions()
+    {
+        if (!isFFmpegInstalled()) return new String[] {EXTENSION_OGG};
+        return new String[] {EXTENSION_OGG, ".mp3", ".wav"};
+    }
+    
+    public boolean needsConversion(@NonNull File file)
+    {
+        return !file.getName().endsWith(EXTENSION_OGG);
     }
     
     public void convertToOgg(String sourcePath, String targetPath, Consumer<Boolean> consumer)
@@ -72,6 +86,7 @@ public class FFmpegManager
         }
     }
     
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isFFmpegInstalled()
     {
         return executablePath != null;

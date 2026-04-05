@@ -2,10 +2,10 @@ package namelessju.scathapro.gui.overlay;
 
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.alerts.title.DisplayableAlertTitle;
-import namelessju.scathapro.gui.overlay.elements.*;
-import namelessju.scathapro.gui.overlay.elements.GuiDynamicContainer;
-import namelessju.scathapro.gui.overlay.elements.GuiText;
 import namelessju.scathapro.files.Config;
+import namelessju.scathapro.gui.overlay.elements.OverlayDynamicContainer;
+import namelessju.scathapro.gui.overlay.elements.OverlaySpacing;
+import namelessju.scathapro.gui.overlay.elements.OverlayText;
 import namelessju.scathapro.util.Util;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.GuiGraphics;
@@ -18,8 +18,8 @@ public class AlertTitleOverlay
     private final ScathaPro scathaPro;
     private final Config.AlertSettings alertSettings;
     
-    private GuiDynamicContainer container;
-    private GuiText mainTitleText, subTitleText;
+    private OverlayDynamicContainer container;
+    private OverlayText mainTitleText, subTitleText;
     
     private int fadeInTicks = 0, stayTicks = 0, fadeOutTicks = 0;
     private int animationTicksLeft = 0;
@@ -32,14 +32,14 @@ public class AlertTitleOverlay
     
     public void init()
     {
-        container = new GuiDynamicContainer(0, 0, 1f, GuiDynamicContainer.Direction.VERTICAL);
+        container = new OverlayDynamicContainer(0, 0, 1f, OverlayDynamicContainer.Direction.VERTICAL);
         
-        mainTitleText = new GuiText(scathaPro.minecraft.font, Util.Color.WHITE, 0, 0, 4f);
-        subTitleText = new GuiText(scathaPro.minecraft.font, Util.Color.WHITE, 0, 14, 2f);
+        mainTitleText = new OverlayText(scathaPro.minecraft.font, Util.Color.WHITE, 0, 0, 4f);
+        subTitleText = new OverlayText(scathaPro.minecraft.font, Util.Color.WHITE, 0, 14, 2f);
         
         container.add(mainTitleText);
         container.add(subTitleText);
-        container.add(new GuiSpacing(0, 0, 0, 12, 1f));
+        container.add(new OverlaySpacing(0, 0, 0, 12, 1f));
     }
     
     public void displayTitle(DisplayableAlertTitle alertTitle)

@@ -1,7 +1,6 @@
 package namelessju.scathapro.sounds;
 
 import namelessju.scathapro.ScathaPro;
-import namelessju.scathapro.managers.SoundManager;
 import namelessju.scathapro.sounds.instances.ScathaProSound;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
@@ -25,13 +24,18 @@ public record SoundData(Identifier identifier, float volume, float pitch)
         return new SoundData(ScathaPro.getIdentifier(scathaProSoundPath), volume, pitch);
     }
     
-    public ScathaProSound playModSound(SoundManager soundManager)
+    public SoundData withVolume(float newVolume)
     {
-        return playModSound(soundManager, 1f);
+        return new SoundData(identifier, newVolume, pitch);
     }
     
-    public ScathaProSound playModSound(SoundManager soundManager, float volumeMultiplier)
+    public ScathaProSound playAsScathaProSound(SoundManager soundManager)
     {
-        return soundManager.playModSound(identifier, volumeMultiplier * volume, pitch);
+        return playAsScathaProSound(soundManager, 1f);
+    }
+    
+    public ScathaProSound playAsScathaProSound(SoundManager soundManager, float volumeMultiplier)
+    {
+        return soundManager.playAsScathaProSound(identifier, volumeMultiplier * volume, pitch);
     }
 }

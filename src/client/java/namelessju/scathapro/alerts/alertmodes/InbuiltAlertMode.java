@@ -1,9 +1,11 @@
 package namelessju.scathapro.alerts.alertmodes;
 
-import namelessju.scathapro.ScathaPro;
+import namelessju.scathapro.alerts.Alert;
 import namelessju.scathapro.miscellaneous.data.OverlayIconEyePositions;
-import net.minecraft.resources.Identifier;
+import namelessju.scathapro.sounds.SoundData;
+import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 public class InbuiltAlertMode extends AlertMode
 {
@@ -19,8 +21,22 @@ public class InbuiltAlertMode extends AlertMode
     }
 
     @Override
-    public Identifier getSoundBaseIdentifier()
+    public @Nullable SoundData getSoundData(@NonNull Alert alert)
     {
-        return ScathaPro.getIdentifier("alert_modes." + id);
+        if (alert.alertId.equals("anti_sleep")) return null;
+        
+        return SoundData.scathaPro("alert_modes." + id + "." + alert.alertId, 1f, 1f);
+    }
+    
+    @Override
+    public @Nullable Component getTitleOverride(@NonNull Alert alert)
+    {
+        return null;
+    }
+    
+    @Override
+    public @Nullable Component getSubtitleOverride(@NonNull Alert alert)
+    {
+        return null;
     }
 }

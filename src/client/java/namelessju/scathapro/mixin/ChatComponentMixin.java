@@ -1,7 +1,6 @@
 package namelessju.scathapro.mixin;
 
 import namelessju.scathapro.ScathaPro;
-import namelessju.scathapro.util.TextUtil;
 import net.minecraft.client.GuiMessageTag;
 import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.network.chat.Component;
@@ -24,7 +23,7 @@ public abstract class ChatComponentMixin
     )
     private void beforeAddMessage(Component message, MessageSignature messageSignature, GuiMessageTag guiMessageTag, CallbackInfo ci)
     {
-        if (ScathaPro.getInstance().chatManager.shouldCancelMessage(message))
+        if (ScathaPro.getInstance().chatParser.shouldCancelMessage(message))
         {
             ci.cancel();
             if (ScathaPro.LOGGER.isDebugEnabled())
@@ -43,7 +42,7 @@ public abstract class ChatComponentMixin
     )
     private Component modifyMessageEarly(Component message)
     {
-        return ScathaPro.getInstance().chatManager.onMessageAddedEarly(message);
+        return ScathaPro.getInstance().chatParser.beforeMessageAddedEarly(message);
     }
     
     @ModifyVariable(
@@ -55,6 +54,6 @@ public abstract class ChatComponentMixin
     )
     private Component modifyMessageLate(Component message)
     {
-        return ScathaPro.getInstance().chatManager.onMessageAddedLate(message);
+        return ScathaPro.getInstance().chatParser.beforeMessageAddedLate(message);
     }
 }

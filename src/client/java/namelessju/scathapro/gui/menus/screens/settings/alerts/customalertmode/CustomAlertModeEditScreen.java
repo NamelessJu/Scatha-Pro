@@ -1,76 +1,100 @@
 package namelessju.scathapro.gui.menus.screens.settings.alerts.customalertmode;
 
-import com.google.gson.JsonObject;
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.alerts.Alert;
+import namelessju.scathapro.alerts.alertmodes.AlertMode;
+import namelessju.scathapro.alerts.alertmodes.AlertModeManager;
+import namelessju.scathapro.alerts.alertmodes.customalertmode.CustomAlertModeManager;
 import namelessju.scathapro.alerts.title.AlertTitleTemplate;
 import namelessju.scathapro.alerts.title.DynamicAlertTitleTemplate;
 import namelessju.scathapro.alerts.title.FullAlertTitleTemplate;
+import namelessju.scathapro.files.customalertmode.CustomAlertModeMeta;
+import namelessju.scathapro.files.customalertmode.CustomAlertModeProperties;
 import namelessju.scathapro.gui.menus.framework.screens.LayoutScreen;
 import namelessju.scathapro.gui.menus.framework.widgets.lists.ScathaProGuiList;
 import namelessju.scathapro.gui.menus.framework.widgets.sliders.FloatSlider;
-import namelessju.scathapro.managers.CustomAlertModeManager;
-import namelessju.scathapro.util.JsonUtil;
-import namelessju.scathapro.util.TextUtil;
+import namelessju.scathapro.gui.menus.screens.InfoMessageScreen;
+import namelessju.scathapro.util.FileUtil;
+import namelessju.scathapro.util.Util;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.components.StringWidget;
-import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.gui.layouts.LayoutSettings;
 import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
-import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.network.chat.MutableComponent;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Objects;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
 
 public class CustomAlertModeEditScreen extends LayoutScreen
 {
     private final CustomAlertModeManager manager;
-    private ScathaProGuiList list;
     
     private final @NonNull String modeId;
-    private final @Nullable JsonObject modeProperties;
-    private final @NonNull File modeFolder;
+    private final @NonNull CustomAlertModeMeta modeMeta;
+    private final @NonNull CustomAlertModeProperties modeProperties;
     private final boolean isNewMode;
-    private final @NonNull String currentModeName;
     
-    private @Nullable File droppedFile = null;
+    private @NonNull String modeName;
+    private Map<Alert, AlertEditData> alertEditDataMap;
+    
+    private boolean isRebuildRequired = false;
+    private ScathaProGuiList list;
+    private double lastScrollAmount = -1D;
+    private SoundInstance lastPlayedAlertSound;
+    private SoundPreviewButton currentSoundPreviewButton;
     
     public CustomAlertModeEditScreen(ScathaPro scathaPro, Screen parentScreen, @NonNull String subModeId)
     {
         super(scathaPro, Component.literal(
             (scathaPro.customAlertModeManager.doesSubModeExist(subModeId) ? "Edit" : "Create") + " Custom Alert Mode"
-        ), true, parentScreen);
+        ), false, parentScreen);
         
         this.manager = scathaPro.customAlertModeManager;
         
         this.modeId = subModeId;
-        this.modeProperties = manager.loadSubModeProperties(subModeId);
-        this.modeFolder = manager.submodesDirectory.resolve(subModeId).toFile();
-        this.isNewMode = !modeFolder.exists();
+        this.isNewMode = !scathaPro.customAlertModeManager.doesSubModeExist(subModeId);
         
-        this.currentModeName = Objects.requireNonNullElse(manager.getSubModeName(subModeId), "");
+        this.modeMeta = manager.subModeMetas.getOrLoad(subModeId);
+        this.modeProperties = manager.subModeProperties.getOrLoad(subModeId);
+        
+        this.modeName = modeMeta.modeName.getOr("");
+    }
+    
+    private void initAlertDataIfUnset()
+    {
+        if (alertEditDataMap != null) return;
+        
+        alertEditDataMap = new HashMap<>();
+        for (Alert alert : scathaPro.alertManager)
+        {
+            CustomAlertModeProperties.AlertPropertiesValue alertProperties = modeProperties.alertProperties.getPropertiesFor(alert);
+            AlertEditData editData;
+            if (alertProperties != null)
+            {
+                editData = new AlertEditData(
+                    alertProperties.title.getOr(""),
+                    alertProperties.subtitle.getOr(""),
+                    alertProperties.soundVolume.get()
+                );
+            }
+            else editData = new AlertEditData("", "", 1f);
+            alertEditDataMap.put(alert, editData);
+        }
     }
     
     @Override
     protected void initLayout(@NonNull HeaderAndFooterLayout layout)
     {
-        /* TODO: add note somewhere if FFmpeg is missing
-        if (!scathaPro.ffmpegManager.isFFmpegInstalled())
-        {
-            audioFileButtonDefaultTooltip = EnumChatFormatting.YELLOW + "Note:\n" + EnumChatFormatting.GRAY + "No FFmpeg installation found,\nonly *.ogg files supported";
-        }
-        */
+        initAlertDataIfUnset();
         
         LinearLayout headerWidgetsLayout = LinearLayout.vertical().spacing(0);
         
@@ -80,12 +104,46 @@ public class CustomAlertModeEditScreen extends LayoutScreen
         LinearLayout headerSubLayout = LinearLayout.horizontal().spacing(10);
         
         EditBox nameEditBox = headerSubLayout.addChild(new EditBox(font, 225, 20, Component.literal("Custom Alert Mode Name")));
-        nameEditBox.setValue(currentModeName);
+        nameEditBox.setValue(modeName);
+        nameEditBox.setResponder(newValue -> modeName = newValue);
         nameEditBox.setHint(Component.literal("(unnamed)").setStyle(EditBox.DEFAULT_HINT_STYLE.withItalic(true)));
         
         Button exportButton = headerSubLayout.addChild(
             Button.builder(Component.literal("Export..."), button -> {
-                // TODO: export
+                File exportDirectory = scathaPro.getConfigDirectoryPath().resolve(ScathaPro.MOD_ID + "_export").toFile();
+                //noinspection ResultOfMethodCallIgnored
+                exportDirectory.mkdirs();
+                File file = FileUtil.getUniqueFile(exportDirectory,
+                    modeMeta.modeName.getOr("Unnamed Custom Alert Mode") + ".spmode"
+                );
+                boolean success = FileUtil.zip(
+                    Util.resolvePath(scathaPro.customAlertModeManager.subModesDirectory, modeId).toFile(),
+                    file.getAbsolutePath(), false
+                );
+                if (success)
+                {
+                    InfoMessageScreen infoScreen = new InfoMessageScreen(scathaPro, CustomAlertModeEditScreen.this,
+                        Component.literal("Custom alert mode exported"),
+                        Component.literal("Exported as \"" + file.getName() + "\"")
+                    );
+                    infoScreen.setExtraWidgets(new AbstractWidget[] {
+                        Button.builder(Component.literal("Show File"), button2 -> {
+                            try
+                            {
+                                FileUtil.openFileInExplorer(file);
+                            }
+                            catch (IOException e)
+                            {
+                                ScathaPro.LOGGER.error("Failed to open exported custom alert mode file in explorer", e);
+                            }
+                        }).size(200, 20).build()
+                    });
+                    minecraft.setScreen(infoScreen);
+                }
+                else minecraft.setScreen(new InfoMessageScreen(scathaPro, CustomAlertModeEditScreen.this,
+                    Component.literal("Custom alert mode export failed").withStyle(ChatFormatting.RED),
+                    Component.literal("Couldn't create/write the file")
+                ));
             }).size(75, 20).build()
         );
         if (isNewMode)
@@ -106,56 +164,67 @@ public class CustomAlertModeEditScreen extends LayoutScreen
         list = addScrollList(new ScathaProGuiList(minecraft, this, layout, 125));
         for (Alert alert : scathaPro.alertManager)
         {
-            list.addEntry(new Entry(list, alert));
+            AlertEditData data = alertEditDataMap.get(alert);
+            if (data == null)
+            {
+                ScathaPro.LOGGER.error("Couldn't find alert edit data for {}", alert.alertId);
+                continue;
+            }
+            list.addEntry(new Entry(alert, data, list.getRowWidth()));
         }
         
         
         LinearLayout footerLayout = LinearLayout.horizontal().spacing(10);
         footerLayout.addChild(
-            Button.builder(Component.literal("Save"),
-                button -> {
-                    // TODO: save
-                    minecraft.setScreen(parentScreen);
-                }
-            ).width(150).build(), LayoutSettings::alignHorizontallyCenter
+            Button.builder(Component.literal("Save"), button -> save())
+                .width(150).build(),
+            LayoutSettings::alignHorizontallyCenter
         );
         footerLayout.addChild(doneButton(Component.literal("Cancel"), 150), LayoutSettings::alignHorizontallyCenter);
         addLayoutFooter(footerLayout);
     }
     
     @Override
-    public void onFilesDrop(@NonNull List<Path> list)
+    protected void init()
     {
-        droppedFile = list.getFirst().toFile();
+        super.init();
+        
+        if (list != null && lastScrollAmount > 0D)
+        {
+            list.setScrollAmount(lastScrollAmount);
+            lastScrollAmount = -1D;
+        }
     }
     
     @Override
-    public void render(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks)
+    protected void repositionElements()
     {
-        if (droppedFile != null)
+        // Hack since there's no onOpened() method:
+        // this method is called when a screen is re-opened
+        if (isRebuildRequired)
         {
-            Entry hoveredEntry = null;
-            for (ScathaProGuiList.Entry entry : list.children())
-            {
-                if (entry.isMouseOver(mouseX, mouseY))
-                {
-                    if (entry instanceof Entry customizationEntry)
-                    {
-                        hoveredEntry = customizationEntry;
-                    }
-                    break;
-                }
-            }
-            
-            if (hoveredEntry != null)
-            {
-                hoveredEntry.fileDropped(droppedFile);
-            }
-            
-            droppedFile = null;
+            isRebuildRequired = false;
+            rebuildWidgets();
+            return;
         }
         
-        super.render(guiGraphics, mouseX, mouseY, partialTicks);
+        super.repositionElements();
+    }
+    
+    @Override
+    public void tick()
+    {
+        super.tick();
+        
+        if (lastPlayedAlertSound != null)
+        {
+            if (!scathaPro.soundManager.isPlaying(lastPlayedAlertSound))
+            {
+                lastPlayedAlertSound = null;
+                currentSoundPreviewButton.updateMessage(false);
+                currentSoundPreviewButton = null;
+            }
+        }
     }
     
     @Override
@@ -163,21 +232,90 @@ public class CustomAlertModeEditScreen extends LayoutScreen
     {
         for (Alert alert : scathaPro.alertManager)
         {
-            alert.stopSound();
+            alert.stopSound(scathaPro.soundManager);
         }
+        
+        lastPlayedAlertSound = null;
+        currentSoundPreviewButton = null;
+        
+        if (list != null) lastScrollAmount = list.scrollAmount();
+        list = null;
+        
+        isRebuildRequired = true;
+        this.clearWidgets();
         
         super.removed();
     }
     
+    private void save()
+    {
+        modeMeta.modeName.set(modeName.isBlank() ? null : modeName);
+        modeMeta.save();
+        
+        CustomAlertModeSoundImportScreen importScreen = new CustomAlertModeSoundImportScreen(scathaPro, parentScreen, modeId);
+        
+        for (Map.Entry<Alert, AlertEditData> entry : alertEditDataMap.entrySet())
+        {
+            CustomAlertModeProperties.AlertPropertiesValue alertProperties
+                = modeProperties.alertProperties.initAndGetPropertiesFor(entry.getKey());
+            alertProperties.title.set(entry.getValue().titleText.isEmpty() ? null : entry.getValue().titleText);
+            alertProperties.subtitle.set(entry.getValue().subtitleText.isEmpty() ? null : entry.getValue().subtitleText);
+            alertProperties.soundVolume.set(entry.getValue().soundVolume);
+            
+            if (entry.getValue().newSoundFile != null)
+            {
+                importScreen.addFile(entry.getKey(), entry.getValue().newSoundFile);
+                alertProperties.soundSourceAlertMode.set(scathaPro.alertModeManager.customMode);
+                alertProperties.soundSourceAlert.set(null);
+            }
+            else
+            {
+                if (entry.getValue().newSoundSourceAlertMode != null)
+                {
+                    alertProperties.soundSourceAlertMode.set(entry.getValue().newSoundSourceAlertMode);
+                }
+                if (entry.getValue().newSoundSourceAlert != null)
+                {
+                    alertProperties.soundSourceAlert.set(entry.getValue().newSoundSourceAlert);
+                }
+            }
+        }
+        modeProperties.save();
+        
+        if (importScreen.hasFiles()) minecraft.setScreen(importScreen);
+        else minecraft.setScreen(parentScreen);
+    }
+    
+    public static class AlertEditData
+    {
+        public @NonNull String titleText;
+        public @NonNull String subtitleText;
+        public float soundVolume;
+        
+        public @Nullable File newSoundFile = null;
+        public @Nullable AlertMode newSoundSourceAlertMode = null;
+        public @Nullable Alert newSoundSourceAlert = null;
+        
+        public AlertEditData(@NonNull String titleText, @NonNull String subtitleText, float soundVolume)
+        {
+            this.titleText = titleText;
+            this.subtitleText = subtitleText;
+            this.soundVolume = soundVolume;
+        }
+    }
+    
     private class Entry extends ScathaProGuiList.Entry
     {
-        private final StringWidget fileLabel;
-        
-        public Entry(ScathaProGuiList list, Alert alert)
+        public Entry(@NonNull Alert alert, @NonNull AlertEditData editData, int rowWidth)
         {
+            CustomAlertModeProperties.AlertPropertiesValue alertProperties = modeProperties.alertProperties.getPropertiesFor(alert);
+            if (alertProperties == null) alertProperties = new CustomAlertModeProperties.AlertPropertiesValue();
+            
+            int halfRowWidth = rowWidth / 2;
+            
             addCenteredChild(
                 label(0, 5, Component.literal(alert.alertName).withStyle(ChatFormatting.YELLOW)),
-                list.getRowWidth() / 2
+                halfRowWidth
             );
             
             // Titles
@@ -189,33 +327,31 @@ public class CustomAlertModeEditScreen extends LayoutScreen
             
             addChild(label(0, 23, Component.literal("Title").withStyle(ChatFormatting.GRAY)));
             
-            EditBox titleEditBox = new EditBox(font, list.getRowWidth() / 2 - 5, 20, Component.literal(alert.alertName + " Title"));
-            String title = JsonUtil.getString(modeProperties, "titles." + alert.alertId + ".title");
-            if (title != null) titleEditBox.setValue(title);
+            EditBox titleEditBox = new EditBox(font, halfRowWidth - 5, 20, Component.literal(alert.alertName + " Title"));
+            titleEditBox.setValue(editData.titleText);
+            titleEditBox.setResponder(newValue -> editData.titleText = newValue);
             if (titleTemplate.titleText != null) titleEditBox.setHint(Component.literal(titleTemplate.titleText));
             titleEditBox.setTooltip(titleFormattingTooltip);
-            titleEditBox.addFormatter(new EditBoxFormatter(titleEditBox, titleTemplate.titleStyle));
             addPositionedChild(0, 33, titleEditBox);
             
-            EditBox subtitleEditBox = new EditBox(font, list.getRowWidth() / 2 - 5, 20, Component.literal(alert.alertName + " Subtitle"));
+            EditBox subtitleEditBox = new EditBox(font, halfRowWidth - 5, 20, Component.literal(alert.alertName + " Subtitle"));
             boolean canEditSubtitle = false;
             if (titleTemplate instanceof FullAlertTitleTemplate fullAlertTitleTemplate)
             {
                 canEditSubtitle = true;
                 
-                String subtitle = JsonUtil.getString(modeProperties, "titles." + alert.alertId + ".subtitle");
-                if (subtitle != null) subtitleEditBox.setValue(subtitle);
+                subtitleEditBox.setValue(editData.subtitleText);
                 if (fullAlertTitleTemplate.subtitleText != null)
                     subtitleEditBox.setHint(Component.literal(fullAlertTitleTemplate.subtitleText));
                 subtitleEditBox.setTooltip(titleFormattingTooltip);
-                subtitleEditBox.addFormatter(new EditBoxFormatter(subtitleEditBox, fullAlertTitleTemplate.subtitleStyle));
             }
             else if (titleTemplate instanceof DynamicAlertTitleTemplate)
             {
-                subtitleEditBox.setHint(Component.literal("(automatic)").setStyle(EditBox.DEFAULT_HINT_STYLE.withItalic(true)));
+                subtitleEditBox.setHint(Component.literal("(determined by alert)").setStyle(EditBox.DEFAULT_HINT_STYLE.withItalic(true)));
             }
+            subtitleEditBox.setResponder(newValue -> editData.subtitleText = newValue);
             
-            addChild(label(list.getRowWidth() / 2 + 5, 23, Component.literal("Subtitle")
+            addChild(label(halfRowWidth + 5, 23, Component.literal("Subtitle")
                 .withStyle(canEditSubtitle ? ChatFormatting.GRAY : ChatFormatting.DARK_GRAY)));
             
             if (!canEditSubtitle)
@@ -223,77 +359,140 @@ public class CustomAlertModeEditScreen extends LayoutScreen
                 subtitleEditBox.active = false;
                 subtitleEditBox.setEditable(false);
             }
-            addPositionedChild(list.getRowWidth() / 2 + 5, 33, subtitleEditBox);
+            addPositionedChild(halfRowWidth + 5, 33, subtitleEditBox);
             
             // Audio
             
-            File alertAudioFile = manager.getAlertAudioFile(modeId, alert);
-            boolean audioExists = alertAudioFile.exists();
-            boolean canPlayAudio = manager.isSubModeActive(modeId) || !audioExists;
+            boolean canPlayAudio = alertProperties.soundSourceAlertMode.get() != scathaPro.alertModeManager.customMode
+                                    || manager.isSubModeActive(modeId);
             
-            addChild(label(0, 62, Component.literal("Audio").withStyle(ChatFormatting.GRAY)));
+            addChild(label(0, 62, Component.literal("Sound").withStyle(ChatFormatting.GRAY)));
             
-            addChild(label(0, 75, Component.empty()
-                .append("Current: ")
-                .append(audioExists ? "Custom audio" : "Default")
-            ));
-            addChild(fileLabel = label(0, 95 - font.lineHeight,
-                Component.literal("Drag and drop audio files here")
-                    .withStyle(ChatFormatting.GRAY)
-            ));
-            addChild(Button.builder(Component.literal("Default"), button -> {
-                // TODO
-            }).bounds(list.getRowWidth()/2 + 5, 75, 70, 20).build());
-            addChild(Button.builder(Component.literal("Discard"), button -> {
-                // TODO
-            }).bounds(list.getRowWidth()/2 + 85, 75, 70, 20).build());
-            
-            Button playButton = Button.builder(Component.literal("Play Current Audio"), button -> {
-                if (alert.isSoundPlaying()) alert.stopSound();
-                else alert.playSound();
-            }).bounds(0, 100, 150, 20).build();
+            Button playButton = new SoundPreviewButton(0, 75, 150, 20, alert, alertProperties);
             if (!canPlayAudio)
             {
                 playButton.active = false;
                 playButton.setTooltip(Tooltip.create(
-                    Component.literal("Mode needs to be selected to play custom audio").withStyle(ChatFormatting.YELLOW)
+                    Component.literal("Mode needs to be selected to play custom sound").withStyle(ChatFormatting.YELLOW)
                 ));
             }
             addChild(playButton);
             
-            Double audioVolume = JsonUtil.getDouble(modeProperties, "soundVolumes." + alert.alertId);
             addChild(new FloatSlider(
-                160, 100, 150, 20,
+                halfRowWidth + 5, 75, 150, 20,
                 Component.literal("Volume"),
-                0f, 1f, audioVolume != null ? audioVolume.floatValue() : 1f,
-                value -> {
-                    // TODO
-                }
+                0f, 1f, editData.soundVolume,
+                value -> editData.soundVolume = value
             ).setStepSize(0.01f).setValueComponentSupplier(FloatSlider.PERCENTAGE_COMPONENT_SUPPLIER_WITH_OFF));
-        }
-        
-        public void fileDropped(File file)
-        {
-            fileLabel.setMessage(Component.literal("Selected: " + file.getName()));
+            
+            Component selectSoundComponent = Component.literal("Select New Sound...");
+            boolean buttonEnabled = false;
+            
+            Component selectSoundButtonComponent;
+            if (editData.newSoundFile != null)
+            {
+                selectSoundButtonComponent = Component.literal(editData.newSoundFile.getName())
+                    .withStyle(ChatFormatting.ITALIC);
+                buttonEnabled = true;
+            }
+            else if (editData.newSoundSourceAlertMode != null)
+            {
+                selectSoundButtonComponent = getSoundText(
+                    alert,
+                    editData.newSoundSourceAlertMode, editData.newSoundSourceAlert,
+                    () -> Component.literal("Saved Custom Sound")
+                ).withStyle(ChatFormatting.ITALIC);
+                buttonEnabled = true;
+            }
+            else selectSoundButtonComponent = selectSoundComponent;
+            Button selectSoundButton;
+            addChild(selectSoundButton = Button.builder(selectSoundButtonComponent,
+                button -> scathaPro.minecraft.setScreen(
+                    new CustomAlertModeSelectSoundScreen(scathaPro, CustomAlertModeEditScreen.this, modeId, alert, editData)
+                )
+            ).bounds(0, 100, 150, 20).build());
+            
+            Button discardButton;
+            addChild(discardButton = Button.builder(Component.literal("Discard Selected Sound"), button -> {
+                editData.newSoundFile = null;
+                editData.newSoundSourceAlertMode = null;
+                editData.newSoundSourceAlert = null;
+                selectSoundButton.setMessage(selectSoundComponent);
+                button.active = false;
+            }).bounds(halfRowWidth + 5, 100, 150, 20).build());
+            discardButton.active = buttonEnabled;
         }
     }
     
-    private record EditBoxFormatter(@NonNull EditBox editBox, @Nullable Style baseStyle) implements EditBox.TextFormatter
+    private @NonNull MutableComponent getSoundText(@NonNull Alert alert, @NonNull AlertMode sourceAlertMode,
+                                                    @Nullable Alert sourceAlert, @NonNull Supplier<MutableComponent> customSoundTextSupplier)
     {
-        @Override
-        public @Nullable FormattedCharSequence format(@NonNull String string, int i)
+        if (sourceAlertMode == scathaPro.alertModeManager.customMode)
         {
-            // TODO: bold text fucks up click and selection positions
-            //  + this formatter is bad performance wise as it's run per render
+            return customSoundTextSupplier.get();
+        }
+        
+        String sourceText = sourceAlertMode.name;
+        if (sourceAlert != null && sourceAlert != alert)
+        {
+            sourceText += " (" + sourceAlert.alertName + ")";
+        }
+        return Component.literal(sourceText);
+    }
+    
+    protected class SoundPreviewButton extends Button.Plain
+    {
+        private final Component baseComponent;
+        
+        protected SoundPreviewButton(int x, int y, int width, int height, Alert alert,
+                                     CustomAlertModeProperties.@NonNull AlertPropertiesValue alertProperties)
+        {
+            super(x, y, width, height, Component.empty(),
+                button -> {
+                    CustomAlertModeProperties.AlertPropertiesValue alertPropertiesValue = modeProperties.alertProperties.getPropertiesFor(alert);
+                    AlertEditData editData = alertEditDataMap.get(alert);
+                    Alert sourceAlert = alertPropertiesValue != null ? alertPropertiesValue.soundSourceAlert.getOr(alert) : alert;
+                    
+                    if (sourceAlert.isSoundPlaying(scathaPro.soundManager))
+                    {
+                        sourceAlert.stopSound(scathaPro.soundManager);
+                        ((SoundPreviewButton) button).updateMessage(false);
+                        if (currentSoundPreviewButton == button)
+                        {
+                            lastPlayedAlertSound = null;
+                            currentSoundPreviewButton = null;
+                        }
+                    }
+                    else
+                    {
+                        if (lastPlayedAlertSound != null) scathaPro.soundManager.stop(lastPlayedAlertSound);
+                        if (currentSoundPreviewButton != null) currentSoundPreviewButton.updateMessage(false);
+                        
+                        AlertMode sourceAlertMode = alertPropertiesValue != null ? alertPropertiesValue.soundSourceAlertMode.get() : AlertModeManager.DEFAULT_MODE;
+                        float volume = editData != null ? editData.soundVolume : 1f;
+                        lastPlayedAlertSound = sourceAlertMode == scathaPro.alertModeManager.customMode
+                            ? alert.playSound(scathaPro.soundManager, sourceAlertMode, volume)
+                            : sourceAlert.playSound(scathaPro.soundManager, sourceAlertMode, volume);
+                        currentSoundPreviewButton = (SoundPreviewButton) button;
+                        currentSoundPreviewButton.updateMessage(true);
+                    }
+                },
+                Button.DEFAULT_NARRATION
+            );
             
-            int stringIndex = editBox.getValue().indexOf(string);
-            if (stringIndex < 0) return null;
-            
-            Component fullFormat = CustomAlertModeManager.formatFormattingCodes(editBox.getValue());
-            
-            Component formattedSegment = TextUtil.subString(fullFormat, stringIndex, stringIndex + string.length());
-            if (baseStyle != null) formattedSegment = Component.empty().setStyle(baseStyle).append(formattedSegment);
-            return formattedSegment.getVisualOrderText();
+            baseComponent = Component.literal("Play Current: ").append(getSoundText(
+                alert,
+                alertProperties.soundSourceAlertMode.get(), alertProperties.soundSourceAlert.get(),
+                () -> scathaPro.customAlertModeManager.getAlertAudioFile(modeId, alert).exists()
+                    ? Component.literal("Custom")
+                    : Component.literal("MISSING CUSTOM SOUND FILE").withStyle(ChatFormatting.RED)
+            ));
+            updateMessage(false);
+        }
+        
+        private void updateMessage(boolean isPlaying)
+        {
+            this.setMessage(isPlaying ? Component.literal("Stop Sound") : baseComponent);
         }
     }
 }

@@ -4,11 +4,13 @@ import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.UpdateChecker;
 import namelessju.scathapro.achievements.Achievement;
 import namelessju.scathapro.events.ScathaProEvents;
-import namelessju.scathapro.files.PersistentData;
 import namelessju.scathapro.parsing.ScoreboardParser;
 import namelessju.scathapro.util.TimeUtil;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.*;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.Style;
 
 public final class ScathaProTickListeners
 {
@@ -38,10 +40,15 @@ public final class ScathaProTickListeners
     {
         // TODO: move most of this into core manager
         
-        long now = TimeUtil.now();
+        long now = TimeUtil.getEpochMilliseconds();
         
         if (data.isFirstTick())
         {
+            if (scathaPro.config.overlay.showImmediately.get())
+            {
+                scathaPro.mainOverlay.setShown(true);
+            }
+            
             heatCheckTickTimer = 0;
             
             if (scathaPro.getProfileData().regularWormKills.get() == 0 && scathaPro.getProfileData().scathaKills.get() == 0
@@ -106,7 +113,7 @@ public final class ScathaProTickListeners
                     int triggerValue = scathaPro.config.alerts.highHeatAlertTriggerValue.get();
                     if (newHeat >= triggerValue && scathaPro.coreManager.lastHeat >= 0 && scathaPro.coreManager.lastHeat < triggerValue)
                     {
-                        scathaPro.alertManager.highHeatAlert.play();
+                        scathaPro.alertManager.highHeatAlert.play(scathaPro);
                     }
                 }
                 

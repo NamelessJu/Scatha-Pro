@@ -2,18 +2,18 @@ package namelessju.scathapro.files.legacy;
 
 import com.google.gson.JsonObject;
 import namelessju.scathapro.ScathaPro;
-import namelessju.scathapro.gui.overlay.elements.GuiElement;
-import namelessju.scathapro.miscellaneous.data.enums.*;
+import namelessju.scathapro.alerts.alertmodes.AlertMode;
 import namelessju.scathapro.files.Config;
 import namelessju.scathapro.files.framework.JsonFile;
 import namelessju.scathapro.files.framework.ScathaProFile;
+import namelessju.scathapro.gui.overlay.elements.OverlayElement;
+import namelessju.scathapro.miscellaneous.data.enums.*;
 import namelessju.scathapro.util.JsonUtil;
 import namelessju.scathapro.util.TextUtil;
 import org.apache.commons.lang3.NotImplementedException;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
@@ -32,7 +32,7 @@ public class LegacyConfig extends ScathaProFile
     
     public LegacyConfig(ScathaPro scathaPro)
     {
-        super(scathaPro, Path.of("config.cfg"));
+        super(scathaPro, scathaPro.getConfigDirectoryPath().resolve("config.cfg").toFile());
     }
     
     private void setupMappings()
@@ -42,10 +42,10 @@ public class LegacyConfig extends ScathaProFile
         
         Config config = scathaPro.config;
         
-        Consumer<HashMap<String, GuiElement.Alignment>> guiAlignmentMappingsBuilder = enumMappings -> {
-            enumMappings.put("LEFT", GuiElement.Alignment.LEFT);
-            enumMappings.put("CENTER", GuiElement.Alignment.CENTER);
-            enumMappings.put("RIGHT", GuiElement.Alignment.RIGHT);
+        Consumer<HashMap<String, OverlayElement.Alignment>> guiAlignmentMappingsBuilder = enumMappings -> {
+            enumMappings.put("LEFT", OverlayElement.Alignment.LEFT);
+            enumMappings.put("CENTER", OverlayElement.Alignment.CENTER);
+            enumMappings.put("RIGHT", OverlayElement.Alignment.RIGHT);
         };
         
         mappings.put("overlay/enabled", new BooleanMapper(config.overlay.enabled));
@@ -88,7 +88,14 @@ public class LegacyConfig extends ScathaProFile
         mappings.put("sounds/muteCrystalHollowsSounds", new BooleanMapper(config.sounds.muteCrystalHollowsSounds));
         mappings.put("sounds/muteCrystalHollowsSounds.keepDragonLairSounds", new BooleanMapper(config.sounds.keepDragonLairSounds));
         
-        mappings.put("alerts/mode", new StringMapper(config.alerts.mode));
+        mappings.put("alerts/mode", new SingleValueMapper<>(config.alerts.mode) {
+            @Override
+            public void load(String oldValueString)
+            {
+                AlertMode mode = scathaPro.alertModeManager.getModeByID(oldValueString);
+                if (mode != null) configValue.set(mode);
+            }
+        });
         mappings.put("alerts/customModeSubmode", new StringMapper(config.alerts.customModeSubmode));
         mappings.put("alerts/title/scale", new FloatMapper(config.alerts.titleScale));
         mappings.put("alerts/title/positionX", new FloatMapper(config.alerts.titlePositionX));

@@ -2,10 +2,10 @@ package namelessju.scathapro.gui.overlay;
 
 import com.mojang.blaze3d.platform.Window;
 import namelessju.scathapro.ScathaPro;
-import namelessju.scathapro.gui.overlay.elements.GuiContainer;
-import namelessju.scathapro.gui.overlay.elements.GuiElement;
-import namelessju.scathapro.gui.overlay.elements.GuiImage;
-import namelessju.scathapro.gui.overlay.elements.GuiText;
+import namelessju.scathapro.gui.overlay.elements.OverlayContainer;
+import namelessju.scathapro.gui.overlay.elements.OverlayElement;
+import namelessju.scathapro.gui.overlay.elements.OverlayImage;
+import namelessju.scathapro.gui.overlay.elements.OverlayText;
 import namelessju.scathapro.util.TextUtil;
 import namelessju.scathapro.util.Util;
 import net.minecraft.ChatFormatting;
@@ -20,10 +20,10 @@ public class CrosshairOverlay
 {
     private final ScathaPro scathaPro;
     
-    private GuiContainer rotationAnglesOverlay;
-    private GuiText yawText;
-    private GuiText pitchText;
-    private GuiImage rotationLockOverlay;
+    private OverlayContainer rotationAnglesOverlay;
+    private OverlayText yawText;
+    private OverlayText pitchText;
+    private OverlayImage rotationLockOverlay;
     
     public CrosshairOverlay(ScathaPro scathaPro)
     {
@@ -34,12 +34,12 @@ public class CrosshairOverlay
     {
         Font font = scathaPro.minecraft.font;
         
-        rotationAnglesOverlay = new GuiContainer(0, 0, 0.75f);
-        rotationAnglesOverlay.add(yawText = new GuiText(font, Util.Color.WHITE, 0, 0, 1f));
-        rotationAnglesOverlay.add(pitchText = new GuiText(font, Util.Color.WHITE, 0, 0, 1f));
-        pitchText.setAlignment(GuiElement.Alignment.CENTER);
+        rotationAnglesOverlay = new OverlayContainer(0, 0, 0.75f);
+        rotationAnglesOverlay.add(yawText = new OverlayText(font, Util.Color.WHITE, 0, 0, 1f));
+        rotationAnglesOverlay.add(pitchText = new OverlayText(font, Util.Color.WHITE, 0, 0, 1f));
+        pitchText.setAlignment(OverlayElement.Alignment.CENTER);
         
-        rotationLockOverlay = new GuiImage("lock.png", 16, 16, 0, 0, 1f);
+        rotationLockOverlay = new OverlayImage("lock.png", 16, 16, 0, 0, 1f);
         
         updateLayout();
     }

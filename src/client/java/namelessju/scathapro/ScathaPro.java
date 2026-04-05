@@ -1,25 +1,38 @@
 package namelessju.scathapro;
 
 import com.mojang.brigadier.CommandDispatcher;
-import namelessju.scathapro.managers.CustomAlertModeManager;
+import namelessju.scathapro.achievements.AchievementLogicManager;
+import namelessju.scathapro.achievements.AchievementManager;
+import namelessju.scathapro.alerts.AlertManager;
+import namelessju.scathapro.alerts.alertmodes.AlertModeManager;
+import namelessju.scathapro.alerts.alertmodes.customalertmode.CustomAlertModeManager;
 import namelessju.scathapro.apis.HypixelModApiImplementation;
 import namelessju.scathapro.commands.AverageMoneyCommand;
 import namelessju.scathapro.commands.DevCommand;
 import namelessju.scathapro.commands.MainCommand;
 import namelessju.scathapro.commands.ScathaChancesCommand;
+import namelessju.scathapro.entitydetection.EntityDetectionManager;
 import namelessju.scathapro.events.ScathaProEvents;
 import namelessju.scathapro.events.listeners.MinecraftLogicListeners;
 import namelessju.scathapro.events.listeners.ScathaProGameplayListeners;
 import namelessju.scathapro.events.listeners.ScathaProMiscListeners;
 import namelessju.scathapro.events.listeners.ScathaProTickListeners;
+import namelessju.scathapro.files.Config;
+import namelessju.scathapro.files.PersistentData;
+import namelessju.scathapro.files.SaveFilesManager;
+import namelessju.scathapro.files.customalertmode.CustomAlertModeMetaUpdater;
+import namelessju.scathapro.files.customalertmode.CustomAlertModePropertiesUpdater;
+import namelessju.scathapro.files.legacy.LegacyConfig;
+import namelessju.scathapro.files.legacy.LegacyPersistentData;
 import namelessju.scathapro.gui.overlay.AlertTitleOverlay;
 import namelessju.scathapro.gui.overlay.CrosshairOverlay;
 import namelessju.scathapro.gui.overlay.MainOverlay;
 import namelessju.scathapro.managers.*;
-import namelessju.scathapro.files.Config;
-import namelessju.scathapro.files.legacy.LegacyConfig;
-import namelessju.scathapro.files.PersistentData;
-import namelessju.scathapro.files.legacy.LegacyPersistentData;
+import namelessju.scathapro.miscellaneous.ItemPopupRenderer;
+import namelessju.scathapro.parsing.ChatParser;
+import namelessju.scathapro.parsing.SoundParser;
+import namelessju.scathapro.parsing.containerscreenparsing.ContainerScreenParsingManager;
+import namelessju.scathapro.sounds.SoundManager;
 import namelessju.scathapro.util.TimeUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandBuildContext;
@@ -34,7 +47,7 @@ import java.util.Queue;
 public abstract class ScathaPro
 {
     public static final String MOD_ID = "scathapro";
-    public static final String MOD_VERSION = "2.0";
+    public static final String MOD_VERSION = "2.1";
     
     /** The true mod name, not influenced by certain features */
     public static final String MOD_NAME = "Scatha-Pro";
@@ -53,11 +66,6 @@ public abstract class ScathaPro
     public static ScathaPro getInstance()
     {
         return instance;
-    }
-    
-    public ScathaPro()
-    {
-        instance = this;
     }
     
     
@@ -79,10 +87,14 @@ public abstract class ScathaPro
     public final AlertModeManager alertModeManager = new AlertModeManager(this);
     public final CustomAlertModeManager customAlertModeManager = new CustomAlertModeManager(this);
     public final EntityDetectionManager entityDetectionManager = new EntityDetectionManager(this);
-    public final ContainerScreenParsingManager containerScreenParsingManager = new ContainerScreenParsingManager(this);
     public final AchievementManager achievementManager = new AchievementManager(this);
     public final AchievementLogicManager achievementLogicManager = new AchievementLogicManager(this);
     public final FFmpegManager ffmpegManager = new FFmpegManager(this);
+    
+    // Parsers
+    public final ContainerScreenParsingManager containerScreenParsingManager = new ContainerScreenParsingManager(this);
+    public final ChatParser chatParser = new ChatParser(this);
+    public final SoundParser soundParser = new SoundParser(this);
     
     // Commands
     public final MainCommand mainCommand = new MainCommand(this);
@@ -95,11 +107,18 @@ public abstract class ScathaPro
     public final AlertTitleOverlay alertTitleOverlay = new AlertTitleOverlay(this);
     public final CrosshairOverlay crosshairOverlay = new CrosshairOverlay(this);
     
+    public final ItemPopupRenderer itemPopupRenderer = new ItemPopupRenderer(minecraft);
     
-    private boolean isLoaded = false;
+    
+    private boolean isGameLoaded = false;
     
     private final Queue<Runnable> runNextTick = new LinkedList<>();
     
+    
+    public ScathaPro()
+    {
+        instance = this;
+    }
     
     /**
      * Gets the mod name to display in most places - may be altered by some features<br>
@@ -161,6 +180,12 @@ public abstract class ScathaPro
         config.save();
         
         customAlertModeManager.init();
+        for (String subModeId : customAlertModeManager.findAllSubModeIds())
+        {
+            new CustomAlertModeMetaUpdater(this, subModeId).load();
+            new CustomAlertModePropertiesUpdater(this, subModeId).load();
+        }
+        
         HypixelModApiImplementation.init(this);
         
         LOGGER.info("Scatha-Pro initialized");
@@ -176,7 +201,7 @@ public abstract class ScathaPro
         alertTitleOverlay.init();
         crosshairOverlay.init();
         
-        isLoaded = true;
+        isGameLoaded = true;
         LOGGER.info("Scatha-Pro fully loaded");
     }
     
@@ -190,7 +215,7 @@ public abstract class ScathaPro
     
     public void tick()
     {
-        if (!isLoaded) return;
+        if (!isGameLoaded) return;
         
         while (!runNextTick.isEmpty())
         {
@@ -203,6 +228,7 @@ public abstract class ScathaPro
         achievementManager.tick();
         alertTitleOverlay.tick();
         mainOverlay.tick();
+        itemPopupRenderer.tick();
     }
     
     public void runNextTick(Runnable runnable)
@@ -236,10 +262,10 @@ public abstract class ScathaPro
         }
     }
     
-    public abstract Path getBaseSaveDirectoryPath();
+    public abstract Path getConfigDirectoryPath();
     
     public Path getSaveDirectoryPath()
     {
-        return getBaseSaveDirectoryPath().resolve(ScathaPro.MOD_ID);
+        return getConfigDirectoryPath().resolve(ScathaPro.MOD_ID);
     }
 }

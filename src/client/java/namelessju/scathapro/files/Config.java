@@ -1,18 +1,18 @@
 package namelessju.scathapro.files;
 
 import namelessju.scathapro.ScathaPro;
-import namelessju.scathapro.gui.overlay.elements.GuiElement;
+import namelessju.scathapro.alerts.alertmodes.AlertMode;
+import namelessju.scathapro.alerts.alertmodes.AlertModeManager;
+import namelessju.scathapro.files.framework.ObjectRootJsonFile;
+import namelessju.scathapro.gui.overlay.elements.OverlayElement;
 import namelessju.scathapro.miscellaneous.data.enums.*;
-import namelessju.scathapro.files.framework.JsonFile;
 
-import java.nio.file.Path;
-
-public class Config extends JsonFile
+public class Config extends ObjectRootJsonFile
 {
     public Config(ScathaPro scathaPro)
     {
-        super(scathaPro, Path.of("configV2.json"), true);
-        setShouldInitializeWithDefaultValues(true);
+        super(scathaPro, scathaPro.getSaveDirectoryPath().resolve("configV2.json").toFile(), true);
+        this.savesDefaultValues = true;
     }
     
     //=========//
@@ -23,14 +23,16 @@ public class Config extends JsonFile
     {
         public final BooleanValue enabled
             = addBoolean("enabled", true);
+        public final BooleanValue showImmediately
+            = addBoolean("showImmediately", false);
         public final PrimitiveValueNullable<Float> positionX
             = addPrimitiveNullable("position.x", FLOAT_SERIALIZER);
         public final PrimitiveValueNullable<Float> positionY
             = addPrimitiveNullable("position.y", FLOAT_SERIALIZER);
         public final PrimitiveValueWithDefault<Float> scale
             = addPrimitiveWithDefault("scale", FLOAT_SERIALIZER, 1f);
-        public final PrimitiveValueNullable<GuiElement.Alignment> alignmentOverride
-            = addPrimitiveNullable("alignmentOverride", new EnumSerializer<>(GuiElement.Alignment.class));
+        public final PrimitiveValueNullable<OverlayElement.Alignment> alignmentOverride
+            = addPrimitiveNullable("alignmentOverride", new EnumSerializer<>(OverlayElement.Alignment.class));
         public final PrimitiveValueWithDefault<SecondaryWormStatsType> statsType
             = addPrimitiveWithDefault("statsType", new EnumSerializer<>(SecondaryWormStatsType.class), SecondaryWormStatsType.PER_LOBBY);
         public final PrimitiveValueWithDefault<Integer> scathaPercentageDecimalPlaces
@@ -43,6 +45,8 @@ public class Config extends JsonFile
             = addBoolean("scathaPercentage.alternativePosition", false);
         public final BooleanValue backgroundEnabled
             = addBoolean("backgroundEnabled", true);
+        public final BooleanValue iconsEnabled
+            = addBoolean("iconsEnabled", true);
         
         public final ToggleableElementStates elementStates = addValue("elementStates", new ToggleableElementStates());
         public static class ToggleableElementStates extends ObjectValue
@@ -67,7 +71,7 @@ public class Config extends JsonFile
     public final AlertSettings alerts = root.addValue("alerts", new AlertSettings());
     public static class AlertSettings extends ObjectValue
     {
-        public final PrimitiveValueNullable<String> mode = addPrimitiveNullable("mode", STRING_SERIALIZER);
+        public final PrimitiveValueWithDefault<AlertMode> mode = addPrimitiveWithDefault("mode", ScathaProSerializers.ALERT_MODE_SERIALIZER, AlertModeManager.DEFAULT_MODE);
         public final PrimitiveValueNullable<String> customModeSubmode = addPrimitiveNullable("customMode.submode", STRING_SERIALIZER);
         
         public final PrimitiveValueWithDefault<Float> titleScale
@@ -76,11 +80,13 @@ public class Config extends JsonFile
             = addPrimitiveWithDefault("title.position.x", FLOAT_SERIALIZER, 0.5f);
         public final PrimitiveValueWithDefault<Float> titlePositionY
             = addPrimitiveWithDefault("title.position.y", FLOAT_SERIALIZER, 0.5f);
-        public final PrimitiveValueNullable<GuiElement.Alignment> titleAlignmentOverride
-            = addPrimitiveNullable("title.alignmentOverride", new EnumSerializer<>(GuiElement.Alignment.class));
+        public final PrimitiveValueNullable<OverlayElement.Alignment> titleAlignmentOverride
+            = addPrimitiveNullable("title.alignmentOverride", new EnumSerializer<>(OverlayElement.Alignment.class));
         
         public final BooleanValue bedrockWallAlertEnabled
             = addBoolean("alertTypes.bedrockWallAlert.enabled", true);
+        public final BooleanValue obstacleAlertEnabled
+            = addBoolean("alertTypes.obstacleAlert.enabled", true);
         public final PrimitiveValueWithDefault<Integer> bedrockWallAlertTriggerDistance
             = addPrimitiveWithDefault("alertTypes.bedrockWallAlert.triggerDistance", INTEGER_SERIALIZER, 15);
         public final BooleanValue oldLobbyAlertEnabled
@@ -116,6 +122,18 @@ public class Config extends JsonFile
             = addPrimitiveWithDefault("alertTypes.antiSleepAlert.intervalMin", INTEGER_SERIALIZER, 3);
         public final PrimitiveValueWithDefault<Integer> antiSleepAlertIntervalMax
             = addPrimitiveWithDefault("alertTypes.antiSleepAlert.intervalMax", INTEGER_SERIALIZER, 10);
+    }
+    
+    //==========//
+    // Pet Drop //
+    //==========//
+    public final PetDropSettings petDrop = root.addValue("petDrop", new PetDropSettings());
+    public static class PetDropSettings extends ObjectValue
+    {
+        public final BooleanValue itemPopupEnabled = addBoolean("itemPopup.enabled", true);
+        public final PrimitiveValueWithDefault<Integer> itemPopupAnimationTicks = addPrimitiveWithDefault("itemPopup.animationTicks", INTEGER_SERIALIZER, 40);
+        public final BooleanValue itemPopupUseAltRotAnimCurve = addBoolean("itemPopup.useAlternativeRotationAnimationCurve", false);
+        public final BooleanValue fireworkEnabled = addBoolean("firework.enabled", true);
     }
     
     //==============//
@@ -174,7 +192,8 @@ public class Config extends JsonFile
         public final BooleanValue rotationAnglesMinimalYawEnabled = addBoolean("rotationAngles.minimalYaw", false);
         public final BooleanValue alternativeCrosshairLayoutEnabled = addBoolean("alternativeCrosshairLayoutEnabled", false);
         public final PrimitiveValueWithDefault<Float> alternativeSensitivity =
-            addPrimitiveWithDefault("alternativeSensitivity", FLOAT_SERIALIZER, 0f); // note: sensitivity is 0-1 as % of the setting slider
+            // note: sensitivity is 0-1 as % of the setting slider
+            addPrimitiveWithDefault("alternativeSensitivity", FLOAT_SERIALIZER, 0f);
         // Automatic stuff
         public final BooleanValue automaticBackupsEnabled = addBoolean("automaticBackups", true);
         public final BooleanValue automaticUpdateCheckEnabled = addBoolean("automaticUpdateCheck", false);
@@ -203,6 +222,10 @@ public class Config extends JsonFile
     public final AccessibilitySettings accessibility = root.addValue("accessibility", new AccessibilitySettings());
     public static class AccessibilitySettings extends ObjectValue
     {
+        public final PrimitiveValueWithDefault<DateFormat> dateFormat
+            = addPrimitiveWithDefault("dateFormat", new EnumSerializer<>(DateFormat.class), DateFormat.SYSTEM);
+        public final PrimitiveValueWithDefault<TimeFormat> timeFormat
+            = addPrimitiveWithDefault("timeFormat", new EnumSerializer<>(TimeFormat.class), TimeFormat.SYSTEM);
         public final BooleanValue useHighContrastColors = addBoolean("useHighContrastColors", false);
     }
     

@@ -19,7 +19,10 @@ import net.minecraft.server.packs.resources.IoSupplier;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -181,6 +184,6 @@ public class CustomAlertModePackResources implements PackResources
     
     private @NonNull Path getAssetsPath(@NonNull String subMode)
     {
-        return Util.resolvePath(scathaPro.customAlertModeManager.submodesDirectory, subMode, "assets");
+        return Util.resolvePath(scathaPro.customAlertModeManager.subModesDirectory, subMode, "assets");
     }
 }

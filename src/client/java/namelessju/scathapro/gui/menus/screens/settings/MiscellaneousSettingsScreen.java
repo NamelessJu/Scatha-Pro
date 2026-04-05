@@ -1,8 +1,10 @@
 package namelessju.scathapro.gui.menus.screens.settings;
 
 import namelessju.scathapro.ScathaPro;
-import namelessju.scathapro.gui.menus.framework.widgets.lists.TwoColumnGuiList;
 import namelessju.scathapro.gui.menus.framework.screens.ConfigScreen;
+import namelessju.scathapro.gui.menus.framework.widgets.lists.TwoColumnGuiList;
+import namelessju.scathapro.miscellaneous.data.enums.DateFormat;
+import namelessju.scathapro.miscellaneous.data.enums.TimeFormat;
 import namelessju.scathapro.util.TextUtil;
 import namelessju.scathapro.util.TimeUtil;
 import net.minecraft.ChatFormatting;
@@ -35,17 +37,35 @@ public class MiscellaneousSettingsScreen extends ConfigScreen
         
         TwoColumnGuiList list = addScrollList();
         
+        list.addSingleColumn(CycleButton.builder(
+                value -> Component.literal(value.toString()),
+                config.accessibility.timeFormat.get()
+            )
+            .withValues(TimeFormat.values())
+            .create(
+                Component.literal("Time Format"),
+                (button, value) -> scathaPro.config.accessibility.timeFormat.set(value)
+            )
+        );
+        list.addSingleColumn(CycleButton.builder(
+                value -> Component.literal(value.toString()),
+                config.accessibility.dateFormat.get()
+            )
+            .withValues(DateFormat.values())
+            .create(
+                Component.literal("Date Format"),
+                (button, value) -> scathaPro.config.accessibility.dateFormat.set(value)
+            )
+        );
+        
         list.addDoubleColumn(booleanConfigButton(
             "Automatic Bestiary Parsing",
             config.miscellaneous.automaticStatsParsingEnabled,
             value -> Tooltip.create(
                 Component.literal("Automatically reads kills and bestiary Magic Find from the worm bestiary menu")
                     .withStyle(ChatFormatting.GRAY)
-            ),
-            null
+            ), null
         ));
-        
-        list.addDoubleColumn(booleanConfigButton("Automatic Pet Drop Screenshot", config.miscellaneous.automaticPetDropScreenshotEnabled));
         
         list.addDoubleColumn(booleanConfigButton(
             "High Contrast Colors", config.accessibility.useHighContrastColors,
