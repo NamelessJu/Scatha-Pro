@@ -23,6 +23,7 @@ public class CustomAlertModeMetaUpdater extends ScathaProFile
     @Override
     protected void deserialize(@Nullable String content)
     {
+        if (content == null) return;
         JsonElement parsedJson = JsonUtil.parseJson(content);
         if (!(parsedJson instanceof JsonObject jsonObject)) return;
         root = jsonObject;

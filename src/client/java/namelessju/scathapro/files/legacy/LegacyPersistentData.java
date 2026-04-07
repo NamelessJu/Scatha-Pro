@@ -24,6 +24,7 @@ public class LegacyPersistentData extends ScathaProFile
     @Override
     protected void deserialize(@Nullable String content)
     {
+        if (content == null) return;
         if (!(JsonUtil.parseJson(content) instanceof JsonObject jsonObject)) return;
         
         updatePlayerData(jsonObject);
