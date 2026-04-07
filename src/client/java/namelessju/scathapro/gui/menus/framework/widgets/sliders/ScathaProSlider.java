@@ -1,7 +1,5 @@
 package namelessju.scathapro.gui.menus.framework.widgets.sliders;
 
-import com.mojang.blaze3d.platform.cursor.CursorTypes;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
@@ -30,14 +28,6 @@ public abstract class ScathaProSlider<T> extends AbstractSliderButton
         this.name = name;
         this.valueComponentSupplier = valueComponentSupplier;
         this.onValueChanged = onValueChanged;
-    }
-    
-    @Override
-    public void renderWidget(@NonNull GuiGraphics guiGraphics, int i, int j, float f)
-    {
-        super.renderWidget(guiGraphics, i, j, f);
-        
-        if (this.isHovered() && !this.isActive()) guiGraphics.requestCursor(CursorTypes.NOT_ALLOWED);
     }
     
     @SuppressWarnings("unchecked")

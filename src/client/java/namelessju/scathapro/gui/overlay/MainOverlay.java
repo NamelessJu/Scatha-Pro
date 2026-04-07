@@ -21,7 +21,7 @@ import namelessju.scathapro.util.Util;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -299,16 +299,16 @@ public class MainOverlay
             && !minecraft.debugEntries.isOverlayVisible() && !((PlayerTabOverlayAccessor) minecraft.gui.getTabList()).isVisible();
     }
     
-    public void renderIfVisible(GuiGraphics guiGraphics, DeltaTracker deltaTracker)
+    public void extractRenderStateIfVisible(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker)
     {
         mainContainer.setVisible(isEnabled() && isVisible());
-        mainContainer.render(guiGraphics, deltaTracker);
+        mainContainer.extractRenderStateIfVisible(guiGraphics, deltaTracker);
     }
     
-    public void render(GuiGraphics guiGraphics, DeltaTracker deltaTracker)
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker)
     {
         mainContainer.setVisible(isEnabled());
-        mainContainer.render(guiGraphics, deltaTracker);
+        mainContainer.extractRenderStateIfVisible(guiGraphics, deltaTracker);
     }
     
     public void updateContrast()
@@ -720,7 +720,7 @@ public class MainOverlay
     {
         Level level = minecraft.level;
         
-        long worldTime = level != null ? level.getDayTime() : -1L;
+        long worldTime = level != null ? level.getDefaultClockTime() : -1L;
         int worldDay = worldTime >= 0L ? (int) Math.floor(worldTime / 24000f) : 0;
         float worldDayProgress = worldTime >= 0L ? (worldTime % 24000f) / 24000f : 0f;
         

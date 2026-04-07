@@ -3,10 +3,11 @@ package namelessju.scathapro.gui.overlay.elements;
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.util.TimeUtil;
 import net.minecraft.client.DeltaTracker;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
+import org.jetbrains.annotations.UnknownNullability;
 
 public class TunnelVisionEffectProgressBar extends OverlayElement
 {
@@ -25,7 +26,7 @@ public class TunnelVisionEffectProgressBar extends OverlayElement
     }
     
     @Override
-    protected void renderContent(GuiGraphics guiGraphics, DeltaTracker deltaTracker)
+    protected void extractContent(@UnknownNullability GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker)
     {
         int yOffset = (int) ((TimeUtil.getEpochMilliseconds() / 100L) % 32);
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, textureIdentifier,

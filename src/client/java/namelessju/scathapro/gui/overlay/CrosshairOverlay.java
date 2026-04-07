@@ -11,7 +11,7 @@ import namelessju.scathapro.util.Util;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -62,7 +62,7 @@ public class CrosshairOverlay
         }
     }
     
-    public void render(GuiGraphics guiGraphics, DeltaTracker deltaTracker)
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker)
     {
         LocalPlayer player = scathaPro.minecraft.player;
         if (player == null) return;
@@ -80,13 +80,13 @@ public class CrosshairOverlay
         if (scathaPro.config.miscellaneous.rotationAnglesEnabled.get())
         {
             updateRotationAngles(player);
-            rotationAnglesOverlay.render(guiGraphics, deltaTracker);
+            rotationAnglesOverlay.extractRenderStateIfVisible(guiGraphics, deltaTracker);
         }
         
         // Rotation Lock
         if (scathaPro.inputManager.isCameraRotationLocked())
         {
-            rotationLockOverlay.render(guiGraphics, deltaTracker);
+            rotationLockOverlay.extractRenderStateIfVisible(guiGraphics, deltaTracker);
         }
         
         guiGraphics.pose().popMatrix();

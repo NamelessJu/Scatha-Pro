@@ -1,6 +1,6 @@
 package namelessju.scathapro.gui.menus.widgets;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
@@ -14,14 +14,14 @@ public class HoverArea extends Button
     }
     
     @Override
-    protected void renderContents(@NonNull GuiGraphics guiGraphics, int i, int j, float f)
+    protected void extractContents(@NonNull GuiGraphicsExtractor guiGraphics, int i, int j, float f)
     {
-        this.renderDefaultSprite(guiGraphics);
-        this.renderDefaultLabel(guiGraphics.textRendererForWidget(this, GuiGraphics.HoveredTextEffects.NONE));
+        this.extractDefaultSprite(guiGraphics);
+        this.extractDefaultLabel(guiGraphics.textRendererForWidget(this, GuiGraphicsExtractor.HoveredTextEffects.NONE));
     }
     
     @Override
-    protected void handleCursor(@NonNull GuiGraphics guiGraphics)
+    protected void handleCursor(@NonNull GuiGraphicsExtractor guiGraphics)
     {
         // no cursor changes
     }

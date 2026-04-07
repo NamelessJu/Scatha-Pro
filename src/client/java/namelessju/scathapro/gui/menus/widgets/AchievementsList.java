@@ -10,7 +10,7 @@ import namelessju.scathapro.util.TimeUtil;
 import namelessju.scathapro.util.Util;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
@@ -194,7 +194,7 @@ public class AchievementsList extends AbstractWidget
     protected void updateWidgetNarration(@NonNull NarrationElementOutput narrationElementOutput) {}
     
     @Override
-    protected void renderWidget(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks)
+    protected void extractWidgetRenderState(@NonNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks)
     {
         int contentX = getContentX();
         
@@ -204,7 +204,7 @@ public class AchievementsList extends AbstractWidget
             guiGraphics.scissorStack.push(getRectangle());
             for (AchievementListEntry listEntry : listEntries)
             {
-                listEntry.render(guiGraphics, mouseX, mouseY, partialTicks);
+                listEntry.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
                 
                 if (this.hoveredEntry == null && this.isHovered && listEntry.isHovered)
                 {
@@ -222,7 +222,7 @@ public class AchievementsList extends AbstractWidget
             }
             else emptyListText = "No achievements found";
             
-            guiGraphics.drawString(font, emptyListText,
+            guiGraphics.text(font, emptyListText,
                 contentX + CONTENT_WIDTH/2 - font.width(emptyListText)/2,
                 getY() + height/2 - Mth.ceil(font.lineHeight*0.5f),
                 Util.Color.GRAY, true
@@ -245,7 +245,7 @@ public class AchievementsList extends AbstractWidget
             && mouseX < scrollBarX + scrollBarWidth + 2 && mouseY < scrollBarY + scrollBarHeight;
         
         
-        guiGraphics.drawString(font, unlockedAchievementsComponent,
+        guiGraphics.text(font, unlockedAchievementsComponent,
             contentX + CONTENT_WIDTH/2 - font.width(unlockedAchievementsComponent)/2,
             getY() - 13,
             Util.Color.WHITE, true
@@ -391,7 +391,7 @@ public class AchievementsList extends AbstractWidget
     
     public int getScrollBarHeight()
     {
-        return Math.round(Math.max(Math.min((float) height / contentHeight, 1f), 0.1f) * height);
+        return Math.round(Math.clamp((float) height / contentHeight, 0.1f, 1f) * height);
     }
     
     public int getScrollBarRelativeY()
@@ -441,17 +441,17 @@ public class AchievementsList extends AbstractWidget
             this.entryUnscrolledY = getY() + relativeUnscrolledY;
         }
         
-        public void render(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks)
+        public void extractRenderState(@NonNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks)
         {
             if (!isVisible) return;
             int scrolledY = getScrolledY();
             isHovered = AchievementsList.this.isHovered && guiGraphics.containsPointInScissor(mouseX, mouseY)
                 && new ScreenRectangle(entryX, scrolledY, entryWidth, entryHeight).containsPoint(mouseX, mouseY);
             if (scrolledY + entryHeight < getY() || scrolledY >= getY() + height) return;
-            renderContent(guiGraphics, mouseX, mouseY, partialTicks);
+            extractContent(guiGraphics, mouseX, mouseY, partialTicks);
         }
         
-        protected abstract void renderContent(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks);
+        protected abstract void extractContent(@NonNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks);
         
         public void click() {}
         
@@ -497,14 +497,14 @@ public class AchievementsList extends AbstractWidget
         }
         
         @Override
-        protected void renderContent(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks)
+        protected void extractContent(@NonNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks)
         {
             int scrolledY = getScrolledY();
             
             guiGraphics.fill(entryX, scrolledY, entryX + entryWidth, scrolledY + entryHeight, 0xA008080A);
-            if (this.isHovered) guiGraphics.renderOutline(entryX, scrolledY, entryWidth, entryHeight, Util.Color.WHITE);
+            if (this.isHovered) guiGraphics.outline(entryX, scrolledY, entryWidth, entryHeight, Util.Color.WHITE);
             
-            guiGraphics.drawString(font, component,
+            guiGraphics.text(font, component,
                 entryX + entryWidth/2 - font.width(component)/2, scrolledY + 6,
                 Util.Color.GOLD, true
             );
@@ -617,7 +617,7 @@ public class AchievementsList extends AbstractWidget
         }
 
         @Override
-        public void renderContent(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks)
+        public void extractContent(@NonNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks)
         {
             int scrolledY = getScrolledY();
             
@@ -628,13 +628,13 @@ public class AchievementsList extends AbstractWidget
             // Achievement name
             
             int maxNameWidth = entryWidth - CARD_PADDING * 2 - (unlockTimeComponent != null ? font.width(unlockTimeComponent) + 4 : 0);
-            renderScrollingText(guiGraphics, titleComponent, entryX + CARD_PADDING, scrolledY + CARD_PADDING, maxNameWidth);
+            extractScrollingText(guiGraphics, titleComponent, entryX + CARD_PADDING, scrolledY + CARD_PADDING, maxNameWidth);
             
             // Unlock time
             
             if (unlockTimeComponent != null)
             {
-                guiGraphics.drawString(font, unlockTimeComponent,
+                guiGraphics.text(font, unlockTimeComponent,
                     entryX + entryWidth - CARD_PADDING - font.width(unlockTimeComponent), scrolledY + CARD_PADDING,
                     Util.Color.WHITE, true
                 );
@@ -678,7 +678,7 @@ public class AchievementsList extends AbstractWidget
             
             // Progress Numbers
             
-            guiGraphics.drawString(font, progressComponent,
+            guiGraphics.text(font, progressComponent,
                 entryX + CARD_PADDING + progressBarWidth - font.width(progressComponent), scrolledY + CARD_PADDING + 12,
                 Util.Color.WHITE, true
             );
@@ -686,11 +686,11 @@ public class AchievementsList extends AbstractWidget
             // Description
             
             int maxDescriptionWidth = entryWidth - CARD_PADDING * 2 - font.width(progressComponent) - 4;
-            renderScrollingText(guiGraphics, descriptionComponent, entryX + CARD_PADDING, scrolledY + CARD_PADDING + 12, maxDescriptionWidth);
+            extractScrollingText(guiGraphics, descriptionComponent, entryX + CARD_PADDING, scrolledY + CARD_PADDING + 12, maxDescriptionWidth);
         }
     }
     
-    private void renderScrollingText(@NonNull GuiGraphics guiGraphics, @NonNull Component component, int x, int y, int maxWidth)
+    private void extractScrollingText(@NonNull GuiGraphicsExtractor guiGraphics, @NonNull Component component, int x, int y, int maxWidth)
     {
         int overflow = Math.max(font.width(component) - maxWidth, 0);
         int animatedOffset = overflow != 0 && TEXT_SCROLL_SPEED != 0
@@ -702,7 +702,7 @@ public class AchievementsList extends AbstractWidget
                 x, y, maxWidth, font.lineHeight
             ));
         }
-        guiGraphics.drawString(font, component,
+        guiGraphics.text(font, component,
             x - animatedOffset, y,
             Util.Color.WHITE, true
         );

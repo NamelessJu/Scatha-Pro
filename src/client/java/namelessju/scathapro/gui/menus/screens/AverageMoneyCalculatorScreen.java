@@ -14,6 +14,7 @@ import net.minecraft.util.FormattedCharSequence;
 import org.jspecify.annotations.NonNull;
 
 import java.math.RoundingMode;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AverageMoneyCalculatorScreen extends LayoutScreen
 {
@@ -54,7 +55,7 @@ public class AverageMoneyCalculatorScreen extends LayoutScreen
             "Pet Luck", "0", Style.EMPTY.withColor(ChatFormatting.LIGHT_PURPLE)
         ));
         gridBuilder.addSingleCell(Button.builder(Component.literal("Import Saved EMF"),
-            button -> {
+            _ -> {
                 setValue(magicFindInput, scathaPro.persistentDataProfileManager.getTotalMagicFind(false));
                 setValue(petLuckInput, scathaPro.getProfileData().petLuck.getOr(-1f));
             }
@@ -145,29 +146,41 @@ public class AverageMoneyCalculatorScreen extends LayoutScreen
     
     private EditBox makeEditBox(String name, String hint, Style valueStyle)
     {
+        AtomicBoolean isValid = new AtomicBoolean(true);
         EditBox editBox = new EditBox(font, 0, 0, Component.literal(name));
-        editBox.setFilter(value -> {
-            if (value.isEmpty() || value.equals(".")) return true;
-            try
-            {
-                float numberValue = Float.parseFloat(value);
-                return numberValue >= 0f;
-            }
-            catch (NumberFormatException e)
-            {
-                return false;
-            }
-        });
         if (hint != null) editBox.setHint(Component.literal(hint));
-        if (valueStyle != null) editBox.addFormatter(new EditBox.TextFormatter()
-        {
-            @Override
-            public @NonNull FormattedCharSequence format(@NonNull String string, int i)
-            {
-                return FormattedCharSequence.forward(string, valueStyle);
-            }
+        // Keep first formatter so it takes priority
+        editBox.addFormatter((text, _) -> {
+            if (isValid.get()) return null;
+            return Component.literal(text)
+                .withStyle(ChatFormatting.RED, ChatFormatting.ITALIC)
+                .getVisualOrderText();
         });
-        editBox.setResponder(value -> calculate());
+        if (valueStyle != null) editBox.addFormatter(
+            (string, _) -> FormattedCharSequence.forward(string, valueStyle)
+        );
+        editBox.setResponder(value -> {
+            if (!value.isEmpty() && !value.equals("."))
+            {
+                value = value.trim();
+                if (value.endsWith("d") || value.endsWith("f")) isValid.set(false);
+                else
+                {
+                    try
+                    {
+                        float numberValue = Float.parseFloat(value);
+                        isValid.set(numberValue >= 0f);
+                    }
+                    catch (NumberFormatException e)
+                    {
+                        isValid.set(false);
+                    }
+                }
+            }
+            else isValid.set(true);
+            
+            calculate();
+        });
         return editBox;
     }
     

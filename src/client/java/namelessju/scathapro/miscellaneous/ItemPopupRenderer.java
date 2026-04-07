@@ -1,16 +1,24 @@
 package namelessju.scathapro.miscellaneous;
 
+import com.mojang.blaze3d.ProjectionType;
 import com.mojang.blaze3d.platform.Lighting;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.Projection;
+import net.minecraft.client.renderer.ProjectionMatrixBuffer;
+import net.minecraft.client.renderer.RenderBuffers;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -48,7 +56,19 @@ public class ItemPopupRenderer
         }
     }
     
-    public void render(SubmitNodeCollector submitNodeCollector, float partialTicks)
+    public void render(ProjectionMatrixBuffer hud3dProjectionMatrixBuffer, Projection hudProjection,
+                       SubmitNodeCollector submitNodeCollector, DeltaTracker deltaTracker,
+                       FeatureRenderDispatcher featureRenderDispatcher, RenderBuffers renderBuffers)
+    {
+        RenderSystem.setProjectionMatrix(hud3dProjectionMatrixBuffer.getBuffer(hudProjection), ProjectionType.PERSPECTIVE);
+        //noinspection DataFlowIssue
+        RenderSystem.getDevice().createCommandEncoder().clearDepthTexture(Minecraft.getInstance().getMainRenderTarget().getDepthTexture(), 1D);
+        renderItem(submitNodeCollector, deltaTracker.getGameTimeDeltaPartialTick(true));
+        featureRenderDispatcher.renderAllFeatures();
+        renderBuffers.bufferSource().endBatch();
+    }
+    
+    private void renderItem(SubmitNodeCollector submitNodeCollector, float partialTicks)
     {
         if (itemStack == null || animationTicksRemaining <= 0) return;
         
@@ -102,7 +122,7 @@ public class ItemPopupRenderer
         itemStackRenderState.submit(poseStack, submitNodeCollector, 15728880, OverlayTexture.NO_OVERLAY, 0);
     }
     
-    public void popup(ItemStack itemStack, int animationTicks, boolean alternativeRotationAnimationCurve, boolean angled)
+    public void popup(@NonNull ItemStack itemStack, int animationTicks, boolean alternativeRotationAnimationCurve, boolean angled)
     {
         if (animationTicks <= 0) throw new IllegalArgumentException("Item popup animation length must be greater than 0!");
         

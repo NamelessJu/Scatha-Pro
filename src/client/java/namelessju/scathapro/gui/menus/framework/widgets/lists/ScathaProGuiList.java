@@ -1,7 +1,7 @@
 package namelessju.scathapro.gui.menus.framework.widgets.lists;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import net.minecraft.client.gui.components.events.GuiEventListener;
@@ -104,7 +104,7 @@ public class ScathaProGuiList extends ContainerObjectSelectionList<ScathaProGuiL
         }
         
         @Override
-        public void renderContent(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, boolean bl, float partialTicks)
+        public void extractContent(@NonNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, boolean bl, float partialTicks)
         {
             for (PositionedChild child : positionedChildren)
             {
@@ -112,7 +112,7 @@ public class ScathaProGuiList extends ContainerObjectSelectionList<ScathaProGuiL
                     getX() + child.x + (child.isCentered ? -child.widget.getWidth()/2 : 0),
                     getContentY() + child.y
                 );
-                child.widget.render(guiGraphics, mouseX, mouseY, partialTicks);
+                child.widget.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
             }
         }
         

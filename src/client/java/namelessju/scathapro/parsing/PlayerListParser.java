@@ -141,17 +141,6 @@ public final class PlayerListParser
         }
     }
     
-    private static void parseIndex(Minecraft minecraft, int index, Consumer<String> playerListEntryConsumer)
-    {
-        List<PlayerInfo> playerInfos = getPlayerInfos(minecraft);
-        if (playerInfos.size() <= index) return;
-        
-        PlayerInfo playerInfo = playerInfos.get(index);
-        Component displayName = playerInfo.getTabListDisplayName();
-        if (displayName == null) return;
-        playerListEntryConsumer.accept(StringDecomposer.getPlainText(displayName));
-    }
-    
     private static void parseNamedIntValue(String playerListLine, String valueName, Consumer<Integer> valueConsumer)
     {
         ScathaPro.LOGGER.debug("Checking for player list int value \"{}\"", valueName);

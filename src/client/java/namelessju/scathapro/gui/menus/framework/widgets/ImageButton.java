@@ -1,7 +1,7 @@
 package namelessju.scathapro.gui.menus.framework.widgets;
 
 import namelessju.scathapro.ScathaPro;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.CommonComponents;
@@ -25,9 +25,9 @@ public class ImageButton extends Button
     }
     
     @Override
-    protected void renderContents(@NonNull GuiGraphics guiGraphics, int i, int j, float f)
+    protected void extractContents(@NonNull GuiGraphicsExtractor guiGraphics, int i, int j, float f)
     {
-        this.renderDefaultSprite(guiGraphics);
+        this.extractDefaultSprite(guiGraphics);
         
         guiGraphics.nextStratum();
         guiGraphics.pose().pushMatrix();

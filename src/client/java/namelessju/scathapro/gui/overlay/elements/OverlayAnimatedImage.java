@@ -2,7 +2,7 @@ package namelessju.scathapro.gui.overlay.elements;
 
 import namelessju.scathapro.util.TimeUtil;
 import net.minecraft.client.DeltaTracker;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 public class OverlayAnimatedImage extends OverlayImage
 {
@@ -22,14 +22,14 @@ public class OverlayAnimatedImage extends OverlayImage
     }
     
     @Override
-    protected void renderContent(GuiGraphics guiGraphics, DeltaTracker deltaTracker)
+    protected void extractContent(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker)
     {
         if (imageIdentifier == null) return;
         
         int currentFrame = (int) (TimeUtil.getEpochMilliseconds() / frameTimeMs % frameCount);
         float v = currentFrame * textureHeight;
         
-        renderColoredImage(guiGraphics,
+        extractColoredImage(guiGraphics,
             0f, v,
             textureWidth, textureHeight,
             textureWidth, textureHeight * frameCount

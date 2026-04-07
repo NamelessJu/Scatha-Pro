@@ -6,7 +6,7 @@ import namelessju.scathapro.gui.menus.widgets.HoverArea;
 import namelessju.scathapro.gui.menus.widgets.OverlayContentList;
 import namelessju.scathapro.gui.overlay.elements.OverlayElement;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.gui.navigation.ScreenAxis;
@@ -58,15 +58,15 @@ public class OverlayContentScreen extends ConfigScreen
     }
     
     @Override
-    public void render(@NonNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks)
+    public void extractRenderState(@NonNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks)
     {
-        super.render(guiGraphics, mouseX, mouseY, partialTicks);
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
         
         if (previewHoverArea.isHovered())
         {
             descriptionTooltip = null;
             guiElementTooltipComponent.setContent(scathaPro.mainOverlay.getMainElement(), true);
-            renderElementTooltip(guiGraphics, mouseX, mouseY, new BelowWidgetTooltipPositioner(previewHoverArea.getRectangle()));
+            extractTooltip(guiGraphics, mouseX, mouseY, new BelowWidgetTooltipPositioner(previewHoverArea.getRectangle()));
         }
         else
         {
@@ -75,13 +75,13 @@ public class OverlayContentScreen extends ConfigScreen
             
             descriptionTooltip = hoveredEntry.descriptionTooltip;
             guiElementTooltipComponent.setContent(hoveredEntry.toggleableElement.element(), false);
-            renderElementTooltip(guiGraphics, mouseX, mouseY, new MenuTooltipPositioner(hoveredEntry.button.getRectangle()));
+            extractTooltip(guiGraphics, mouseX, mouseY, new MenuTooltipPositioner(hoveredEntry.button.getRectangle()));
         }
     }
     
-    private void renderElementTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY, ClientTooltipPositioner positioner)
+    private void extractTooltip(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, ClientTooltipPositioner positioner)
     {
-        guiGraphics.renderTooltip(font, getTooltipComponents(), mouseX, mouseY, positioner, null);
+        guiGraphics.tooltip(font, getTooltipComponents(), mouseX, mouseY, positioner, null);
     }
     
     private List<ClientTooltipComponent> getTooltipComponents()
@@ -145,7 +145,7 @@ public class OverlayContentScreen extends ConfigScreen
         }
         
         @Override
-        public void renderImage(@NonNull Font font, int x, int y, int width, int height, @NonNull GuiGraphics guiGraphics)
+        public void extractImage(@NonNull Font font, int x, int y, int width, int height, @NonNull GuiGraphicsExtractor guiGraphics)
         {
             if (overlayElement == null) return;
             
@@ -162,7 +162,7 @@ public class OverlayContentScreen extends ConfigScreen
             guiGraphics.pose().pushMatrix();
             guiGraphics.pose().translate(x, y);
             if (hasBackgroundTexture) guiGraphics.pose().translate(tooltipBackgroundPaddingHorizontal, tooltipBackgroundPaddingVertical);
-            overlayElement.forceRender(guiGraphics, scathaPro.minecraft.getDeltaTracker(), false, false, null);
+            overlayElement.extractRenderState(guiGraphics, scathaPro.minecraft.getDeltaTracker(), false, false, null);
             guiGraphics.pose().popMatrix();
         }
     }

@@ -2,7 +2,7 @@ package namelessju.scathapro.gui.menus.screens.settings.overlay;
 
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.gui.menus.framework.screens.ConfigScreen;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import org.jspecify.annotations.NonNull;
 
@@ -14,11 +14,11 @@ public abstract class OverlaySettingsScreen extends ConfigScreen
     }
     
     @Override
-    public void renderBackground(@NonNull GuiGraphics guiGraphics, int i, int j, float f)
+    public void extractBackground(@NonNull GuiGraphicsExtractor guiGraphics, int i, int j, float f)
     {
-        super.renderBackground(guiGraphics, i, j, f);
+        super.extractBackground(guiGraphics, i, j, f);
         
-        scathaPro.mainOverlay.render(guiGraphics, minecraft.getDeltaTracker());
+        scathaPro.mainOverlay.extractRenderState(guiGraphics, minecraft.getDeltaTracker());
     }
     
     @Override

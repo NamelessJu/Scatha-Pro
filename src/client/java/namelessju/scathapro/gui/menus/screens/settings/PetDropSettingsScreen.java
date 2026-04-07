@@ -12,6 +12,7 @@ import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.Items;
 import org.jspecify.annotations.NonNull;
 
 public class PetDropSettingsScreen extends ConfigScreen
@@ -28,7 +29,7 @@ public class PetDropSettingsScreen extends ConfigScreen
         
         GridBuilder gridBuilder = new GridBuilder();
         gridBuilder.addSingleCell(booleanConfigButton("Scatha Pet Item Popup", config.petDrop.itemPopupEnabled,
-            value -> Tooltip.create(
+            _ -> Tooltip.create(
                 Component.literal("Pops up the Scatha pet item when you drop one, similar to Totems of Undying")
                     .withStyle(ChatFormatting.GRAY)
             ), null
@@ -40,22 +41,32 @@ public class PetDropSettingsScreen extends ConfigScreen
             value -> config.petDrop.itemPopupAnimationTicks.set(value * 20)
         ).setValueComponentSupplier(IntegerSlider.SECONDS_COMPONENT_SUPPLIER));
         gridBuilder.addSingleCell(booleanConfigButton("Slower Popup Rotation", config.petDrop.itemPopupUseAltRotAnimCurve,
-            value -> Tooltip.create(
+            _ -> Tooltip.create(
                 Component.literal("Rotates the item more evenly instead of rapidly speeding up and slowing down at the start and end")
                     .withStyle(ChatFormatting.GRAY)
             ), null
         ));
-        gridBuilder.addSingleCell(Button.builder(Component.literal("Play Preview"),
-            button -> scathaPro.itemPopupRenderer.popup(
+        Button popupPreviewButton;
+        gridBuilder.addSingleCell(popupPreviewButton = Button.builder(Component.literal("Play Preview"),
+            _ -> scathaPro.itemPopupRenderer.popup(
                     Constants.generateScathaPetItem(Rarity.LEGENDARY),
                     Mth.clamp(scathaPro.config.petDrop.itemPopupAnimationTicks.get(), 1, 200),
                     scathaPro.config.petDrop.itemPopupUseAltRotAnimCurve.get(),
                     true
                 )
             ).build());
+        // No idea what method you're supposed to use instead so just ignore the damn warning
+        //noinspection deprecation
+        if (!Items.PLAYER_HEAD.builtInRegistryHolder().areComponentsBound())
+        {
+            popupPreviewButton.active = false;
+            popupPreviewButton.setTooltip(Tooltip.create(
+                Component.literal("Items aren't loaded yet,\ncannot render preview").withStyle(ChatFormatting.YELLOW)
+            ));
+        }
         gridBuilder.addGap();
         gridBuilder.addSingleCell(booleanConfigButton("Firework Explosion", config.petDrop.fireworkEnabled,
-            value -> Tooltip.create(
+            _ -> Tooltip.create(
                 Component.literal("Explodes a firework in front of you, colored to match the dropped rarity")
                     .withStyle(ChatFormatting.GRAY)
             ), null

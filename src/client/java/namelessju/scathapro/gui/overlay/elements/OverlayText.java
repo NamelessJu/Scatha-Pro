@@ -2,7 +2,7 @@ package namelessju.scathapro.gui.overlay.elements;
 
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 
 public class OverlayText extends OverlayElement
@@ -30,12 +30,10 @@ public class OverlayText extends OverlayElement
     }
 
     @Override
-    protected void renderContent(GuiGraphics guiGraphics, DeltaTracker deltaTracker)
+    protected void extractContent(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker)
     {
-        if (text != null)
-        {
-            guiGraphics.drawString(font, text, 0, 0, color, true);
-        }
+        if (text == null) return;
+        guiGraphics.text(font, text, 0, 0, color, true);
     }
     
     @Override

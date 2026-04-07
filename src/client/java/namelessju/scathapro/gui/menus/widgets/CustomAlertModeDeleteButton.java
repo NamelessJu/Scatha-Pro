@@ -2,7 +2,7 @@ package namelessju.scathapro.gui.menus.widgets;
 
 import namelessju.scathapro.ScathaPro;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
@@ -29,11 +29,11 @@ public class CustomAlertModeDeleteButton extends Button
     }
     
     @Override
-    protected void renderContents(@NonNull GuiGraphics guiGraphics, int i, int j, float f)
+    protected void extractContents(@NonNull GuiGraphicsExtractor guiGraphics, int i, int j, float f)
     {
-        this.renderDefaultSprite(guiGraphics);
-        this.renderScrollingStringOverContents(
-            guiGraphics.textRendererForWidget(this, GuiGraphics.HoveredTextEffects.NONE),
+        this.extractDefaultSprite(guiGraphics);
+        this.extractScrollingStringOverContents(
+            guiGraphics.textRendererForWidget(this, GuiGraphicsExtractor.HoveredTextEffects.NONE),
             isHoveredOrFocused() ? Component.empty().append(getMessage()).withStyle(ChatFormatting.RED) : getMessage(),
             2
         );

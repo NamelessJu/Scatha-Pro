@@ -8,7 +8,7 @@ import namelessju.scathapro.gui.overlay.elements.OverlaySpacing;
 import namelessju.scathapro.gui.overlay.elements.OverlayText;
 import namelessju.scathapro.util.Util;
 import net.minecraft.client.DeltaTracker;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
@@ -83,7 +83,7 @@ public class AlertTitleOverlay
         }
     }
     
-    public void render(GuiGraphics guiGraphics, DeltaTracker deltaTracker)
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker)
     {
         if (animationTicksLeft <= 0) return;
         
@@ -108,10 +108,10 @@ public class AlertTitleOverlay
         opacity = Mth.clamp(opacity, 0, 255);
         updateColor(opacity);
         
-        container.render(guiGraphics, deltaTracker);
+        container.extractRenderStateIfVisible(guiGraphics, deltaTracker);
     }
     
-    public void renderStaticComponents(GuiGraphics guiGraphics, DeltaTracker deltaTracker, Component titleText, Component subtitleText)
+    public void extractWithComponents(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker, Component titleText, Component subtitleText)
     {
         animationTicksLeft = 0;
         
@@ -125,7 +125,7 @@ public class AlertTitleOverlay
         );
         
         updateColor(255);
-        container.render(guiGraphics, deltaTracker);
+        container.extractRenderStateIfVisible(guiGraphics, deltaTracker);
     }
     
     private void updateColor(int opacity)

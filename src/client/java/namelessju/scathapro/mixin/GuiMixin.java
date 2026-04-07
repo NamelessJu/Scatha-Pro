@@ -5,7 +5,7 @@ import namelessju.scathapro.gui.menus.screens.FakeBanScreen;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,44 +18,45 @@ public abstract class GuiMixin
     @Shadow private int titleTime;
     
     @Inject(
-        method = "render",
+        method = "extractRenderState",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/Gui;renderEffects(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V",
+            target = "Lnet/minecraft/client/gui/Gui;extractEffects(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/DeltaTracker;)V",
             ordinal = 0,
             shift = At.Shift.AFTER
         )
     )
-    private void onRenderOverlay(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci)
+    private void extractMainOverlay(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci)
     {
-        ScathaPro.getInstance().mainOverlay.renderIfVisible(guiGraphics, deltaTracker);
+        ScathaPro.getInstance().mainOverlay.extractRenderStateIfVisible(graphics, deltaTracker);
     }
     
     @Inject(
-        method = "render",
+        method = "extractRenderState",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/Gui;renderTitle(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V",
+            target = "Lnet/minecraft/client/gui/Gui;extractTitle(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/DeltaTracker;)V",
             ordinal = 0,
             shift = At.Shift.AFTER
         )
     )
-    private void afterRenderTitle(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci)
+    private void afterExtractTitle(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci)
     {
-        ScathaPro.getInstance().alertTitleOverlay.render(guiGraphics, deltaTracker);
+        ScathaPro.getInstance().alertTitleOverlay.extractRenderState(graphics, deltaTracker);
     }
     
     @Inject(
-        method = "render",
+        method = "extractRenderState",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/gui/Gui;renderCrosshair(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V",
-            ordinal = 0
+            target = "Lnet/minecraft/client/gui/Gui;extractCrosshair(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/DeltaTracker;)V",
+            ordinal = 0,
+            shift = At.Shift.AFTER
         )
     )
-    private void beforeRenderCrosshair(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci)
+    private void afterExtractCrosshair(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci)
     {
-        ScathaPro.getInstance().crosshairOverlay.render(guiGraphics, deltaTracker);
+        ScathaPro.getInstance().crosshairOverlay.extractRenderState(graphics, deltaTracker);
     }
     
     @Inject(
@@ -71,11 +72,11 @@ public abstract class GuiMixin
     }
     
     @Inject(
-        method = "render",
+        method = "extractRenderState",
         at = @At("HEAD"),
         cancellable = true
     )
-    private void beforeRender(CallbackInfo ci)
+    private void beforeExtractRenderState(CallbackInfo ci)
     {
         if (Minecraft.getInstance().screen instanceof FakeBanScreen)
         {

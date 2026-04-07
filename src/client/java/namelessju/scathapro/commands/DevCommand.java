@@ -301,7 +301,7 @@ public class DevCommand extends ScathaProCommand
                                 boolean alternativeRotAnimCurve = BoolArgumentType.getBool(context, "Alternative Rotation Animation Curve");
                                 boolean angled = BoolArgumentType.getBool(context, "Angled");;
                                 scathaPro.itemPopupRenderer.popup(
-                                    itemInput.createItemStack(1, false), animationTicks, alternativeRotAnimCurve, angled
+                                    itemInput.createItemStack(1), animationTicks, alternativeRotAnimCurve, angled
                                 );
                                 return Command.SINGLE_SUCCESS;
                             })

@@ -130,6 +130,9 @@ public class Constants
     public static final UUID devUUID = UUID.fromString("e9be3984-b097-40c9-8fb4-d8aaeb2b4838");
     
     
+    /**
+     * Throws an exception if item components aren't bound yet!
+     */
     public static @NonNull ItemStack generateScathaPetItem(@NonNull Rarity rarity)
     {
         ItemStack scathaPetItem = new ItemStack(Items.PLAYER_HEAD);

@@ -1,7 +1,7 @@
 package namelessju.scathapro.gui.menus.screens;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.DisconnectedScreen;
 import net.minecraft.network.DisconnectionDetails;
 import net.minecraft.network.chat.Component;
@@ -49,14 +49,14 @@ public class FakeBanScreen extends DisconnectedScreen
     }
     
     @Override
-    public void renderBackground(@NonNull GuiGraphics guiGraphics, int i, int j, float f)
+    public void extractBackground(@NonNull GuiGraphicsExtractor guiGraphics, int i, int j, float f)
     {
         // Always draw main menu background
         // Note: GuiMixin cancels GUI rendering while this screen is open,
         // otherwise the crosshair would show up in front of the panorama
-        this.renderPanorama(guiGraphics, f);
-        this.renderBlurredBackground(guiGraphics);
-        this.renderMenuBackground(guiGraphics);
+        this.extractPanorama(guiGraphics, f);
+        this.extractBlurredBackground(guiGraphics);
+        this.extractMenuBackground(guiGraphics);
     }
     
     @Override

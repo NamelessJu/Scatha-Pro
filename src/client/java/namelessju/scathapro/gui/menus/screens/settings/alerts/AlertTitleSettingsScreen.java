@@ -5,7 +5,7 @@ import namelessju.scathapro.gui.menus.framework.screens.ConfigScreen;
 import namelessju.scathapro.gui.menus.framework.widgets.sliders.FloatSlider;
 import namelessju.scathapro.gui.overlay.elements.OverlayElement;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -38,11 +38,11 @@ public class AlertTitleSettingsScreen extends ConfigScreen
     }
     
     @Override
-    public void renderBackground(@NonNull GuiGraphics guiGraphics, int i, int j, float f)
+    public void extractBackground(@NonNull GuiGraphicsExtractor guiGraphics, int i, int j, float f)
     {
-        super.renderBackground(guiGraphics, i, j, f);
+        super.extractBackground(guiGraphics, i, j, f);
         
-        scathaPro.alertTitleOverlay.renderStaticComponents(
+        scathaPro.alertTitleOverlay.extractWithComponents(
             guiGraphics, minecraft.getDeltaTracker(),
             Component.literal("Example Title").withStyle(ChatFormatting.GREEN),
             Component.literal("This is what alerts will look like").withStyle(ChatFormatting.GRAY)

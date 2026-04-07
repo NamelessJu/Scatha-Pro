@@ -9,7 +9,7 @@ import namelessju.scathapro.miscellaneous.data.enums.Rarity;
 import namelessju.scathapro.mixin.ChatComponentAccessor;
 import namelessju.scathapro.util.TextUtil;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.GuiMessage;
+import net.minecraft.client.multiplayer.chat.GuiMessage;
 import net.minecraft.network.chat.*;
 import net.minecraft.util.StringDecomposer;
 import org.jspecify.annotations.NonNull;
@@ -124,7 +124,7 @@ public class ChatManager
     {
         if (scathaPro.minecraft.player != null)
         {
-            scathaPro.minecraft.player.displayClientMessage(message, false);
+            scathaPro.minecraft.player.sendSystemMessage(message);
             return true;
         }
         return false;

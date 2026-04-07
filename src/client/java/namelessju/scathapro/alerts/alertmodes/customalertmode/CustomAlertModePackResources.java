@@ -8,7 +8,6 @@ import namelessju.scathapro.util.Util;
 import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.packs.BuiltInMetadata;
 import net.minecraft.server.packs.PackLocationInfo;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
@@ -16,6 +15,7 @@ import net.minecraft.server.packs.metadata.MetadataSectionType;
 import net.minecraft.server.packs.metadata.pack.PackMetadataSection;
 import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.server.packs.resources.IoSupplier;
+import net.minecraft.server.packs.resources.ResourceMetadata;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -31,7 +31,7 @@ import java.util.Set;
 public class CustomAlertModePackResources implements PackResources
 {
     public static final String NAMESPACE = "scathapro_customalertmode";
-    private static final BuiltInMetadata METADATA = BuiltInMetadata.of(PackMetadataSection.CLIENT_TYPE, new PackMetadataSection(
+    private static final ResourceMetadata METADATA = ResourceMetadata.of(PackMetadataSection.CLIENT_TYPE, new PackMetadataSection(
         Component.empty(),
         SharedConstants.getCurrentVersion().packVersion(PackType.CLIENT_RESOURCES).minorRange()
     ));
@@ -65,7 +65,7 @@ public class CustomAlertModePackResources implements PackResources
     @Override
     public <T> T getMetadataSection(@NonNull MetadataSectionType<T> type)
     {
-        return METADATA.get(type);
+        return METADATA.getSection(type).orElse(null);
     }
     
     @Override

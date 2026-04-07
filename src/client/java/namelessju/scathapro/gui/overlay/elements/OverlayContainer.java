@@ -1,7 +1,7 @@
 package namelessju.scathapro.gui.overlay.elements;
 
 import net.minecraft.client.DeltaTracker;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +18,7 @@ public class OverlayContainer extends OverlayElement
     }
     
     @Override
-    protected void renderContent(GuiGraphics guiGraphics, DeltaTracker deltaTracker)
+    protected void extractContent(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker)
     {
         if (backgroundColor != null) guiGraphics.fill(0, 0, getWidth(), getHeight(), backgroundColor);
         
@@ -28,7 +28,7 @@ public class OverlayContainer extends OverlayElement
         
         for (OverlayElement element : children)
         {
-            element.render(guiGraphics, deltaTracker);
+            element.extractRenderStateIfVisible(guiGraphics, deltaTracker);
         }
         
         guiGraphics.pose().popMatrix();

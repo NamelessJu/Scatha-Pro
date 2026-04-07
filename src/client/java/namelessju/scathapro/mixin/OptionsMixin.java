@@ -1,6 +1,5 @@
 package namelessju.scathapro.mixin;
 
-
 import com.google.common.collect.Lists;
 import namelessju.scathapro.ScathaPro;
 import net.minecraft.client.KeyMapping;

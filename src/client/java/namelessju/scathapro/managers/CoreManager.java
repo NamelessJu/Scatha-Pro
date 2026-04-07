@@ -337,7 +337,7 @@ public class CoreManager
         
         if (lastCrystalHollowsDay != -1)
         {
-            int day = (int) Math.floor(level.getDayTime() / 24000f);
+            int day = (int) Math.floor(level.getDefaultClockTime() / 24000f);
             if (day > lastCrystalHollowsDay)
             {
                 ScathaPro.LOGGER.debug("Crystal hollows day increased from {} to {}", lastCrystalHollowsDay, day);

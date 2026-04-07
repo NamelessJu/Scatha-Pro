@@ -2,7 +2,7 @@ package namelessju.scathapro.gui.overlay.elements;
 
 import com.mojang.blaze3d.platform.Window;
 import net.minecraft.client.DeltaTracker;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import org.jspecify.annotations.Nullable;
 
 public class OverlayDynamicContainer extends OverlayContainer
@@ -33,7 +33,7 @@ public class OverlayDynamicContainer extends OverlayContainer
     }
 
     @Override
-    protected void renderContent(GuiGraphics guiGraphics, DeltaTracker deltaTracker)
+    protected void extractContent(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker)
     {
         int contentWidth = getContentWidth();
         
@@ -70,7 +70,7 @@ public class OverlayDynamicContainer extends OverlayContainer
                             break;
                     }
                     
-                    child.forceRender(guiGraphics, deltaTracker, false, true, contentAlignment);
+                    child.extractRenderState(guiGraphics, deltaTracker, false, true, contentAlignment);
                     
                     previousChildMargin = child.marginBottom;
                     break;
@@ -79,7 +79,7 @@ public class OverlayDynamicContainer extends OverlayContainer
                     directionOffset = firstVisible ? 0 : Math.max(child.getX(), previousChildMargin);
                     guiGraphics.pose().translate(directionOffset, child.getY());
                     
-                    child.forceRender(guiGraphics, deltaTracker, false, true, Alignment.LEFT);
+                    child.extractRenderState(guiGraphics, deltaTracker, false, true, Alignment.LEFT);
                     
                     previousChildMargin = child.marginRight;
                     break;

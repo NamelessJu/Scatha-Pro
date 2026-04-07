@@ -1,7 +1,7 @@
 package namelessju.scathapro.gui.overlay.elements;
 
 import net.minecraft.client.DeltaTracker;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 public class OverlaySpacing extends OverlayElement
 {
@@ -26,7 +26,7 @@ public class OverlaySpacing extends OverlayElement
     }
     
     @Override
-    protected void renderContent(GuiGraphics guiGraphics, DeltaTracker deltaTracker)
+    protected void extractContent(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker)
     {
         // nothing to see here
     }

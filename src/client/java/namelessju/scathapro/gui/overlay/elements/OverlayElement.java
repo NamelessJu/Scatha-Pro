@@ -1,7 +1,7 @@
 package namelessju.scathapro.gui.overlay.elements;
 
 import net.minecraft.client.DeltaTracker;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.util.Mth;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -55,13 +55,13 @@ public abstract class OverlayElement
         return (T) this;
     }
     
-    public void render(GuiGraphics guiGraphics, DeltaTracker deltaTracker)
+    public void extractRenderStateIfVisible(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker)
     {
         if (!visible) return;
-        forceRender(guiGraphics, deltaTracker, true, true, this.alignment);
+        extractRenderState(guiGraphics, deltaTracker, true, true, this.alignment);
     }
     
-    public void forceRender(GuiGraphics guiGraphics, DeltaTracker deltaTracker, boolean positioned, boolean scaled, @Nullable Alignment alignment)
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker, boolean positioned, boolean scaled, @Nullable Alignment alignment)
     {
         guiGraphics.nextStratum();
         guiGraphics.pose().pushMatrix();
@@ -80,12 +80,12 @@ public abstract class OverlayElement
         }
         if (scaled) guiGraphics.pose().scale(scale, scale);
         
-        renderContent(guiGraphics, deltaTracker);
+        extractContent(guiGraphics, deltaTracker);
         
         guiGraphics.pose().popMatrix();
     }
     
-    protected abstract void renderContent(GuiGraphics guiGraphics, DeltaTracker deltaTracker);
+    protected abstract void extractContent(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker);
 
     public void setPosition(int x, int y)
     {

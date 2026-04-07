@@ -24,7 +24,7 @@ public abstract class MouseHandlerMixin
         at = @At("HEAD"),
         cancellable = true
     )
-    private void preventPlayerRotation(double d, CallbackInfo ci)
+    private void preventPlayerRotation(double mousea, CallbackInfo ci)
     {
         if (ScathaPro.getInstance().inputManager.isCameraRotationLocked())
         {

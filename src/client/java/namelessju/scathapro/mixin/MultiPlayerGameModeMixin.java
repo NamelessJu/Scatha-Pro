@@ -22,12 +22,12 @@ public abstract class MultiPlayerGameModeMixin
             target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;ensureHasSentCarriedItem()V"
         )
     )
-    private void onUseItem(Player player, InteractionHand interactionHand, CallbackInfoReturnable<InteractionResult> cir)
+    private void onUseItem(Player player, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir)
     {
         if (player instanceof LocalPlayer localPlayer)
         {
             ScathaProEvents.useItemEvent.trigger(ScathaPro.getInstance(), new ScathaProEvents.UseItemEventData(
-                localPlayer, localPlayer.getItemInHand(interactionHand)
+                localPlayer, localPlayer.getItemInHand(hand)
             ));
         }
     }
