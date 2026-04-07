@@ -17,6 +17,10 @@ repositories {
         url = "https://maven.terraformersmc.com/"
     }
     maven { url 'https://repo.hypixel.net/repository/Hypixel/' }
+    maven {
+        name = "Modrinth"
+        url = "https://api.modrinth.com/maven"
+    }
 }
 
 loom {
@@ -41,14 +45,14 @@ dependencies {
 	mappings loom.officialMojangMappings()
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-    modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:${project.devauth_version}")
+    modRuntimeOnly "me.djtheredstoner:DevAuth-fabric:${project.devauth_version}"
 
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
-    modImplementation("com.terraformersmc:modmenu:${project.modmenu_version}")
-
-    var hypixelModApiDependency = "net.hypixel:mod-api:${project.hypixel_mod_api_version}"
-    implementation hypixelModApiDependency
-    include hypixelModApiDependency
+    modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
+    implementation "net.hypixel:mod-api:${project.hypixel_mod_api_version}"
+    var hypixelModApiBuildDependency = "maven.modrinth:hypixel-mod-api:${project.hypixel_mod_api_build_version}"
+    modRuntimeOnly hypixelModApiBuildDependency
+    include hypixelModApiBuildDependency
 }
 
 processResources {
