@@ -19,6 +19,7 @@ import net.minecraft.network.chat.MutableComponent;
 import org.apache.commons.compress.utils.Lists;
 import org.jspecify.annotations.NonNull;
 
+import java.time.LocalTime;
 import java.util.List;
 
 public class MiscellaneousSettingsScreen extends ConfigScreen
@@ -42,9 +43,12 @@ public class MiscellaneousSettingsScreen extends ConfigScreen
                 config.accessibility.timeFormat.get()
             )
             .withValues(TimeFormat.values())
+            .withTooltip(value -> Tooltip.create(Component.literal(
+                "Example: " + value.format(LocalTime.now(), false)
+            ).withStyle(ChatFormatting.GRAY)))
             .create(
                 Component.literal("Time Format"),
-                (button, value) -> scathaPro.config.accessibility.timeFormat.set(value)
+                (_, value) -> scathaPro.config.accessibility.timeFormat.set(value)
             )
         );
         list.addSingleColumn(CycleButton.builder(
@@ -52,16 +56,19 @@ public class MiscellaneousSettingsScreen extends ConfigScreen
                 config.accessibility.dateFormat.get()
             )
             .withValues(DateFormat.values())
+            .withTooltip(value -> Tooltip.create(Component.literal(
+                "Example: " + value.format(TimeUtil.today())
+            ).withStyle(ChatFormatting.GRAY)))
             .create(
                 Component.literal("Date Format"),
-                (button, value) -> scathaPro.config.accessibility.dateFormat.set(value)
+                (_, value) -> scathaPro.config.accessibility.dateFormat.set(value)
             )
         );
         
         list.addDoubleColumn(booleanConfigButton(
             "Automatic Bestiary Parsing",
             config.miscellaneous.automaticStatsParsingEnabled,
-            value -> Tooltip.create(
+            _ -> Tooltip.create(
                 Component.literal("Automatically reads kills and bestiary Magic Find from the worm bestiary menu")
                     .withStyle(ChatFormatting.GRAY)
             ), null
@@ -69,10 +76,10 @@ public class MiscellaneousSettingsScreen extends ConfigScreen
         
         list.addDoubleColumn(booleanConfigButton(
             "High Contrast Colors", config.accessibility.useHighContrastColors,
-            value -> Tooltip.create(
+            _ -> Tooltip.create(
                 Component.literal("Turns gray overlay\nand title text to white").withStyle(ChatFormatting.GRAY)
             ),
-            (button, value) -> scathaPro.mainOverlay.updateContrast()
+            (_, _) -> scathaPro.mainOverlay.updateContrast()
         ));
         
         if (scathaPro.getProfileData().lastAprilFoolsJokeShownYear.getOr(-1) >= 0)
@@ -115,7 +122,7 @@ public class MiscellaneousSettingsScreen extends ConfigScreen
                 googlyEyesButton = booleanConfigButton(
                     "Overlay Icon Googly Eyes",
                     config.unlockables.overlayIconGooglyEyesEnabled,
-                    null, (button, value) -> updateGooglyEyesButtonEnabled()
+                    null, (_, _) -> updateGooglyEyesButtonEnabled()
                 );
                 updateGooglyEyesButtonEnabled();
                 list.addDoubleColumn(googlyEyesButton);

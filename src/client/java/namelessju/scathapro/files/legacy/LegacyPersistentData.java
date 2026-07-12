@@ -18,7 +18,7 @@ public class LegacyPersistentData extends ScathaProFile
 {
     public LegacyPersistentData(ScathaPro scathaPro)
     {
-        super(scathaPro, scathaPro.getConfigDirectoryPath().resolve("persistentData.json").toFile());
+        super(scathaPro, scathaPro.getSaveDirectoryPath().resolve("persistentData.json").toFile());
     }
     
     @Override

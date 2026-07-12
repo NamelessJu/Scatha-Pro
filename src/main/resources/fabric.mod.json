@@ -3,7 +3,7 @@
 	"id": "scathapro",
 	"version": "${version}",
 	"name": "Scatha-Pro",
-	"description": "A mod for improved Scatha farming on Hypixel Skyblock\n\"/scathapro\" for more info",
+	"description": "A mod for improved Scatha farming on Hypixel SkyBlock",
 	"authors": [
 		"NamelessJu"
 	],
@@ -31,7 +31,7 @@
 	],
 	"depends": {
 		"fabricloader": ">=0.18.6",
-		"minecraft": ">=26.1.1",
+		"minecraft": ">=26.1",
 		"java": ">=25",
 		"fabric-api": "*",
         "hypixel-mod-api": ">=1.0.2"

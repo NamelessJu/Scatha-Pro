@@ -22,7 +22,7 @@ public enum DateFormat
         Locale.getDefault()
     )),
     DD_MM_YYYY("DD.MM.YYYY", DateTimeFormatter.ofPattern("dd.MM.uuuu")),
-    MM_DD_YYYY("MM/DD/YYYY", DateTimeFormatter.ofPattern("MM/dd/uuuu"));
+    MM_DD_YYYY("M/D/YYYY", DateTimeFormatter.ofPattern("M/d/uuuu"));
     
     private final String displayName;
     private final DateTimeFormatter formatter;

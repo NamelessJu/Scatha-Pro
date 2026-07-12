@@ -1,10 +1,9 @@
 plugins {
 	id 'net.fabricmc.fabric-loom' version "${loom_version}"
-	id 'maven-publish'
 }
 
 version = project.mod_version
-group = project.maven_group
+group = project.group
 
 base {
 	archivesName = project.archives_base_name
@@ -71,8 +70,8 @@ tasks.withType(JavaCompile).configureEach {
 java {
 	withSourcesJar()
 
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
 }
 
 jar {

@@ -32,7 +32,7 @@ public class LegacyConfig extends ScathaProFile
     
     public LegacyConfig(ScathaPro scathaPro)
     {
-        super(scathaPro, scathaPro.getConfigDirectoryPath().resolve("config.cfg").toFile());
+        super(scathaPro, scathaPro.getSaveDirectoryPath().resolve("config.cfg").toFile());
     }
     
     private void setupMappings()
@@ -135,9 +135,9 @@ public class LegacyConfig extends ScathaProFile
         mappings.put("other/hideWormSpawnMessage", new BooleanMapper(config.miscellaneous.hideWormSpawnMessage));
         mappings.put("other/dryStreakMessage", new BooleanMapper(config.miscellaneous.dryStreakMessageEnabled));
         mappings.put("other/dailyScathaFarmingStreakMessage", new BooleanMapper(config.miscellaneous.dailyStreakMessagesEnabled));
-        mappings.put("other/chatCopy", new EnumMapper<>(config.miscellaneous.chatCopyButtonMode, enumMappings -> {
-            enumMappings.put("true", ChatCopyButtonMode.SUGGEST_MESSAGE);
-        }));
+        mappings.put("other/chatCopy", new EnumMapper<>(config.miscellaneous.chatCopyButtonMode,
+            enumMappings -> enumMappings.put("true", ChatCopyButtonMode.SUGGEST_MESSAGE)
+        ));
         mappings.put("other/wormSpawnTimer", new BooleanMapper(config.miscellaneous.wormSpawnTimerMessageEnabled));
         mappings.put("other/showRotationAngles", new BooleanMapper(config.miscellaneous.rotationAnglesEnabled));
         mappings.put("other/rotationAnglesYawOnly", new BooleanMapper(config.miscellaneous.rotationAnglesYawOnly));

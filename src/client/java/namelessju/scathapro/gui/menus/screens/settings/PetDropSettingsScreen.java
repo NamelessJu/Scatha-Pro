@@ -10,6 +10,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Items;
@@ -46,6 +47,7 @@ public class PetDropSettingsScreen extends ConfigScreen
                     .withStyle(ChatFormatting.GRAY)
             ), null
         ));
+        
         Button popupPreviewButton;
         gridBuilder.addSingleCell(popupPreviewButton = Button.builder(Component.literal("Play Preview"),
             _ -> scathaPro.itemPopupRenderer.popup(
@@ -55,15 +57,14 @@ public class PetDropSettingsScreen extends ConfigScreen
                     true
                 )
             ).build());
-        // No idea what method you're supposed to use instead so just ignore the damn warning
-        //noinspection deprecation
-        if (!Items.PLAYER_HEAD.builtInRegistryHolder().areComponentsBound())
+        if (!BuiltInRegistries.ITEM.wrapAsHolder(Items.PLAYER_HEAD).areComponentsBound())
         {
             popupPreviewButton.active = false;
             popupPreviewButton.setTooltip(Tooltip.create(
                 Component.literal("Items aren't loaded yet,\ncannot render preview").withStyle(ChatFormatting.YELLOW)
             ));
         }
+        
         gridBuilder.addGap();
         gridBuilder.addSingleCell(booleanConfigButton("Firework Explosion", config.petDrop.fireworkEnabled,
             _ -> Tooltip.create(
@@ -76,6 +77,12 @@ public class PetDropSettingsScreen extends ConfigScreen
         gridBuilder.addToContent(layout);
         
         addDoneButtonFooter();
+    }
+    
+    @Override
+    public boolean isPauseScreen()
+    {
+        return false;
     }
     
     @Override

@@ -18,11 +18,11 @@ public class WormDetector extends EntityDetector
             return null;
         }
         
-        if (unformattedEntityName.contains("[Lv5] Worm "))
+        if (unformattedEntityName.contains("[Lv5]") && unformattedEntityName.contains(" Worm "))
         {
             return new DetectedWorm(scathaPro, entity, false);
         }
-        if (unformattedEntityName.contains("[Lv10] Scatha "))
+        if (unformattedEntityName.contains("[Lv10]") && unformattedEntityName.contains(" Scatha "))
         {
             return new DetectedWorm(scathaPro, entity, true);
         }

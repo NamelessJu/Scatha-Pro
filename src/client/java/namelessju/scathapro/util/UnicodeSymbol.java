@@ -7,11 +7,11 @@ public final class UnicodeSymbol
     // Hypixel specific symbols
     public static final char hypixelArrowRight = '\u279C';
     public static final char hypixelHeart = '\u2764';
-    public static final char magicFind = '\u272F';
-    public static final char petLuck = '\u2663';
-    public static final char mobTypeIconSubterranean = '\u26CF';
-    public static final char mobTypeIconElusive = '\u2743';
-    public static final char mobTypeIconShielded = '\u26E8';
+    public static final char magicFind = '\uE01A';
+    public static final char petLuck = '\uE013';
+    public static final char mobTypeIconSubterranean = '\uE083';
+    public static final char mobTypeIconElusive = '\uE077';
+    public static final char mobTypeIconShielded = '\uE080';
     
     // Generic symbols
     public static final String clipboard = "\uD83D\uDCCB";
