@@ -19,38 +19,38 @@ public class ProfileStatsParser extends ContainerScreenParser
         super(scathaPro);
         this.enabled = false;
     }
-    
+
     @Override
     public String getScreenTitle()
     {
-        return "Your Equipment and Stats";
+        return "Stats & Equipment";
     }
-    
+
     @Override
     public int[] getSlotNumbers()
     {
         return new int[] {25};
     }
-    
+
     @Override
     public void tryParse(ItemStack itemStack, int slotNumber)
     {
         ItemLore itemLore = itemStack.get(DataComponents.LORE);
         if (itemLore == null) return;
         List<Component> loreLines = itemLore.lines();
-        
+
         boolean magicFindFound = false;
         boolean petLuckFound = false;
-        
+
         for (int i = 3; i < loreLines.size() && (!magicFindFound || !petLuckFound); i ++)
         {
             String loreLine = StringDecomposer.getPlainText(loreLines.get(i));
-            
-            // " # Magic Find 123"
+
+            // " # Magic Find 123.4"
             if (loreLine.length() >= 15 && loreLine.startsWith("Magic Find", 3))
             {
                 magicFindFound = true;
-                
+
                 float magicFind;
                 try
                 {
@@ -62,14 +62,14 @@ public class ProfileStatsParser extends ContainerScreenParser
                     ScathaPro.LOGGER.error("Profile Stats Parser: Found Magic Find entry but failed to parse number! (\"{}\")", loreLine);
                     continue;
                 }
-                
+
                 float currentMagicFind = scathaPro.getProfileData().globalMagicFind.getOr(-1f);
                 if (magicFind >= 0f && magicFind != currentMagicFind)
                 {
                     scathaPro.getProfileData().globalMagicFind.set(magicFind);
                     scathaPro.persistentData.save();
                     scathaPro.mainOverlay.updateProfileStats();
-                    
+
                     scathaPro.chatManager.sendChatMessage(Component.empty().withStyle(ChatFormatting.GRAY)
                         .append("Updated saved Magic Find (")
                         .append(TextUtil.numberToComponentOrObf(currentMagicFind))
@@ -77,12 +77,12 @@ public class ProfileStatsParser extends ContainerScreenParser
                     );
                 }
             }
-            
-            // " # Pet Luck 123"
+
+            // " # Pet Luck 123.4"
             else if (loreLine.length() >= 13 && loreLine.startsWith("Pet Luck", 3))
             {
                 petLuckFound = true;
-                
+
                 float petLuck;
                 try
                 {
@@ -94,14 +94,14 @@ public class ProfileStatsParser extends ContainerScreenParser
                     ScathaPro.LOGGER.error("Profile Stats Parser: Found Pet Luck entry but failed to parse number! (\"{}\")", loreLine);
                     continue;
                 }
-                
+
                 float currentPetLuck = scathaPro.getProfileData().petLuck.getOr(-1f);
                 if (petLuck >= 0f && petLuck != currentPetLuck)
                 {
                     scathaPro.getProfileData().petLuck.set(petLuck);
                     scathaPro.persistentData.save();
                     scathaPro.mainOverlay.updateProfileStats();
-                    
+
                     scathaPro.chatManager.sendChatMessage(Component.empty().withStyle(ChatFormatting.GRAY)
                         .append("Updated saved Pet Luck (")
                         .append(TextUtil.numberToComponentOrObf(currentPetLuck))
@@ -111,7 +111,7 @@ public class ProfileStatsParser extends ContainerScreenParser
             }
         }
     }
-    
+
     @Override
     public void onFinishParsing()
     {

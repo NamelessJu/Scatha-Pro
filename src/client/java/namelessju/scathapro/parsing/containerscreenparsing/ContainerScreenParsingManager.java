@@ -45,6 +45,7 @@ public class ContainerScreenParsingManager
         if (!(currentScreen instanceof ContainerScreen containerScreen))
         {
             finishActiveParsers();
+            if (lastCheckedChest != null) profileStatsParser.enabled = false;
             lastCheckedChest = null;
             return;
         }

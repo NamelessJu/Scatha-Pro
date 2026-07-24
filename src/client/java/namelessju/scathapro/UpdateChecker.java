@@ -9,6 +9,9 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
+import net.minecraft.SharedConstants;
+import net.minecraft.network.chat.*;
+import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -27,7 +30,12 @@ public class UpdateChecker
         new Thread(() -> {
             try
             {
-                HttpURLConnection connection = (HttpURLConnection) URI.create(MODRINTH_API_VERSIONS_ENDPOINT + "?loaders=[%22"+ MOD_LOADER +"%22]").toURL().openConnection();
+                String minecraftVersion = getMinecraftVersion();
+
+                HttpURLConnection connection = (HttpURLConnection) URI.create(
+                        MODRINTH_API_VERSIONS_ENDPOINT + "?loaders=[%22"+ MOD_LOADER +"%22]"
+                            + (minecraftVersion != null ? "&game_versions=[%22" + minecraftVersion + "%22]" : "")
+                    ).toURL().openConnection();
                 connection.setRequestMethod("GET");
                 connection.setDoInput(true);
                 connection.setDoOutput(false);
@@ -85,8 +93,8 @@ public class UpdateChecker
                             
                             if (updateComparison > 0)
                             {
-                                String downloadLink = MODRINTH_VERSIONS_BASE_URL + "?l=" + MOD_LOADER;
-                                
+                                String downloadLink = MODRINTH_VERSIONS_BASE_URL + "?l=" + MOD_LOADER + (minecraftVersion != null ? "&g=" + minecraftVersion : "");
+
                                 String finalLatestVersion = latestVersion;
                                 scathaPro.runNextTick(() -> scathaPro.chatManager.sendChatMessage(Component.empty().withStyle(ChatFormatting.GOLD)
                                     .append("A newer " + ScathaPro.MOD_NAME + " version (" + finalLatestVersion + ") is available! You can download it ")
@@ -271,5 +279,16 @@ public class UpdateChecker
             part.equalsIgnoreCase("pre") || part.equalsIgnoreCase("prerelease")
                 || part.equalsIgnoreCase("rc") || part.equalsIgnoreCase("dev")
         );
+    }
+
+    private static @Nullable String getMinecraftVersion()
+    {
+        String minecraftVersion = null;
+        try
+        {
+            minecraftVersion = SharedConstants.getCurrentVersion().name();
+        }
+        catch (IllegalStateException ignored) {}
+        return minecraftVersion;
     }
 }
