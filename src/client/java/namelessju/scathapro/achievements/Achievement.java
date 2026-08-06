@@ -16,8 +16,9 @@ public enum Achievement
     
     worm_kills_1(AchievementCategory.KILL_AMOUNTS, "Long boi", "Kill a worm", 1),
     worm_kills_2(AchievementCategory.KILL_AMOUNTS, "Two digits", "Kill 10 worms", 10),
-    worm_kills_3(AchievementCategory.KILL_AMOUNTS, "Bestiary magic find", "Kill 120 worms", 120),
-    worm_bestiary_max(AchievementCategory.KILL_AMOUNTS, "Worm expert", "Complete the worm bestiary", 400),
+    worm_kills_3(AchievementCategory.KILL_AMOUNTS, "Bestiary magic find", "Kill 125 worms", 125),
+    worm_bestiary_max_v2(AchievementCategory.KILL_AMOUNTS, "Worm expert", "Complete the worm bestiary", 250),
+    worm_bestiary_max(AchievementCategory.KILL_AMOUNTS, "Worm expert (OG)", "Complete the worm bestiary (before Torrhus Canyon update)", 400, AchievementType.LEGACY),
     worm_kills_4(AchievementCategory.KILL_AMOUNTS, "k", "Kill 1,000 worms", 1000),
     worm_kills_5(AchievementCategory.KILL_AMOUNTS, "Worm annihilator", "Kill 10,000 worms", 10_000),
     worm_kills_6(AchievementCategory.KILL_AMOUNTS, "Endangered species", "Kill 25,000 worms", 25_000, AchievementType.BONUS),

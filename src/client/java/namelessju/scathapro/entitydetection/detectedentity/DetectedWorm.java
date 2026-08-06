@@ -34,6 +34,7 @@ public class DetectedWorm extends DetectedEntity
     public DetectedWorm(ScathaPro scathaPro, ArmorStand entity, boolean isScatha)
     {
         super(scathaPro, entity);
+        this.canBeBlackHoled = true;
         this.isScatha = isScatha;
     }
 
@@ -77,33 +78,16 @@ public class DetectedWorm extends DetectedEntity
         switch (leaveWorldReason)
         {
             case KILLED:
-                // check for direct kill
-                boolean countAsKilled = getLastAttackTime() >= 0 && TimeUtil.getEpochMilliseconds() - getLastAttackTime() < Constants.pingTreshold;
-                
-                if (!countAsKilled) // check for kill by fire aspect
-                {
-                    countAsKilled = isFireAspectActive() && (getMaxLifetime() < 0 || getCurrentLifetime() < getMaxLifetime());
-                }
-                if (!countAsKilled && this.lootsharePossible) // check for lootshare
-                {
-                    AABB playerDetectionAABB = AABB.ofSize(this.entity.position(), 60, 60, 60);
-                    if (playerDetectionAABB.contains(player.position()))
-                    {
-                        int nearbyOtherPlayerCount = player.level().getEntities(player, playerDetectionAABB, entity -> entity instanceof Player).size();
-                        if (nearbyOtherPlayerCount > 0)
-                        {
-                            ScathaPro.LOGGER.debug("Worm treated as lootshared");
-                            countAsKilled = true;
-                        }
-                    }
-                }
-                
-                if (countAsKilled)
-                {
-                    if (scappaSound != null) scappaSound.stop();
-                    ScathaProEvents.wormKillEvent.trigger(scathaPro, new ScathaProEvents.WormEventData(this));
-                    ScathaPro.LOGGER.debug("Worm left world, counted as kill");
-                }
+                if (scappaSound != null) scappaSound.stop();
+                ScathaPro.LOGGER.debug("Worm left world near player");
+                WormKillHandler.handleKill(this, player, false);
+                break;
+
+            case BLACK_HOLE:
+                if (scappaSound != null) scappaSound.stop();
+                ScathaPro.LOGGER.debug("Worm left world near black hole");
+                scathaPro.coreManager.lastScathaHitHadShuriken = false;
+                scathaPro.coreManager.startBlackHoleKill(new WormKillHandler(this, player, true));
                 break;
                 
             case LIFETIME_ENDED:
@@ -195,5 +179,60 @@ public class DetectedWorm extends DetectedEntity
     public boolean wasHitWithPerfectGemstoneGauntlet()
     {
         return wasHitWithPerfectGemstoneGauntlet;
+    }
+    
+    public static final class WormKillHandler
+    {
+        private final @NonNull DetectedWorm worm;
+        private final @NonNull LocalPlayer player;
+        private final boolean wasBlackHoled;
+
+        private WormKillHandler(@NonNull DetectedWorm worm, @NonNull LocalPlayer player, boolean wasBlackHoled)
+        {
+            this.worm = worm;
+            this.player = player;
+            this.wasBlackHoled = wasBlackHoled;
+        }
+
+        public void handleKill()
+        {
+            WormKillHandler.handleKill(worm, player, wasBlackHoled);
+        }
+
+        public static void handleKill(@NonNull DetectedWorm worm, @NonNull LocalPlayer player, boolean wasBlackHoled)
+        {
+            // check for direct kill
+            boolean countAsKilled;
+
+            if (wasBlackHoled) countAsKilled = true;
+            else
+            {
+                countAsKilled = worm.getLastAttackTime() >= 0 && TimeUtil.getEpochMilliseconds() - worm.getLastAttackTime() < Constants.pingTreshold;
+
+                if (!countAsKilled) // check for kill by fire aspect
+                {
+                    countAsKilled = worm.isFireAspectActive() && (worm.getMaxLifetime() < 0 || worm.getCurrentLifetime() < worm.getMaxLifetime());
+                }
+                if (!countAsKilled && worm.lootsharePossible) // check for lootshare
+                {
+                    AABB playerDetectionAABB = AABB.ofSize(worm.entity.position(), 60, 60, 60);
+                    if (playerDetectionAABB.contains(player.position()))
+                    {
+                        int nearbyOtherPlayerCount = player.level().getEntities(player, playerDetectionAABB, entity -> entity instanceof Player).size();
+                        if (nearbyOtherPlayerCount > 0)
+                        {
+                            ScathaPro.LOGGER.debug("Worm treated as lootshared");
+                            countAsKilled = true;
+                        }
+                    }
+                }
+            }
+
+            if (countAsKilled)
+            {
+                ScathaProEvents.wormKillEvent.trigger(worm.scathaPro, new ScathaProEvents.WormKillEventData(worm, wasBlackHoled));
+                ScathaPro.LOGGER.debug("Worm killed (black hole: {})", wasBlackHoled);
+            }
+        }
     }
 }

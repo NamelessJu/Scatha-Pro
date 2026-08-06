@@ -10,6 +10,7 @@ import org.jspecify.annotations.Nullable;
 public abstract class DetectedEntity
 {
     protected final @NonNull ScathaPro scathaPro;
+    protected boolean canBeBlackHoled = false;
     
     public final long spawnTime;
     public @NonNull ArmorStand entity;
@@ -27,7 +28,10 @@ public abstract class DetectedEntity
     public void onChangedEntity() {}
     public void onLeaveWorld(@Nullable LeaveWorldReason leaveWorldReason, @NonNull LocalPlayer player) {}
     
-    
+    public boolean canBeBlackHoled()
+    {
+        return canBeBlackHoled;
+    }
     public long getCurrentLifetime()
     {
         return TimeUtil.getEpochMilliseconds() - spawnTime;
@@ -36,6 +40,6 @@ public abstract class DetectedEntity
     
     public enum LeaveWorldReason
     {
-        LIFETIME_ENDED, KILLED, LEFT_SIMULATION_DISTANCE
+        LIFETIME_ENDED, KILLED, BLACK_HOLE, LEFT_SIMULATION_DISTANCE
     }
 }

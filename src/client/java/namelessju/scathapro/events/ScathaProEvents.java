@@ -37,7 +37,7 @@ public class ScathaProEvents
     public static final DatalessEvent wormPreSpawnEvent = new DatalessEvent();
     public static final Event<WormEventData> wormSpawnEvent = new Event<>();
     public static final Event<WormHitEventData> wormHitEvent = new Event<>();
-    public static final Event<WormEventData> wormKillEvent = new Event<>();
+    public static final Event<WormKillEventData> wormKillEvent = new Event<>();
     public static final Event<WormEventData> wormDespawnEvent = new Event<>();
     public static final Event<ScathaPetDropEventData> scathaPetDropEvent = new Event<>();
     public static final Event<ScathaFarmingStreakChangedEventData> scathaFarmingStreakChangedEvent = new Event<>();
@@ -63,6 +63,7 @@ public class ScathaProEvents
     public record DetectedEntityRegisteredEventData(@NonNull DetectedEntity entity) {}
     public record WormEventData(@NonNull DetectedWorm worm) {}
     public record WormHitEventData(@NonNull DetectedWorm worm, @Nullable ItemStack weapon) {}
+    public record WormKillEventData(@NonNull DetectedWorm worm, boolean wasBlackHoled) {}
     public record ScathaPetDropEventData(@NonNull PetDrop petDrop) {}
     public record ScathaFarmingStreakChangedEventData(int streak, int highscore) {}
     public record AchievementUnlockedEventData(UnlockedAchievement unlockedAchievement) {}

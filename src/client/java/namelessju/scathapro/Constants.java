@@ -44,6 +44,7 @@ public class Constants
     public static final int crystalHollowsBoundsMax = 824;
 
     public static final int tunnelVisionEffectDuration = 30_000;
+    public static final short blackHoleSuctionMaxTicksDuration = 200;
     
     public static float applyShurikenMagicFind(float originalMagicFind)
     {

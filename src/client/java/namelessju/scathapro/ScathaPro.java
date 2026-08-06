@@ -17,9 +17,7 @@ import namelessju.scathapro.events.listeners.MinecraftLogicListeners;
 import namelessju.scathapro.events.listeners.ScathaProGameplayListeners;
 import namelessju.scathapro.events.listeners.ScathaProMiscListeners;
 import namelessju.scathapro.events.listeners.ScathaProTickListeners;
-import namelessju.scathapro.files.Config;
-import namelessju.scathapro.files.PersistentData;
-import namelessju.scathapro.files.SaveFilesManager;
+import namelessju.scathapro.files.*;
 import namelessju.scathapro.files.customalertmode.CustomAlertModeMetaUpdater;
 import namelessju.scathapro.files.customalertmode.CustomAlertModePropertiesUpdater;
 import namelessju.scathapro.files.legacy.LegacyConfig;
@@ -47,34 +45,34 @@ import java.util.Queue;
 public abstract class ScathaPro
 {
     public static final String MOD_ID = "scathapro";
-    public static final String MOD_VERSION = "2.1.4";
+    public static final String MOD_VERSION = "2.1.5";
     
     /** The true mod name, not influenced by certain features */
     public static final String MOD_NAME = "Scatha-Pro";
     private static final String MOD_NAME_SCAPPA = "Scappa-Pro";
     private static final String MOD_NAME_APRIL_FOOLS = "Schata-Por";
-    
+
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-    
-    
+
+
     public static Identifier getIdentifier(String path)
     {
         return Identifier.fromNamespaceAndPath(ScathaPro.MOD_ID, path);
     }
-    
+
     private static ScathaPro instance = null;
     public static ScathaPro getInstance()
     {
         return instance;
     }
-    
-    
+
+
     public final Minecraft minecraft = Minecraft.getInstance();
-    
+
     // Files
     public final Config config = new Config(this);
     public final PersistentData persistentData = new PersistentData(this);
-    
+
     // Managers
     public final SaveFilesManager saveFilesManager = new SaveFilesManager(this);
     public final ChatManager chatManager = new ChatManager(this);
@@ -90,36 +88,36 @@ public abstract class ScathaPro
     public final AchievementManager achievementManager = new AchievementManager(this);
     public final AchievementLogicManager achievementLogicManager = new AchievementLogicManager(this);
     public final FFmpegManager ffmpegManager = new FFmpegManager(this);
-    
+
     // Parsers
     public final ContainerScreenParsingManager containerScreenParsingManager = new ContainerScreenParsingManager(this);
     public final ChatParser chatParser = new ChatParser(this);
     public final SoundParser soundParser = new SoundParser(this);
-    
+
     // Commands
     public final MainCommand mainCommand = new MainCommand(this);
     public final DevCommand devCommand = new DevCommand(this);
     public final ScathaChancesCommand scathaChancesCommand = new ScathaChancesCommand(this);
     public final AverageMoneyCommand averageMoneyCommand = new AverageMoneyCommand(this);
-    
+
     // Overlays
     public final MainOverlay mainOverlay = new MainOverlay(this);
     public final AlertTitleOverlay alertTitleOverlay = new AlertTitleOverlay(this);
     public final CrosshairOverlay crosshairOverlay = new CrosshairOverlay(this);
     
     public final ItemPopupRenderer itemPopupRenderer = new ItemPopupRenderer(minecraft);
-    
-    
+
+
     private boolean isGameLoaded = false;
-    
+
     private final Queue<Runnable> runNextTick = new LinkedList<>();
-    
-    
+
+
     public ScathaPro()
     {
         instance = this;
     }
-    
+
     /**
      * Gets the mod name to display in most places - may be altered by some features<br>
      * @see #MOD_NAME
@@ -130,7 +128,7 @@ public abstract class ScathaPro
         if (coreManager.isScappaModeActive()) return MOD_NAME_SCAPPA;
         return MOD_NAME;
     }
-    
+
     /**
      * Called during client mod loading.<br>
      * Note that {@link net.minecraft.client.Minecraft} isn't fully initialized at this point.
@@ -141,7 +139,7 @@ public abstract class ScathaPro
         ScathaProTickListeners.register();
         ScathaProGameplayListeners.register();
         ScathaProMiscListeners.register();
-        
+
         boolean legacyConfigLoaded = false;
         if (!config.getFile().exists())
         {
@@ -171,26 +169,28 @@ public abstract class ScathaPro
         }
         persistentData.load();
         LOGGER.info("Persistent data loaded");
-        
+
+        PersistentDataUpdater.update(persistentData);
+
         persistentDataProfileManager.init();
-        
+
         checkLastUsedVersion();
-        
+
         // Save to initialize missing values
         config.save();
-        
+
         customAlertModeManager.init();
         for (String subModeId : customAlertModeManager.findAllSubModeIds())
         {
             new CustomAlertModeMetaUpdater(this, subModeId).load();
             new CustomAlertModePropertiesUpdater(this, subModeId).load();
         }
-        
+
         HypixelModApiImplementation.init(this);
-        
+
         LOGGER.info("Scatha-Pro initialized");
     }
-    
+
     /**
      * Called after Minecraft has fully loaded.
      */
@@ -200,11 +200,11 @@ public abstract class ScathaPro
         mainOverlay.init();
         alertTitleOverlay.init();
         crosshairOverlay.init();
-        
+
         isGameLoaded = true;
         LOGGER.info("Scatha-Pro fully loaded");
     }
-    
+
     protected final <T> void registerCommands(CommandDispatcher<T> dispatcher, CommandBuildContext context)
     {
         mainCommand.register(dispatcher, context);
@@ -212,16 +212,16 @@ public abstract class ScathaPro
         scathaChancesCommand.register(dispatcher, context);
         averageMoneyCommand.register(dispatcher, context);
     }
-    
+
     public void tick()
     {
         if (!isGameLoaded) return;
-        
+
         while (!runNextTick.isEmpty())
         {
             runNextTick.poll().run();
         }
-        
+
         inputManager.tick();
         coreManager.tick();
         containerScreenParsingManager.tick();
@@ -230,17 +230,17 @@ public abstract class ScathaPro
         mainOverlay.tick();
         itemPopupRenderer.tick();
     }
-    
+
     public void runNextTick(Runnable runnable)
     {
         runNextTick.add(runnable);
     }
-    
+
     public PersistentData.ProfileData getProfileData()
     {
         return persistentDataProfileManager.getCurrentProfileData();
     }
-    
+
     private void checkLastUsedVersion()
     {
         String lastUsedVersion = persistentData.lastUsedModVersion.get();
@@ -250,12 +250,12 @@ public abstract class ScathaPro
             {
                 saveFilesManager.backup("update_" + (lastUsedVersion != null ? lastUsedVersion : "unknown") + "_to_" + MOD_VERSION);
             }
-            
+
             persistentData.lastUsedModVersion.set(MOD_VERSION);
             persistentData.save();
-            
+
             LOGGER.info("New mod version detected!");
-            
+
             ScathaProEvents.newModVersionUsedEvent.trigger(this,
                 new ScathaProEvents.NewModVersionUsedEventData(lastUsedVersion, MOD_VERSION)
             );

@@ -160,12 +160,12 @@ public class MainOverlay
         killsContainer.add(spawnCooldownProgressBar = new OverlayProgressBar(0, 10, 77, 21, 1f, 0x50FFFFFF, -1));
         
         killsContainer.add(new OverlayText("Worms", minecraft.font, Util.Color.YELLOW, 15, 0, 1f).setAlignment(Alignment.CENTER));
-        killsContainer.add(new OverlayImage("overlay/worm.png", 512, 256, -5, 10, 0.08f));
+        killsContainer.add(new OverlayImage("overlay/worm.png", 512, 256, -4, 11, 0.075f));
         killsContainer.add(regularWormKillsText = new OverlayText(minecraft.font, Util.Color.WHITE, 15, 11, 1f).setAlignment(Alignment.CENTER));
         killsContainer.add(secondaryRegularWormKillsText = new OverlayText(minecraft.font, Util.Color.GRAY, 15, 22, 1f).setAlignment(Alignment.CENTER));
         
         killsContainer.add(scathaKillsTitleText = new OverlayText(minecraft.font, Util.Color.YELLOW, 58, 0, 1f).setAlignment(Alignment.CENTER));
-        killsContainer.add(new OverlayImage("overlay/scatha.png", 512, 256, 38, 10, 0.08f));
+        killsContainer.add(new OverlayImage("overlay/scatha.png", 512, 256, 39, 11, 0.075f));
         killsContainer.add(scathaKillsText = new OverlayText(minecraft.font, Util.Color.WHITE, 58, 11, 1f).setAlignment(Alignment.CENTER));
         killsContainer.add(secondaryScathaKillsText = new OverlayText(minecraft.font, Util.Color.GRAY, 58, 22, 1f).setAlignment(Alignment.CENTER));
         

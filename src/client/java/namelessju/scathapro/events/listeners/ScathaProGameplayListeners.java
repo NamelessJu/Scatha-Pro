@@ -188,7 +188,7 @@ public final class ScathaProGameplayListeners
         }
     }
     
-    private static void onWormKill(ScathaPro scathaPro, ScathaProEvents.WormEventData data)
+    private static void onWormKill(ScathaPro scathaPro, ScathaProEvents.WormKillEventData data)
     {
         scathaPro.mainOverlay.setShown(true);
         PlayerListParser.parseProfileStats(scathaPro);

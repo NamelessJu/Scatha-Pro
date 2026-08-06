@@ -55,6 +55,8 @@ public class CoreManager
     public long lastScathaKillTime = -1;
     public long lastPetDropTime = -1;
     public boolean lastScathaHitHadShuriken = false;
+    private DetectedWorm.@Nullable WormKillHandler blackHoleWormKillHandler = null;
+    private short blackHoleWormKillTicksLeft = 0;
     
     public HashMap<Rarity, Integer> previousScathaPets = null;
     public ItemStack lastProjectileWeaponUsed = null;
@@ -239,7 +241,28 @@ public class CoreManager
         }
     }
     
-    
+    public void startBlackHoleKill(DetectedWorm.WormKillHandler killHandler)
+    {
+        this.blackHoleWormKillHandler = killHandler;
+        this.blackHoleWormKillTicksLeft = Constants.blackHoleSuctionMaxTicksDuration;
+    }
+
+    public boolean hasPendingBlackHoleKill()
+    {
+        return blackHoleWormKillTicksLeft > 0;
+    }
+
+    public void triggerBlackHoleKill()
+    {
+        blackHoleWormKillTicksLeft = 0;
+        if (blackHoleWormKillHandler != null)
+        {
+            blackHoleWormKillHandler.handleKill();
+            blackHoleWormKillHandler = null;
+        }
+    }
+
+
     public void tick()
     {
         PersistentData.ProfileData profileData = getProfileData();
@@ -250,6 +273,12 @@ public class CoreManager
         final LocalPlayer player = scathaPro.minecraft.player;
         final Level level = player != null ? player.level() : null;
         if (level != null) tickLevel(player, level);
+        
+        if (blackHoleWormKillTicksLeft > 0)
+        {
+            blackHoleWormKillTicksLeft --;
+            if (blackHoleWormKillTicksLeft <= 0) triggerBlackHoleKill();
+        }
     }
     
     private void tickRealDayCheck(PersistentData.ProfileData profileData)

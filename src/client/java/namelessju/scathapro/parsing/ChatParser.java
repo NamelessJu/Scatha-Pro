@@ -23,6 +23,7 @@ public class ChatParser
     private final ScathaPro scathaPro;
     
     private final Pattern witchesStewEatenPattern = Pattern.compile("^EW! You ate an? (.+?)\\.");
+    private final Pattern scathaShardsCaughtPattern = Pattern.compile("^You caught (?:a|x\\d+) Scatha Shards?!$");
     
     public ChatParser(ScathaPro scathaPro)
     {
@@ -35,8 +36,18 @@ public class ChatParser
     public boolean shouldCancelMessage(@NonNull Component message)
     {
         String unformattedText = StringDecomposer.getPlainText(message);
-        return scathaPro.config.miscellaneous.hideWormSpawnMessage.get()
-            && unformattedText.equalsIgnoreCase("You hear the sound of something approaching...");
+
+        if (scathaPro.config.miscellaneous.hideWormSpawnMessage.get()
+            && unformattedText.equalsIgnoreCase("You hear the sound of something approaching..."))
+            return true;
+
+        if (scathaPro.coreManager.hasPendingBlackHoleKill() && scathaShardsCaughtPattern.matcher(unformattedText).find())
+        {
+            scathaPro.coreManager.triggerBlackHoleKill();
+            return false;
+        }
+
+        return false;
     }
     
     public @NonNull Component beforeMessageAddedEarly(@NonNull Component message)

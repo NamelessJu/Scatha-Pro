@@ -79,6 +79,23 @@ public class EntityDetectionManager
                         getEntityString(detectedEntity), registeredEntities.size()
                     );
                 }
+                else if (detectedEntity.canBeBlackHoled() && scathaPro.minecraft.level != null
+                    && !scathaPro.minecraft.level.getEntities(
+                        detectedEntity.entity, AABB.ofSize(detectedEntity.entity.position(), 7D, 5D, 7D),
+                        entity -> {
+                            Component customName = entity.getCustomName();
+                            return customName != null && customName.getString().contains("Black Hole");
+                        }
+                    ).isEmpty()
+                )
+                {
+                    registeredEntities.remove(detectedEntity.entity.getId());
+                    leaveWorldReason = DetectedEntity.LeaveWorldReason.BLACK_HOLE;
+                    if (ScathaPro.LOGGER.isDebugEnabled()) ScathaPro.LOGGER.debug(
+                        "Entity {} unloaded close to black hole, unregistered ({} total)",
+                        getEntityString(detectedEntity), registeredEntities.size()
+                    );
+                }
                 else if (killAABB.contains(detectedEntity.entity.position()))
                 {
                     registeredEntities.remove(detectedEntity.entity.getId());

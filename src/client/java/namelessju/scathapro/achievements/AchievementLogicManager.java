@@ -69,7 +69,7 @@ public class AchievementLogicManager
                 + scathaPro.secondaryWormStatsManager.perSessionStats.getScathaKills(),
             scathaPro.getProfileData().regularWormKills.get() + scathaPro.getProfileData().scathaKills.get()
         );
-        Achievement.worm_bestiary_max.setProgress(highestWormKills, allowUnlock);
+        Achievement.worm_bestiary_max_v2.setProgress(highestWormKills, allowUnlock);
         Achievement.worm_kills_1.setProgress(highestWormKills, allowUnlock);
         Achievement.worm_kills_2.setProgress(highestWormKills, allowUnlock);
         Achievement.worm_kills_3.setProgress(highestWormKills, allowUnlock);
