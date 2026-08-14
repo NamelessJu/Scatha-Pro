@@ -16,11 +16,11 @@ public class IntegerSlider extends ScathaProSlider<Integer>
         = value -> Component.empty().append(COMPONENT_SUPPLIER.apply(value)).append("s");
     public static final Function<Integer, Component> SECONDS_COMPONENT_SUPPLIER_WITH_OFF
         = value -> value > 0 ? SECONDS_COMPONENT_SUPPLIER.apply(value) : CommonComponents.OPTION_OFF;
-    
+
     private final int min;
     private final int max;
     private int stepSize = 1;
-    
+
     public IntegerSlider(
         int x, int y, int width, int height,
         @NotNull Component name,
@@ -33,25 +33,25 @@ public class IntegerSlider extends ScathaProSlider<Integer>
         this.max = max;
         setMappedValue(initialValue);
     }
-    
+
     public IntegerSlider setStepSize(int stepSize)
     {
         this.stepSize = Math.max(1, stepSize);
         return this;
     }
-    
+
     @Override
     protected Integer progressToValue()
     {
         return (min + (int) Math.round((max - min) * value));
     }
-    
+
     @Override
     protected double valueToProgress(Integer value)
     {
         return (double) (value - min) / (max - min);
     }
-    
+
     @Override
     protected void snapProgress()
     {
@@ -60,7 +60,7 @@ public class IntegerSlider extends ScathaProSlider<Integer>
         relativeInt = Math.round(relativeInt / stepSize) * stepSize;
         value = relativeInt / intRange;
     }
-    
+
     @Override
     public boolean keyPressed(@NonNull KeyEvent keyEvent)
     {
@@ -72,10 +72,10 @@ public class IntegerSlider extends ScathaProSlider<Integer>
             {
                 setMappedValue(progressToValue() + (keyEvent.isLeft() ? -stepSize : stepSize));
             }
-            
+
             return true;
         }
-        
+
         return false;
     }
 }

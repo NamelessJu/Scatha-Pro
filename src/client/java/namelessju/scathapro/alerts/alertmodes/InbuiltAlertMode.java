@@ -24,16 +24,16 @@ public class InbuiltAlertMode extends AlertMode
     public @Nullable SoundData getSoundData(@NonNull Alert alert)
     {
         if (alert.alertId.equals("anti_sleep")) return null;
-        
+
         return SoundData.scathaPro("alert_modes." + id + "." + alert.alertId, 1f, 1f);
     }
-    
+
     @Override
     public @Nullable Component getTitleOverride(@NonNull Alert alert)
     {
         return null;
     }
-    
+
     @Override
     public @Nullable Component getSubtitleOverride(@NonNull Alert alert)
     {

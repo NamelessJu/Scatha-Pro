@@ -9,9 +9,6 @@ import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
-
-import java.util.function.Consumer;
 
 public class OverlayPositionScreen extends OverlaySettingsScreen
 {
@@ -19,30 +16,25 @@ public class OverlayPositionScreen extends OverlaySettingsScreen
     {
         super(scathaPro, "Overlay Position", parentScreen);
     }
-    
+
     @Override
     protected void initLayout(@NonNull HeaderAndFooterLayout layout)
     {
         addTitleHeader();
-        
+
         GridBuilder gridBuilder = new GridBuilder();
-        gridBuilder.addSingleCell(positionSlider("X Position", config.overlay.positionX, value -> scathaPro.mainOverlay.updatePosition()));
-        gridBuilder.addSingleCell(positionSlider("Y Position", config.overlay.positionY, value -> scathaPro.mainOverlay.updatePosition()));
-        gridBuilder.addSingleCell(floatConfigSlider("Scale", 0.25f, 1.75f, config.overlay.scale, value -> {
-                scathaPro.mainOverlay.updateScale();
-                scathaPro.mainOverlay.updatePosition();
-            }))
+        gridBuilder.addSingleCell(positionSlider("X Position", config.overlay.positionX));
+        gridBuilder.addSingleCell(positionSlider("Y Position", config.overlay.positionY));
+        gridBuilder.addSingleCell(floatConfigSlider("Scale", 0.25f, 1.75f, config.overlay.scale, null))
             .setStepSize(0.05f).setValueComponentSupplier(FloatSlider.PERCENTAGE_COMPONENT_SUPPLIER);
         gridBuilder.addSingleCell(nullableEnumCycleButton(
-            OverlayElement.Alignment.class, "Alignment", config.overlay.alignmentOverride, "Automatic",
-            null, (button, value) -> scathaPro.mainOverlay.updateContentAlignment()
+            OverlayElement.Alignment.class, "Alignment", config.overlay.alignmentOverride, "Automatic", null, null
         ));
         addDoneButtonFooterWithWidget(gridBuilder.getGrid());
     }
-    
-    
-    public static IntegerSlider positionSlider(String text, JsonFile.PrimitiveValueNullable<Float> configValue,
-                                               @Nullable Consumer<Integer> onValueChanged)
+
+
+    public static IntegerSlider positionSlider(String text, JsonFile.PrimitiveValueNullable<Float> configValue)
     {
         return new IntegerSlider(
             0, 0, 150, 20,
@@ -51,7 +43,6 @@ public class OverlayPositionScreen extends OverlaySettingsScreen
             value -> {
                 if (value >= 0) configValue.set(value * 0.01f);
                 else configValue.set(null);
-                if (onValueChanged != null) onValueChanged.accept(value);
             }
         ).setValueComponentSupplier(value -> {
             if (value >= 0) return FloatSlider.PERCENTAGE_COMPONENT_SUPPLIER.apply(value * 0.01f);

@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import java.util.List;
 
 @Mixin(PackRepository.class)
-public class PackRepositoryMixin
+public abstract class PackRepositoryMixin
 {
     @ModifyReturnValue(
         method = "openAllSelected",

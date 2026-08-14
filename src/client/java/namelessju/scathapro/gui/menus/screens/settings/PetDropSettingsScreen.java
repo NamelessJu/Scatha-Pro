@@ -5,13 +5,13 @@ import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.gui.menus.framework.screens.ConfigScreen;
 import namelessju.scathapro.gui.menus.framework.widgets.sliders.IntegerSlider;
 import namelessju.scathapro.miscellaneous.data.enums.Rarity;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Items;
 import org.jspecify.annotations.NonNull;
@@ -22,17 +22,17 @@ public class PetDropSettingsScreen extends ConfigScreen
     {
         super(scathaPro, "Scatha Pet Drop Settings", parentScreen);
     }
-    
+
     @Override
     protected void initLayout(@NonNull HeaderAndFooterLayout layout)
     {
         addTitleHeader();
-        
+
         GridBuilder gridBuilder = new GridBuilder();
         gridBuilder.addSingleCell(booleanConfigButton("Scatha Pet Item Popup", config.petDrop.itemPopupEnabled,
             _ -> Tooltip.create(
                 Component.literal("Pops up the Scatha pet item when you drop one, similar to Totems of Undying")
-                    .withStyle(ChatFormatting.GRAY)
+                    .withColor(TextColor.GRAY)
             ), null
         ));
         gridBuilder.addSingleCell(new IntegerSlider(
@@ -44,10 +44,10 @@ public class PetDropSettingsScreen extends ConfigScreen
         gridBuilder.addSingleCell(booleanConfigButton("Slower Popup Rotation", config.petDrop.itemPopupUseAltRotAnimCurve,
             _ -> Tooltip.create(
                 Component.literal("Rotates the item more evenly instead of rapidly speeding up and slowing down at the start and end")
-                    .withStyle(ChatFormatting.GRAY)
+                    .withColor(TextColor.GRAY)
             ), null
         ));
-        
+
         Button popupPreviewButton;
         gridBuilder.addSingleCell(popupPreviewButton = Button.builder(Component.literal("Play Preview"),
             _ -> scathaPro.itemPopupRenderer.popup(
@@ -61,35 +61,35 @@ public class PetDropSettingsScreen extends ConfigScreen
         {
             popupPreviewButton.active = false;
             popupPreviewButton.setTooltip(Tooltip.create(
-                Component.literal("Items aren't loaded yet,\ncannot render preview").withStyle(ChatFormatting.YELLOW)
+                Component.literal("Items aren't loaded yet,\ncannot render preview").withColor(TextColor.YELLOW)
             ));
         }
-        
+
         gridBuilder.addGap();
         gridBuilder.addSingleCell(booleanConfigButton("Firework Explosion", config.petDrop.fireworkEnabled,
             _ -> Tooltip.create(
                 Component.literal("Explodes a firework in front of you, colored to match the dropped rarity")
-                    .withStyle(ChatFormatting.GRAY)
+                    .withColor(TextColor.GRAY)
             ), null
         ));
         gridBuilder.addSingleCell(booleanConfigButton("Automatic Screenshot", config.miscellaneous.automaticPetDropScreenshotEnabled));
         gridBuilder.addFullWidth(subScreenButton("Drop Message Extension...", DropMessageExtensionSettingsScreen::new));
         gridBuilder.addToContent(layout);
-        
+
         addDoneButtonFooter();
     }
-    
+
     @Override
     public boolean isPauseScreen()
     {
         return false;
     }
-    
+
     @Override
     public void removed()
     {
         super.removed();
-        
+
         scathaPro.itemPopupRenderer.clear();
     }
 }

@@ -18,7 +18,7 @@ public abstract class MouseHandlerMixin
 {
     @Shadow @Final private SmoothDouble smoothTurnX;
     @Shadow @Final private SmoothDouble smoothTurnY;
-    
+
     @Inject(
         method = "turnPlayer",
         at = @At("HEAD"),
@@ -33,7 +33,7 @@ public abstract class MouseHandlerMixin
             ci.cancel();
         }
     }
-    
+
     @WrapOperation(
         method = "turnPlayer",
         at = @At(

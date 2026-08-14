@@ -5,12 +5,11 @@ import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.alerts.alertmodes.AlertMode;
 import namelessju.scathapro.files.Config;
 import namelessju.scathapro.files.framework.JsonFile;
-import namelessju.scathapro.files.framework.ScathaProFile;
+import namelessju.scathapro.files.framework.ReadOnlyFile;
 import namelessju.scathapro.gui.overlay.elements.OverlayElement;
 import namelessju.scathapro.miscellaneous.data.enums.*;
 import namelessju.scathapro.util.JsonUtil;
 import namelessju.scathapro.util.TextUtil;
-import org.apache.commons.lang3.NotImplementedException;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -25,29 +24,29 @@ import java.util.function.Function;
  * Class for reading the old v1 config file that used the Forge config system<br>
  * When loaded, overrides all found values in the config of the supplied ScathaPro instance
  */
-public class LegacyConfig extends ScathaProFile
+public class LegacyConfig extends ReadOnlyFile
 {
     private HashMap<String, ValueMapper> mappings = null;
     private final DropMessageStatModesMapper dropMessageStatModesMapper = new DropMessageStatModesMapper();
-    
+
     public LegacyConfig(ScathaPro scathaPro)
     {
         super(scathaPro, scathaPro.getSaveDirectoryPath().resolve("config.cfg").toFile());
     }
-    
+
     private void setupMappings()
     {
         if (mappings != null) return;
         mappings = new HashMap<>();
-        
+
         Config config = scathaPro.config;
-        
+
         Consumer<HashMap<String, OverlayElement.Alignment>> guiAlignmentMappingsBuilder = enumMappings -> {
             enumMappings.put("LEFT", OverlayElement.Alignment.LEFT);
             enumMappings.put("CENTER", OverlayElement.Alignment.CENTER);
             enumMappings.put("RIGHT", OverlayElement.Alignment.RIGHT);
         };
-        
+
         mappings.put("overlay/enabled", new BooleanMapper(config.overlay.enabled));
         mappings.put("overlay/x", new FloatMapper(config.overlay.positionX));
         mappings.put("overlay/y", new FloatMapper(config.overlay.positionY));
@@ -83,11 +82,11 @@ public class LegacyConfig extends ScathaProFile
             }
         });
         mappings.put("overlay/backgroundEnabled", new BooleanMapper(config.overlay.backgroundEnabled));
-        
+
         mappings.put("sounds/volume", new FloatMapper(config.sounds.volume));
         mappings.put("sounds/muteCrystalHollowsSounds", new BooleanMapper(config.sounds.muteCrystalHollowsSounds));
         mappings.put("sounds/muteCrystalHollowsSounds.keepDragonLairSounds", new BooleanMapper(config.sounds.keepDragonLairSounds));
-        
+
         mappings.put("alerts/mode", new SingleValueMapper<>(config.alerts.mode) {
             @Override
             public void load(String oldValueString)
@@ -123,21 +122,25 @@ public class LegacyConfig extends ScathaProFile
         mappings.put("alerts/antisleep/enabled", new BooleanMapper(config.alerts.antiSleepAlertEnabled));
         mappings.put("alerts/antisleep/intervalMin", new IntMapper(config.alerts.antiSleepAlertIntervalMin));
         mappings.put("alerts/antisleep/intervalMax", new IntMapper(config.alerts.antiSleepAlertIntervalMax));
-        
+
         mappings.put("achievements/listPreOpenCategories", new BooleanMapper(config.achievements.listPreOpenCategories));
         mappings.put("achievements/playAchievementAlerts", new BooleanMapper(config.achievements.playAlerts));
         mappings.put("achievements/playRepeatAchievementAlerts", new BooleanMapper(config.achievements.playRepeatAlerts));
         mappings.put("achievements/bonusAchievementsShown", new BooleanMapper(config.achievements.listShowBonusAchievements));
         mappings.put("achievements/hideUnlockedAchievements", new BooleanMapper(config.achievements.listHideUnlockedAchievements));
         mappings.put("achievements/repeatCountsShown", new BooleanMapper(config.achievements.listShowRepeatCounts));
-        
-        mappings.put("other/shortChatPrefix", new BooleanMapper(config.miscellaneous.shortChatPrefixEnabled));
+
+        mappings.put("other/shortChatPrefix", new EnumMapper<>(config.miscellaneous.chatPrefixType, enumMappings -> {
+            enumMappings.put("true", ChatPrefixType.ACRONYM_BRACKETS);
+            enumMappings.put("false", ChatPrefixType.FULL_NAME_BRACKETS);
+        }));
         mappings.put("other/hideWormSpawnMessage", new BooleanMapper(config.miscellaneous.hideWormSpawnMessage));
         mappings.put("other/dryStreakMessage", new BooleanMapper(config.miscellaneous.dryStreakMessageEnabled));
         mappings.put("other/dailyScathaFarmingStreakMessage", new BooleanMapper(config.miscellaneous.dailyStreakMessagesEnabled));
-        mappings.put("other/chatCopy", new EnumMapper<>(config.miscellaneous.chatCopyButtonMode,
-            enumMappings -> enumMappings.put("true", ChatCopyButtonMode.SUGGEST_MESSAGE)
-        ));
+        mappings.put("other/chatCopy", new EnumMapper<>(config.miscellaneous.chatCopyButtonMode, enumMappings -> {
+            enumMappings.put("true", ChatCopyButtonMode.SUGGEST_MESSAGE);
+            enumMappings.put("false", null);
+        }));
         mappings.put("other/wormSpawnTimer", new BooleanMapper(config.miscellaneous.wormSpawnTimerMessageEnabled));
         mappings.put("other/showRotationAngles", new BooleanMapper(config.miscellaneous.rotationAnglesEnabled));
         mappings.put("other/rotationAnglesYawOnly", new BooleanMapper(config.miscellaneous.rotationAnglesYawOnly));
@@ -163,32 +166,32 @@ public class LegacyConfig extends ScathaProFile
             dropMessageStatModesMapper.abbreviatedNames = Boolean.parseBoolean(oldValueString);
             dropMessageStatModesMapper.applyIfFullyLoaded();
         });
-        
+
         mappings.put("other/aprilFoolsFakeDropEnabled", new BooleanMapper(config.miscellaneous.aprilFoolsFakeDropEnabled));
-        
+
         mappings.put("other/scappaMode", new BooleanMapper(config.unlockables.scappaModeEnabled));
         mappings.put("other/overlayIconGooglyEyes", new BooleanMapper(config.unlockables.overlayIconGooglyEyesEnabled));
-        
+
         mappings.put("accessibility/highContrastColors", new BooleanMapper(config.accessibility.useHighContrastColors));
-        
+
         mappings.put("dev/devMode", new BooleanMapper(config.dev.devModeEnabled));
     }
-    
+
     @Override
     protected void deserialize(@Nullable String content)
     {
         if (content == null) return;
-        
+
         ScathaPro.LOGGER.info("Parsing legacy config");
-        
+
         setupMappings();
-        
+
         ArrayList<String> categories = new ArrayList<>();
         for (String line : content.split(TextUtil.NEW_LINE_REGEX))
         {
             line = line.strip();
             if (line.isEmpty() || line.startsWith("#")) continue;
-            
+
             if (line.endsWith("{"))
             {
                 categories.add(line.substring(0, line.length() - 2).strip());
@@ -204,7 +207,7 @@ public class LegacyConfig extends ScathaProFile
                 String key = keyValuePair[0];
                 String stringValue = keyValuePair.length > 1 ? keyValuePair[1] : null;
                 if (stringValue == null || stringValue.isBlank()) continue;
-                
+
                 StringBuilder oldPath = new StringBuilder();
                 for (String category : categories)
                 {
@@ -212,62 +215,56 @@ public class LegacyConfig extends ScathaProFile
                     oldPath.append(category);
                 }
                 oldPath.append("/").append(key);
-                
+
                 ValueMapper valueMapper = mappings.get(oldPath.toString());
                 if (valueMapper == null) continue;
                 valueMapper.load(stringValue);
             }
         }
-        
-        
+
+
         dropMessageStatModesMapper.apply();
     }
-    
-    @Override
-    protected @NonNull String serialize()
+
+    private static class StringMapper extends SingleValueMapper<JsonFile.PrimitiveValue<String, ?>>
     {
-        throw new NotImplementedException("This file cannot be saved");
-    }
-    
-    private static class StringMapper extends SingleValueMapper<JsonFile.PrimitiveValue<String>>
-    {
-        public StringMapper(JsonFile.PrimitiveValue<String> configValue)
+        public StringMapper(JsonFile.PrimitiveValue<String, ?> configValue)
         {
             super(configValue);
         }
-        
+
         @Override
         public void load(String oldValueString)
         {
             configValue.set(oldValueString);
         }
     }
-    
+
     private interface ValueMapper
     {
         void load(String oldValueString);
     }
-    
+
     private static abstract class SingleValueMapper<T extends JsonFile.JsonValue> implements ValueMapper
     {
         protected final @NonNull T configValue;
-        
+
         public SingleValueMapper(@NonNull T configValue)
         {
             this.configValue = Objects.requireNonNull(configValue);
         }
     }
-    
-    private static abstract class PrimitiveValueMapper<T> extends SingleValueMapper<JsonFile.PrimitiveValue<T>>
+
+    private static abstract class PrimitiveValueMapper<T> extends SingleValueMapper<JsonFile.PrimitiveValue<T, ?>>
     {
         private final @NonNull Function<String, T> valueParser;
-        
-        public PrimitiveValueMapper(JsonFile.@NonNull PrimitiveValue<T> configValue, @NonNull Function<String, T> valueParser)
+
+        public PrimitiveValueMapper(JsonFile.@NonNull PrimitiveValue<T, ?> configValue, @NonNull Function<String, T> valueParser)
         {
             super(configValue);
             this.valueParser = Objects.requireNonNull(valueParser);
         }
-        
+
         @Override
         public void load(String oldValueString)
         {
@@ -278,57 +275,57 @@ public class LegacyConfig extends ScathaProFile
             catch (Exception ignored) {}
         }
     }
-    
+
     private static class BooleanMapper extends PrimitiveValueMapper<Boolean>
     {
-        public BooleanMapper(JsonFile.PrimitiveValue<Boolean> configValue)
+        public BooleanMapper(JsonFile.PrimitiveValue<Boolean, ?> configValue)
         {
             super(configValue, Boolean::parseBoolean);
         }
     }
-    
+
     private static class FloatMapper extends PrimitiveValueMapper<Float>
     {
-        public FloatMapper(JsonFile.PrimitiveValue<Float> configValue)
+        public FloatMapper(JsonFile.PrimitiveValue<Float, ?> configValue)
         {
             super(configValue, Float::parseFloat);
         }
     }
-    
+
     private static class IntMapper extends PrimitiveValueMapper<Integer>
     {
-        public IntMapper(JsonFile.PrimitiveValue<Integer> configValue)
+        public IntMapper(JsonFile.PrimitiveValue<Integer, ?> configValue)
         {
             super(configValue, Integer::parseInt);
         }
     }
-    
-    private static class EnumMapper<T extends Enum<T>> extends SingleValueMapper<JsonFile.PrimitiveValue<T>>
+
+    private static class EnumMapper<T extends Enum<T>> extends SingleValueMapper<JsonFile.PrimitiveValue<T, ?>>
     {
         // Explicit mappings ensure that this still works
         // even when the current enums get renamed
-        private final HashMap<String, T> enumMappings = new HashMap<>();
-        
-        public EnumMapper(JsonFile.PrimitiveValue<T> configValue, Consumer<HashMap<String, T>> valueMappingsBuilder)
+        private final HashMap<String, @Nullable T> enumMappings = new HashMap<>();
+
+        public EnumMapper(JsonFile.PrimitiveValue<T, ?> configValue, Consumer<HashMap<String, @Nullable T>> valueMappingsBuilder)
         {
             super(configValue);
             valueMappingsBuilder.accept(enumMappings);
         }
-        
+
         @Override
         public void load(String oldValueString)
         {
             configValue.set(enumMappings.get(oldValueString));
         }
     }
-    
+
     private class DropMessageStatModesMapper
     {
         public String statsMode = null;
         public Boolean abbreviatedNames = null;
-        
+
         private boolean applied = false;
-        
+
         public void applyIfFullyLoaded()
         {
             if (statsMode != null && abbreviatedNames != null)
@@ -336,11 +333,11 @@ public class LegacyConfig extends ScathaProFile
                 apply();
             }
         }
-        
+
         public void apply()
         {
             if (applied) return;
-            
+
             switch (statsMode)
             {
                 case "ADD_PET_LUCK":
@@ -369,10 +366,10 @@ public class LegacyConfig extends ScathaProFile
                     scathaPro.config.miscellaneous.dropMessageEmfMode.set(null);
                     break;
             }
-            
+
             applied = true;
         }
-        
+
         private DropMessageStatMode getAbbreviatableMode()
         {
             if (abbreviatedNames != null && abbreviatedNames) return DropMessageStatMode.SHORT_NAME;

@@ -4,7 +4,6 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.gui.menus.framework.widgets.ImageButton;
 import namelessju.scathapro.gui.menus.screens.AchievementListScreen;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.PauseScreen;
@@ -23,12 +22,12 @@ public abstract class PauseScreenMixin extends Screen
     private Button advancementsButton = null;
     @Unique
     private Button scathaProAchievementsButton = null;
-    
+
     protected PauseScreenMixin(Component component)
     {
         super(component);
     }
-    
+
     @ModifyExpressionValue(
         method = "createPauseMenu",
         at = @At(
@@ -42,25 +41,25 @@ public abstract class PauseScreenMixin extends Screen
         advancementsButton = button;
         return button;
     }
-    
+
     @Inject(method = "createPauseMenu", at = @At("RETURN"))
     private void afterCreatePauseMenu(CallbackInfo ci)
     {
+        if (!ScathaPro.getInstance().config.miscellaneous.showScathaProMenuButtons.get()) return;
         if (advancementsButton == null) return;
-        
+
         scathaProAchievementsButton = new ImageButton(
             0, 0, 0, 0,
             "screen/achievements/button_icon.png", 64, 64,
-            button -> minecraft.setScreen(new AchievementListScreen(ScathaPro.getInstance(), this))
+            _ -> minecraft.gui.setScreen(new AchievementListScreen(ScathaPro.getInstance(), this))
         );
         scathaProAchievementsButton.setTooltip(Tooltip.create(
             Component.literal(ScathaPro.getInstance().getModDisplayName() + " Achievements")
-                .withStyle(ChatFormatting.GRAY)
         ));
         addRenderableWidget(scathaProAchievementsButton);
         setAchievementsButtonRectangle();
     }
-    
+
     @Unique
     private void setAchievementsButtonRectangle()
     {

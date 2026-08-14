@@ -12,7 +12,7 @@ import java.util.function.Function;
 public class ValueListSlider<T> extends ScathaProSlider<T>
 {
     private final T[] values;
-    
+
     public ValueListSlider(
         int x, int y,
         int width, int height,
@@ -27,13 +27,13 @@ public class ValueListSlider<T> extends ScathaProSlider<T>
         this.values = values;
         setMappedValue(initialValue);
     }
-    
+
     @Override
     protected T progressToValue()
     {
         return values[Mth.clamp(getCurrentIndex(), 0, values.length - 1)];
     }
-    
+
     @Override
     protected double valueToProgress(T floatValue)
     {
@@ -49,14 +49,14 @@ public class ValueListSlider<T> extends ScathaProSlider<T>
         if (index < 0 || values.length == 1) return 0D;
         return (double) index / (values.length - 1);
     }
-    
+
     @Override
     protected void snapProgress()
     {
         int intRange = values.length - 1;
         value = (double) Math.round(intRange * value) / intRange;
     }
-    
+
     @Override
     public boolean keyPressed(@NonNull KeyEvent keyEvent)
     {
@@ -68,23 +68,23 @@ public class ValueListSlider<T> extends ScathaProSlider<T>
             {
                 setIndex(getCurrentIndex() + (keyEvent.isLeft() ? -1 : 1));
             }
-            
+
             return true;
         }
-        
+
         return false;
     }
-    
+
     public void setIndex(int index)
     {
         setMappedValue(getValueFromIndex(index));
     }
-    
+
     public int getCurrentIndex()
     {
         return (int) Math.round((values.length - 1) * value);
     }
-    
+
     public T getValueFromIndex(int index)
     {
         return values[Mth.clamp(index, 0, values.length - 1)];

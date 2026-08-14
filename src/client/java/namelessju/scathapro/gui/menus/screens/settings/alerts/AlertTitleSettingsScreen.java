@@ -4,11 +4,11 @@ import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.gui.menus.framework.screens.ConfigScreen;
 import namelessju.scathapro.gui.menus.framework.widgets.sliders.FloatSlider;
 import namelessju.scathapro.gui.overlay.elements.OverlayElement;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import org.jspecify.annotations.NonNull;
 
 public class AlertTitleSettingsScreen extends ConfigScreen
@@ -17,12 +17,12 @@ public class AlertTitleSettingsScreen extends ConfigScreen
     {
         super(scathaPro, "Alert Title Position", parentScreen);
     }
-    
+
     @Override
     protected void initLayout(@NonNull HeaderAndFooterLayout layout)
     {
         addTitleHeader();
-        
+
         GridBuilder gridBuilder = new GridBuilder();
         gridBuilder.addSingleCell(floatConfigSlider("X Position", 0f, 1f, config.alerts.titlePositionX, null))
             .setStepSize(0.01f).setValueComponentSupplier(FloatSlider.PERCENTAGE_COMPONENT_SUPPLIER);
@@ -36,16 +36,16 @@ public class AlertTitleSettingsScreen extends ConfigScreen
         ));
         addDoneButtonFooterWithWidget(gridBuilder.getGrid());
     }
-    
+
     @Override
     public void extractBackground(@NonNull GuiGraphicsExtractor guiGraphics, int i, int j, float f)
     {
         super.extractBackground(guiGraphics, i, j, f);
-        
+
         scathaPro.alertTitleOverlay.extractWithComponents(
             guiGraphics, minecraft.getDeltaTracker(),
-            Component.literal("Example Title").withStyle(ChatFormatting.GREEN),
-            Component.literal("This is what alerts will look like").withStyle(ChatFormatting.GRAY)
+            Component.literal("Example Title").withColor(TextColor.GREEN),
+            Component.literal("This is what alerts will look like").withColor(TextColor.GRAY)
         );
     }
 }

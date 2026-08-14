@@ -12,21 +12,21 @@ public abstract class ScathaProFile
 {
     protected final ScathaPro scathaPro;
     private final File file;
-    
+
     public ScathaProFile(ScathaPro scathaPro, File file)
     {
         this.scathaPro = scathaPro;
         this.file = file;
     }
-    
+
     protected abstract void deserialize(@Nullable String content);
     protected abstract @NonNull String serialize();
-    
+
     public File getFile()
     {
         return file;
     }
-    
+
     public void load()
     {
         String fileContent = null;
@@ -41,7 +41,7 @@ public abstract class ScathaProFile
         }
         deserialize(fileContent);
     }
-    
+
     public void save()
     {
         String fileContent = serialize();

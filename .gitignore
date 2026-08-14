@@ -2,7 +2,6 @@
 logs/
 run/
 build/
-.settings/
 .gradle/
 *.log
 *.lnk

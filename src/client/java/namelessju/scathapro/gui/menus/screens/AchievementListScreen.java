@@ -14,22 +14,22 @@ import org.jspecify.annotations.NonNull;
 public class AchievementListScreen extends LayoutScreen
 {
     private AchievementsList achievementsList = null;
-    
+
     public AchievementListScreen(ScathaPro scathaPro, Screen parentScreen)
     {
         super(scathaPro, Component.literal("Achievements"), true, parentScreen);
     }
-    
+
     @Override
     protected void initLayout(@NonNull HeaderAndFooterLayout layout)
     {
         addTitleHeader();
-        
+
         layout.addToContents(
             achievementsList = new AchievementsList(0, 0, width, 0, scathaPro),
             LayoutSettings::alignHorizontallyCenter
         );
-        
+
         LinearLayout footerLayout = LinearLayout.vertical().spacing(4);
         footerLayout.addChild(
             subScreenButtonBuilder(Component.literal("Achievement Settings"),
@@ -40,28 +40,28 @@ public class AchievementListScreen extends LayoutScreen
         footerLayout.addChild(doneButton(), LayoutSettings::alignHorizontallyCenter);
         addLayoutFooter(footerLayout);
     }
-    
+
     private void updateListSize()
     {
         if (achievementsList == null) return;
-        
+
         achievementsList.setWidth(width);
         int topPadding = 13;
         achievementsList.setY(getLayout().getHeaderHeight() + topPadding);
         achievementsList.setHeight(getLayout().getContentHeight() - topPadding);
     }
-    
+
     @Override
     public void added()
     {
         super.added();
-        
+
         if (achievementsList != null)
         {
             achievementsList.added();
         }
     }
-    
+
     @Override
     protected void repositionElements()
     {

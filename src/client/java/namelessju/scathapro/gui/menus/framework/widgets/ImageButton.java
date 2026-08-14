@@ -11,11 +11,11 @@ import org.jspecify.annotations.NonNull;
 public class ImageButton extends Button
 {
     private static final float PADDING = 3.75f;
-    
+
     private final Identifier imageIdentifier;
     private final int textureWidth;
     private final int textureHeight;
-    
+
     public ImageButton(int x, int y, int width, int height, String texturePath, int textureWidth, int textureHeight, Button.OnPress onPress)
     {
         super(x, y, width, height, CommonComponents.EMPTY, onPress, DEFAULT_NARRATION);
@@ -23,12 +23,12 @@ public class ImageButton extends Button
         this.textureWidth = textureWidth;
         this.textureHeight = textureHeight;
     }
-    
+
     @Override
     protected void extractContents(@NonNull GuiGraphicsExtractor guiGraphics, int i, int j, float f)
     {
         this.extractDefaultSprite(guiGraphics);
-        
+
         guiGraphics.nextStratum();
         guiGraphics.pose().pushMatrix();
         guiGraphics.pose().translate(
@@ -36,8 +36,8 @@ public class ImageButton extends Button
             getY() + getHeight() * 0.5f
         );
         guiGraphics.pose().scale(Math.min(
-            (float) (getWidth() - PADDING * 2) / textureWidth,
-            (float) (getHeight() - PADDING * 2) / textureHeight
+            ((float) getWidth() - PADDING * 2f) / textureWidth,
+            ((float) getHeight() - PADDING * 2f) / textureHeight
         ));
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, imageIdentifier,
             -textureWidth/2, -textureHeight/2, 0f, 0f,

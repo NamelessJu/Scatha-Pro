@@ -20,7 +20,7 @@ public abstract class OptionsScreenMixin
 {
     @Unique
     private Button scathaProSettingsButton = null;
-    
+
     @Inject(
         method = "init",
         at = @At(
@@ -31,15 +31,17 @@ public abstract class OptionsScreenMixin
     )
     private void addModSettingsButton(CallbackInfo ci, @Local(name = "helper") GridLayout.RowHelper helper)
     {
+        if (!ScathaPro.getInstance().config.miscellaneous.showScathaProMenuButtons.get()) return;
+
         OptionsScreen screen = (OptionsScreen) (Object) this;
         helper.addChild(
             scathaProSettingsButton = Button.builder(CommonComponents.EMPTY,
-                button -> Minecraft.getInstance().setScreen(new MainSettingsScreen(ScathaPro.getInstance(), screen))
+                _ -> Minecraft.getInstance().gui.setScreen(new MainSettingsScreen(ScathaPro.getInstance(), screen))
             ).bounds(0, 0, 150, 20).build()
         );
         updateScathaProSettingsButtonText();
     }
-    
+
     @Inject(
         method = "repositionElements",
         at = @At("RETURN")
@@ -48,7 +50,7 @@ public abstract class OptionsScreenMixin
     {
         updateScathaProSettingsButtonText();
     }
-    
+
     @Unique
     private void updateScathaProSettingsButtonText()
     {

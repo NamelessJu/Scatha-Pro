@@ -12,10 +12,10 @@ public class ScathaProFabricClient extends ScathaPro implements ClientModInitial
     public void onInitializeClient()
     {
         ClientCommandRegistrationCallback.EVENT.register(this::registerCommands);
-        
+
         onInitialization();
     }
-    
+
     @Override
     public Path getConfigDirectoryPath()
     {

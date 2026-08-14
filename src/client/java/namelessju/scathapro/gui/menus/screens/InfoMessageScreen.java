@@ -18,26 +18,26 @@ public class InfoMessageScreen extends LayoutScreen
 {
     private final Component description;
     private final Component okButtonText;
-    
+
     private AbstractWidget[] extraWidgets = null;
-    
+
     public InfoMessageScreen(ScathaPro scathaPro, Screen parent, Component title, Component description)
     {
         this(scathaPro, parent, title, description, null);
     }
-    
+
     public InfoMessageScreen(ScathaPro scathaPro, Screen parent, Component title, Component description, @Nullable Component okButtonText)
     {
         super(scathaPro, title, false, parent);
         this.description = description;
         this.okButtonText = okButtonText;
     }
-    
+
     public void setExtraWidgets(AbstractWidget[] extraWidgets)
     {
         this.extraWidgets = extraWidgets;
     }
-    
+
     @Override
     protected void initLayout(@NonNull HeaderAndFooterLayout layout)
     {
@@ -52,7 +52,7 @@ public class InfoMessageScreen extends LayoutScreen
             }
         }
         layout.addToContents(messageLayout, LayoutSettings::alignHorizontallyCenter);
-        
+
         addFooter(doneButton(okButtonText == null ? CommonComponents.GUI_OK : okButtonText, 200));
     }
 }

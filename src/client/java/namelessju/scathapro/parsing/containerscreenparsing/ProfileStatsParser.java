@@ -3,9 +3,9 @@ package namelessju.scathapro.parsing.containerscreenparsing;
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.util.TextUtil;
 import namelessju.scathapro.util.UnicodeSymbol;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.util.StringDecomposer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemLore;
@@ -70,10 +70,10 @@ public class ProfileStatsParser extends ContainerScreenParser
                     scathaPro.persistentData.save();
                     scathaPro.mainOverlay.updateProfileStats();
 
-                    scathaPro.chatManager.sendChatMessage(Component.empty().withStyle(ChatFormatting.GRAY)
+                    scathaPro.chatManager.sendChatMessage(Component.empty().withColor(TextColor.GRAY)
                         .append("Updated saved Magic Find (")
                         .append(TextUtil.numberToComponentOrObf(currentMagicFind))
-                        .append(" " + UnicodeSymbol.heavyArrowRight + " " + TextUtil.numberToString(magicFind, 2) + ")")
+                        .append(" " + UnicodeSymbol.hypixelArrowRight + " " + TextUtil.numberToString(magicFind, 2) + ")")
                     );
                 }
             }
@@ -102,10 +102,10 @@ public class ProfileStatsParser extends ContainerScreenParser
                     scathaPro.persistentData.save();
                     scathaPro.mainOverlay.updateProfileStats();
 
-                    scathaPro.chatManager.sendChatMessage(Component.empty().withStyle(ChatFormatting.GRAY)
+                    scathaPro.chatManager.sendChatMessage(Component.empty().withColor(TextColor.GRAY)
                         .append("Updated saved Pet Luck (")
                         .append(TextUtil.numberToComponentOrObf(currentPetLuck))
-                        .append(" " + UnicodeSymbol.heavyArrowRight + " " + TextUtil.numberToString(petLuck, 2) + ")")
+                        .append(" " + UnicodeSymbol.hypixelArrowRight + " " + TextUtil.numberToString(petLuck, 2) + ")")
                     );
                 }
             }

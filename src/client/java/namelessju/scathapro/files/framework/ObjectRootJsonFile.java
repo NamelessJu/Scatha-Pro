@@ -1,6 +1,7 @@
 package namelessju.scathapro.files.framework;
 
 import namelessju.scathapro.ScathaPro;
+import org.jspecify.annotations.NonNull;
 
 import java.io.File;
 
@@ -10,9 +11,9 @@ public abstract class ObjectRootJsonFile extends JsonFile<JsonFile.ObjectValue>
     {
         super(scathaPro, file, prettyPrintEnabled);
     }
-    
+
     @Override
-    protected ObjectValue initializeRoot()
+    protected @NonNull ObjectValue initializeRoot()
     {
         return new ObjectValue();
     }

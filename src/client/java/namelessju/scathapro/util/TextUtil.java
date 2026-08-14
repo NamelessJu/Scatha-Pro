@@ -1,13 +1,11 @@
 package namelessju.scathapro.util;
 
 import namelessju.scathapro.ScathaPro;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.FormattedText;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.*;
 import net.minecraft.util.StringDecomposer;
+import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -15,12 +13,22 @@ import java.text.DecimalFormatSymbols;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TextUtil
 {
     public static final String NEW_LINE_REGEX = "(?:\\r?\\n|\\r)";
-    
-    
+    public static final TextColor[] RAINBOW_TEXT_COLORS = new TextColor[] {
+        TextColor.RED, TextColor.GOLD, TextColor.YELLOW, TextColor.GREEN, TextColor.DARK_AQUA, TextColor.DARK_PURPLE
+    };
+    public static final Style ICON_STYLE = Style.EMPTY.withColor(TextColor.WHITE).withoutShadow();
+
+    private static final Pattern FORMATTING_PATTERN = Pattern.compile("(?i)§[0-9A-FK-OR]");
+    private static final Pattern USER_FORMATTING_PATTERN = Pattern.compile("(?i)&[0-9A-FK-OR]");
+
+
     public static Integer parseInt(@NonNull String integerString)
     {
         try
@@ -32,13 +40,13 @@ public class TextUtil
             return null;
         }
     }
-    
+
     public static Float parseFloat(@NonNull String floatString)
     {
         floatString = floatString.trim();
         char lastCharLowerCase = Character.toLowerCase(floatString.charAt(floatString.length() - 1));
         if (lastCharLowerCase == 'f') return null;
-        
+
         try
         {
             return Float.parseFloat(floatString);
@@ -48,7 +56,7 @@ public class TextUtil
             return null;
         }
     }
-    
+
     public static @NonNull String numberToString(int number)
     {
         return numberToString(number, 0);
@@ -75,24 +83,24 @@ public class TextUtil
                 case FLOOR:
                     number += fixDelta;
                     break;
-                
+
                 case UP:
                 case HALF_UP:
                 case HALF_EVEN:
                     if (number < 0) number += fixDelta;
                     else number -= fixDelta;
                     break;
-                
+
                 case DOWN:
                 case HALF_DOWN:
                     if (number < 0) number -= fixDelta;
                     else number += fixDelta;
                     break;
-                
+
                 default: break;
             }
         }
-        
+
         DecimalFormatSymbols decimalSymbols = new DecimalFormatSymbols();
         decimalSymbols.setDecimalSeparator('.');
         decimalSymbols.setGroupingSeparator(',');
@@ -102,12 +110,17 @@ public class TextUtil
         if (showTrailingDecimalZeros) decimalFormat.setMinimumFractionDigits(maxDecimalPlaces);
         return decimalFormat.format(number);
     }
-    
-    public static @NonNull Component subString(@NonNull Component component, int start, int end)
+
+    public static @NonNull FormattedText subStringFormatted(@NonNull FormattedText formattedText, int start)
+    {
+        return subStringFormatted(formattedText, start, Integer.MAX_VALUE);
+    }
+
+    public static @NonNull FormattedText subStringFormatted(@NonNull FormattedText formattedText, int start, int end)
     {
         MutableComponent subComponent = Component.empty();
         AtomicInteger currentLength = new AtomicInteger(0);
-        component.visit((style, part) -> {
+        formattedText.visit((style, part) -> {
             if (currentLength.get() >= end)
             {
                 return FormattedText.STOP_ITERATION;
@@ -124,7 +137,42 @@ public class TextUtil
         }, Style.EMPTY);
         return subComponent;
     }
-    
+
+    public static @NonNull Style styleWithFormattingCode(@NonNull Style style, char code)
+    {
+        return switch (Character.toLowerCase(code)) {
+            case 'a' -> style.withColor(TextColor.GREEN);
+            case 'b' -> style.withColor(TextColor.AQUA);
+            case 'c' -> style.withColor(TextColor.RED);
+            case 'd' -> style.withColor(TextColor.LIGHT_PURPLE);
+            case 'e' -> style.withColor(TextColor.YELLOW);
+            case 'f' -> style.withColor(TextColor.WHITE);
+            case '0' -> style.withColor(TextColor.BLACK);
+            case '1' -> style.withColor(TextColor.DARK_BLUE);
+            case '2' -> style.withColor(TextColor.DARK_GREEN);
+            case '3' -> style.withColor(TextColor.DARK_AQUA);
+            case '4' -> style.withColor(TextColor.DARK_RED);
+            case '5' -> style.withColor(TextColor.DARK_PURPLE);
+            case '6' -> style.withColor(TextColor.GOLD);
+            case '7' -> style.withColor(TextColor.GRAY);
+            case '8' -> style.withColor(TextColor.DARK_GRAY);
+            case '9' -> style.withColor(TextColor.BLUE);
+            case 'k' -> style.withObfuscated(true);
+            case 'l' -> style.withBold(true);
+            case 'm' -> style.withStrikethrough(true);
+            case 'n' -> style.withUnderlined(true);
+            case 'o' -> style.withItalic(true);
+            case 'r' -> Style.EMPTY;
+            default -> style;
+        };
+    }
+
+    @Contract("!null->!null;_->_")
+    public static @Nullable String removeLegacyFormatting(final @Nullable String text)
+    {
+        return text == null ? null : FORMATTING_PATTERN.matcher(text).replaceAll("");
+    }
+
     /**
      * Converts formatted text into a component with any legacy formatting codes translated into styled child components<br>
      * Note: this doesn't preserve the hierarchy, however the style for each character will be correct
@@ -135,7 +183,7 @@ public class TextUtil
         text.visit((style, string) -> {
             AtomicReference<Style> currentCharStyle = new AtomicReference<>(Style.EMPTY);
             AtomicReference<StringBuilder> stringBuilder = new AtomicReference<>(new StringBuilder());
-            StringDecomposer.iterateFormatted(string, Style.EMPTY, (i, charStyle, c) -> {
+            StringDecomposer.iterateFormatted(string, Style.EMPTY, (_, charStyle, c) -> {
                 if (!charStyle.equals(currentCharStyle.get()))
                 {
                     if (!stringBuilder.get().isEmpty())
@@ -156,7 +204,51 @@ public class TextUtil
         }, Style.EMPTY);
         return convertedText;
     }
-    
+
+    /**
+     * Converts a raw string with "&" formatting codes into a formatted component.
+     * @param showCodes determines whether the formatting codes should stay included in the components text content
+     */
+    public static @NonNull Component userFormattedStringToComponent(@NonNull String string, boolean showCodes)
+    {
+        MutableComponent component = Component.empty();
+        visitUserFormattedString(string, (formattingCode, formattedSequence) -> {
+            if (showCodes && formattingCode != null)
+            {
+                component.append(Component.literal(formattingCode).withColor(TextColor.DARK_GRAY));
+            }
+            component.append(formattedSequence);
+        });
+        return component;
+    }
+
+    private static void visitUserFormattedString(@NonNull String string, BiConsumer<String, Component> consumer)
+    {
+        Matcher userFormattingMatcher = USER_FORMATTING_PATTERN.matcher(string);
+        Style style = Style.EMPTY;
+        String previousFormattingCode = null;
+        int previousStartIndex = 0;
+        while (userFormattingMatcher.find())
+        {
+            // consume previous segment
+            consumer.accept(previousFormattingCode,
+                Component.literal(string.substring(previousStartIndex, userFormattingMatcher.start()))
+                    .setStyle(style)
+            );
+
+            style = TextUtil.styleWithFormattingCode(style, userFormattingMatcher.group().charAt(1));
+
+            previousFormattingCode = userFormattingMatcher.group();
+            previousStartIndex = userFormattingMatcher.end();
+        }
+
+        // consume remaining segment
+        consumer.accept(previousFormattingCode,
+            Component.literal(string.substring(previousStartIndex))
+                .setStyle(style)
+        );
+    }
+
     /**
      * If the number is equal to or greater than 0 returns it as a string, otherwise returns a single obfuscated character
      */
@@ -164,7 +256,7 @@ public class TextUtil
     {
         return number >= 0
             ? Component.literal(TextUtil.numberToString(number))
-            : Component.literal("?").withStyle(ChatFormatting.OBFUSCATED);
+            : Component.literal("?").withStyle(Style.EMPTY.withObfuscated(true));
     }
     /**
      * If the number is equal to or greater than 0 returns a formatted number string with a maximum of 2 decimal places (using half up rounding), otherwise returns a single obfuscated character
@@ -180,42 +272,24 @@ public class TextUtil
     {
         return number >= 0D
             ? Component.literal(TextUtil.numberToString(number, maxDecimalPlaces, showTrailingDecimalZeros, roundingMode))
-            : Component.literal("?").withStyle(ChatFormatting.OBFUSCATED);
+            : Component.literal("?").withStyle(Style.EMPTY.withObfuscated(true));
     }
-    
-    public static @NonNull ChatFormatting contrastableGray(@NonNull ScathaPro scathaPro)
+
+    public static @NonNull TextColor contrastableGray(@NonNull ScathaPro scathaPro)
     {
-        return handleContrast(scathaPro, ChatFormatting.GRAY);
+        return handleContrast(scathaPro, TextColor.GRAY);
     }
-    
-    public static @NonNull ChatFormatting handleContrast(@NonNull ScathaPro scathaPro, @NonNull ChatFormatting color)
+
+    public static @NonNull TextColor handleContrast(@NonNull ScathaPro scathaPro, @NonNull TextColor color)
     {
         if (scathaPro.config.accessibility.useHighContrastColors.get())
         {
-            return ChatFormatting.WHITE;
+            return TextColor.WHITE;
         }
         return color;
     }
-    
-    /*
-    public static String ellipsis(String original, int maxWidth)
-    {
-        int strWidth = getStringWidth(original);
-        int ellipsisWidth = getStringWidth("...");
 
-        if (strWidth > maxWidth)
-        {
-            if (maxWidth >= ellipsisWidth)
-            {
-                return trimStringToWidth(original, maxWidth - ellipsisWidth) + "...";
-            }
-            else return "";
-        }
-        return original;
-    }
-    */
-    
-    public static @NonNull Component getColorSeriesText(@NonNull String text, @NonNull ChatFormatting[] formattingOrder)
+    public static @NonNull Component getColorSeriesText(@NonNull String text, @NonNull TextColor[] orderedColors)
     {
         MutableComponent component = Component.empty();
         int formattingIndex = 0;
@@ -225,22 +299,19 @@ public class TextUtil
             MutableComponent charComponent = Component.literal(String.valueOf(c));
             if (c != ' ')
             {
-                charComponent.withStyle(formattingOrder[formattingIndex]);
-                formattingIndex = (formattingIndex + 1) % formattingOrder.length;
+                charComponent.withColor(orderedColors[formattingIndex]);
+                formattingIndex = (formattingIndex + 1) % orderedColors.length;
             }
             component.append(charComponent);
         }
         return component;
     }
-    
+
     public static @NonNull Component getRainbowText(@NonNull String text)
     {
-        return getColorSeriesText(text, new ChatFormatting[] {
-            ChatFormatting.RED, ChatFormatting.GOLD, ChatFormatting.YELLOW,
-            ChatFormatting.GREEN, ChatFormatting.DARK_AQUA, ChatFormatting.DARK_PURPLE
-        });
+        return getColorSeriesText(text, RAINBOW_TEXT_COLORS);
     }
-    
-    
+
+
     private TextUtil() {}
 }

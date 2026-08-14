@@ -11,7 +11,7 @@ import org.jspecify.annotations.Nullable;
 public class ScathaProSerializers
 {
     private ScathaProSerializers() {}
-    
+
     public final static JsonFile.JsonValue.Serializer<Alert, JsonPrimitive> ALERT_SERIALIZER = new JsonFile.JsonValue.Serializer<>()
     {
         @Override
@@ -20,14 +20,14 @@ public class ScathaProSerializers
             if (!jsonPrimitive.isString()) return null;
             return ScathaPro.getInstance().alertManager.getAlertById(jsonPrimitive.getAsString());
         }
-        
+
         @Override
         public @NonNull JsonPrimitive valueToJson(@NonNull Alert alert)
         {
             return new JsonPrimitive(alert.alertId);
         }
     };
-    
+
     public final static JsonFile.JsonValue.Serializer<AlertMode, JsonPrimitive> ALERT_MODE_SERIALIZER = new JsonFile.JsonValue.Serializer<>()
     {
         @Override
@@ -36,7 +36,7 @@ public class ScathaProSerializers
             if (!jsonPrimitive.isString()) return null;
             return ScathaPro.getInstance().alertModeManager.getModeByID(jsonPrimitive.getAsString());
         }
-        
+
         @Override
         public @NonNull JsonPrimitive valueToJson(@NonNull AlertMode alertMode)
         {

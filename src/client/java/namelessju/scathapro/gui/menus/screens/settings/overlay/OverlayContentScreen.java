@@ -28,40 +28,40 @@ import java.util.List;
 public class OverlayContentScreen extends ConfigScreen
 {
     private HoverArea previewHoverArea;
-    
+
     private final GuiElementTooltip guiElementTooltipComponent;
     private Tooltip descriptionTooltip = null;
     private OverlayContentList elementList;
-    
+
     public OverlayContentScreen(ScathaPro scathaPro, Screen parentScreen)
     {
         super(scathaPro, "Overlay Content", parentScreen);
         guiElementTooltipComponent = new GuiElementTooltip(scathaPro);
     }
-    
+
     @Override
     protected void initLayout(@NonNull HeaderAndFooterLayout layout)
     {
         addTitleHeader(previewHoverArea = new HoverArea(0, 0, 150, 20, Component.literal("[Hover] Full Preview")));
-        
+
         elementList = addScrollList(new OverlayContentList(scathaPro, this, layout));
-        
+
         addDoneButtonFooter();
     }
-    
+
     @Override
     public void tick()
     {
         super.tick();
-        
+
         scathaPro.mainOverlay.requestUpdateTick();
     }
-    
+
     @Override
     public void extractRenderState(@NonNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks)
     {
         super.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
-        
+
         if (previewHoverArea.isHovered())
         {
             descriptionTooltip = null;
@@ -72,18 +72,18 @@ public class OverlayContentScreen extends ConfigScreen
         {
             OverlayContentList.ToggleableElementEntry hoveredEntry = elementList.getHoveredElementEntry();
             if (hoveredEntry == null) return;
-            
+
             descriptionTooltip = hoveredEntry.descriptionTooltip;
             guiElementTooltipComponent.setContent(hoveredEntry.toggleableElement.element(), false);
             extractTooltip(guiGraphics, mouseX, mouseY, new MenuTooltipPositioner(hoveredEntry.button.getRectangle()));
         }
     }
-    
+
     private void extractTooltip(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, ClientTooltipPositioner positioner)
     {
         guiGraphics.tooltip(font, getTooltipComponents(), mouseX, mouseY, positioner, null);
     }
-    
+
     private List<ClientTooltipComponent> getTooltipComponents()
     {
         List<ClientTooltipComponent> components = Lists.newArrayList();
@@ -98,7 +98,7 @@ public class OverlayContentScreen extends ConfigScreen
         }
         return components;
     }
-    
+
     private static class GuiElementTooltip implements ClientTooltipComponent
     {
         private final Identifier tooltipBackgroundIdentifier = Identifier.withDefaultNamespace("textures/block/stone.png");
@@ -106,23 +106,23 @@ public class OverlayContentScreen extends ConfigScreen
         private final int tooltipBackgroundTextureWidth = 16;
         @SuppressWarnings("FieldCanBeLocal")
         private final int tooltipBackgroundTextureHeight = 16;
-        
+
         private final int tooltipBackgroundPaddingHorizontal = 6;
         private final int tooltipBackgroundPaddingVertical = 5;
-        
-        
+
+
         private final ScathaPro scathaPro;
-        
+
         private OverlayElement overlayElement = null;
         private boolean hasBackgroundTexture = false;
         private int width = 0;
         private int height = 0;
-        
+
         public GuiElementTooltip(ScathaPro scathaPro)
         {
             this.scathaPro = scathaPro;
         }
-        
+
         public void setContent(OverlayElement overlayElement, boolean hasBackgroundTexture)
         {
             this.hasBackgroundTexture = hasBackgroundTexture;
@@ -131,24 +131,24 @@ public class OverlayContentScreen extends ConfigScreen
             this.width = overlayElement.getWidth() + (hasBackgroundTexture ? tooltipBackgroundPaddingHorizontal * 2 : 0);
             this.height = overlayElement.getHeight() + (hasBackgroundTexture ? tooltipBackgroundPaddingVertical * 2 : 0);
         }
-        
+
         @Override
         public int getWidth(@NonNull Font font)
         {
             return width;
         }
-        
+
         @Override
         public int getHeight(@NonNull Font font)
         {
             return height + 1;
         }
-        
+
         @Override
         public void extractImage(@NonNull Font font, int x, int y, int width, int height, @NonNull GuiGraphicsExtractor guiGraphics)
         {
             if (overlayElement == null) return;
-            
+
             if (hasBackgroundTexture)
             {
                 guiGraphics.blit(RenderPipelines.GUI_TEXTURED, tooltipBackgroundIdentifier,
@@ -158,7 +158,7 @@ public class OverlayContentScreen extends ConfigScreen
                     tooltipBackgroundTextureWidth, tooltipBackgroundTextureHeight
                 );
             }
-            
+
             guiGraphics.pose().pushMatrix();
             guiGraphics.pose().translate(x, y);
             if (hasBackgroundTexture) guiGraphics.pose().translate(tooltipBackgroundPaddingHorizontal, tooltipBackgroundPaddingVertical);
@@ -166,7 +166,7 @@ public class OverlayContentScreen extends ConfigScreen
             guiGraphics.pose().popMatrix();
         }
     }
-    
+
     private record BelowWidgetTooltipPositioner(ScreenRectangle widgetRectangle) implements ClientTooltipPositioner
     {
         @Override

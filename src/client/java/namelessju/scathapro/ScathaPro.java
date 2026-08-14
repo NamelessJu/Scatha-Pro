@@ -11,7 +11,6 @@ import namelessju.scathapro.commands.AverageMoneyCommand;
 import namelessju.scathapro.commands.DevCommand;
 import namelessju.scathapro.commands.MainCommand;
 import namelessju.scathapro.commands.ScathaChancesCommand;
-import namelessju.scathapro.entitydetection.EntityDetectionManager;
 import namelessju.scathapro.events.ScathaProEvents;
 import namelessju.scathapro.events.listeners.MinecraftLogicListeners;
 import namelessju.scathapro.events.listeners.ScathaProGameplayListeners;
@@ -45,8 +44,8 @@ import java.util.Queue;
 public abstract class ScathaPro
 {
     public static final String MOD_ID = "scathapro";
-    public static final String MOD_VERSION = "2.1.5";
-    
+    public static final String MOD_VERSION = "2.2";
+
     /** The true mod name, not influenced by certain features */
     public static final String MOD_NAME = "Scatha-Pro";
     private static final String MOD_NAME_SCAPPA = "Scappa-Pro";
@@ -74,19 +73,21 @@ public abstract class ScathaPro
     public final PersistentData persistentData = new PersistentData(this);
 
     // Managers
-    public final SaveFilesManager saveFilesManager = new SaveFilesManager(this);
+    public final BackupManager backupManager = new BackupManager(this);
     public final ChatManager chatManager = new ChatManager(this);
     public final SoundManager soundManager = new SoundManager(this);
     public final InputManager inputManager = new InputManager(this);
     public final CoreManager coreManager = new CoreManager(this);
     public final PersistentDataProfileManager persistentDataProfileManager = new PersistentDataProfileManager(this);
-    public final SecondaryWormStatsManager secondaryWormStatsManager = new SecondaryWormStatsManager(persistentDataProfileManager);
+    public final SecondaryStatsManager secondaryStatsManager = new SecondaryStatsManager(persistentDataProfileManager);
     public final AlertManager alertManager = new AlertManager(this);
     public final AlertModeManager alertModeManager = new AlertModeManager(this);
     public final CustomAlertModeManager customAlertModeManager = new CustomAlertModeManager(this);
-    public final EntityDetectionManager entityDetectionManager = new EntityDetectionManager(this);
     public final AchievementManager achievementManager = new AchievementManager(this);
     public final AchievementLogicManager achievementLogicManager = new AchievementLogicManager(this);
+    public final PlayerHeadRenderingReplacementManager playerHeadRenderingReplacementManager
+        = new PlayerHeadRenderingReplacementManager(this);
+    public final ScathaDropsSlotMachineManager scathaDropsSlotMachineManager = new ScathaDropsSlotMachineManager(this);
     public final FFmpegManager ffmpegManager = new FFmpegManager(this);
 
     // Parsers
@@ -104,7 +105,8 @@ public abstract class ScathaPro
     public final MainOverlay mainOverlay = new MainOverlay(this);
     public final AlertTitleOverlay alertTitleOverlay = new AlertTitleOverlay(this);
     public final CrosshairOverlay crosshairOverlay = new CrosshairOverlay(this);
-    
+
+    // Rendering
     public final ItemPopupRenderer itemPopupRenderer = new ItemPopupRenderer(minecraft);
 
 
@@ -157,7 +159,10 @@ public abstract class ScathaPro
             config.load();
             LOGGER.info("Config loaded");
         }
-        
+        config.version.set(ConfigUpdater.TARGET_VERSION);
+        // Save to initialize missing values & save version
+        config.save();
+
         if (!persistentData.getFile().exists())
         {
             LegacyPersistentData legacyPersistentData = new LegacyPersistentData(this);
@@ -170,14 +175,11 @@ public abstract class ScathaPro
         persistentData.load();
         LOGGER.info("Persistent data loaded");
 
-        PersistentDataUpdater.update(persistentData);
+        PersistentDataUpdater.updateAfterLoading(persistentData);
 
         persistentDataProfileManager.init();
 
         checkLastUsedVersion();
-
-        // Save to initialize missing values
-        config.save();
 
         customAlertModeManager.init();
         for (String subModeId : customAlertModeManager.findAllSubModeIds())
@@ -226,9 +228,11 @@ public abstract class ScathaPro
         coreManager.tick();
         containerScreenParsingManager.tick();
         achievementManager.tick();
+        achievementLogicManager.tick();
         alertTitleOverlay.tick();
         mainOverlay.tick();
         itemPopupRenderer.tick();
+        scathaDropsSlotMachineManager.tick();
     }
 
     public void runNextTick(Runnable runnable)
@@ -248,7 +252,7 @@ public abstract class ScathaPro
         {
             if (config.miscellaneous.automaticBackupsEnabled.get())
             {
-                saveFilesManager.backup("update_" + (lastUsedVersion != null ? lastUsedVersion : "unknown") + "_to_" + MOD_VERSION);
+                backupManager.backup("update_" + (lastUsedVersion != null ? lastUsedVersion : "unknown") + "_to_" + MOD_VERSION);
             }
 
             persistentData.lastUsedModVersion.set(MOD_VERSION);
@@ -256,14 +260,16 @@ public abstract class ScathaPro
 
             LOGGER.info("New mod version detected!");
 
-            ScathaProEvents.newModVersionUsedEvent.trigger(this,
-                new ScathaProEvents.NewModVersionUsedEventData(lastUsedVersion, MOD_VERSION)
+            ScathaProEvents.newModVersionUsedEvent.trigger(
+                new ScathaProEvents.NewModVersionUsedEventData(this, lastUsedVersion, MOD_VERSION)
             );
         }
     }
-    
+
+    /** The base config directory */
     public abstract Path getConfigDirectoryPath();
-    
+
+    /** The Scatha-Pro save files directory */
     public Path getSaveDirectoryPath()
     {
         return getConfigDirectoryPath().resolve(ScathaPro.MOD_ID);

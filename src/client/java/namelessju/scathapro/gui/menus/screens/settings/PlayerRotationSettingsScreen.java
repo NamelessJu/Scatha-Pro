@@ -3,11 +3,11 @@ package namelessju.scathapro.gui.menus.screens.settings;
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.gui.menus.framework.screens.ConfigScreen;
 import namelessju.scathapro.gui.menus.framework.widgets.sliders.FloatSlider;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import org.jspecify.annotations.NonNull;
 
 public class PlayerRotationSettingsScreen extends ConfigScreen
@@ -16,14 +16,14 @@ public class PlayerRotationSettingsScreen extends ConfigScreen
     {
         super(scathaPro, "Player Rotation Settings", parentScreen);
     }
-    
+
     @Override
     protected void initLayout(@NonNull HeaderAndFooterLayout layout)
     {
         addTitleHeader();
-        
+
         GridBuilder gridBuilder = new GridBuilder();
-        gridBuilder.addFullWidth(
+        gridBuilder.addFullWidthWidget(
             floatConfigSlider(
                 "Alternative Sensitivity", 0f, 1f,
                 config.miscellaneous.alternativeSensitivity, null
@@ -36,12 +36,12 @@ public class PlayerRotationSettingsScreen extends ConfigScreen
             })
         ).setTooltip(Tooltip.create(
             Component.literal("The key binding of the same name replaces the main sensitivity with this one while the key is being held")
-                .withStyle(ChatFormatting.GRAY)
+                .withColor(TextColor.GRAY)
         ));
         gridBuilder.addGap();
         gridBuilder.addSingleCell(booleanConfigButton("Pitch/Yaw Display", config.miscellaneous.rotationAnglesEnabled));
         gridBuilder.addSingleCell(booleanConfigButton("Show Yaw Only", config.miscellaneous.rotationAnglesYawOnly,
-            value -> Tooltip.create(Component.literal("Yaw = left/right rotation").withStyle(ChatFormatting.GRAY)),
+            _ -> Tooltip.create(Component.literal("Yaw = left/right rotation").withColor(TextColor.GRAY)),
             null
         ));
         gridBuilder.addSingleCell(integerConfigSlider(
@@ -49,16 +49,16 @@ public class PlayerRotationSettingsScreen extends ConfigScreen
             config.miscellaneous.rotationAnglesDecimalPlaces, null
         ));
         gridBuilder.addSingleCell(booleanConfigButton("Shorter Yaw", config.miscellaneous.rotationAnglesMinimalYawEnabled,
-            value -> Tooltip.create(Component.literal("Hides the tens and hundreds places of the yaw value").withStyle(ChatFormatting.GRAY)),
+            _ -> Tooltip.create(Component.literal("Hides the tens and hundreds places of the yaw value").withColor(TextColor.GRAY)),
             null
         ));
         gridBuilder.addGap();
         gridBuilder.addFullWidth(booleanConfigButton("Alternative Crosshair Overlay Layout", config.miscellaneous.alternativeCrosshairLayoutEnabled,
-            value -> Tooltip.create(Component.literal("Makes space for the attack indicator").withStyle(ChatFormatting.GRAY)),
-            (button, value) -> scathaPro.crosshairOverlay.updateLayout()
+            _ -> Tooltip.create(Component.literal("Makes space for the attack indicator").withColor(TextColor.GRAY)),
+            (_, _) -> scathaPro.crosshairOverlay.updateLayout()
         ));
         gridBuilder.addToContent(layout);
-        
+
         addDoneButtonFooter();
     }
 }

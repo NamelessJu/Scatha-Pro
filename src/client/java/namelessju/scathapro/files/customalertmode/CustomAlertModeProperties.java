@@ -22,10 +22,10 @@ public class CustomAlertModeProperties extends ObjectRootJsonFile
         super(scathaPro, scathaPro.customAlertModeManager.getPropertiesFile(subModeId), true);
         this.savesDefaultValues = true;
     }
-    
+
     public final AlertMapValue alertProperties = root.addValue("alerts", new AlertMapValue());
-    
-    
+
+
     public static final class AlertPropertiesValue extends ObjectValue
     {
         public final PrimitiveValueNullable<String> title = addPrimitiveNullable("title", STRING_SERIALIZER);
@@ -36,41 +36,41 @@ public class CustomAlertModeProperties extends ObjectRootJsonFile
         public final PrimitiveValueNullable<Alert> soundSourceAlert = addPrimitiveNullable("sound.source.alert", ScathaProSerializers.ALERT_SERIALIZER);
         public final PrimitiveValueWithDefault<Float> soundVolume = addPrimitiveWithDefault("sound.volume", FLOAT_SERIALIZER, 1f);
     }
-    
+
     public final class AlertMapValue implements JsonValue
     {
         private final Map<Alert, AlertPropertiesValue> map = new HashMap<>();
-        
+
         public @Nullable AlertPropertiesValue getPropertiesFor(Alert alert)
         {
             return map.get(alert);
         }
-        
+
         public @NonNull AlertPropertiesValue initAndGetPropertiesFor(Alert alert)
         {
             AlertPropertiesValue value = getPropertiesFor(alert);
             if (value == null) map.put(alert, value = new AlertPropertiesValue());
             return value;
         }
-        
+
         @Override
         public void reset()
         {
             map.clear();
         }
-        
+
         @Override
         public boolean hasValue()
         {
             return !map.isEmpty();
         }
-        
+
         @Override
         public void loadFromJson(@Nullable JsonElement jsonElement)
         {
             reset();
             if (!(jsonElement instanceof JsonObject jsonObject)) return;
-            
+
             for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet())
             {
                 Alert alert = scathaPro.alertManager.getAlertById(entry.getKey());
@@ -79,14 +79,14 @@ public class CustomAlertModeProperties extends ObjectRootJsonFile
                     ScathaPro.LOGGER.error("Encountered alert with unknown ID {} in custom alert mode properties file \"{}\"", entry.getKey(), getFile());
                     continue;
                 }
-                
+
                 AlertPropertiesValue propertiesValue = new AlertPropertiesValue();
                 propertiesValue.loadFromJson(entry.getValue());
-                
+
                 map.put(alert, propertiesValue);
             }
         }
-        
+
         @Override
         public @NonNull JsonElement getAsJson(@NonNull JsonFile<?> jsonFile)
         {

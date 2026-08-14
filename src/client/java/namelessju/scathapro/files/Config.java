@@ -1,11 +1,25 @@
 package namelessju.scathapro.files;
 
+import com.google.common.collect.ImmutableMultimap;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.alerts.alertmodes.AlertMode;
 import namelessju.scathapro.alerts.alertmodes.AlertModeManager;
+import namelessju.scathapro.files.framework.JsonFile;
 import namelessju.scathapro.files.framework.ObjectRootJsonFile;
 import namelessju.scathapro.gui.overlay.elements.OverlayElement;
 import namelessju.scathapro.miscellaneous.data.enums.*;
+import namelessju.scathapro.util.JsonUtil;
+import net.minecraft.world.item.component.ResolvableProfile;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+
+import java.util.UUID;
 
 public class Config extends ObjectRootJsonFile
 {
@@ -13,8 +27,11 @@ public class Config extends ObjectRootJsonFile
     {
         super(scathaPro, scathaPro.getSaveDirectoryPath().resolve("configV2.json").toFile(), true);
         this.savesDefaultValues = true;
+        this.postLoadConsumer = new ConfigUpdater(this);
     }
-    
+
+    public final PrimitiveValueNullable<Integer> version = root.addPrimitiveNullable("version", INTEGER_SERIALIZER);
+
     //=========//
     // Overlay //
     //=========//
@@ -47,7 +64,7 @@ public class Config extends ObjectRootJsonFile
             = addBoolean("backgroundEnabled", true);
         public final BooleanValue iconsEnabled
             = addBoolean("iconsEnabled", true);
-        
+
         public final ToggleableElementStates elementStates = addValue("elementStates", new ToggleableElementStates());
         public static class ToggleableElementStates extends ObjectValue
         {
@@ -55,6 +72,7 @@ public class Config extends ObjectRootJsonFile
             public final BooleanValue petDropCountersShown = addBoolean("petDropCountersShown", true);
             public final BooleanValue wormStatsShown = addBoolean("wormStatsShown", true);
             public final BooleanValue scathaKillsSinceLastPetDropShown = addBoolean("scathaKillsSinceLastPetDropShown", true);
+            public final BooleanValue blockBransCounterShown = addBoolean("blockBransCounterShown", false);
             public final BooleanValue wormSpawnCooldownTimerShown = addBoolean("wormSpawnCooldownTimerShown", false);
             public final BooleanValue tunnelVisionStatusTextShown = addBoolean("tunnelVisionStatusTextShown", true);
             public final BooleanValue timeSinceWormSpawnShown = addBoolean("timeSinceWormSpawnShown", false);
@@ -64,7 +82,7 @@ public class Config extends ObjectRootJsonFile
             public final BooleanValue realTimeClockShown = addBoolean("realTimeClockShown", false);
         }
     }
-    
+
     //========//
     // Alerts //
     //========//
@@ -73,7 +91,7 @@ public class Config extends ObjectRootJsonFile
     {
         public final PrimitiveValueWithDefault<AlertMode> mode = addPrimitiveWithDefault("mode", ScathaProSerializers.ALERT_MODE_SERIALIZER, AlertModeManager.DEFAULT_MODE);
         public final PrimitiveValueNullable<String> customModeSubmode = addPrimitiveNullable("customMode.submode", STRING_SERIALIZER);
-        
+
         public final PrimitiveValueWithDefault<Float> titleScale
             = addPrimitiveWithDefault("title.scale", FLOAT_SERIALIZER, 1f);
         public final PrimitiveValueWithDefault<Float> titlePositionX
@@ -82,11 +100,11 @@ public class Config extends ObjectRootJsonFile
             = addPrimitiveWithDefault("title.position.y", FLOAT_SERIALIZER, 0.5f);
         public final PrimitiveValueNullable<OverlayElement.Alignment> titleAlignmentOverride
             = addPrimitiveNullable("title.alignmentOverride", new EnumSerializer<>(OverlayElement.Alignment.class));
-        
+
         public final BooleanValue bedrockWallAlertEnabled
             = addBoolean("alertTypes.bedrockWallAlert.enabled", true);
         public final BooleanValue obstacleAlertEnabled
-            = addBoolean("alertTypes.obstacleAlert.enabled", true);
+            = addBoolean("alertTypes.obstacleAlert.enabled", false);
         public final PrimitiveValueWithDefault<Integer> bedrockWallAlertTriggerDistance
             = addPrimitiveWithDefault("alertTypes.bedrockWallAlert.triggerDistance", INTEGER_SERIALIZER, 15);
         public final BooleanValue oldLobbyAlertEnabled
@@ -107,9 +125,9 @@ public class Config extends ObjectRootJsonFile
         public final BooleanValue scathaPetDropAlertEnabled
             = addBoolean("alertTypes.scathaPetDropAlert.enabled", true);
         public final BooleanValue highHeatAlertEnabled
-            = addBoolean("alertTypes.highHeatAlert.enabled", false);
+            = addBoolean("alertTypes.highHeatAlert.enabled", true);
         public final PrimitiveValueWithDefault<Integer> highHeatAlertTriggerValue
-            = addPrimitiveWithDefault("alertTypes.highHeatAlert.triggerValue", INTEGER_SERIALIZER, 98);
+            = addPrimitiveWithDefault("alertTypes.highHeatAlert.triggerValue", INTEGER_SERIALIZER, 99);
         public final BooleanValue pickaxeAbilityReadyAlertEnabled
             = addBoolean("alertTypes.pickaxeAbilityReadyAlert.enabled", true);
         public final BooleanValue goblinSpawnAlertEnabled
@@ -123,7 +141,7 @@ public class Config extends ObjectRootJsonFile
         public final PrimitiveValueWithDefault<Integer> antiSleepAlertIntervalMax
             = addPrimitiveWithDefault("alertTypes.antiSleepAlert.intervalMax", INTEGER_SERIALIZER, 10);
     }
-    
+
     //==========//
     // Pet Drop //
     //==========//
@@ -135,7 +153,7 @@ public class Config extends ObjectRootJsonFile
         public final BooleanValue itemPopupUseAltRotAnimCurve = addBoolean("itemPopup.useAlternativeRotationAnimationCurve", false);
         public final BooleanValue fireworkEnabled = addBoolean("firework.enabled", true);
     }
-    
+
     //==============//
     // Achievements //
     //==============//
@@ -149,7 +167,7 @@ public class Config extends ObjectRootJsonFile
         public final BooleanValue listHideUnlockedAchievements = addBoolean("listHideUnlockedAchievements", false);
         public final BooleanValue listShowRepeatCounts = addBoolean("listShowRepeatCounts", true);
     }
-    
+
     //========//
     // Sounds //
     //========//
@@ -160,7 +178,7 @@ public class Config extends ObjectRootJsonFile
         public final BooleanValue muteCrystalHollowsSounds = addBoolean("muteCrystalHollowsSounds.enabled", false);
         public final BooleanValue keepDragonLairSounds = addBoolean("muteCrystalHollowsSounds.keepDragonLairSounds", false);
     }
-    
+
     //=============//
     // Unlockables //
     //=============//
@@ -170,16 +188,33 @@ public class Config extends ObjectRootJsonFile
         public final BooleanValue scappaModeEnabled = addBoolean("scappaModeEnabled", false);
         public final BooleanValue overlayIconGooglyEyesEnabled = addBoolean("overlayIconGooglyEyesEnabled", false);
     }
-    
+
+    //===============//
+    // Worm Entities //
+    //===============//
+    public final WormSettings worms = root.addValue("worms", new WormSettings());
+    public static class WormSettings extends ObjectValue
+    {
+        public final BooleanValue showLifetimeLeft = addBoolean("showLifetimeLeft", true);
+
+        // Textures
+        public final BooleanValue revertRegularWormTexture = addBoolean("revertRegularWormTexture", false);
+        public final ResolvableProfileValue regularWormPlayerHeadProfile = addValue("regularWormPlayerHeadProfile", new ResolvableProfileValue());
+        public final ResolvableProfileValue scathaPlayerHeadProfile = addValue("scathaPlayerHeadProfile", new ResolvableProfileValue());
+    }
+
     //===============//
     // Miscellaneous //
     //===============//
     public final MiscellaneousSettings miscellaneous = root.addValue("miscellaneous", new MiscellaneousSettings());
     public static class MiscellaneousSettings extends ObjectValue
     {
+        public final BooleanValue showScathaProMenuButtons = addBoolean("showScathaProMenuButtons", true);
         // Chat stuff
-        public final BooleanValue shortChatPrefixEnabled = addBoolean("shortChatPrefix", false);
-        public final PrimitiveValueNullable<ChatCopyButtonMode> chatCopyButtonMode = addPrimitiveNullable("chatCopyButtonMode", new EnumSerializer<>(ChatCopyButtonMode.class));
+        public final PrimitiveValueWithDefault<ChatPrefixType> chatPrefixType
+            = addPrimitiveWithDefault("chatPrefixType", new EnumSerializer<>(ChatPrefixType.class), ChatPrefixType.FULL_NAME_BRACKETS);
+        public final PrimitiveValueNullable<ChatCopyButtonMode> chatCopyButtonMode
+            = addPrimitiveNullable("chatCopyButtonMode", new EnumSerializer<>(ChatCopyButtonMode.class));
         public final BooleanValue hideWormSpawnMessage = addBoolean("hideWormSpawnMessage", false);
         public final BooleanValue wormSpawnTimerMessageEnabled = addBoolean("wormSpawnTimerMessage", false);
         public final BooleanValue dryStreakMessageEnabled = addBoolean("dryStreakMessage", true);
@@ -212,10 +247,17 @@ public class Config extends ObjectRootJsonFile
             = addPrimitiveNullable("dropMessageExtension.stats.addPetLuck", new EnumSerializer<>(DropMessageStatMode.class));
         public final PrimitiveValueNullable<DropMessageStatMode> dropMessageEmfMode
             = addPrimitiveNullable("dropMessageExtension.stats.addEffectiveMagicFind", new EnumSerializer<>(DropMessageStatMode.class));
+        // Scatha Drops Slot Machine
+        public final BooleanValue dropsSlotMachineEnabled = addBoolean("scathaDropsSlotMachine.enabled", false);
+        public final PrimitiveValueWithDefault<Integer> dropsSlotMachineAnimationTicks = addPrimitiveWithDefault("scathaDropsSlotMachine.animationDurationTicks", INTEGER_SERIALIZER, 120);
+        public final PrimitiveValueWithDefault<Float> dropsSlotMachineScaleMultiplier = addPrimitiveWithDefault("scathaDropsSlotMachine.scaleMultiplier", FLOAT_SERIALIZER, 1f);
+        public final PrimitiveValueWithDefault<MaxSlotMachineFakeScathaRarity> dropsSlotMachineMaxFakeScathaRarity
+            = addPrimitiveWithDefault("scathaDropsSlotMachine.maxFakeScathaRarity", new EnumSerializer<>(MaxSlotMachineFakeScathaRarity.class), MaxSlotMachineFakeScathaRarity.LEGENDARY);
+        public final BooleanValue dropsSlotMachineApplyRandomOffset = addBoolean("scathaDropsSlotMachine.applyRandomOffset", false);
         // Other
         public final BooleanValue aprilFoolsFakeDropEnabled = addBoolean("aprilFoolsFakeDropEnabled", true);
     }
-    
+
     //===============//
     // Accessibility //
     //===============//
@@ -228,7 +270,7 @@ public class Config extends ObjectRootJsonFile
             = addPrimitiveWithDefault("timeFormat", new EnumSerializer<>(TimeFormat.class), TimeFormat.SYSTEM);
         public final BooleanValue useHighContrastColors = addBoolean("useHighContrastColors", false);
     }
-    
+
     //=====//
     // Dev //
     //=====//
@@ -236,5 +278,77 @@ public class Config extends ObjectRootJsonFile
     public static class DeveloperSettings extends ObjectValue
     {
         public final BooleanValue devModeEnabled = addBoolean("devMode", false);
+    }
+
+
+
+    public static final class ResolvableProfileValue implements JsonValue
+    {
+        @Nullable public ResolvableProfile value;
+
+        @Override
+        public void reset()
+        {
+            value = null;
+        }
+
+        @Override
+        public boolean hasValue()
+        {
+            return value != null;
+        }
+
+        @Override
+        public void loadFromJson(@Nullable JsonElement jsonElement)
+        {
+            if (!(jsonElement instanceof JsonObject object))
+            {
+                reset();
+                return;
+            }
+
+            String name = JsonUtil.getString(object, "name");
+            JsonPrimitive uuidPrimitive = JsonUtil.getJsonPrimitive(object, "uuid");
+            String textures = JsonUtil.getString(object, "texturesBase64");
+
+            if (name != null || uuidPrimitive != null || textures != null)
+            {
+                if (name == null) name = "";
+                UUID uuid = uuidPrimitive != null ? UUID_SERIALIZER.jsonToValue(uuidPrimitive) : new UUID(0L, 0L);
+                PropertyMap properties = textures != null
+                    ? new PropertyMap(ImmutableMultimap.of("textures", new Property("textures", textures)))
+                    : PropertyMap.EMPTY;
+                value = ResolvableProfile.createResolved(new GameProfile(uuid, name, properties));
+            }
+            else value = null;
+        }
+
+        @Override
+        public @NonNull JsonElement getAsJson(@NonNull JsonFile<?> jsonFile)
+        {
+            JsonObject object = new JsonObject();
+            if (value != null)
+            {
+                GameProfile profile = value.partialProfile();
+                object.add("name", new JsonPrimitive(profile.name()));
+                object.add("uuid", UUID_SERIALIZER.valueToJson(profile.id()));
+                profile.properties().get("textures").stream()
+                    .filter(property -> property.name().equals("textures"))
+                    .findFirst().map(Property::value).ifPresent(
+                        textures -> object.add("texturesBase64", new JsonPrimitive(textures))
+                    );
+            }
+            return object;
+        }
+
+        public @Nullable GameProfile getResolved()
+        {
+            return value != null ? value.partialProfile() : null;
+        }
+
+        public void setResolved(@Nullable GameProfile partialProfile)
+        {
+            value = partialProfile != null ? ResolvableProfile.createResolved(partialProfile) : null;
+        }
     }
 }

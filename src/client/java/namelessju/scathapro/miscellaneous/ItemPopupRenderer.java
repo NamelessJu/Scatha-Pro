@@ -3,32 +3,35 @@ package namelessju.scathapro.miscellaneous;
 import com.mojang.blaze3d.ProjectionType;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.textures.GpuTexture;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Projection;
 import net.minecraft.client.renderer.ProjectionMatrixBuffer;
-import net.minecraft.client.renderer.RenderBuffers;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Renders an item popping up like the Totem of Undying, but above EVERYTHING
+ * Renders an item popping up like the Totem of Undying, but rendered above EVERYTHING
  */
 public class ItemPopupRenderer
 {
     private final Minecraft minecraft;
     private final RandomSource randomSource = RandomSource.create();
-    
+
     @Nullable
     private ItemStack itemStack;
     private int animationTicks;
@@ -38,12 +41,12 @@ public class ItemPopupRenderer
     private float animationOffsetY;
     private boolean animationOffsetMirroredInSecondHalf;
     private boolean angled;
-    
+
     public ItemPopupRenderer(Minecraft minecraft)
     {
         this.minecraft = minecraft;
     }
-    
+
     public void tick()
     {
         if (animationTicksRemaining > 0)
@@ -55,23 +58,27 @@ public class ItemPopupRenderer
             }
         }
     }
-    
+
     public void render(ProjectionMatrixBuffer hud3dProjectionMatrixBuffer, Projection hudProjection,
-                       SubmitNodeCollector submitNodeCollector, DeltaTracker deltaTracker,
-                       FeatureRenderDispatcher featureRenderDispatcher, RenderBuffers renderBuffers)
-    {
-        RenderSystem.setProjectionMatrix(hud3dProjectionMatrixBuffer.getBuffer(hudProjection), ProjectionType.PERSPECTIVE);
-        //noinspection DataFlowIssue
-        RenderSystem.getDevice().createCommandEncoder().clearDepthTexture(Minecraft.getInstance().getMainRenderTarget().getDepthTexture(), 1D);
-        renderItem(submitNodeCollector, deltaTracker.getGameTimeDeltaPartialTick(true));
-        featureRenderDispatcher.renderAllFeatures();
-        renderBuffers.bufferSource().endBatch();
-    }
-    
-    private void renderItem(SubmitNodeCollector submitNodeCollector, float partialTicks)
+                       SubmitNodeStorage submitNodeStorage, DeltaTracker deltaTracker,
+                       FeatureRenderDispatcher featureRenderDispatcher)
     {
         if (itemStack == null || animationTicksRemaining <= 0) return;
-        
+        GpuTexture depthTexture = Minecraft.getInstance().gameRenderer.mainRenderTarget().getDepthTexture();
+        if (depthTexture == null) return;
+
+        RenderSystem.setProjectionMatrix(hud3dProjectionMatrixBuffer.getBuffer(hudProjection), ProjectionType.PERSPECTIVE);
+        RenderSystem.getDevice().createCommandEncoder().clearDepthTexture(depthTexture, RenderSystem.DEFAULT_DEPTH_CLEAR_VALUE);
+
+        renderItem(submitNodeStorage, deltaTracker.getGameTimeDeltaPartialTick(true));
+
+        featureRenderDispatcher.renderAllFeatures(submitNodeStorage);
+    }
+
+    private void renderItem(SubmitNodeCollector submitNodeCollector, float partialTicks)
+    {
+        if (itemStack == null) return;
+
         PoseStack poseStack = new PoseStack();
         int elapsedTicks = animationTicks - animationTicksRemaining;
         float progress = ((float) elapsedTicks + partialTicks) / animationTicks;
@@ -89,7 +96,7 @@ public class ItemPopupRenderer
                 offsetX = -offsetX;
                 offsetY = -offsetY;
             }
-            
+
             // Vanilla animation curve doesn't exactly go through (0.5, 0.5)
             // which makes the sudden inverse of the offsets above noticeable,
             // as a fix we just smoothly force the offsets to 0 at the middle
@@ -116,16 +123,18 @@ public class ItemPopupRenderer
         )));
         poseStack.mulPose(Axis.XP.rotationDegrees(6f * Mth.cos(progress * 8f)));
         poseStack.mulPose(Axis.ZP.rotationDegrees(6f * Mth.cos(progress * 8f)));
-        minecraft.gameRenderer.getLighting().setupFor(Lighting.Entry.ITEMS_3D);
+        minecraft.gameRenderer.lighting().setupFor(Lighting.Entry.ITEMS_3D);
         ItemStackRenderState itemStackRenderState = new ItemStackRenderState();
         minecraft.getItemModelResolver().updateForTopItem(itemStackRenderState, itemStack, ItemDisplayContext.FIXED, minecraft.level, null, 0);
         itemStackRenderState.submit(poseStack, submitNodeCollector, 15728880, OverlayTexture.NO_OVERLAY, 0);
     }
-    
+
     public void popup(@NonNull ItemStack itemStack, int animationTicks, boolean alternativeRotationAnimationCurve, boolean angled)
     {
+        if (!BuiltInRegistries.ITEM.wrapAsHolder(Items.PLAYER_HEAD).areComponentsBound())
+            throw new IllegalStateException("Item popup cannot be rendered yet as components aren't bound!");
         if (animationTicks <= 0) throw new IllegalArgumentException("Item popup animation length must be greater than 0!");
-        
+
         this.itemStack = itemStack;
         this.angled = angled;
         this.animationTicks = animationTicks;
@@ -135,7 +144,7 @@ public class ItemPopupRenderer
         animationOffsetY = randomSource.nextFloat() * 2f - 1f;
         animationOffsetMirroredInSecondHalf = randomSource.nextBoolean();
     }
-    
+
     @SuppressWarnings("unused")
     public void clear()
     {

@@ -13,13 +13,13 @@ public class CustomAlertModePropertiesUpdater extends ScathaProFile
 {
     private final @NonNull String subModeId;
     private @Nullable JsonObject root = null;
-    
+
     public CustomAlertModePropertiesUpdater(ScathaPro scathaPro, @NonNull String subModeId)
     {
         super(scathaPro, scathaPro.customAlertModeManager.getPropertiesFile(subModeId));
         this.subModeId = subModeId;
     }
-    
+
     @Override
     protected void deserialize(@Nullable String content)
     {
@@ -28,17 +28,17 @@ public class CustomAlertModePropertiesUpdater extends ScathaProFile
         if (!(parsedJson instanceof JsonObject jsonObject)) return;
         root = jsonObject;
         boolean updated = false;
-        
+
         JsonObject titlesObject = JsonUtil.getJsonObject(root, "titles");
         if (titlesObject != null)
         {
             for (String alert : titlesObject.keySet().toArray(String[]::new))
             {
                 if (!scathaPro.customAlertModeManager.getAlertAudioFile(subModeId, alert).exists()) continue;
-                
+
                 JsonObject alertEntry = JsonUtil.getJsonObject(titlesObject, alert);
                 if (alertEntry == null) continue;
-                
+
                 JsonObject soundSourceProperties = JsonUtil.getJsonObject(alertEntry, "sound.source");
                 if (soundSourceProperties == null)
                 {
@@ -47,12 +47,12 @@ public class CustomAlertModePropertiesUpdater extends ScathaProFile
                     JsonUtil.set(alertEntry, "sound.source", value);
                 }
             }
-            
+
             JsonUtil.set(root, "alerts", titlesObject);
             JsonUtil.remove(root, "titles");
             updated = true;
         }
-        
+
         JsonElement soundVolumesElement = root.get("soundVolumes");
         if (soundVolumesElement instanceof JsonObject soundVolumesObject)
         {
@@ -60,11 +60,11 @@ public class CustomAlertModePropertiesUpdater extends ScathaProFile
             {
                 JsonUtil.set(root, "alerts." + alert + ".sound.volume", soundVolumesObject.get(alert));
             }
-            
+
             root.remove("soundVolumes");
             updated = true;
         }
-        
+
         if (updated)
         {
             save();
@@ -72,7 +72,7 @@ public class CustomAlertModePropertiesUpdater extends ScathaProFile
         }
         root = null;
     }
-    
+
     @Override
     protected @NonNull String serialize()
     {

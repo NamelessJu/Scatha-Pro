@@ -12,7 +12,7 @@ import net.minecraft.network.chat.Component;
 public final class ScathaProMiscListeners
 {
     private ScathaProMiscListeners() {}
-    
+
     public static void register()
     {
         ScathaProEvents.newModVersionUsedEvent.addListener(ScathaProMiscListeners::onNewModVersionUsed);
@@ -21,28 +21,30 @@ public final class ScathaProMiscListeners
         ScathaProEvents.scathaFarmingStreakChangedEvent.addListener(ScathaProMiscListeners::onScathaFarmingStreakChanged);
         ScathaProEvents.realDayStartedEvent.addListener(ScathaProMiscListeners::onRealDayStarted);
     }
-    
-    private static void onNewModVersionUsed(ScathaPro scathaPro, ScathaProEvents.NewModVersionUsedEventData data)
+
+    private static void onNewModVersionUsed(ScathaProEvents.NewModVersionUsedEventData data)
     {
         if (UpdateChecker.isPreRelease(data.newVersion()))
         {
             Achievement.play_mod_pre_release.unlock();
         }
-        
+
         if (data.previousVersion() != null
             && UpdateChecker.compareVersions(data.previousVersion(), "1.3.2.1") >= 0)
         {
             Achievement.update_mod_to_v2.unlock();
         }
     }
-    
-    private static void onAchievementUnlocked(ScathaPro scathaPro, ScathaProEvents.AchievementUnlockedEventData data)
+
+    private static void onAchievementUnlocked(ScathaProEvents.AchievementUnlockedEventData data)
     {
-        scathaPro.achievementLogicManager.updateProgressAchievements();
+        data.scathaPro().achievementLogicManager.updateProgressAchievements();
     }
-    
-    private static void onCrystalHollowsDayStarted(ScathaPro scathaPro, ScathaProEvents.CrystalHollowsDayStartedEventData data)
+
+    private static void onCrystalHollowsDayStarted(ScathaProEvents.CrystalHollowsDayStartedEventData data)
     {
+        ScathaPro scathaPro = data.scathaPro();
+
         if (scathaPro.config.alerts.oldLobbyAlertEnabled.get()
             && OldLobbyAlertTriggerMode.ON_NEW_DAY.isActive(scathaPro.config))
         {
@@ -55,34 +57,33 @@ public final class ScathaProMiscListeners
             }
         }
     }
-    
+
     private static void onRealDayStarted(ScathaPro scathaPro)
     {
         scathaPro.getProfileData().lastPlayedDate.set(TimeUtil.today());
-        scathaPro.secondaryWormStatsManager.perDayStats.reset();
+        scathaPro.secondaryStatsManager.perDayStats.reset();
         scathaPro.persistentData.save();
-        
+
         ScathaPro.LOGGER.debug("Daily stats reset");
-        
+
         if (scathaPro.minecraft.level != null)
         {
             scathaPro.chatManager.sendChatMessage(
                 Component.literal("New IRL day started - per day stats reset").setStyle(ChatManager.HIGHLIGHT_STYLE)
             );
         }
-        
+
         scathaPro.coreManager.updateScathaFarmingStreak(false);
-        
+
         scathaPro.mainOverlay.updateWormKills();
         scathaPro.mainOverlay.updateScathaKills();
-        scathaPro.mainOverlay.updateTotalKills();
         scathaPro.mainOverlay.updateWormStreak();
-        
+
         scathaPro.achievementLogicManager.updateKillsTodayAchievements();
     }
-    
-    private static void onScathaFarmingStreakChanged(ScathaPro scathaPro, ScathaProEvents.ScathaFarmingStreakChangedEventData data)
+
+    private static void onScathaFarmingStreakChanged(ScathaProEvents.ScathaFarmingStreakChangedEventData data)
     {
-        scathaPro.achievementLogicManager.updateDailyScathaStreakAchievements();
+        data.scathaPro().achievementLogicManager.updateDailyScathaStreakAchievements();
     }
 }

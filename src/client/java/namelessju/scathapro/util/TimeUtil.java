@@ -18,34 +18,34 @@ public class TimeUtil
     {
         return System.currentTimeMillis();
     }
-    
+
     public static @NonNull LocalDateTime epochMillisToLocalDateTime(long epochMilliseconds)
     {
         return LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMilliseconds), ZoneId.systemDefault());
     }
-    
+
     public static boolean getAnimationState(int trueDurationMs, int falseDurationMs)
     {
         return getEpochMilliseconds() % (trueDurationMs + falseDurationMs) < trueDurationMs;
     }
-    
+
     public static @NonNull LocalDate today()
     {
         return LocalDate.now();
     }
-    
+
     public static short getCurrentYear()
     {
         return (short) today().getYear();
     }
-    
+
     public static @NonNull String formatDateTime(@NonNull Config config, long epochMilliseconds)
     {
-        return config.accessibility.timeFormat.get().format(epochMilliseconds, false)
-            + " " +
-            config.accessibility.dateFormat.get().format(epochMilliseconds);
+        return config.accessibility.dateFormat.get().format(epochMilliseconds)
+                + ", " +
+                config.accessibility.timeFormat.get().format(epochMilliseconds, false);
     }
-    
+
     /**
      * Generates a time string of seconds, minutes and hours, showing only the applicable fields<br>
      * E.g.: 1h 2m 3s
@@ -72,12 +72,12 @@ public class TimeUtil
         }
         return (hours >= 1 ? hours + "h " : "") + (minutes >= 1 ? minutes + "m " : "") + seconds + "s";
     }
-    
+
     public static boolean isDate(int month, int day)
     {
         return isDateBetween(month, day, month, day);
     }
-    
+
     /**
      * Both <code>from<code> and <code>to</code> dates are inclusive
      */
@@ -92,7 +92,7 @@ public class TimeUtil
             ((month == monthTo && day <= dayTo) || month < monthTo)
         );
     }
-    
+
     public static boolean isAprilFools()
     {
         return isDate(4, 1);

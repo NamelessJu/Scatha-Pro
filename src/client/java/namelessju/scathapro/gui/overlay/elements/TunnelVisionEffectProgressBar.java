@@ -12,19 +12,19 @@ import org.jetbrains.annotations.UnknownNullability;
 public class TunnelVisionEffectProgressBar extends OverlayElement
 {
     private static final Identifier textureIdentifier = ScathaPro.getIdentifier("textures/overlay/tunnel_vision_progress_bar.png");
-    
+
     private final int width;
     private final int height;
-    
+
     private float progress = 0f;
-    
+
     public TunnelVisionEffectProgressBar(int x, int y, int width, int height, float scale)
     {
         super(x, y, scale);
         this.width = width;
         this.height = height;
     }
-    
+
     @Override
     protected void extractContent(@UnknownNullability GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker)
     {
@@ -34,19 +34,19 @@ public class TunnelVisionEffectProgressBar extends OverlayElement
             Math.round(width * progress), height, 32, 32
         );
     }
-    
+
     @Override
     public int getWidth()
     {
         return width;
     }
-    
+
     @Override
     public int getHeight()
     {
         return height;
     }
-    
+
     public void setProgress(float progress)
     {
         this.progress = Mth.clamp(progress, 0f, 1f);

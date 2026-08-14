@@ -5,31 +5,29 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import namelessju.scathapro.ScathaPro;
-import namelessju.scathapro.files.framework.ScathaProFile;
+import namelessju.scathapro.files.framework.ReadOnlyFile;
 import namelessju.scathapro.util.FileUtil;
 import namelessju.scathapro.util.JsonUtil;
-import org.apache.commons.lang3.NotImplementedException;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 
-public class LegacyPersistentData extends ScathaProFile
+public class LegacyPersistentData extends ReadOnlyFile
 {
     public LegacyPersistentData(ScathaPro scathaPro)
     {
         super(scathaPro, scathaPro.getSaveDirectoryPath().resolve("persistentData.json").toFile());
     }
-    
+
     @Override
     protected void deserialize(@Nullable String content)
     {
         if (content == null) return;
         if (!(JsonUtil.parseJson(content) instanceof JsonObject jsonObject)) return;
-        
+
         updatePlayerData(jsonObject);
         updateGlobalData(jsonObject);
-        
+
         String jsonString = JsonUtil.toString(jsonObject, false);
         try
         {
@@ -40,7 +38,7 @@ public class LegacyPersistentData extends ScathaProFile
             ScathaPro.LOGGER.error("Failed to convert legacy persistent data: Exception while writing file");
         }
     }
-    
+
     private void updatePlayerData(JsonObject jsonObject)
     {
         JsonArray playersArray = new JsonArray();
@@ -48,32 +46,32 @@ public class LegacyPersistentData extends ScathaProFile
         for (String playerUUID : keys)
         {
             if ("global".equalsIgnoreCase(playerUUID)) continue;
-            
+
             JsonElement oldPlayerData = JsonUtil.remove(jsonObject, playerUUID);
             updateProfileData(oldPlayerData);
-            
+
             JsonObject newPlayerData = new JsonObject();
-            
+
             newPlayerData.add("playerUUID", new JsonPrimitive(playerUUID));
-            
+
             JsonArray profilesArray = new JsonArray();
             profilesArray.add(oldPlayerData);
             newPlayerData.add("profiles", profilesArray);
-            
+
             playersArray.add(newPlayerData);
         }
         jsonObject.add("players", playersArray);
     }
-    
+
     private void updateProfileData(JsonElement profileData)
     {
         if (!(profileData instanceof JsonObject profileObject)) return;
-        
+
         // Profile ID isn't set because this loads into the "null" = unknown profile
-        
+
         move(profileObject, "petDrops.scathaKillsAtLastDrop", "dryStreak.scathaKillsAtLastDrop");
         move(profileObject, "petDrops.dropDryStreakInvalidated", "dryStreak.isDryStreakInvalidated");
-        
+
         move(profileObject, "daily.lastPlayed", "realTime.lastPlayedDate");
         move(profileObject, "daily.stats", "realTime.wormStatsToday");
         move(profileObject, "daily.scathaFarming.streak", "realTime.scathaFarmingStreak.current");
@@ -81,7 +79,7 @@ public class LegacyPersistentData extends ScathaProFile
         move(profileObject, "daily.scathaFarming.lastFarmed", "realTime.lastScathaFarmedDate");
         JsonUtil.remove(profileObject, "daily");
     }
-    
+
     /** Needs to be run <b>AFTER</b> updating the player data */
     private void updateGlobalData(JsonObject jsonObject)
     {
@@ -89,13 +87,7 @@ public class LegacyPersistentData extends ScathaProFile
         move(jsonObject, "global.averageMoneyCalculator", "averageMoneyCalculator");
         JsonUtil.remove(jsonObject, "global");
     }
-    
-    @Override
-    protected @NonNull String serialize()
-    {
-        throw new NotImplementedException("This file cannot be saved");
-    }
-    
+
     private void move(JsonObject parentObject, String oldPath, String newPath)
     {
         JsonElement element = JsonUtil.remove(parentObject, oldPath);
