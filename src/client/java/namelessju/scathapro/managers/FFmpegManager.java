@@ -65,7 +65,8 @@ public class FFmpegManager
             }
 
             StringBuilder errorMessageBuilder = new StringBuilder();
-            try (Process process = Runtime.getRuntime().exec(commandArray))
+            Process process = Runtime.getRuntime().exec(commandArray);
+            try
             {
                 try (BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream())))
                 {
@@ -76,6 +77,10 @@ public class FFmpegManager
                     }
                 }
                 if (process.waitFor() == 0) return true;
+            }
+            finally
+            {
+                process.destroy();
             }
 
             ScathaPro.LOGGER.error("FFmpeg error:\n{}", errorMessageBuilder);
