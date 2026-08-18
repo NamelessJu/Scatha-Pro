@@ -19,6 +19,7 @@ import namelessju.scathapro.files.PersistentData;
 import namelessju.scathapro.gui.menus.screens.AchievementListScreen;
 import namelessju.scathapro.gui.menus.screens.settings.MainSettingsScreen;
 import namelessju.scathapro.managers.ChatManager;
+import namelessju.scathapro.miscellaneous.data.enums.ShardsAttribute;
 import namelessju.scathapro.miscellaneous.data.enums.WitchesStew;
 import namelessju.scathapro.util.FileUtil;
 import namelessju.scathapro.util.TextUtil;
@@ -31,6 +32,7 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
+import net.minecraft.util.Mth;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 
@@ -42,34 +44,36 @@ import java.util.concurrent.CompletableFuture;
 public class MainCommand extends ScathaProCommand
 {
     private final ChatManager chatManager;
-    
+
     public MainCommand(ScathaPro scathaPro)
     {
         super(scathaPro);
         chatManager = scathaPro.chatManager;
     }
-    
+
     @Override
     public String getCommandName()
     {
         return "scathapro";
     }
-    
+
     @Override
     protected String[] getAliases()
     {
         return new String[] {"sp"};
     }
-    
+
     @Override
     protected <T> void buildCommand(LiteralArgumentBuilder<T> builder, CommandBuildContext buildContext)
     {
-        builder.executes(context -> {
+        Command<T> missingArgsCommand = getMissingArgumentsCommand();
+
+        builder.executes(_ -> {
             sendHelp(1);
             return Command.SINGLE_SUCCESS;
         })
         .then(LiteralArgumentBuilder.<T>literal("help")
-            .executes(context -> {
+            .executes(_ -> {
                 sendHelp(1);
                 return Command.SINGLE_SUCCESS;
             })
@@ -81,95 +85,145 @@ public class MainCommand extends ScathaProCommand
             )
         )
         .then(LiteralArgumentBuilder.<T>literal("settings")
-            .executes(context -> {
+            .executes(_ -> {
                 scathaPro.runNextTick(() -> scathaPro.minecraft.setScreen(new MainSettingsScreen(scathaPro, null)));
                 return Command.SINGLE_SUCCESS;
             })
             .then(LiteralArgumentBuilder.<T>literal("reset")
-                .executes(context -> {
+                .executes(_ -> {
                     scathaPro.config.reset();
                     scathaPro.config.save();
-                    
-                    if (scathaPro.config.alerts.scathaPetDropAlertEnabled.get())
-                    {
-                        scathaPro.coreManager.previousScathaPets = null;
-                    }
-                    
+
                     scathaPro.mainOverlay.updateAll();
-                    
+
                     chatManager.sendChatMessage(Component.literal("Settings reset to default!").setStyle(ChatManager.HIGHLIGHT_STYLE));
                     return Command.SINGLE_SUCCESS;
                 })
             )
         )
         .then(LiteralArgumentBuilder.<T>literal("achievements")
-            .executes(context -> {
+            .executes(_ -> {
                 scathaPro.runNextTick(() -> scathaPro.minecraft.setScreen(new AchievementListScreen(scathaPro, null)));
                 return Command.SINGLE_SUCCESS;
             })
         )
         .then(LiteralArgumentBuilder.<T>literal("dailyStreak")
-            .executes(context -> {
+            .executes(_ -> {
                 handleDailyStreak();
                 return Command.SINGLE_SUCCESS;
             })
         )
         .then(LiteralArgumentBuilder.<T>literal("profileStats")
-            .executes(context -> {
+            .executes(_ -> {
                 handleProfileStats();
                 return Command.SINGLE_SUCCESS;
             })
             .then(LiteralArgumentBuilder.<T>literal("updateGlobal")
-                .executes(context -> {
+                .executes(_ -> {
                     handleProfileStatsUpdate(false);
                     return Command.SINGLE_SUCCESS;
                 })
                 .then(LiteralArgumentBuilder.<T>literal("confirm")
-                    .executes(context -> {
+                    .executes(_ -> {
                         handleProfileStatsUpdate(true);
                         return Command.SINGLE_SUCCESS;
                     })
                 )
             )
-            .then(LiteralArgumentBuilder.<T>literal("setWitchesStewEaten")
-                .executes(getMissingArgumentsCommand())
-                .then(RequiredArgumentBuilder.<T, WitchesStew>argument("Witches Stew", new WitchesStewArgumentType())
-                    .executes(getMissingArgumentsCommand())
-                    .then(RequiredArgumentBuilder.<T, Boolean>argument("Eaten", BoolArgumentType.bool())
-                        .executes(context -> {
-                            WitchesStew stew = context.getArgument("Witches Stew", WitchesStew.class);
-                            boolean eaten = BoolArgumentType.getBool(context, "Eaten");
-                            handleWitchesStewMagicFindUpdate(stew, eaten);
-                            return Command.SINGLE_SUCCESS;
-                        })
+            .then(LiteralArgumentBuilder.<T>literal("attributes")
+                .executes(_ -> {
+                    PersistentData.MagicFindSourceValue<ShardsAttribute> attributes = scathaPro.getProfileData().attributes;
+                    scathaPro.chatManager.sendChatDivider();
+                    scathaPro.chatManager.sendChatMessage(Component.literal("Scatha mob type Attributes:").setStyle(ChatManager.HIGHLIGHT_STYLE));
+                    for (ShardsAttribute attribute : ShardsAttribute.values())
+                    {
+                        Integer level = attributes.getLevel(attribute);
+                        scathaPro.chatManager.sendChatMessage(Component.empty()
+                                .append(" - " + attribute.attributeName + " (")
+                                .append(attribute.shardName)
+                                .append("): ")
+                                .append(
+                                    level != null
+                                    ? (
+                                        level >= 10
+                                        ? Component.literal(UnicodeSymbol.heavyCheckMark + " Lvl " + level + " (MAX)").withStyle(ChatFormatting.GREEN)
+                                        : Component.literal(UnicodeSymbol.arrowUp + " Lvl " + level).withStyle(ChatFormatting.YELLOW)
+                                    )
+                                    : Component.literal(UnicodeSymbol.heavyMultiplicationX + " not unlocked").withStyle(ChatFormatting.RED)
+                                ),
+                            false
+                        );
+                    }
+                    scathaPro.chatManager.sendChatDivider();
+                    return Command.SINGLE_SUCCESS;
+                })
+            )
+            .then(LiteralArgumentBuilder.<T>literal("witchesStews")
+                .executes(missingArgsCommand)
+                .then(LiteralArgumentBuilder.<T>literal("setEaten")
+                    .executes(missingArgsCommand)
+                    .then(RequiredArgumentBuilder.<T, WitchesStew>argument("Witches Stew", new WitchesStewArgumentType())
+                        .executes(missingArgsCommand)
+                        .then(RequiredArgumentBuilder.<T, Boolean>argument("Eaten", BoolArgumentType.bool())
+                            .executes(context -> {
+                                WitchesStew stew = context.getArgument("Witches Stew", WitchesStew.class);
+                                boolean eaten = BoolArgumentType.getBool(context, "Eaten");
+                                handleWitchesStewMagicFindUpdate(stew, eaten);
+                                return Command.SINGLE_SUCCESS;
+                            })
+                        )
                     )
+                )
+                .then(LiteralArgumentBuilder.<T>literal("show")
+                    .executes(_ -> {
+                        PersistentData.MagicFindSourceValue<WitchesStew> witchesStewsEaten = scathaPro.getProfileData().witchesStewsEaten;
+                        scathaPro.chatManager.sendChatDivider();
+                        scathaPro.chatManager.sendChatMessage(Component.literal("Scatha mob type Witches Stews:").setStyle(ChatManager.HIGHLIGHT_STYLE));
+                        for (WitchesStew stew : WitchesStew.values())
+                        {
+                            scathaPro.chatManager.sendChatMessage(Component.empty()
+                                .append(" - " + stew.stewName + " (")
+                                .append(stew.mobTypeComponent)
+                                .append("): ")
+                                .append(
+                                    witchesStewsEaten.getLevel(stew) != null
+                                        ? Component.literal(UnicodeSymbol.heavyCheckMark + " eaten").withStyle(ChatFormatting.GREEN)
+                                        : Component.literal(UnicodeSymbol.heavyMultiplicationX + " not eaten").withStyle(ChatFormatting.RED)
+                                ),
+                                false
+                            );
+                        }
+                        scathaPro.chatManager.sendChatDivider();
+                        return Command.SINGLE_SUCCESS;
+                    })
                 )
             )
         )
         .then(LiteralArgumentBuilder.<T>literal("setPetDrops")
-            .executes(getMissingArgumentsCommand())
+            .executes(missingArgsCommand)
             .then(RequiredArgumentBuilder.<T, Integer>argument("Rare", IntegerArgumentType.integer(0, Constants.maxLegitPetDropsAmount))
-                .executes(getMissingArgumentsCommand())
+                .executes(missingArgsCommand)
                 .then(RequiredArgumentBuilder.<T, Integer>argument("Epic", IntegerArgumentType.integer(0, Constants.maxLegitPetDropsAmount))
-                    .executes(getMissingArgumentsCommand())
+                    .executes(missingArgsCommand)
                     .then(RequiredArgumentBuilder.<T, Integer>argument("Legendary", IntegerArgumentType.integer(0, Constants.maxLegitPetDropsAmount))
                         .executes(context -> {
                             int rare = IntegerArgumentType.getInteger(context, "Rare");
                             int epic = IntegerArgumentType.getInteger(context, "Epic");
                             int legendary = IntegerArgumentType.getInteger(context, "Legendary");
-                            
+
                             scathaPro.getProfileData().rarePetDrops.set(rare);
                             scathaPro.getProfileData().epicPetDrops.set(epic);
                             scathaPro.getProfileData().legendaryPetDrops.set(legendary);
                             scathaPro.persistentData.save();
-                            
-                            scathaPro.mainOverlay.updatePetDrops();
-                            
+
                             chatManager.sendChatMessage(
                                 Component.literal("Scatha pet drop amounts changed\n")
-                                .append(Component.literal("(Achievements will update on next game start or Scatha pet drop)").withStyle(ChatFormatting.GRAY))
+                                .append(
+                                    Component.literal("(Achievements will update on next game start or Scatha pet drop)")
+                                        .withStyle(ChatFormatting.GRAY)
+                                )
                             );
-                            
+
                             return Command.SINGLE_SUCCESS;
                         })
                     )
@@ -177,47 +231,47 @@ public class MainCommand extends ScathaProCommand
             )
         )
         .then(LiteralArgumentBuilder.<T>literal("checkUpdate")
-            .executes(context -> {
+            .executes(_ -> {
                 scathaPro.chatManager.sendChatMessage(Component.literal("Checking for update...").withStyle(ChatFormatting.GRAY));
                 UpdateChecker.checkForUpdate(scathaPro, true);
                 return Command.SINGLE_SUCCESS;
             })
         )
         .then(LiteralArgumentBuilder.<T>literal("overlay")
-            .executes(getMissingArgumentsCommand())
+            .executes(missingArgsCommand)
             .then(LiteralArgumentBuilder.<T>literal("toggleVisibility")
-                .executes(context -> {
+                .executes(_ -> {
                     scathaPro.mainOverlay.toggleShown();
                     return Command.SINGLE_SUCCESS;
                 })
             )
             .then(LiteralArgumentBuilder.<T>literal("toggleEnabled")
-                .executes(context -> {
+                .executes(_ -> {
                     scathaPro.mainOverlay.toggleEnabled();
                     return Command.SINGLE_SUCCESS;
                 })
             )
         )
         .then(LiteralArgumentBuilder.<T>literal("backup")
-            .executes(getMissingArgumentsCommand())
+            .executes(missingArgsCommand)
             .then(LiteralArgumentBuilder.<T>literal("full")
-                .executes(context -> {
+                .executes(_ -> {
                     scathaPro.persistentData.save();
                     scathaPro.config.save();
-                    scathaPro.saveFilesManager.backup();
+                    scathaPro.backupManager.backup();
                     return Command.SINGLE_SUCCESS;
                 })
             )
             .then(LiteralArgumentBuilder.<T>literal("persistentData")
-                .executes(context -> {
+                .executes(_ -> {
                     scathaPro.persistentData.save();
-                    scathaPro.saveFilesManager.backupPersistentData();
+                    scathaPro.backupManager.backupPersistentData();
                     return Command.SINGLE_SUCCESS;
                 })
             )
         )
         .then(LiteralArgumentBuilder.<T>literal("persistentDataFile")
-            .executes(context -> {
+            .executes(_ -> {
                 try
                 {
                     FileUtil.openFileInExplorer(scathaPro.persistentData.getFile());
@@ -233,7 +287,7 @@ public class MainCommand extends ScathaProCommand
             })
         )
         .then(LiteralArgumentBuilder.<T>literal("debugLogs")
-            .executes(context -> {
+            .executes(_ -> {
                 boolean isEnabled = ScathaPro.LOGGER.isDebugEnabled();
                 scathaPro.chatManager.sendChatMessage("Debug logs are currently " + (isEnabled ? "enabled" : "disabled"));
                 return Command.SINGLE_SUCCESS;
@@ -256,12 +310,12 @@ public class MainCommand extends ScathaProCommand
             )
         );
     }
-    
+
     private void sendHelp(int page)
     {
         chatManager.sendChatDivider();
         chatManager.sendChatMessage(Component.literal("Available commands:").withStyle(ChatManager.HIGHLIGHT_STYLE));
-        
+
         switch (page)
         {
             case 1:
@@ -280,7 +334,7 @@ public class MainCommand extends ScathaProCommand
                 new HelpMessageBuilder(this, "profileStats", "Check/update the values that the mod uses when displaying profile stats")
                     .withClickAction().buildAndSend(chatManager);
                 break;
-            
+
             case 2:
                 new HelpMessageBuilder(this, "setPetDrops <rare> <epic> <legendary>", "Set your pet drop counter to the specified numbers").buildAndSend(chatManager);
                 new HelpMessageBuilder(this, "toggleOverlay", "Toggles the overlay visibility")
@@ -292,11 +346,11 @@ public class MainCommand extends ScathaProCommand
                 new HelpMessageBuilder(this, "persistentDataFile", "Open the mod's persistent data file path in the file explorer")
                     .withClickAction().buildAndSend(chatManager);
                 break;
-            
+
             default:
                 chatManager.sendChatErrorMessage("Invalid page number!");
         }
-        
+
         chatManager.sendChatMessage(
             Component.literal("Help page " + page + "/2 ").withStyle(ChatFormatting.WHITE)
                 .append(Component.empty().withStyle(ChatFormatting.GRAY)
@@ -309,34 +363,33 @@ public class MainCommand extends ScathaProCommand
                 ),
             false
         );
-        
+
         chatManager.sendChatDivider();
     }
-    
+
     private void handleDailyStreak()
     {
-        
         boolean farmedToday = TimeUtil.today().equals(
             scathaPro.getProfileData().lastScathaFarmedDate.get()
         );
         int streak = scathaPro.getProfileData().scathaFarmingStreak.get();
-        int highscore = scathaPro.getProfileData().scathaFarmingStreakHighscore.get();
-        
+        int highScore = scathaPro.getProfileData().scathaFarmingStreakHighScore.get();
+
         chatManager.sendChatDivider();
         chatManager.sendChatMessage(Component.empty()
             .append(Component.literal("Daily Scatha farming streak:\n").withStyle(ChatManager.HIGHLIGHT_STYLE))
             .append("Current streak: ")
             .append(Component.literal(streak + (streak != 1 ? " days" : " day") + "\n").withStyle(ChatFormatting.GREEN))
             .append("Highest streak: ")
-            .append(Component.literal(highscore + (highscore != 1 ? " days" : " day") + "\n").withStyle(ChatFormatting.GOLD))
+            .append(Component.literal(highScore + (highScore != 1 ? " days" : " day") + "\n").withStyle(ChatFormatting.GOLD))
             .append(farmedToday
                 ? Component.literal(UnicodeSymbol.heavyCheckMark + " You have farmed Scathas today!").withStyle(ChatFormatting.GREEN)
-                : Component.literal(UnicodeSymbol.heavyBallotX + " You haven't yet farmed Scathas today...").withStyle(ChatFormatting.RED)
+                : Component.literal(UnicodeSymbol.heavyMultiplicationX + " You haven't yet farmed Scathas today...").withStyle(ChatFormatting.RED)
             )
         );
         chatManager.sendChatDivider();
     }
-    
+
     private void handleProfileStats()
     {
         String updateGlobalStatsCommand = "/" + scathaPro.mainCommand.getCommandName() + " profileStats updateGlobal";
@@ -348,7 +401,7 @@ public class MainCommand extends ScathaProCommand
                 .withClickEvent(new ClickEvent.RunCommand(updateGlobalStatsCommand))
             ))
             .append(")");
-        String updateBestiaryMagicFindCommand = "/be worms";
+        String updateBestiaryMagicFindCommand = "/be Stoneworm";
         Component updateBestiaryMagicFindComponent = Component.literal(" ").withStyle(ChatFormatting.GRAY)
             .append("(")
             .append(Component.literal("update").setStyle(Style.EMPTY
@@ -357,7 +410,7 @@ public class MainCommand extends ScathaProCommand
                 .withClickEvent(new ClickEvent.RunCommand(updateBestiaryMagicFindCommand))
             ))
             .append(")");
-        String setWitchesStewMagicFindCommand = "/" + scathaPro.mainCommand.getCommandName() + " profileStats setWitchesStewEaten ";
+        String setWitchesStewMagicFindCommand = "/" + scathaPro.mainCommand.getCommandName() + " profileStats witchesStews setEaten ";
         Component setWitchesStewMagicFindComponent = Component.literal(" ").withStyle(ChatFormatting.GRAY)
             .append("(")
             .append(Component.literal("update").setStyle(Style.EMPTY
@@ -366,7 +419,16 @@ public class MainCommand extends ScathaProCommand
                 .withClickEvent(new ClickEvent.SuggestCommand(setWitchesStewMagicFindCommand))
             ))
             .append(")");
-        
+        String updateAttributesMagicFindCommand = "/attributemenu";
+        Component updateAttributesMagicFindComponent = Component.literal(" ").withStyle(ChatFormatting.GRAY)
+            .append("(")
+            .append(Component.literal("update").setStyle(Style.EMPTY
+                .withUnderlined(true)
+                .withHoverEvent(new HoverEvent.ShowText(Component.literal("Click to run:\n" + updateAttributesMagicFindCommand).withStyle(ChatFormatting.GRAY)))
+                .withClickEvent(new ClickEvent.RunCommand(updateAttributesMagicFindCommand))
+            ))
+            .append(")");
+
         chatManager.sendChatDivider();
         chatManager.sendChatMessage(Component.literal("Saved Scatha farming profile stats:").setStyle(ChatManager.HIGHLIGHT_STYLE));
         chatManager.sendChatMessage(Component.literal(" ").append(
@@ -390,12 +452,40 @@ public class MainCommand extends ScathaProCommand
             )
             .append(updateBestiaryMagicFindComponent), false);
         chatManager.sendChatMessage(Component.empty()
+            .append(Component.literal(" │ ├ ").withStyle(ChatFormatting.GRAY))
+            .append(
+                scathaPro.persistentDataProfileManager.getAttributesMagicFindComponent(true)
+                    .withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(
+                        Component.literal("Magic Find from specific attributes that\napply to the mob types of Scathas").withStyle(ChatFormatting.GRAY)
+                    )))
+                    .append(" ")
+                    .append(Component.literal("Attributes").setStyle(Style.EMPTY
+                        .withUnderlined(true)
+                        .withHoverEvent(new HoverEvent.ShowText(
+                            Component.literal("Click to show all Attributes").withStyle(ChatFormatting.GRAY)
+                        ))
+                        .withClickEvent(new ClickEvent.RunCommand("/sp profileStats attributes"))
+                    ))
+                    .append(" Scatha Magic Find")
+            )
+            .append(updateAttributesMagicFindComponent), false
+        );
+        chatManager.sendChatMessage(Component.empty()
             .append(Component.literal(" │ └ ").withStyle(ChatFormatting.GRAY))
             .append(
-                scathaPro.persistentDataProfileManager.getWitchesStewMagicFindComponent(true).append(" Witches Stew Scatha Magic Find")
+                scathaPro.persistentDataProfileManager.getWitchesStewMagicFindComponent(true)
                     .withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(
-                        Component.literal("Magic Find from specific Year of the\nWitch stews that apply to Scathas").withStyle(ChatFormatting.GRAY)
+                        Component.literal("Magic Find from specific Year of the Witch\nstews that apply to the mob types of Scathas").withStyle(ChatFormatting.GRAY)
                     )))
+                    .append(" ")
+                    .append(Component.literal("Witches Stew").setStyle(Style.EMPTY
+                        .withUnderlined(true)
+                        .withHoverEvent(new HoverEvent.ShowText(
+                            Component.literal("Click to show all Witches Stews").withStyle(ChatFormatting.GRAY)
+                        ))
+                        .withClickEvent(new ClickEvent.RunCommand("/sp profileStats witchesStews show"))
+                    ))
+                    .append(" Scatha Magic Find")
             )
             .append(setWitchesStewMagicFindComponent), false
         );
@@ -407,7 +497,7 @@ public class MainCommand extends ScathaProCommand
             .append(updateGlobalStatsComponent), false);
         chatManager.sendChatDivider();
     }
-    
+
     private void handleProfileStatsUpdate(boolean confirmed)
     {
         if (confirmed)
@@ -422,48 +512,51 @@ public class MainCommand extends ScathaProCommand
         else
         {
             String confirmCommand = "/" + scathaPro.mainCommand.getCommandName() + " profileStats updateGlobal confirm";
-            
+
             chatManager.sendChatDivider();
             chatManager.sendChatMessage(Component.literal("Equip everything (armor, pet, weapon) you use when killing a Scatha and then ")
                 .setStyle(ChatManager.HIGHLIGHT_STYLE)
                 .append(Component.literal("click here to confirm").setStyle(Style.EMPTY
-                    .applyFormats(ChatFormatting.GREEN, ChatFormatting.UNDERLINE)
-                    .withHoverEvent(new HoverEvent.ShowText(Component.literal("Opens the Skyblock menu and\nupdates the saved profile stats").withStyle(ChatFormatting.GRAY)))
+                    .withColor(ChatFormatting.GREEN).withUnderlined(true)
+                    .withHoverEvent(new HoverEvent.ShowText(
+                        Component.literal("Opens the Skyblock menu and\nupdates the saved profile stats").withStyle(ChatFormatting.GRAY)
+                    ))
                     .withClickEvent(new ClickEvent.RunCommand(confirmCommand))
                 ))
                 .append(Component.literal(" (or use \"" + confirmCommand + "\")").withStyle(ChatFormatting.GRAY)));
             chatManager.sendChatDivider();
         }
     }
-    
+
     private void handleWitchesStewMagicFindUpdate(WitchesStew stew, boolean eaten)
     {
         PersistentData.ProfileData profileData = scathaPro.getProfileData();
-        int previousMagicFind = profileData.witchesStewsEaten.getMagicFind();
-        
-        profileData.witchesStewsEaten.setEaten(stew, eaten);
+        float previousMagicFind = profileData.witchesStewsEaten.getMagicFind();
+
+        if (eaten) profileData.witchesStewsEaten.setUnlocked(stew);
+        else profileData.witchesStewsEaten.removeUnlocked(stew);
         scathaPro.persistentData.save();
         scathaPro.mainOverlay.updateProfileStats();
-        
+
         scathaPro.chatManager.sendChatMessage(Component.empty()
             .append("Marked " + stew.stewName + " stew (")
             .append(stew.mobTypeComponent)
             .append(") as " + (!eaten ? "not " : "") + "eaten")
         );
-        int newMagicFind = profileData.witchesStewsEaten.getMagicFind();
-        if (newMagicFind != previousMagicFind)
+        float newMagicFind = profileData.witchesStewsEaten.getMagicFind();
+        if (!Mth.equal(newMagicFind, previousMagicFind))
         {
             scathaPro.chatManager.sendChatMessage(Component.empty().withStyle(ChatFormatting.GRAY)
                 .append("Updated Witches Stew Scatha Magic Find (")
                 .append(TextUtil.numberToComponentOrObf(previousMagicFind, 2, false, RoundingMode.HALF_UP))
-                .append(" " + UnicodeSymbol.heavyArrowRight + " ")
+                .append(" " + UnicodeSymbol.hypixelArrowRight + " ")
                 .append(TextUtil.numberToComponentOrObf(newMagicFind, 2, false, RoundingMode.HALF_UP))
                 .append(")")
             );
         }
     }
-    
-    
+
+
     private static class WitchesStewArgumentType implements ArgumentType<WitchesStew>
     {
         @Override
@@ -479,7 +572,7 @@ public class MainCommand extends ScathaProCommand
                 throw new SimpleCommandExceptionType(Component.literal("Witches Stew \"" + id + "\" not found")).create();
             }
         }
-        
+
         @Override
         public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder)
         {

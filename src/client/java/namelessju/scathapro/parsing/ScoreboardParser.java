@@ -14,22 +14,22 @@ import java.util.function.Predicate;
 public final class ScoreboardParser
 {
     private ScoreboardParser() {}
-    
+
     private static final Comparator<PlayerScoreEntry> SCORE_DISPLAY_ORDER = Comparator.comparing(PlayerScoreEntry::value)
         .reversed()
         .thenComparing(PlayerScoreEntry::owner, String.CASE_INSENSITIVE_ORDER);
-    
+
     public static Optional<Integer> parseHeat(Minecraft minecraft)
     {
         ScathaPro.LOGGER.debug("Parsing scoreboard heat value...");
-        
+
         AtomicReference<Integer> heat = new AtomicReference<>();
-        
+
         parse(minecraft, text -> {
             if (text.startsWith("Heat:"))
             {
                 String valueString = text.substring(5).trim();
-                
+
                 // remove non-number characters from left
                 while (!valueString.isEmpty())
                 {
@@ -42,7 +42,7 @@ public final class ScoreboardParser
                     }
                     valueString = valueString.substring(1).trim();
                 }
-                
+
                 // remove non-digit characters from right
                 while (valueString != null && !valueString.isEmpty())
                 {
@@ -50,7 +50,7 @@ public final class ScoreboardParser
                     if (lastChar >= '0' && lastChar <= '9') break;
                     valueString = valueString.substring(0, valueString.length() - 1).trim();
                 }
-                
+
                 if (valueString != null && !valueString.isEmpty())
                 {
                     try
@@ -67,29 +67,29 @@ public final class ScoreboardParser
                 {
                     ScathaPro.LOGGER.debug("Scoreboard heat entry found, but has no int value: \"{}\"", text);
                 }
-                
+
                 return true;
             }
-            
+
             return false;
         });
-        
+
         return Optional.ofNullable(heat.get());
     }
-    
+
     private static void parse(Minecraft minecraft, Predicate<String> scorePredicate)
     {
         if (minecraft.getConnection() == null) return;
-        
+
         ScathaPro.LOGGER.debug("Parsing scoreboard...");
-        
+
         Scoreboard scoreboard = minecraft.getConnection().scoreboard();
-        
+
         Objective sidebarObjective = scoreboard.getDisplayObjective(DisplaySlot.SIDEBAR);
         if (sidebarObjective != null)
         {
             ScathaPro.LOGGER.debug("Scoreboard objective found in sidebar: \"{}\"", sidebarObjective.getDisplayName());
-            
+
             Component[] lines = scoreboard.listPlayerScores(sidebarObjective)
                 .stream()
                 .filter(playerScoreEntry -> !playerScoreEntry.isHidden())

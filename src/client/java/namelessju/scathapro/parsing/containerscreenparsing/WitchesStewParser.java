@@ -25,17 +25,17 @@ import java.util.Locale;
 public class WitchesStewParser extends ContainerScreenParser
 {
     private float previousTotalMagicFind;
-    
+
     public WitchesStewParser(ScathaPro scathaPro)
     {
         super(scathaPro);
         this.requiresFilledSlots = false;
     }
-    
+
     @Override
-    public String getScreenTitle()
+    public boolean shouldParse(String screenTitle)
     {
-        return "Witches Stew";
+        return screenTitle.equals("Witches Stew");
     }
 
     @Override
@@ -44,17 +44,17 @@ public class WitchesStewParser extends ContainerScreenParser
         int[] slots = new int[21];
         for (int i = 0; i < slots.length; i ++)
         {
-            slots[i] = 10 + i + ((i%7) * 2);
+            slots[i] = 10 + i + ((i/7) * 2);
         }
         return slots;
     }
-    
+
     @Override
     public void onStartParsing()
     {
         previousTotalMagicFind = scathaPro.getProfileData().witchesStewsEaten.getMagicFind();
     }
-    
+
     @Override
     public void tryParse(ItemStack itemStack, int slotNumber)
     {
@@ -63,7 +63,7 @@ public class WitchesStewParser extends ContainerScreenParser
             tryParseStew(itemStack, stew);
         }
     }
-    
+
     @Override
     public void onFinishParsing()
     {
@@ -71,18 +71,18 @@ public class WitchesStewParser extends ContainerScreenParser
         if (!Mth.equal(newTotalMagicFind, previousTotalMagicFind))
         {
             scathaPro.chatManager.sendChatMessage(Component.empty().withStyle(ChatFormatting.GRAY)
-                .append("Updated Witches Stew Scatha Magic Find (")
+                .append("Updated Scatha Magic Find from Witches Stews (")
                 .append(TextUtil.numberToComponentOrObf(previousTotalMagicFind, 2, false, RoundingMode.HALF_UP))
-                .append(" " + UnicodeSymbol.heavyArrowRight + " ")
+                .append(" " + UnicodeSymbol.hypixelArrowRight + " ")
                 .append(TextUtil.numberToComponentOrObf(newTotalMagicFind, 2, false, RoundingMode.HALF_UP))
                 .append(")")
             );
         }
-        
+
         scathaPro.persistentData.save();
         scathaPro.mainOverlay.updateProfileStats();
     }
-    
+
     private void tryParseStew(ItemStack itemStack, WitchesStew stew)
     {
         Component name = itemStack.get(DataComponents.CUSTOM_NAME);
@@ -90,7 +90,7 @@ public class WitchesStewParser extends ContainerScreenParser
         {
             return;
         }
-        
+
         ItemLore lore = itemStack.get(DataComponents.LORE);
         if (lore != null)
         {
@@ -105,9 +105,10 @@ public class WitchesStewParser extends ContainerScreenParser
                     break;
                 }
             }
-            
+
             PersistentData.ProfileData profileData = scathaPro.getProfileData();
-            profileData.witchesStewsEaten.setEaten(stew, eaten);
+            if (eaten) profileData.witchesStewsEaten.setUnlocked(stew);
+            else profileData.witchesStewsEaten.removeUnlocked(stew);
         }
     }
 }

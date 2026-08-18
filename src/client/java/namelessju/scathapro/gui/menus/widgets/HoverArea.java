@@ -12,20 +12,20 @@ public class HoverArea extends Button
     {
         super(x, y, width, height, component, button -> {}, Button.DEFAULT_NARRATION);
     }
-    
+
     @Override
     protected void extractContents(@NonNull GuiGraphicsExtractor guiGraphics, int i, int j, float f)
     {
         this.extractDefaultSprite(guiGraphics);
         this.extractDefaultLabel(guiGraphics.textRendererForWidget(this, GuiGraphicsExtractor.HoveredTextEffects.NONE));
     }
-    
+
     @Override
     protected void handleCursor(@NonNull GuiGraphicsExtractor guiGraphics)
     {
         // no cursor changes
     }
-    
+
     @Override
     public void playDownSound(@NonNull SoundManager soundManager)
     {

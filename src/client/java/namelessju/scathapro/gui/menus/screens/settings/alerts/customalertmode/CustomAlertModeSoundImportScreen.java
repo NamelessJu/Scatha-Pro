@@ -5,6 +5,7 @@ import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.alerts.Alert;
 import namelessju.scathapro.gui.menus.framework.screens.LayoutScreen;
 import namelessju.scathapro.gui.menus.screens.InfoMessageScreen;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.gui.layouts.LayoutSettings;
@@ -18,70 +19,72 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class CustomAlertModeSoundImportScreen extends LayoutScreen
 {
     private final @NonNull String subModeId;
-    
+
     private final List<ImportFile> importFiles = Lists.newArrayList();
     private final List<File> failedFileCopies = Lists.newArrayList();
     private final List<File> failedFileConversions = Lists.newArrayList();
-    
+
     private boolean resourceReloadRequired = false;
-    
+
     private StringWidget statusLabel;
-    
+
     public CustomAlertModeSoundImportScreen(ScathaPro scathaPro, Screen returnScreen, @NonNull String subModeId)
     {
         super(scathaPro, Component.literal("Custom Alert Audio Import"), false, returnScreen);
-        
+
         this.subModeId = subModeId;
     }
-    
+
     public void addFile(@NonNull Alert alert, @NonNull File file)
     {
         importFiles.add(new ImportFile(alert, file));
     }
-    
+
     public boolean hasFiles()
     {
         return !importFiles.isEmpty();
     }
-    
+
     @Override
     protected void initLayout(@NonNull HeaderAndFooterLayout layout)
     {
         addTitleHeader();
-        
+
         layout.addToContents(
             statusLabel = label(0, 0, Component.empty()),
             LayoutSettings::alignHorizontallyCenter
         );
-        
+
         startImport();
     }
-    
+
     private void setStatus(String message)
     {
         statusLabel.setMessage(Component.literal(message));
         repositionElements();
     }
-    
+
     @Override
     public boolean shouldCloseOnEsc()
     {
         return false;
     }
-    
+
     private void startImport()
     {
         scathaPro.minecraft.getSoundManager().destroy();
-        
+
         //noinspection ResultOfMethodCallIgnored
         scathaPro.customAlertModeManager.getSoundsDirectoryPath(subModeId).toFile().mkdirs();
-        
+
         setStatus("Copying files...");
-        
+
         List<ImportFile> fileConversions = Lists.newArrayList();
         for (ImportFile importFile : importFiles)
         {
@@ -91,7 +94,7 @@ public class CustomAlertModeSoundImportScreen extends LayoutScreen
             }
             else copyFile(importFile);
         }
-        
+
         Iterator<ImportFile> conversionIterator = fileConversions.iterator();
         AtomicInteger conversionCounter = new AtomicInteger();
         // Array prevents Java from complaining about the self reference
@@ -107,7 +110,7 @@ public class CustomAlertModeSoundImportScreen extends LayoutScreen
         };
         convertNext[0].run();
     }
-    
+
     private void copyFile(ImportFile importFile)
     {
         File targetFile = scathaPro.customAlertModeManager.getAlertAudioFile(subModeId, importFile.alert);
@@ -122,7 +125,7 @@ public class CustomAlertModeSoundImportScreen extends LayoutScreen
             ScathaPro.LOGGER.error("Failed to copy custom alert file {}", importFile.file.getAbsolutePath(), e);
         }
     }
-    
+
     private void convertFile(ImportFile importFile, Runnable callback)
     {
         File targetFile = scathaPro.customAlertModeManager.getAlertAudioFile(subModeId, importFile.alert);
@@ -136,27 +139,46 @@ public class CustomAlertModeSoundImportScreen extends LayoutScreen
             }
         );
     }
-    
+
     private void returnToParentScreen()
     {
         scathaPro.minecraft.getSoundManager().reload();
-        
+
         if (resourceReloadRequired)
         {
             scathaPro.customAlertModeManager.reloadResourcePack();
         }
-        
+
         Screen returnScreen = parentScreen;
         if (!failedFileCopies.isEmpty() || !failedFileConversions.isEmpty())
         {
+            StringBuilder description = new StringBuilder();
+
+            Function<List<File>, String> getFileNames = list -> list.stream()
+                .map(File::getName)
+                .collect(Collectors.joining(", "));
+
+            if (!failedFileCopies.isEmpty())
+            {
+                description.append("The following files couldn't be copied into the custom modes folder:\n")
+                    .append(getFileNames.apply(failedFileCopies));
+            }
+
+            if (!failedFileConversions.isEmpty())
+            {
+                if (!description.isEmpty()) description.append("\n\n");
+
+                description.append("The following files couldn't be converted to ogg:\n")
+                    .append(getFileNames.apply(failedFileConversions));
+            }
+
             returnScreen = new InfoMessageScreen(scathaPro, returnScreen,
-                Component.literal("Failed custom alert audio imports"),
-                Component.literal("The following files couldn't be copied into the custom modes folder:\n")
-                    .append("TODO") // TODO
+                Component.literal("Failed sound imports").withStyle(ChatFormatting.RED),
+                Component.literal(description.toString())
             );
         }
         minecraft.setScreen(returnScreen);
     }
-    
+
     private record ImportFile(@NonNull Alert alert, @NonNull File file) {}
 }

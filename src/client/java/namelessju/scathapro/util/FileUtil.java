@@ -21,16 +21,16 @@ public class FileUtil
     public static @Nullable String readFile(@NonNull File file) throws IOException
     {
         if (!file.exists() || !file.isFile() || !file.canRead()) return null;
-        
+
         return readInputStream(new FileInputStream(file));
     }
-    
+
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static void writeFile(@NonNull File file, @NonNull String content) throws IOException
     {
         File directory = file.getParentFile();
         if (directory != null) directory.mkdirs();
-        
+
         BufferedWriter bufferedWriter = null;
         try
         {
@@ -43,18 +43,18 @@ public class FileUtil
             IOUtils.closeQuietly(bufferedWriter);
         }
     }
-    
+
     public static String readInputStream(@Nullable InputStream inputStream) throws IOException
     {
         if (inputStream == null) return null;
-        
+
         BufferedReader bufferedReader = null;
         try
         {
             bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-            
+
             StringBuilder stringBuilder = new StringBuilder();
-            
+
             String line;
             while ((line = bufferedReader.readLine()) != null)
             {
@@ -62,7 +62,7 @@ public class FileUtil
                 stringBuilder.append(line);
             }
             bufferedReader.close();
-            
+
             return stringBuilder.toString();
         }
         finally
@@ -70,7 +70,7 @@ public class FileUtil
             IOUtils.closeQuietly(bufferedReader);
         }
     }
-    
+
     public static boolean deleteDirectoryRecursive(File directory)
     {
         File[] children = directory.listFiles();
@@ -81,26 +81,10 @@ public class FileUtil
                 deleteDirectoryRecursive(file);
             }
         }
-        
+
         return directory.delete();
     }
-    
-    public static boolean move(File source, File destination)
-    {
-        File directory = destination.getParentFile();
-        if (!directory.exists())
-        {
-            if (!directory.mkdirs()) return false;
-        }
-        
-        return source.renameTo(destination);
-    }
-    
-    public static void moveToDirectory(File source, File directory)
-    {
-        move(source, new File(directory, source.getName()));
-    }
-    
+
     public static boolean copy(File source, File copyFile)
     {
         try
@@ -113,7 +97,7 @@ public class FileUtil
             return false;
         }
     }
-    
+
     /**
      * Returns a file reference that makes sure the file doesn't exist yet by adding a number to the end of the file name if required
      */
@@ -126,7 +110,7 @@ public class FileUtil
             fileExtension = fileName.substring(fileExtensionIndex);
             fileName = fileName.substring(0, fileExtensionIndex);
         }
-        
+
         File file = null;
         int v = 0;
         while (file == null)
@@ -136,8 +120,8 @@ public class FileUtil
         }
         return file;
     }
-    
-    
+
+
     public static boolean unzip(File zipFile, Path targetDirectory, Predicate<String> zipEntryFilter) {
         targetDirectory = targetDirectory.toAbsolutePath();
         File targetDirectoryFile = targetDirectory.toFile();
@@ -146,21 +130,21 @@ public class FileUtil
             ScathaPro.LOGGER.error("Couldn't unzip zip file: target path is not a directory: {}", targetDirectory);
             return false;
         }
-        
+
         ZipInputStream zipInputStream = null;
         try
         {
             zipInputStream = new ZipInputStream(new FileInputStream(zipFile));
             for (ZipEntry zipEntry; (zipEntry = zipInputStream.getNextEntry()) != null;) {
                 if (zipEntryFilter != null && !zipEntryFilter.test(zipEntry.getName())) continue;
-                
+
                 Path resolvedPath = targetDirectory.resolve(zipEntry.getName()).normalize();
                 if (!resolvedPath.startsWith(targetDirectory))
                 {
                     ScathaPro.LOGGER.warn("Encountered and skipped zip-file entry with illegal path: {}", zipEntry.getName());
                     continue;
                 }
-                
+
                 if (zipEntry.isDirectory())
                 {
                     Files.createDirectories(resolvedPath);
@@ -171,15 +155,15 @@ public class FileUtil
                     Files.copy(zipInputStream, resolvedPath);
                 }
             }
-            
+
             zipInputStream.close();
             return true;
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            ScathaPro.LOGGER.error("Exception while trying to unzip zip file", e);
         }
-        
+
         if (zipInputStream != null)
         {
             try
@@ -188,10 +172,10 @@ public class FileUtil
             }
             catch (IOException ignored) { }
         }
-        
+
         return false;
     }
-    
+
     public static boolean zip(File sourcePath, String targetPath, boolean includeInitialDirectory)
     {
         ZipOutputStream zos = null;
@@ -202,14 +186,14 @@ public class FileUtil
             else zipFile(sourcePath, null, zos);
             zos.flush();
             zos.close();
-            
+
             return true;
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            ScathaPro.LOGGER.error("Exception while trying to create zip file", e);
         }
-        
+
         if (zos != null)
         {
             try
@@ -218,7 +202,7 @@ public class FileUtil
             }
             catch (IOException ignored) {}
         }
-        
+
         return false;
     }
 
@@ -230,7 +214,7 @@ public class FileUtil
             newPath = (!parentDirectory.isEmpty() ? parentDirectory + "/" : "") + folder.getName();
         }
         else newPath = "";
-        
+
         File[] files = folder.listFiles();
         if (files == null)
         {
@@ -243,7 +227,7 @@ public class FileUtil
             else zipFile(file, newPath, zos);
         }
     }
-    
+
     private static void zipFile(File file, String parentDirectory, ZipOutputStream zos) throws IOException
     {
         zos.putNextEntry(new ZipEntry((parentDirectory != null && !parentDirectory.isEmpty() ? parentDirectory + "/" : "") + file.getName()));
@@ -254,7 +238,8 @@ public class FileUtil
         bis.close();
         zos.closeEntry();
     }
-    
+
+    @SuppressWarnings("resource")
     public static void openFileInExplorer(File file) throws IOException
     {
         if (file.isFile())
@@ -272,7 +257,7 @@ public class FileUtil
         }
         else Desktop.getDesktop().open(file);
     }
-    
-    
+
+
     private FileUtil() {}
 }

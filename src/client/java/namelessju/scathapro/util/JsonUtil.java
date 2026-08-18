@@ -13,7 +13,7 @@ public final class JsonUtil
 {
     private static final String PATH_SEPARATOR = "\\.";
     private static final Gson GSON_INSTANCE;
-    
+
     static
     {
         GsonBuilder gsonBuilder = new GsonBuilder();
@@ -21,10 +21,10 @@ public final class JsonUtil
         gsonBuilder.disableHtmlEscaping();
         GSON_INSTANCE = gsonBuilder.create();
     }
-    
+
     private JsonUtil() {}
-    
-    
+
+
     public static @Nullable JsonElement parseJson(String jsonString)
     {
         try
@@ -32,18 +32,18 @@ public final class JsonUtil
             return JsonParser.parseString(jsonString);
         }
         catch (JsonSyntaxException ignored) {}
-        
+
         return null;
     }
-    
+
     public static @Nullable JsonElement getJsonElement(@Nullable JsonElement object, String path)
     {
         if (object == null || object.isJsonNull()) return null;
-        
+
         if (path == null) return object;
-        
+
         String[] pathNodes = path.split(PATH_SEPARATOR);
-        
+
         JsonElement currentElement = object;
         for (String pathSegment : pathNodes)
         {
@@ -54,25 +54,25 @@ public final class JsonUtil
             }
             else return null;
         }
-        
+
         if (currentElement != null && !currentElement.isJsonNull()) return currentElement;
         return null;
     }
-    
+
     public static @Nullable JsonObject getJsonObject(@Nullable JsonElement object, String path)
     {
         JsonElement element = getJsonElement(object, path);
         if (element != null && element.isJsonObject()) return element.getAsJsonObject();
         return null;
     }
-    
+
     public static @Nullable JsonArray getJsonArray(@Nullable JsonElement object, String path)
     {
         JsonElement element = getJsonElement(object, path);
         if (element != null && element.isJsonArray()) return element.getAsJsonArray();
         return null;
     }
-    
+
     public static @Nullable JsonPrimitive getJsonPrimitive(@Nullable JsonElement object, String path)
     {
         JsonElement element = getJsonElement(object, path);
@@ -86,19 +86,19 @@ public final class JsonUtil
         if (primitive != null && primitive.isNumber()) return primitive.getAsNumber();
         return null;
     }
-    
+
     public static @Nullable Integer getInt(@Nullable JsonElement object, String path)
     {
         Number number = JsonUtil.getNumber(object, path);
         return number != null ? number.intValue() : null;
     }
-    
+
     public static @Nullable Long getLong(@Nullable JsonElement object, String path)
     {
         Number number = JsonUtil.getNumber(object, path);
         return number != null ? number.longValue() : null;
     }
-    
+
     public static @Nullable Double getDouble(@Nullable JsonElement object, String path)
     {
         Number number = JsonUtil.getNumber(object, path);
@@ -116,15 +116,15 @@ public final class JsonUtil
         JsonPrimitive primitive = getJsonPrimitive(object, path);
         return primitive != null && primitive.isBoolean() ? primitive.getAsBoolean() : null;
     }
-    
+
     public static void set(@NonNull JsonObject object, String path, @Nullable JsonElement value)
     {
         Objects.requireNonNull(object, "JsonObject cannot be null");
-        
+
         String[] pathNodes = path.split(PATH_SEPARATOR);
-        
+
         JsonObject currentObject = object;
-        
+
         for (int i = 0; i < pathNodes.length; i ++)
         {
             if (i == pathNodes.length - 1)
@@ -144,13 +144,13 @@ public final class JsonUtil
             }
         }
     }
-    
+
     public static JsonElement remove(@NonNull JsonObject object, String path)
     {
         if (object.isJsonNull() || path == null) return null;
-        
+
         String[] pathNodes = path.split(PATH_SEPARATOR);
-        
+
         JsonObject currentObject = object;
         for (int i = 0; i < pathNodes.length; i ++)
         {
@@ -168,10 +168,10 @@ public final class JsonUtil
                 else return null;
             }
         }
-        
+
         return null;
     }
-    
+
     public static boolean move(@NonNull JsonObject object, @NonNull String originPath, @NonNull String targetPath)
     {
         JsonElement element = object.remove(originPath);
@@ -182,7 +182,7 @@ public final class JsonUtil
         }
         return false;
     }
-    
+
     public static @NonNull String toString(JsonElement jsonElement, boolean usePrettyJson)
     {
         try

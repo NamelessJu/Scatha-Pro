@@ -1,21 +1,24 @@
 package namelessju.scathapro.miscellaneous.data.enums;
 
-public enum SecondaryWormStatsType
+import namelessju.scathapro.miscellaneous.data.IDisplayable;
+import org.jspecify.annotations.NonNull;
+
+public enum SecondaryWormStatsType implements IDisplayable
 {
     PER_LOBBY("Lobby"),
     PER_SESSION("Game Session"),
     PER_DAY("IRL Day");
-    
-    private final String displayString;
-    
-    SecondaryWormStatsType(String displayString)
+
+    private final @NonNull String displayName;
+
+    SecondaryWormStatsType(@NonNull String displayName)
     {
-        this.displayString = displayString;
+        this.displayName = displayName;
     }
-    
+
     @Override
-    public String toString()
+    public @NonNull String getDisplayName()
     {
-        return displayString;
+        return displayName;
     }
 }

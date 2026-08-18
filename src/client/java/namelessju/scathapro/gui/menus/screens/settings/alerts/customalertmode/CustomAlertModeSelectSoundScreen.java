@@ -34,32 +34,32 @@ public class CustomAlertModeSelectSoundScreen extends LayoutScreen
     private final CustomAlertModeEditScreen.@NonNull AlertEditData editData;
     private @NonNull AlertMode soundSourceAlertMode = AlertModeManager.DEFAULT_MODE;
     private @NonNull Alert soundSourceAlert;
-    
+
     private ScathaProGuiList list;
     private ScathaProGuiList.Entry customFilesNoteEntry;
     private SoundPreviewButton soundPreviewButton;
-    
+
     private @Nullable SoundInstance lastPlayedPreviewSound = null;
-    
+
     public CustomAlertModeSelectSoundScreen(ScathaPro scathaPro, Screen parentScreen,
                                             @NonNull String subModeId, @NonNull Alert alert,
                                             CustomAlertModeEditScreen.@NonNull AlertEditData editData)
     {
         super(scathaPro, Component.literal("Select Custom Alert Mode Audio"), false, parentScreen);
-        
+
         this.subModeId = subModeId;
         this.alert = alert;
         this.editData = editData;
         this.soundSourceAlert = alert;
     }
-    
+
     @Override
     protected void initLayout(@NonNull HeaderAndFooterLayout layout)
     {
         addTitleHeader();
-        
+
         list = addScrollList();
-        
+
         // Inbuilt sounds selection
         list.addEntry(new ScathaProGuiList.Entry(new ScathaProGuiList.Entry.PositionedChild(
             label(0, 0, Component.literal("Inbuilt Sounds")),
@@ -73,22 +73,22 @@ public class CustomAlertModeSelectSoundScreen extends LayoutScreen
                         .toList()
                 )
                 .create(0, 0, 150, 20, Component.literal("Inherit From"),
-                    (button, value) -> soundSourceAlertMode = value
+                    (_, value) -> soundSourceAlertMode = value
                 ),
             new CycleButton.Builder<>(value -> Component.literal(value.alertName), () -> alert)
                 .withValues(Lists.newArrayList(scathaPro.alertManager))
                 .create(160, 0, 150, 20, Component.literal("Source"),
-                    (button, value) -> soundSourceAlert = value
+                    (_, value) -> soundSourceAlert = value
                 )
         ));
         list.addEntry(new ScathaProGuiList.Entry(
             soundPreviewButton = new SoundPreviewButton(0, 0, 150, 20),
             Button.builder(
                 Component.literal("Select"),
-                button -> selectAlertModeSound()
+                _ -> selectAlertModeSound()
             ).bounds(160, 0, 150, 20).build()
         ));
-        
+
         // Custom sound selection
         list.addEntry(new ScathaProGuiList.Entry(new ScathaProGuiList.Entry.PositionedChild(
             label(0, 0, Component.literal("Custom Sound")),
@@ -97,7 +97,7 @@ public class CustomAlertModeSelectSoundScreen extends LayoutScreen
         if (scathaPro.customAlertModeManager.getAlertAudioFile(subModeId, alert).exists())
         {
             list.addEntry(new ScathaProGuiList.Entry(
-                Button.builder(Component.literal("Saved Custom Sound"), button -> {
+                Button.builder(Component.literal("Saved Custom Sound"), _ -> {
                     editData.newSoundSourceAlertMode = scathaPro.alertModeManager.customMode;
                     onClose();
                 }).size(310, 20).tooltip(Tooltip.create(
@@ -111,19 +111,19 @@ public class CustomAlertModeSelectSoundScreen extends LayoutScreen
                 .append(
                     scathaPro.ffmpegManager.isFFmpegInstalled()
                         ? Component.literal(
-                            "Supported file extensions: "
-                            + String.join(", ", scathaPro.ffmpegManager.getSupportedFileExtensions())
-                        ).withStyle(ChatFormatting.GRAY)
+                                "Supported file types: "
+                                + String.join(", ", scathaPro.ffmpegManager.getSupportedFileExtensions())
+                            ).withStyle(ChatFormatting.GRAY)
                         : Component.literal("No FFmpeg installation found, only .ogg is supported").withStyle(ChatFormatting.YELLOW)
                 ),
                 font
             ).setCentered(true),
             list.getRowWidth()/2, 4, true
         )));
-        
+
         addFooter(doneButton(CommonComponents.GUI_CANCEL, 200));
     }
-    
+
     @Override
     public void onFilesDrop(@NotNull List<Path> filePaths)
     {
@@ -143,19 +143,19 @@ public class CustomAlertModeSelectSoundScreen extends LayoutScreen
             }
             if (!isFileSupported) iterator.remove();
         }
-        
+
         if (filePaths.size() == 1)
         {
             selectCustomSound(filePaths.getFirst().toFile());
             return;
         }
-        
+
         for (Path path : filePaths)
         {
             File file = path.toFile();
             list.addEntry(new ScathaProGuiList.Entry(
                 Button.builder(Component.literal(file.getName()),
-                    button -> CustomAlertModeSelectSoundScreen.this.selectCustomSound(file)
+                    _ -> CustomAlertModeSelectSoundScreen.this.selectCustomSound(file)
                 ).size(310, 20).build()
             ));
         }
@@ -165,12 +165,12 @@ public class CustomAlertModeSelectSoundScreen extends LayoutScreen
             return 0;
         });
     }
-    
+
     @Override
     public void tick()
     {
         super.tick();
-        
+
         if (lastPlayedPreviewSound != null)
         {
             if (!scathaPro.soundManager.isPlaying(lastPlayedPreviewSound))
@@ -180,7 +180,7 @@ public class CustomAlertModeSelectSoundScreen extends LayoutScreen
             }
         }
     }
-    
+
     @Override
     public void removed()
     {
@@ -188,32 +188,32 @@ public class CustomAlertModeSelectSoundScreen extends LayoutScreen
         {
             alert.stopSound(scathaPro.soundManager);
         }
-        
+
         lastPlayedPreviewSound = null;
     }
-    
+
     private void selectAlertModeSound()
     {
         editData.newSoundFile = null;
         editData.newSoundSourceAlertMode = soundSourceAlertMode;
         editData.newSoundSourceAlert = soundSourceAlert;
-        
+
         onClose();
     }
-    
+
     private void selectCustomSound(File file)
     {
         editData.newSoundFile = file;
         editData.newSoundSourceAlertMode = null;
         editData.newSoundSourceAlert = null;
-        
+
         onClose();
     }
-    
+
     protected class SoundPreviewButton extends Button.Plain
     {
         private final Component baseComponent;
-        
+
         protected SoundPreviewButton(int x, int y, int width, int height)
         {
             super(x, y, width, height, Component.empty(),
@@ -232,11 +232,11 @@ public class CustomAlertModeSelectSoundScreen extends LayoutScreen
                 },
                 Button.DEFAULT_NARRATION
             );
-            
+
             baseComponent = Component.literal("Play Preview");
             updateMessage(false);
         }
-        
+
         private void updateMessage(boolean isPlaying)
         {
             this.setMessage(isPlaying ? Component.literal("Stop Sound") : baseComponent);

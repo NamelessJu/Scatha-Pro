@@ -9,13 +9,13 @@ public class VolumePreviewSound extends ScathaProSound implements TickableSoundI
     {
         super(scathaPro, ScathaPro.getIdentifier("alert_modes.meme.regular_worm_spawn"), 1f, 1f);
     }
-    
+
     @Override
     public boolean isStopped()
     {
         return false;
     }
-    
+
     @Override
     public void tick()
     {

@@ -21,19 +21,19 @@ public class AverageMoneyCalculatorScreen extends LayoutScreen
     private StringWidget resultLabel;
     private EditBox scathaPetPriceRareInput, scathaPetPriceEpicInput, scathaPetPriceLegendaryInput;
     private EditBox magicFindInput, petLuckInput, scathaRateInput;
-    
+
     public AverageMoneyCalculatorScreen(ScathaPro scathaPro, Screen parentScreen)
     {
         super(scathaPro, Component.literal("Average Scatha Money Calculator"), true, parentScreen);
     }
-    
+
     @Override
     protected void initLayout(@NonNull HeaderAndFooterLayout layout)
     {
         addTitleHeader();
-        
+
         GridBuilder gridBuilder = new GridBuilder(3);
-        
+
         gridBuilder.addFullWidth(new StringWidget(Component.literal("Scatha Pet Prices (In Million):").withStyle(ChatFormatting.YELLOW), font), true, false);
         gridBuilder.addSingleCell(scathaPetPriceRareInput = makeEditBox(
             "Rare Scatha Pet Price (In Million)", "Rare", Style.EMPTY.withColor(ChatFormatting.BLUE)
@@ -76,74 +76,74 @@ public class AverageMoneyCalculatorScreen extends LayoutScreen
                 this calculation and gets added on top of this result!"""
             ).withStyle(ChatFormatting.GRAY), font
         ).setCentered(true), false, false);
-        
+
         gridBuilder.addToContent(layout);
-        
+
         addDoneButtonFooter();
     }
-    
+
     @Override
     protected void init()
     {
         super.init();
-        
+
         setValue(scathaPetPriceRareInput, scathaPro.persistentData.avgMoneyCalcScathaPriceRare.get());
         setValue(scathaPetPriceEpicInput, scathaPro.persistentData.avgMoneyCalcScathaPriceEpic.get());
         setValue(scathaPetPriceLegendaryInput, scathaPro.persistentData.avgMoneyCalcScathaPriceLegendary.get());
         setValue(magicFindInput, scathaPro.coreManager.avgMoneyCalcMagicFind);
         setValue(petLuckInput, scathaPro.coreManager.avgMoneyCalcPetLuck);
         setValue(scathaRateInput, scathaPro.coreManager.avgMoneyCalcScathaRate);
-        
+
         calculate();
     }
-    
+
     @Override
     public void removed()
     {
         super.removed();
-        
+
         scathaPro.coreManager.avgMoneyCalcMagicFind = getEditBoxNumberValue(magicFindInput, -1f);
         scathaPro.coreManager.avgMoneyCalcPetLuck = getEditBoxNumberValue(petLuckInput, -1f);
         scathaPro.coreManager.avgMoneyCalcScathaRate = getEditBoxNumberValue(scathaRateInput, -1f);
-        
+
         scathaPro.persistentData.avgMoneyCalcScathaPriceRare.set(getEditBoxNumberValue(scathaPetPriceRareInput, null));
         scathaPro.persistentData.avgMoneyCalcScathaPriceEpic.set(getEditBoxNumberValue(scathaPetPriceEpicInput, null));
         scathaPro.persistentData.avgMoneyCalcScathaPriceLegendary.set(getEditBoxNumberValue(scathaPetPriceLegendaryInput, null));
         scathaPro.persistentData.save();
     }
-    
+
     private void calculate()
     {
         float priceRare = getEditBoxNumberValue(scathaPetPriceRareInput, 0f);
         float priceEpic = getEditBoxNumberValue(scathaPetPriceEpicInput, 0f);
         float priceLegendary = getEditBoxNumberValue(scathaPetPriceLegendaryInput, 0f);
         float scathaRate = getEditBoxNumberValue(scathaRateInput, 0f);
-        
+
         float result = -1f;
-        
+
         if (priceRare > 0f && priceEpic > 0f && priceLegendary > 0f && scathaRate > 0f)
         {
             float anyChance = Constants.scathaPetBaseChanceRare + Constants.scathaPetBaseChanceEpic + Constants.scathaPetBaseChanceLegendary;
-            
+
             float priceAverage = (Constants.scathaPetBaseChanceRare / anyChance) * priceRare
                 + (Constants.scathaPetBaseChanceEpic / anyChance) * priceEpic
                 + (Constants.scathaPetBaseChanceLegendary / anyChance) * priceLegendary;
-            
+
             float emf = getEditBoxNumberValue(magicFindInput, 0f) + getEditBoxNumberValue(petLuckInput, 0f);
-            
+
             result = priceAverage / ((1f / (anyChance * (1f + emf / 100f))) / scathaRate);
         }
-        
+
         resultLabel.setMessage(
             Component.literal("Average Scatha farming profit: ")
-            .append(Component.empty().withStyle(ChatFormatting.UNDERLINE)
+            .append(Component.empty().withStyle(Style.EMPTY.withUnderlined(true))
                 .append(TextUtil.numberToComponentOrObf(result, 2, true, RoundingMode.HALF_UP))
                 .append(" M coins/h")
             )
         );
         getLayout().arrangeElements();
     }
-    
+
     private EditBox makeEditBox(String name, String hint, Style valueStyle)
     {
         AtomicBoolean isValid = new AtomicBoolean(true);
@@ -153,7 +153,7 @@ public class AverageMoneyCalculatorScreen extends LayoutScreen
         editBox.addFormatter((text, _) -> {
             if (isValid.get()) return null;
             return Component.literal(text)
-                .withStyle(ChatFormatting.RED, ChatFormatting.ITALIC)
+                .withStyle(Style.EMPTY.withColor(ChatFormatting.RED).withItalic(true))
                 .getVisualOrderText();
         });
         if (valueStyle != null) editBox.addFormatter(
@@ -178,21 +178,21 @@ public class AverageMoneyCalculatorScreen extends LayoutScreen
                 }
             }
             else isValid.set(true);
-            
+
             calculate();
         });
         return editBox;
     }
-    
-    private void setValue(EditBox editBox, Float initalValue)
+
+    private void setValue(EditBox editBox, Float initialValue)
     {
-        if (initalValue != null && initalValue >= 0f)
+        if (initialValue != null && initialValue >= 0f)
         {
-            editBox.setValue(TextUtil.numberToString(initalValue, 3, false));
+            editBox.setValue(TextUtil.numberToString(initialValue, 3, false));
         }
         else editBox.setValue("");
     }
-    
+
     private Float getEditBoxNumberValue(EditBox editBox, Float defaultValue)
     {
         if (editBox.getValue().isBlank()) return defaultValue;

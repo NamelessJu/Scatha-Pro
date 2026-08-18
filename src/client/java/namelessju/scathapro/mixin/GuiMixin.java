@@ -15,8 +15,41 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Gui.class)
 public abstract class GuiMixin
 {
-    @Shadow private int titleTime;
-    
+    @Shadow
+    private int titleTime;
+
+    @Inject(
+        method = "setTitle",
+        at = @At("RETURN")
+    )
+    private void onSetTitle(CallbackInfo ci)
+    {
+        if (this.titleTime > 0)
+        {
+            ScathaPro.getInstance().alertTitleOverlay.clearTitle();
+        }
+    }
+
+    @Inject(
+        method = "extractRenderState",
+        at = @At("HEAD"),
+        cancellable = true
+    )
+    private void beforeExtractRenderState(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci)
+    {
+        if (Minecraft.getInstance().screen instanceof FakeBanScreen)
+        {
+            ci.cancel();
+        }
+
+        ScathaPro.getInstance().scathaDropsSlotMachineManager.extractHudRenderState(graphics, deltaTracker);
+        if (ScathaPro.getInstance().scathaDropsSlotMachineManager.shouldHideDrops())
+        {
+            extractCameraOverlays(graphics, deltaTracker);
+            ci.cancel();
+        }
+    }
+
     @Inject(
         method = "extractRenderState",
         at = @At(
@@ -30,7 +63,7 @@ public abstract class GuiMixin
     {
         ScathaPro.getInstance().mainOverlay.extractRenderStateIfVisible(graphics, deltaTracker);
     }
-    
+
     @Inject(
         method = "extractRenderState",
         at = @At(
@@ -44,7 +77,7 @@ public abstract class GuiMixin
     {
         ScathaPro.getInstance().alertTitleOverlay.extractRenderState(graphics, deltaTracker);
     }
-    
+
     @Inject(
         method = "extractRenderState",
         at = @At(
@@ -58,30 +91,7 @@ public abstract class GuiMixin
     {
         ScathaPro.getInstance().crosshairOverlay.extractRenderState(graphics, deltaTracker);
     }
-    
-    @Inject(
-        method = "setTitle",
-        at = @At("RETURN")
-    )
-    private void onSetTitle(CallbackInfo ci)
-    {
-        if (this.titleTime > 0)
-        {
-            ScathaPro.getInstance().alertTitleOverlay.clearTitle();
-        }
-    }
-    
-    @Inject(
-        method = "extractRenderState",
-        at = @At("HEAD"),
-        cancellable = true
-    )
-    private void beforeExtractRenderState(CallbackInfo ci)
-    {
-        if (Minecraft.getInstance().screen instanceof FakeBanScreen)
-        {
-            ci.cancel();
-        }
-    }
-    
+
+    @Shadow
+    protected abstract void extractCameraOverlays(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker);
 }

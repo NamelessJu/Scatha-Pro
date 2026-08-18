@@ -1,70 +1,79 @@
 package namelessju.scathapro.events;
 
+import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.achievements.UnlockedAchievement;
-import namelessju.scathapro.entitydetection.detectedentity.DetectedEntity;
-import namelessju.scathapro.entitydetection.detectedentity.DetectedWorm;
+import namelessju.scathapro.events.framework.DataEvent;
 import namelessju.scathapro.gui.overlay.elements.OverlayDynamicContainer;
-import namelessju.scathapro.miscellaneous.data.PetDrop;
-import namelessju.scathapro.miscellaneous.data.enums.SkyblockArea;
+import namelessju.scathapro.managers.detectors.entities.detected.DetectedEntity;
+import namelessju.scathapro.managers.detectors.entities.detected.DetectedWorm;
+import namelessju.scathapro.miscellaneous.data.ScathaPetDrop;
+import namelessju.scathapro.miscellaneous.data.enums.SkyBlockArea;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
-import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+@NullMarked
 public class ScathaProEvents
 {
     // Minecraft events
-    
-    public static final DatalessEvent playerAddedToWorldEvent = new DatalessEvent();
-    public static final Event<UseItemEventData> useItemEvent = new Event<>();
-    public static final Event<AttackEntityEventData> attackEntityEvent = new Event<>();
-    
+
+    public static final DataEvent<ScathaPro> playerAddedToWorldEvent = new DataEvent<>();
+    public static final DataEvent<ScathaPro> worldLeftEvent = new DataEvent<>();
+    public static final DataEvent<UseItemEventData> useItemEvent = new DataEvent<>();
+    public static final DataEvent<AttackEntityEventData> attackEntityEvent = new DataEvent<>();
+
     // Scatha-Pro events
-    
-    public static final Event<OverlayInitEventData> overlayInitEvent = new Event<>();
-    public static final Event<NewModVersionUsedEventData> newModVersionUsedEvent = new Event<>();
-    
-    public static final DatalessEvent firstSessionIngameTickEvent = new DatalessEvent();
-    public static final DatalessEvent firstLevelTickEvent = new DatalessEvent();
-    
-    public static final Event<CrystalHollowsTickEventData> crystalHollowsTickEvent = new Event<>();
-    public static final Event<SkyblockAreaDetectedEventData> skyblockAreaDetectedEvent = new Event<>();
-    public static final Event<CrystalHollowsDayStartedEventData> crystalHollowsDayStartedEvent = new Event<>();
-    public static final DatalessEvent bedrockWallDetectedEvent = new DatalessEvent();
-    public static final Event<DetectedEntityRegisteredEventData> detectedEntityRegisteredEvent = new Event<>();
-    
-    public static final DatalessEvent wormPreSpawnEvent = new DatalessEvent();
-    public static final Event<WormEventData> wormSpawnEvent = new Event<>();
-    public static final Event<WormHitEventData> wormHitEvent = new Event<>();
-    public static final Event<WormKillEventData> wormKillEvent = new Event<>();
-    public static final Event<WormEventData> wormDespawnEvent = new Event<>();
-    public static final Event<ScathaPetDropEventData> scathaPetDropEvent = new Event<>();
-    public static final Event<ScathaFarmingStreakChangedEventData> scathaFarmingStreakChangedEvent = new Event<>();
-    
-    public static final Event<AchievementUnlockedEventData> achievementUnlockedEvent = new Event<>();
-    
+
+    public static final DataEvent<OverlayInitEventData> overlayInitEvent = new DataEvent<>();
+    public static final DataEvent<NewModVersionUsedEventData> newModVersionUsedEvent = new DataEvent<>();
+
+    public static final DataEvent<ScathaPro> firstSessionIngameTickEvent = new DataEvent<>();
+    public static final DataEvent<ScathaPro> firstLevelTickEvent = new DataEvent<>();
+
+    public static final DataEvent<CrystalHollowsTickEventData> crystalHollowsTickEvent = new DataEvent<>();
+    public static final DataEvent<SkyBlockAreaDetectedEventData> skyBlockAreaDetectedEvent = new DataEvent<>();
+    public static final DataEvent<CrystalHollowsDayStartedEventData> crystalHollowsDayStartedEvent = new DataEvent<>();
+    public static final DataEvent<ScathaPro> bedrockWallDetectedEvent = new DataEvent<>();
+    public static final DataEvent<DetectedEntityRegisteredEventData> detectedEntityRegisteredEvent = new DataEvent<>();
+
+    public static final DataEvent<ScathaPro> wormPreSpawnEvent = new DataEvent<>();
+    public static final DataEvent<WormEventData> wormSpawnEvent = new DataEvent<>();
+    public static final DataEvent<WormHitEventData> wormHitEvent = new DataEvent<>();
+    public static final DataEvent<WormKillEventData> wormKillEvent = new DataEvent<>();
+    public static final DataEvent<WormEventData> wormDespawnEvent = new DataEvent<>();
+    public static final DataEvent<ScathaExtraDropEventData> scathaExtraItemDropEvent = new DataEvent<>();
+    public static final DataEvent<ScathaPetDropEventData> scathaPetDropEvent = new DataEvent<>();
+    public static final DataEvent<ScathaFarmingStreakChangedEventData> scathaFarmingStreakChangedEvent = new DataEvent<>();
+
+    public static final DataEvent<AchievementUnlockedEventData> achievementUnlockedEvent = new DataEvent<>();
+
     // Other events
-    
-    public static final DatalessEvent realDayStartedEvent = new DatalessEvent();
-    
-    
-    
+
+    public static final DataEvent<ScathaPro> realDayStartedEvent = new DataEvent<>();
+
+
+
     // Data
-    
-    public record UseItemEventData(@NonNull LocalPlayer player, @NonNull ItemStack usedItem) {}
-    public record AttackEntityEventData(@NonNull LocalPlayer player, @NonNull Entity entity, ItemStack attackItem) {}
-    
-    public record NewModVersionUsedEventData(@Nullable String previousVersion, @NonNull String newVersion) {}
-    public record OverlayInitEventData(@NonNull OverlayDynamicContainer mainContainer) {}
-    public record SkyblockAreaDetectedEventData(@NonNull SkyblockArea area) {}
-    public record CrystalHollowsTickEventData(boolean isFirstTick) {}
-    public record CrystalHollowsDayStartedEventData(int day) {}
-    public record DetectedEntityRegisteredEventData(@NonNull DetectedEntity entity) {}
-    public record WormEventData(@NonNull DetectedWorm worm) {}
-    public record WormHitEventData(@NonNull DetectedWorm worm, @Nullable ItemStack weapon) {}
-    public record WormKillEventData(@NonNull DetectedWorm worm, boolean wasBlackHoled) {}
-    public record ScathaPetDropEventData(@NonNull PetDrop petDrop) {}
-    public record ScathaFarmingStreakChangedEventData(int streak, int highscore) {}
-    public record AchievementUnlockedEventData(UnlockedAchievement unlockedAchievement) {}
+
+    public record UseItemEventData(ScathaPro scathaPro, LocalPlayer player, ItemStack usedItem) {}
+    public record AttackEntityEventData(ScathaPro scathaPro, LocalPlayer player, Entity entity, ItemStack attackItem) {}
+
+    public record NewModVersionUsedEventData(ScathaPro scathaPro, @Nullable String previousVersion, String newVersion) {}
+    public record OverlayInitEventData(ScathaPro scathaPro, OverlayDynamicContainer mainContainer) {}
+    public record SkyBlockAreaDetectedEventData(ScathaPro scathaPro, SkyBlockArea area) {}
+    public record CrystalHollowsTickEventData(ScathaPro scathaPro, boolean isFirstTick) {}
+    public record CrystalHollowsDayStartedEventData(ScathaPro scathaPro, int day) {}
+    public record DetectedEntityRegisteredEventData(ScathaPro scathaPro, DetectedEntity entity) {}
+    public record WormEventData(ScathaPro scathaPro, DetectedWorm worm) {}
+    public record WormHitEventData(ScathaPro scathaPro, DetectedWorm worm, @Nullable ItemStack weapon) {}
+    public record WormKillEventData(ScathaPro scathaPro, DetectedWorm worm, boolean wasBlackHoled) {}
+    public record ScathaExtraDropEventData(ScathaPro scathaPro, ItemType itemType)
+    {
+        public enum ItemType { DWARVEN_OS_BLOCK_BRAN }
+    }
+    public record ScathaPetDropEventData(ScathaPro scathaPro, ScathaPetDrop scathaPetDrop) {}
+    public record ScathaFarmingStreakChangedEventData(ScathaPro scathaPro, int streak, int highScore) {}
+    public record AchievementUnlockedEventData(ScathaPro scathaPro, UnlockedAchievement unlockedAchievement) {}
 }

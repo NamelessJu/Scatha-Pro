@@ -1,5 +1,6 @@
 package namelessju.scathapro.managers;
 
+import namelessju.scathapro.Constants;
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.files.framework.JsonFile;
 import namelessju.scathapro.miscellaneous.data.enums.ChatCopyButtonMode;
@@ -24,103 +25,87 @@ public class ChatManager
 {
     public static final Style HIGHLIGHT_STYLE = Style.EMPTY.withColor(ChatFormatting.YELLOW);
     private static final Component CHAT_DIVIDER = Component.empty();
-    
-    private static final Component CHAT_PREFIX_SHORT = Component.literal("[SP] ").withStyle(ChatFormatting.GRAY);
-    private static final Component CHAT_PREFIX_DEV = Component.empty()
-        .append(Component.literal("[").withStyle(ChatFormatting.DARK_GREEN))
-        .append(Component.literal("[").withStyle(ChatFormatting.DARK_GREEN, ChatFormatting.OBFUSCATED))
-        .append(Component.literal("Scatha_Dev").withStyle(ChatFormatting.GREEN))
-        .append(Component.literal("]").withStyle(ChatFormatting.DARK_GREEN, ChatFormatting.OBFUSCATED))
-        .append(Component.literal("] ").withStyle(ChatFormatting.DARK_GREEN));
-    
-    
+
+    private static final Component CHAT_PREFIX_DEV = Component.empty().withStyle(ChatFormatting.DARK_GREEN)
+        .append("[").append(Component.literal("scatha_dev").withStyle(ChatFormatting.GREEN)).append("] ");
+
+
     private final ScathaPro scathaPro;
     private List<GuiMessage> chatMessages;
-    
+
     private final Queue<Component> cachedChatMessages = new LinkedList<>();
     private final Queue<Component> cachedCrystalHollowsMessages = new LinkedList<>();
-    
+
     public ChatManager(ScathaPro scathaPro)
     {
         this.scathaPro = scathaPro;
     }
-    
+
     public void init()
     {
         chatMessages = ((ChatComponentAccessor) scathaPro.minecraft.gui.getChat()).getMessages();
     }
-    
-    private Component getChatPrefix()
-    {
-        return Component.empty()
-            .append(Component.literal("[" + scathaPro.getModDisplayName() + "] ").withStyle(ChatFormatting.GRAY))
-            .append(Component.empty().withStyle(ChatFormatting.RESET));
-    }
-    
+
     public void sendChatMessage(@NonNull String message)
     {
         sendChatMessage(message, true);
     }
-    
+
     public void sendChatMessage(@NonNull String message, boolean addModPrefix)
     {
         sendChatMessage(Component.literal(message), addModPrefix);
     }
-    
+
     public void sendChatMessage(@NonNull Component message)
     {
         sendChatMessage(message, true);
     }
-    
+
     public void sendChatMessage(@NonNull Component message, boolean addModPrefix)
     {
-        sendCachableMessage(message, addModPrefix, true,
+        sendCacheableMessage(message, addModPrefix, true,
             cachedChatMessages, "Chat");
     }
-    
+
     public void sendCrystalHollowsMessage(@NonNull Component message)
     {
-        sendCachableMessage(message, true, scathaPro.coreManager.isInCrystalHollows(),
+        sendCacheableMessage(message, true, scathaPro.coreManager.isInCrystalHollows(),
             cachedCrystalHollowsMessages, "Crystal Hollows");
     }
-    
-    private void sendCachableMessage(@NonNull Component message, boolean addModPrefix, boolean sendCondition,
-                                     @NonNull Queue<Component> cache, @NonNull String logString)
+
+    private void sendCacheableMessage(@NonNull Component message, boolean addModPrefix, boolean sendCondition,
+                                      @NonNull Queue<Component> cache, @NonNull String logString)
     {
         if (addModPrefix)
         {
             message = Component.empty()
-                .append(
-                    scathaPro.config.miscellaneous.shortChatPrefixEnabled.get()
-                        ? CHAT_PREFIX_SHORT
-                        : getChatPrefix()
-                )
+                .append(scathaPro.config.miscellaneous.chatPrefixType.get().getPrefix(scathaPro))
                 .append(message);
         }
-        
+
         if (!sendCondition || !sendMessageRaw(message))
         {
             cache.add(message);
             ScathaPro.LOGGER.debug("{} message cached: {}", logString, message.getString());
         }
     }
-    
+
     public void sendChatErrorMessage(String errorMessage)
     {
         sendChatMessage(Component.literal(errorMessage).withStyle(ChatFormatting.RED));
     }
-    
+
     public void sendDevChatMessage(String message)
     {
         sendDevChatMessage(Component.literal(message));
     }
-    
+
     public void sendDevChatMessage(Component message)
     {
         sendChatMessage(Component.empty().append(CHAT_PREFIX_DEV).append(message), false);
     }
-    
-    private boolean sendMessageRaw(Component message)
+
+    public boolean sendMessageRaw(Component message)
     {
         if (scathaPro.minecraft.player != null)
         {
@@ -129,7 +114,7 @@ public class ChatManager
         }
         return false;
     }
-    
+
     public void sendChatDivider()
     {
         if (chatMessages != null && !chatMessages.isEmpty())
@@ -140,26 +125,26 @@ public class ChatManager
                 return;
             }
         }
-        
+
         sendChatMessage(CHAT_DIVIDER, false);
     }
-    
+
     public @NonNull Component addChatCopyButton(@NonNull Component message)
     {
         ChatCopyButtonMode mode = scathaPro.config.miscellaneous.chatCopyButtonMode.get();
         if (mode == null) return message;
-        
+
         String messageText = StringDecomposer.getPlainText(message);
         if (messageText.isBlank()) return message;
-        
+
         Component chatCopyButtonComponent = mode.buttonComponentBuilder.apply(messageText);
-        
+
         return Component.empty()
             .append(message)
             .append(" ")
             .append(chatCopyButtonComponent);
     }
-    
+
     public void sendCachedMessages()
     {
         while (!cachedChatMessages.isEmpty())
@@ -167,7 +152,7 @@ public class ChatManager
             sendMessageRaw(cachedChatMessages.poll());
         }
     }
-    
+
     public void sendCachedCrystalHollowsMessages()
     {
         while (!cachedCrystalHollowsMessages.isEmpty())
@@ -175,11 +160,11 @@ public class ChatManager
             sendMessageRaw(cachedCrystalHollowsMessages.poll());
         }
     }
-    
-    public Component extendPetDropMessage(@NonNull Component message, @NonNull String unformattedText, boolean allowShuriken)
+
+    public Component extendPetDropMessage(@NonNull Component message, @NonNull String unformattedText, boolean allowShuriken, boolean isClickable)
     {
-        if (!unformattedText.equals("PET DROP! Scatha")) return null;
-        
+        if (!unformattedText.equals(Constants.petDropMessageRaw)) return null;
+
         message = TextUtil.convertLegacyFormatting(message);
         Optional<Rarity> foundRarity = message.visit((style, text) -> {
             if (text.contains("Scatha"))
@@ -199,40 +184,39 @@ public class ChatManager
             return Optional.empty();
         }, Style.EMPTY);
         Rarity rarity = foundRarity.orElse(Rarity.UNKNOWN);
-        
+
         MutableComponent newMessage = Component.empty().append(
-            Component.literal("PET DROP! ")
-                .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)
+            Component.literal("PET DROP! ").withStyle(Style.EMPTY.withColor(ChatFormatting.GOLD).withBold(true))
         );
         Component petName = Component.literal("Scatha").setStyle(rarity.style);
-        
+
         // Add rarity text
-        
+
         DropMessageRarityMode rarityMode = scathaPro.config.miscellaneous.dropMessageRarityMode.get();
         if (rarityMode != null)
         {
-            String rarityText = rarity.displayName;
-            
+            String rarityText = rarity.rarityName;
+
             MutableComponent rarityComponentRoot = Component.empty().setStyle(
                 scathaPro.config.miscellaneous.dropMessageRarityColored.get()
-                    ? rarity.style : Style.EMPTY.applyFormats(ChatFormatting.DARK_GRAY)
+                    ? rarity.style : Style.EMPTY.withColor(ChatFormatting.DARK_GRAY)
             );
             Component rarityNameComponent = scathaPro.config.miscellaneous.dropMessageRarityUppercase.get()
-                ? Component.literal(rarityText.toUpperCase()).withStyle(ChatFormatting.BOLD)
+                ? Component.literal(rarityText.toUpperCase()).withStyle(Style.EMPTY.withBold(true))
                 : Component.literal(rarityText);
-            
+
             if (rarityMode.hasBrackets) rarityComponentRoot.append("[");
             rarityComponentRoot.append(rarityNameComponent);
             if (rarityMode.hasBrackets) rarityComponentRoot.append("]");
-            
+
             if (rarityMode.isPrefix) petName = Component.empty().append(rarityComponentRoot).append(" ").append(petName);
             else petName = Component.empty().append(petName).append(" ").append(rarityComponentRoot);
         }
-        
+
         newMessage.append(petName);
-        
+
         // Extend Stats
-        
+
         MutableComponent statsComponent = null;
         statsComponent = addPetDropStatComponent(statsComponent,
             scathaPro.config.miscellaneous.dropMessageMagicFindMode,
@@ -252,24 +236,26 @@ public class ChatManager
         if (statsComponent != null)
         {
             String statsUpdateCommand = "/" + scathaPro.mainCommand.getCommandName() + " profileStats";
+            Style statsStyle = Style.EMPTY.withColor(ChatFormatting.GRAY);
+            if (isClickable)
+            {
+                statsStyle = statsStyle
+                    .withHoverEvent(new HoverEvent.ShowText(
+                        Component.literal("Click or use \"" + statsUpdateCommand
+                                + "\" to\nset the displayed stat values for future drops")
+                            .withStyle(ChatFormatting.GRAY)
+                    ))
+                    .withClickEvent(new ClickEvent.RunCommand(statsUpdateCommand));
+            }
             newMessage.append(" ").append(
-                Component.empty()
-                    .append("(").append(statsComponent).append(")")
-                    .setStyle(Style.EMPTY.withColor(ChatFormatting.GRAY)
-                        .withHoverEvent(new HoverEvent.ShowText(
-                            Component.literal("Click or use \"" + statsUpdateCommand
-                                    + "\" to\nset the displayed stat values for future drops")
-                                .withStyle(ChatFormatting.GRAY)
-                        ))
-                        .withClickEvent(new ClickEvent.RunCommand(statsUpdateCommand))
-                    )
+                Component.empty().setStyle(statsStyle).append("(").append(statsComponent).append(")")
             );
         }
-        
+
         // Done
         return newMessage;
     }
-    
+
     private MutableComponent addPetDropStatComponent(@Nullable MutableComponent statsComponent,
                                                      JsonFile.@NonNull PrimitiveValueNullable<DropMessageStatMode> configValue,
                                                      @NonNull MutableComponent valueComponent, @NonNull String fullName,
@@ -277,9 +263,9 @@ public class ChatManager
     {
         DropMessageStatMode statMode = configValue.get();
         if (statMode == null) return statsComponent;
-        
+
         MutableComponent statComponent = Component.empty();
-        
+
         switch (statMode)
         {
             case FULL_NAME -> valueComponent.append(" " + fullName);
@@ -287,7 +273,7 @@ public class ChatManager
             default -> {}
         }
         statComponent.append(valueComponent);
-        
+
         if (statsComponent != null) statsComponent.append(", ");
         else statsComponent = Component.empty();
         return statsComponent.append(statComponent);

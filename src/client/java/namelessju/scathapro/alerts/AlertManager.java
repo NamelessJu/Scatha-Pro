@@ -20,24 +20,24 @@ public class AlertManager implements Iterable<Alert>
     public final Alert bedrockWallAlert;
     public final Alert obstacleAlert;
     public final Alert oldLobbyAlert;
-    
+
     public final Alert wormPreSpawnAlert;
     public final Alert regularWormSpawnAlert;
     public final Alert scathaSpawnAlert;
     public final Alert wormSpawnCooldownEndAlert;
-    
+
     public final Alert scathaPetDropAlert;
-    
+
     public final Alert highHeatAlert;
     public final Alert tunnelVisionReadyAlert;
-    
+
     public final Alert goblinSpawnAlert;
     public final Alert jerrySpawnAlert;
-    
+
     public final Alert antiSleepAlert;
-    
+
     private final List<Alert> alerts = new ArrayList<>();
-    
+
     public AlertManager(ScathaPro scathaPro)
     {
         bedrockWallAlert = register(new Alert("bedrock_wall", "Bedrock Wall Alert", null,
@@ -67,7 +67,7 @@ public class AlertManager implements Iterable<Alert>
             ),
             scathaPro.config.alerts.oldLobbyAlertEnabled
         ));
-        
+
         wormPreSpawnAlert = register(new Alert("worm_prespawn", "Worm Pre-Spawn Alert",
             Component.literal("Triggers when either type of worm is about to spawn"),
             SoundData.vanilla("entity.experience_orb.pickup", 1f, 0.5f),
@@ -78,10 +78,10 @@ public class AlertManager implements Iterable<Alert>
             ),
             scathaPro.config.alerts.wormPreSpawnAlertEnabled
         ));
-        regularWormSpawnAlert = register(new Alert("regular_worm_spawn", "Regular Worm Spawn Alert", null,
+        regularWormSpawnAlert = register(new Alert("regular_worm_spawn", "Stoneworm Spawn Alert", null,
             SoundData.vanilla("entity.player.levelup", 1f, 0.5f),
             new FullAlertTitleTemplate(
-                "Worm", "Just a regular worm...",
+                "Stoneworm", "Just a regular worm...",
                 Style.EMPTY.withColor(ChatFormatting.YELLOW), Style.EMPTY.withColor(ChatFormatting.GRAY),
                 5, 20, 5
             ),
@@ -106,7 +106,7 @@ public class AlertManager implements Iterable<Alert>
             ),
             scathaPro.config.alerts.wormSpawnCooldownEndAlertEnabled
         ));
-        
+
         scathaPetDropAlert = register(new Alert("scatha_pet_drop", "Scatha Pet Drop Alert", null,
             SoundData.vanilla("entity.wither.death", 0.75f, 0.8f),
             new DynamicAlertTitleTemplate(
@@ -118,7 +118,7 @@ public class AlertManager implements Iterable<Alert>
         scathaPetDropAlert.setExtraSounds(
             SoundData.vanilla("block.chest.open", 1f, 0.95f)
         );
-        
+
         highHeatAlert = register(new Alert("high_heat", "High Heat Alert", null,
             SoundData.vanilla("item.firecharge.use", 1f, 1f),
             new FullAlertTitleTemplate(
@@ -139,7 +139,7 @@ public class AlertManager implements Iterable<Alert>
             ),
             scathaPro.config.alerts.pickaxeAbilityReadyAlertEnabled
         ));
-        
+
         goblinSpawnAlert = register(new Alert("goblin_spawn", "Goblin Spawn Alert",
             Component.literal("Triggers when a golden or diamond goblin spawns"),
             SoundData.vanilla("entity.player.levelup", 1f, 1.25f),
@@ -158,7 +158,7 @@ public class AlertManager implements Iterable<Alert>
             ),
             scathaPro.config.alerts.jerrySpawnAlertEnabled
         ));
-        
+
         antiSleepAlert = register(new Alert("anti_sleep", "Anti-Sleep Alert",
             Component.literal("Plays a loud sound in a random interval to keep you awake"),
             SoundData.scathaPro("alert.anti_sleep", 1f, 1f),
@@ -170,13 +170,13 @@ public class AlertManager implements Iterable<Alert>
             scathaPro.config.alerts.antiSleepAlertEnabled
         ));
     }
-    
+
     private Alert register(Alert alert)
     {
         this.alerts.add(alert);
         return alert;
     }
-    
+
     public @Nullable Alert getAlertById(String id)
     {
         for (Alert alert : alerts)
@@ -186,10 +186,10 @@ public class AlertManager implements Iterable<Alert>
                 return alert;
             }
         }
-        
+
         return null;
     }
-    
+
     @Override
     public @NonNull Iterator<Alert> iterator()
     {

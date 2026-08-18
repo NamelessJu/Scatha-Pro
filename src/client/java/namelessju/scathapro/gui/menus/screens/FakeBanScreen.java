@@ -5,13 +5,14 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.DisconnectedScreen;
 import net.minecraft.network.DisconnectionDetails;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 public class FakeBanScreen extends DisconnectedScreen
 {
     private final @Nullable Runnable onClose;
-    
+
     @SuppressWarnings("DataFlowIssue")
     public FakeBanScreen(String reason, @Nullable Runnable onClose)
     {
@@ -22,7 +23,7 @@ public class FakeBanScreen extends DisconnectedScreen
                 .append("Reason: ").append(Component.literal(reason).withStyle(ChatFormatting.WHITE)).append("\n")
                 .append("Find out more: ").append(
                         Component.literal("https://www.hypixel.net/appeal")
-                        .withStyle(ChatFormatting.AQUA, ChatFormatting.UNDERLINE)
+                            .withStyle(Style.EMPTY.withColor(ChatFormatting.AQUA).withUnderlined(true))
                     ).append("\n")
                 .append("\n")
                 .append("Ban ID: ").append(Component.literal("#URB4NN3D").withStyle(ChatFormatting.WHITE)).append("\n")
@@ -32,22 +33,22 @@ public class FakeBanScreen extends DisconnectedScreen
         );
         this.onClose = onClose;
     }
-    
+
     @Override
     protected void init()
     {
         super.init();
-        
+
         minecraft.getSoundManager().stop();
     }
-    
+
     public void removed()
     {
         super.removed();
-        
+
         if (onClose != null) onClose.run();
     }
-    
+
     @Override
     public void extractBackground(@NonNull GuiGraphicsExtractor guiGraphics, int i, int j, float f)
     {
@@ -58,7 +59,7 @@ public class FakeBanScreen extends DisconnectedScreen
         this.extractBlurredBackground(guiGraphics);
         this.extractMenuBackground(guiGraphics);
     }
-    
+
     @Override
     public boolean isPauseScreen()
     {

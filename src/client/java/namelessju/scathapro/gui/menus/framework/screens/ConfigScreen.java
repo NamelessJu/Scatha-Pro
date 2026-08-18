@@ -5,6 +5,7 @@ import namelessju.scathapro.files.Config;
 import namelessju.scathapro.files.framework.JsonFile;
 import namelessju.scathapro.gui.menus.framework.widgets.sliders.FloatSlider;
 import namelessju.scathapro.gui.menus.framework.widgets.sliders.IntegerSlider;
+import namelessju.scathapro.miscellaneous.data.IDisplayable;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.screens.Screen;
@@ -19,25 +20,25 @@ import java.util.function.Consumer;
 public abstract class ConfigScreen extends LayoutScreen
 {
     protected final Config config;
-    
+
     public ConfigScreen(ScathaPro scathaPro, String title, Screen parentScreen)
     {
         super(scathaPro, Component.literal(title), true, parentScreen);
         config = scathaPro.config;
     }
-    
+
     @Override
     public void removed()
     {
         config.save();
     }
-    
-    
+
+
     public static CycleButton<Boolean> booleanConfigButton(String text, JsonFile.BooleanValue booleanValue)
     {
         return booleanConfigButton(text, booleanValue, null, null);
     }
-    
+
     public static CycleButton<Boolean> booleanConfigButton(String text, JsonFile.BooleanValue booleanValue,
                                                            OptionInstance.@Nullable TooltipSupplier<Boolean> tooltipSupplier,
                                                            CycleButton.@Nullable OnValueChange<Boolean> onValueChanged)
@@ -51,7 +52,7 @@ public abstract class ConfigScreen extends LayoutScreen
             }
         );
     }
-    
+
     public static FloatSlider floatConfigSlider(String text, float min, float max,
                                                   JsonFile.PrimitiveValueWithDefault<Float> configValue,
                                                   @Nullable Consumer<Float> onValueChanged)
@@ -66,7 +67,7 @@ public abstract class ConfigScreen extends LayoutScreen
             }
         );
     }
-    
+
     public static IntegerSlider integerConfigSlider(String text, int min, int max,
                                                     JsonFile.PrimitiveValueWithDefault<Integer> configValue,
                                                     @Nullable Consumer<Integer> onValueChanged)
@@ -81,8 +82,28 @@ public abstract class ConfigScreen extends LayoutScreen
             }
         );
     }
-    
-    public static <T extends Enum<T>> CycleButton<Optional<T>> nullableEnumCycleButton(
+
+    public static <T extends Enum<T> & @NonNull IDisplayable> CycleButton<T> enumCycleButton(
+        @NonNull Class<T> enumClass, @NonNull String text,
+        JsonFile.@NonNull PrimitiveValueWithDefault<T> configValue,
+        OptionInstance.@Nullable TooltipSupplier<T> tooltipSupplier,
+        CycleButton.@Nullable OnValueChange<T> onValueChange
+    )
+    {
+        return CycleButton
+            .builder(value -> Component.literal(value.getDisplayName()), configValue.get())
+            .withValues(enumClass.getEnumConstants())
+            .withTooltip(tooltipSupplier != null ? tooltipSupplier : _ -> null)
+            .create(
+                Component.literal(text),
+                (button, value) -> {
+                    configValue.set(value);
+                    if (onValueChange != null) onValueChange.onValueChange(button, value);
+                }
+            );
+    }
+
+    public static <T extends Enum<T> & @NonNull IDisplayable> CycleButton<Optional<T>> nullableEnumCycleButton(
         @NonNull Class<T> enumClass, @NonNull String text,
         JsonFile.@NonNull PrimitiveValueNullable<T> configValue, @Nullable String nullText,
         OptionInstance.@Nullable TooltipSupplier<Optional<T>> tooltipSupplier,
@@ -92,14 +113,14 @@ public abstract class ConfigScreen extends LayoutScreen
         return CycleButton
             .builder(
                 optionalValue -> {
-                    if (optionalValue.isPresent()) return Component.literal(optionalValue.get().toString());
+                    if (optionalValue.isPresent()) return Component.literal(optionalValue.get().getDisplayName());
                     else if (nullText != null) return Component.literal(nullText);
                     return CommonComponents.OPTION_OFF;
                 },
                 Optional.ofNullable(configValue.get())
             )
             .withValues(getNullableOptions(enumClass.getEnumConstants()))
-            .withTooltip(tooltipSupplier != null ? tooltipSupplier : value -> null)
+            .withTooltip(tooltipSupplier != null ? tooltipSupplier : _ -> null)
             .create(
                 Component.literal(text),
                 (button, optionalValue) -> {

@@ -19,7 +19,7 @@ public abstract class OptionsMixin
 {
     @Shadow @Final @Mutable
     public KeyMapping[] keyMappings;
-    
+
     @Inject(
         method = "<init>",
         at = @At(

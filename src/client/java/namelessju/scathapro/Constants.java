@@ -5,58 +5,68 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
 import namelessju.scathapro.miscellaneous.data.enums.Rarity;
+import namelessju.scathapro.miscellaneous.data.enums.WormSegmentType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.util.Util;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ResolvableProfile;
-import org.jspecify.annotations.NonNull;
+import net.minecraft.world.phys.AABB;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
-public class Constants
+@NullMarked
+public final class Constants
 {
     private Constants() {}
-    
-    public static final int pingTreshold = 2000;
-    
+
+    public static final int pingThreshold = 2000;
+
     /** The numbers of ticks after opening a chest GUI at which the parser tries to parse it's contents */
     public static final int[] chestGuiParserTickCounts = new int[] {4, 10, 20, 40, 60, 100};
-    
+
     public static final int wormSpawnCooldown = 30_000;
     public static final int wormLifetime = 30_000;
-    
+
     public static final float scathaPetBaseChanceRare = 0.00_24f;
     public static final float scathaPetBaseChanceEpic = 0.00_12f;
     public static final float scathaPetBaseChanceLegendary = 0.00_04f;
-    
+
     public static final int maxLegitPetDropsAmount = 9999;
     /** Dry streak gets invalidated if the mod's and the bestiary's Scatha kills differ more than this threshold */
     public static final int dryStreakMaxAllowedScathaKillsDeviation = 10;
-    
+
     // These are the wall block coordinates
     public static final int crystalHollowsBoundsMin = 201;
     public static final int crystalHollowsBoundsMax = 824;
 
     public static final int tunnelVisionEffectDuration = 30_000;
+    public static final short blackHoleSuctionMinTicksDuration = 50;
     public static final short blackHoleSuctionMaxTicksDuration = 200;
-    
+
     public static float applyShurikenMagicFind(float originalMagicFind)
     {
         if (originalMagicFind < 0f) return originalMagicFind;
         return originalMagicFind * 1.05f;
     }
-    
-    private static final String scathaHeadTextureDefault = "ewogICJ0aW1lc3RhbXAiIDogMTYyMDQ0NTc2NDQ1MSwKICAicHJvZmlsZUlkIiA6ICJmNDY0NTcxNDNkMTU0ZmEwOTkxNjBlNGJmNzI3ZGNiOSIsCiAgInByb2ZpbGVOYW1lIiA6ICJSZWxhcGFnbzA1IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2RmMDNhZDk2MDkyZjNmNzg5OTAyNDM2NzA5Y2RmNjlkZTZiNzI3YzEyMWIzYzJkYWVmOWZmYTFjY2FlZDE4NmMiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ==";
-    
+
+    public static final String scathaHeadTextureDefault = "ewogICJ0aW1lc3RhbXAiIDogMTYyMDQ0NTc2NDQ1MSwKICAicHJvZmlsZUlkIiA6ICJmNDY0NTcxNDNkMTU0ZmEwOTkxNjBlNGJmNzI3ZGNiOSIsCiAgInByb2ZpbGVOYW1lIiA6ICJSZWxhcGFnbzA1IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2RmMDNhZDk2MDkyZjNmNzg5OTAyNDM2NzA5Y2RmNjlkZTZiNzI3YzEyMWIzYzJkYWVmOWZmYTFjY2FlZDE4NmMiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ==";
+    public static final String scathaTailTextureDefault = "ewogICJ0aW1lc3RhbXAiIDogMTYyNTA3MjMxNDE2OCwKICAicHJvZmlsZUlkIiA6ICIwNWQ0NTNiZWE0N2Y0MThiOWI2ZDUzODg0MWQxMDY2MCIsCiAgInByb2ZpbGVOYW1lIiA6ICJFY2hvcnJhIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzk2MjQxNjBlYjk5YmRjNjUxZGEzOGRiOTljZDdjMDlmMWRhNjY5ZWQ4MmI5Y2JjMjgyODc0NmU2NTBjNzY1ZGEiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ==";
+    public static final String wormHeadTextureDefault = "ewogICJ0aW1lc3RhbXAiIDogMTc4MzYxMzUwNTQ5MiwKICAicHJvZmlsZUlkIiA6ICIzN2VhNTQ5MTE3MTU0NDgzYmY0N2VmNGM3MzMwMWIzYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJSeXV6bG4iLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODE4MDdmZDA2NjYwMDI5MDg0MmFmYzMwZjAxNTJhYjlkODUyODMxMjQ2M2M2YjU3YzhkYjY1MDNhOWQ5NTM5NyIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9";
+    public static final String wormTailTextureDefault = "ewogICJ0aW1lc3RhbXAiIDogMTc4MzYxMzUwNjQ4MCwKICAicHJvZmlsZUlkIiA6ICIzZDU1OGQ3Y2NmZjk0ODdkYWE1MzhkMjM4NGE3OWFkZCIsCiAgInByb2ZpbGVOYW1lIiA6ICJDcnlwdGljTG9zZXIxMyIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS84NmIyNmFmMmY4YjE5YzA2MWE3NTdhMWU2ZDZjYjA3ZDJkMTUxNTA2MDdmY2NhOWY5YmNlYmRiOTRjY2Y2NjkiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ==";
+
     private static final String[] wormHeadTextures = new String[] {
         /* Scatha default: */ scathaHeadTextureDefault,
-        /* Worm default: */ "ewogICJ0aW1lc3RhbXAiIDogMTc4MzYxMzUwNTQ5MiwKICAicHJvZmlsZUlkIiA6ICIzN2VhNTQ5MTE3MTU0NDgzYmY0N2VmNGM3MzMwMWIzYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJSeXV6bG4iLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODE4MDdmZDA2NjYwMDI5MDg0MmFmYzMwZjAxNTJhYjlkODUyODMxMjQ2M2M2YjU3YzhkYjY1MDNhOWQ5NTM5NyIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9",
+        /* Stoneworm default: */ wormHeadTextureDefault,
         /* plum: */ "ewogICJ0aW1lc3RhbXAiIDogMTc2MTM4MDMwNzg5OSwKICAicHJvZmlsZUlkIiA6ICJiYWNlNWU3MGIzOGM0YjNhYmRkODU5NGY3YjE2Njg1NyIsCiAgInByb2ZpbGVOYW1lIiA6ICJBbG1pZ2h0eUJ1bm55eSIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS80ZjdlYTNiYTY1OTA1NDQ5NjE1NDJhMTYyNTFkMTg1NzZjNWEzZDVkOWJhYjQ2MzgxMTNkOGQ1ZTI5Mzk2NDFjIiwKICAgICAgIm1ldGFkYXRhIiA6IHsKICAgICAgICAibW9kZWwiIDogInNsaW0iCiAgICAgIH0KICAgIH0KICB9Cn0=",
         /* cherry: */ "ewogICJ0aW1lc3RhbXAiIDogMTc2MTU0MjE5ODI3MCwKICAicHJvZmlsZUlkIiA6ICIxMzEzZGFmMDc2OGQ0YmQ5Yjc1ODJkMGI1NWUwZGQxNiIsCiAgInByb2ZpbGVOYW1lIiA6ICJMZW50aWNjaGllIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzlmZDZmYzgxOWE1NWQyN2IxNTJhZWVlODIyNDc1OTYxNzY3ZWQxZjYzMTdkYjk2OWIwMzg0ZTY4MWUxYjVjZGMiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ==",
         /* orange: */ "ewogICJ0aW1lc3RhbXAiIDogMTc2MTQ2MTc5ODA0MywKICAicHJvZmlsZUlkIiA6ICJkZWFmNjAxNDU1NDY0MGU5YWJmNmUyMWZiZDgyZDU2NiIsCiAgInByb2ZpbGVOYW1lIiA6ICJBaWxvcnlLIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzJmYzkyYTdkYTFjMDM3NGU4ZWM2YzY0YmI2OWFiNTk0NzAwODIxNzk5MzFmYzgyN2QyOTFmMzM2YjUxYTNhZDUiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ==",
@@ -73,9 +83,9 @@ public class Constants
         /* grape: */ "ewogICJ0aW1lc3RhbXAiIDogMTc2MTUzNzc0NTYxNCwKICAicHJvZmlsZUlkIiA6ICIzNmU5MTE1YzBjYzc0ZjhkOTdmOGFjNjA1ZGMxNGVkYSIsCiAgInByb2ZpbGVOYW1lIiA6ICJEYXJnaVYiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDI5YWE1Yzg3MmUwMzBlNWE0MzRiYzI1MDViNmFjZmE4MDhmY2Y5ZTg1OGFlMTYwOTFjMTc2MDA0ZDBkMDA1IiwKICAgICAgIm1ldGFkYXRhIiA6IHsKICAgICAgICAibW9kZWwiIDogInNsaW0iCiAgICAgIH0KICAgIH0KICB9Cn0=",
         /* choco: */ "ewogICJ0aW1lc3RhbXAiIDogMTc2MTM2ODk1NjEyNSwKICAicHJvZmlsZUlkIiA6ICJhODc1ZTI3NjZjOTc0N2Y5OTM3YzBmMzNhMWQ3N2JmMCIsCiAgInByb2ZpbGVOYW1lIiA6ICJzcGlmZnRvcGlhMTAiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzBiZjliZjAzODExZTllZGM5ZDVkNjA2NmU5ZjBlMDJiMDc5MWZhNGVkOGQ2NDU2NTc0YjY4Mjk0NTUxNTU5OSIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9"
     };
-    private static final String[] wormBodyTextures = new String[] {
-        /* Scatha default: */ "ewogICJ0aW1lc3RhbXAiIDogMTYyNTA3MjMxNDE2OCwKICAicHJvZmlsZUlkIiA6ICIwNWQ0NTNiZWE0N2Y0MThiOWI2ZDUzODg0MWQxMDY2MCIsCiAgInByb2ZpbGVOYW1lIiA6ICJFY2hvcnJhIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzk2MjQxNjBlYjk5YmRjNjUxZGEzOGRiOTljZDdjMDlmMWRhNjY5ZWQ4MmI5Y2JjMjgyODc0NmU2NTBjNzY1ZGEiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ==",
-        /* Worm default: */ "ewogICJ0aW1lc3RhbXAiIDogMTc4MzYxMzUwNjQ4MCwKICAicHJvZmlsZUlkIiA6ICIzZDU1OGQ3Y2NmZjk0ODdkYWE1MzhkMjM4NGE3OWFkZCIsCiAgInByb2ZpbGVOYW1lIiA6ICJDcnlwdGljTG9zZXIxMyIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS84NmIyNmFmMmY4YjE5YzA2MWE3NTdhMWU2ZDZjYjA3ZDJkMTUxNTA2MDdmY2NhOWY5YmNlYmRiOTRjY2Y2NjkiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ==",
+    private static final String[] wormTailTextures = new String[] {
+        /* Scatha default: */ scathaTailTextureDefault,
+        /* Stoneworm default: */ wormTailTextureDefault,
         /* plum: */ "ewogICJ0aW1lc3RhbXAiIDogMTc2MTM3OTU5MzE5NywKICAicHJvZmlsZUlkIiA6ICIwNDg0N2ZjNWM5YjY0NTQ1YjI1ZWJkYmJiNzdjNjg2NSIsCiAgInByb2ZpbGVOYW1lIiA6ICJOYXFsdWEiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjNiMzBjNTk2NDI5OTNjNzMwN2VjM2VkMzgzN2U2OWEwMWZmZjg3Y2Y1MWE5OGJkOWRjMzZmMWY4NTRiNDY0OSIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9",
         /* cherry: */ "ewogICJ0aW1lc3RhbXAiIDogMTc2MTU0MTU5OTE2MSwKICAicHJvZmlsZUlkIiA6ICJhNzdkNmQ2YmFjOWE0NzY3YTFhNzU1NjYxOTllYmY5MiIsCiAgInByb2ZpbGVOYW1lIiA6ICIwOEJFRDUiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmY3MDE3MzM1MzJmODJmZjY2YzYwOTUyZjIyNjVhYTVmNGI1ZmE3ZWJjNWIxYTY5NDBlNWJmYzk1ZDBiNGNlOSIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9",
         /* orange: */ "ewogICJ0aW1lc3RhbXAiIDogMTc2MTQ2MDg2OTQ1MSwKICAicHJvZmlsZUlkIiA6ICJhODc1ZTI3NjZjOTc0N2Y5OTM3YzBmMzNhMWQ3N2JmMCIsCiAgInByb2ZpbGVOYW1lIiA6ICJzcGlmZnRvcGlhMTAiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjM3NTdjMzU2YzE1Yjg0NDI3YWU1MjMxMDkxMGIyYjY4YWYzYTg2MzFkZmNjMGIzYWI5Yzc5MDFhYTFjNDIzMSIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9",
@@ -92,51 +102,61 @@ public class Constants
         /* grape: */ "ewogICJ0aW1lc3RhbXAiIDogMTc2MTU0MDg4MjkyMiwKICAicHJvZmlsZUlkIiA6ICI0N2U2MjJjNmE1OWU0NmNhOWU3OGNjYzE1ZDliNzhhZiIsCiAgInByb2ZpbGVOYW1lIiA6ICJBbnRpbGFmTVgiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNGMyMGRlMWJlYjQyMzBjOWNmZDQ0MmEwZjY5MDY4NjVmZDlhOGVkYTJkN2NmOGM0NDcxMzc0M2QzN2FhNjVhNiIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9",
         /* choco: */ "ewogICJ0aW1lc3RhbXAiIDogMTc2MTM2Nzk3MTM1OSwKICAicHJvZmlsZUlkIiA6ICI3MzFiOTdlYTI1MWM0ZjNmYTk0OTEwY2RkMmQwOTU4YiIsCiAgInByb2ZpbGVOYW1lIiA6ICJJbU5vdEFDYXQ2IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzE5ZjVkNjY0YjliODVhNDU0MTYzYzU5NTE4MDg1OGIwNWRkNWJjZmJkOTBjMzY5Y2Y2ZWU0M2EyMzdlNDMxOTgiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ=="
     };
-    
-    public static boolean isWormPlayerHead(ItemStack item)
+
+    public static @Nullable WormSegmentType getPlayerHeadWormSegmentType(@Nullable ItemStack item)
     {
-        return isWormPlayerHead(item, false);
+        return getPlayerHeadWormSegmentType(item, false);
     }
-    
-    public static boolean isWormPlayerHead(ItemStack item, boolean checkWormHeadOnly)
+
+    public static @Nullable WormSegmentType getPlayerHeadWormSegmentType(@Nullable ItemStack item, boolean checkWormHeadOnly)
     {
-        if (item == null || item.getItem() != Items.PLAYER_HEAD) return false;
-        
+        if (item == null || item.getItem() != Items.PLAYER_HEAD) return null;
         ResolvableProfile profileInfo = item.get(DataComponents.PROFILE);
-        if (profileInfo == null) return false;
-        
-        Collection<Property> textureProperties = profileInfo.partialProfile().properties().get("textures");
-        for (Property textureProperty : textureProperties)
+        if (profileInfo == null) return null;
+
+        for (Property textureProperty : profileInfo.partialProfile().properties().get("textures"))
         {
             String textureBase64 = textureProperty.value();
             if (textureBase64 == null) continue;
-            
+
             for (String texture : wormHeadTextures)
             {
                 if (textureBase64.equals(texture))
-                    return true;
+                    return WormSegmentType.HEAD;
             }
-            
+
             if (checkWormHeadOnly) continue;
-            
-            for (String texture : wormBodyTextures)
+
+            for (String texture : wormTailTextures)
             {
                 if (textureBase64.equals(texture))
-                    return true;
+                    return WormSegmentType.TAIL;
             }
         }
-        
-        return false;
+
+        return null;
     }
-    
-    
+
+    public static @Nullable Entity getNearbyBlackHole(Entity sourceEntity)
+    {
+        List<Entity> nearbyBlackHoles = sourceEntity.level().getEntities(
+            sourceEntity, AABB.ofSize(sourceEntity.position(), 10D, 5D, 10D),
+            entity -> {
+                Component customName = entity.getCustomName();
+                return customName != null && customName.getString().contains("Black Hole");
+            }
+        );
+        return nearbyBlackHoles.isEmpty() ? null : nearbyBlackHoles.getFirst();
+    }
+
+
     public static final UUID devUUID = UUID.fromString("e9be3984-b097-40c9-8fb4-d8aaeb2b4838");
-    
-    
+
+
     /**
      * Throws an exception if item components aren't bound yet!
      */
-    public static @NonNull ItemStack generateScathaPetItem(@NonNull Rarity rarity)
+    public static ItemStack generateScathaPetItem(Rarity rarity)
     {
         ItemStack scathaPetItem = new ItemStack(Items.PLAYER_HEAD);
         scathaPetItem.applyComponents(DataComponentPatch.builder()
@@ -148,18 +168,51 @@ public class Constants
             )
             .set(DataComponents.CUSTOM_DATA, CustomData.EMPTY.update(data -> {
                 // lets resource packs detect this item as a Scatha pet
-                data.putString("id", "PET");
+                data.putString("id", ItemID.pet);
                 data.putString("petInfo", "{\"type\":\"SCATHA\",\"tier\":\"" + rarity.getTierString() + "\"}");
             }))
             .build()
         );
         return scathaPetItem;
     }
-    
-    public static @NonNull Component generatePetDropMessage(@NonNull Rarity rarity)
+
+    public static final String petDropMessageRaw = "PET DROP! Scatha";
+
+    public static Component generatePetDropMessage(Rarity rarity)
     {
         return Component.empty()
-            .append(Component.literal("PET DROP! ").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD))
+            .append(Component.literal("PET DROP! ").withStyle(Style.EMPTY.withColor(ChatFormatting.GOLD).withBold(true)))
             .append(Component.literal("Scatha").setStyle(rarity.style));
+    }
+
+
+    public static final class ItemID
+    {
+        private ItemID() {}
+
+        public static final String dirt = "DIRT";
+        public static final String fineTopaz = "FINE_TOPAZ_GEM";
+        public static final String fineAmethyst = "FINE_AMETHYST_GEM";
+        public static final String fineJade = "FINE_JADE_GEM";
+        public static final String fineAmber = "FINE_AMBER_GEM";
+        public static final String fineSapphire = "FINE_SAPPHIRE_GEM";
+        public static final String blockBran = "DWARVEN_OS_BLOCK_BRAN";
+        public static final String pet = "PET";
+        public static final String terminator = "TERMINATOR";
+        public static final String jujuShortbow = "JUJU_SHORTBOW";
+        public static final String gemstoneGauntlet = "GEMSTONE_GAUNTLET";
+
+        public static final String _blackHoleSuffix = "_POCKET_BLACK_HOLE";
+        private static final String _shortbowSuffix = "SHORTBOW";
+
+        public static boolean isShortbow(@Nullable String skyBlockId)
+        {
+            return skyBlockId != null && skyBlockId.endsWith(_shortbowSuffix);
+        }
+
+        public static boolean isBlackHole(@Nullable String skyBlockId)
+        {
+            return skyBlockId != null && skyBlockId.endsWith(_blackHoleSuffix);
+        }
     }
 }

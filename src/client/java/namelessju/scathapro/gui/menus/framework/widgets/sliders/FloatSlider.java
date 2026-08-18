@@ -16,11 +16,11 @@ public class FloatSlider extends ScathaProSlider<Float>
         = value -> Component.literal(Math.round(value * 100f) + "%");
     public static final Function<Float, Component> PERCENTAGE_COMPONENT_SUPPLIER_WITH_OFF
         = value -> value > 0f ? PERCENTAGE_COMPONENT_SUPPLIER.apply(value) : CommonComponents.OPTION_OFF;
-    
+
     private final float min;
     private final float max;
     private float stepSize = -1f;
-    
+
     public FloatSlider(
         int x, int y, int width, int height,
         @NonNull Component name,
@@ -33,25 +33,25 @@ public class FloatSlider extends ScathaProSlider<Float>
         this.max = max;
         setMappedValue(initialValue);
     }
-    
+
     public FloatSlider setStepSize(float stepSize)
     {
         this.stepSize = stepSize;
         return this;
     }
-    
+
     @Override
     protected Float progressToValue()
     {
         return (float) (min + ((max - min) * value));
     }
-    
+
     @Override
     protected double valueToProgress(Float value)
     {
         return (value - min) / (max - min);
     }
-    
+
     @Override
     protected void snapProgress()
     {
@@ -61,7 +61,7 @@ public class FloatSlider extends ScathaProSlider<Float>
         relativeFloat = Math.round(relativeFloat / stepSize) * stepSize;
         value = relativeFloat / floatRange;
     }
-    
+
     @Override
     public boolean keyPressed(@NonNull KeyEvent keyEvent)
     {
@@ -69,16 +69,16 @@ public class FloatSlider extends ScathaProSlider<Float>
         if (super.keyPressed(keyEvent))
         {
             if (stepSize <= 0f) return true;
-            
+
             value = valueBefore;
             if (keyEvent.isLeft() || keyEvent.isRight())
             {
                 setMappedValue(progressToValue() + (keyEvent.isLeft() ? -stepSize : stepSize));
             }
-            
+
             return true;
         }
-        
+
         return false;
     }
 }

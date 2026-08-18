@@ -35,10 +35,10 @@ public class CustomAlertModePackResources implements PackResources
         Component.empty(),
         SharedConstants.getCurrentVersion().packVersion(PackType.CLIENT_RESOURCES).minorRange()
     ));
-    
+
     private final ScathaPro scathaPro;
     private final PackLocationInfo locationInfo;
-    
+
     public CustomAlertModePackResources(ScathaPro scathaPro)
     {
         this.scathaPro = scathaPro;
@@ -49,38 +49,38 @@ public class CustomAlertModePackResources implements PackResources
             Optional.empty()
         );
     }
-    
+
     @Override
     public @NonNull Set<String> getNamespaces(@NonNull PackType type)
     {
         return type == PackType.CLIENT_RESOURCES ? Set.of(NAMESPACE) : Set.of();
     }
-    
+
     @Override
     public @NonNull PackLocationInfo location()
     {
         return locationInfo;
     }
-    
+
     @Override
     public <T> T getMetadataSection(@NonNull MetadataSectionType<T> type)
     {
         return METADATA.getSection(type).orElse(null);
     }
-    
+
     @Override
     public void listResources(@NonNull PackType type, @NonNull String namespace, @NonNull String prefix, @NonNull ResourceOutput output)
     {
         if (type != PackType.CLIENT_RESOURCES) return;
         if (!namespace.equals(NAMESPACE)) return;
-        
+
         String subMode = scathaPro.customAlertModeManager.getCurrentSubModeId();
         if (subMode == null || subMode.isBlank()) return;
-        
+
         if (prefix.equals("sounds"))
         {
             ScathaPro.LOGGER.debug("Listing custom alert mode sound resources");
-            
+
             // sounds.json
             output.accept(
                 Identifier.fromNamespaceAndPath(NAMESPACE, "sounds.json"),
@@ -90,36 +90,36 @@ public class CustomAlertModePackResources implements PackResources
                 )
             );
             ScathaPro.LOGGER.debug(" -> accepted sounds.json");
-            
+
             // Sound files
             File soundsDir = getAssetsPath(subMode).resolve("sounds").toFile();
             if (ScathaPro.LOGGER.isDebugEnabled()) ScathaPro.LOGGER.debug("Sounds directory: {}", soundsDir.getAbsolutePath());
             if (!soundsDir.isDirectory()) return;
-            
+
             File[] files = soundsDir.listFiles();
             if (files == null) return;
             for (File file : files)
             {
                 if (!file.isFile() || !file.getName().endsWith(".ogg")) continue;
-                
+
                 String path = "sounds/" + file.getName();
                 Identifier id = Identifier.fromNamespaceAndPath(NAMESPACE, path);
-                
+
                 output.accept(id, () -> new FileInputStream(file));
                 if (ScathaPro.LOGGER.isDebugEnabled()) ScathaPro.LOGGER.debug(" -> accepted {}", file.getAbsolutePath());
             }
         }
     }
-    
+
     @Override
     public @Nullable IoSupplier<InputStream> getResource(@NonNull PackType type, @NonNull Identifier identifier)
     {
         if (type != PackType.CLIENT_RESOURCES) return null;
         if (!identifier.getNamespace().equals(NAMESPACE)) return null;
-        
+
         String subMode = scathaPro.customAlertModeManager.getCurrentSubModeId();
         if (subMode == null || subMode.isBlank()) return null;
-        
+
         // sounds.json
         if (identifier.getPath().equals("sounds.json"))
         {
@@ -127,7 +127,7 @@ public class CustomAlertModePackResources implements PackResources
             ScathaPro.LOGGER.debug("Generated custom alert mode sounds.json and returned IoSupplier");
             return () -> new ByteArrayInputStream(data);
         }
-        
+
         // Other files
         File file = Util.resolvePath(getAssetsPath(subMode), identifier.getPath()).toFile();
         if (file.isFile())
@@ -135,53 +135,53 @@ public class CustomAlertModePackResources implements PackResources
             ScathaPro.LOGGER.debug("Created IoSupplier for custom alert mode resource {}", identifier.getPath());
             return () -> new FileInputStream(file);
         }
-        
+
         return null;
     }
-    
+
     @Override
     public @Nullable IoSupplier<InputStream> getRootResource(String @NonNull ... path)
     {
         return null;
     }
-    
+
     @Override
     public void close() {}
-    
-    
+
+
     private @NonNull JsonObject generateSoundsJson()
     {
         JsonObject root = new JsonObject();
-        
+
         for (Alert alert : scathaPro.alertManager)
         {
             if (!soundFileExists(alert)) continue;
-            
+
             JsonObject entry = new JsonObject();
             entry.addProperty("category", "master");
-            
+
             JsonArray sounds = new JsonArray();
             JsonObject sound = new JsonObject();
             sound.addProperty("name", NAMESPACE + ":" + alert.alertId);
             sound.addProperty("stream", true);
             sounds.add(sound);
-            
+
             entry.add("sounds", sounds);
             root.add(alert.alertId, entry);
         }
-        
+
         return root;
     }
-    
+
     private boolean soundFileExists(Alert alert)
     {
         String subMode = scathaPro.customAlertModeManager.getCurrentSubModeId();
         if (subMode == null || subMode.isBlank()) return false;
-        
+
         File file = Util.resolvePath(getAssetsPath(subMode), "sounds", alert.alertId+".ogg").toFile();
         return file.isFile();
     }
-    
+
     private @NonNull Path getAssetsPath(@NonNull String subMode)
     {
         return Util.resolvePath(scathaPro.customAlertModeManager.subModesDirectory, subMode, "assets");

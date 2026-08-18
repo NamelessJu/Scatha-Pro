@@ -16,14 +16,14 @@ public class PlayerRotationSettingsScreen extends ConfigScreen
     {
         super(scathaPro, "Player Rotation Settings", parentScreen);
     }
-    
+
     @Override
     protected void initLayout(@NonNull HeaderAndFooterLayout layout)
     {
         addTitleHeader();
-        
+
         GridBuilder gridBuilder = new GridBuilder();
-        gridBuilder.addFullWidth(
+        gridBuilder.addFullWidthWidget(
             floatConfigSlider(
                 "Alternative Sensitivity", 0f, 1f,
                 config.miscellaneous.alternativeSensitivity, null
@@ -41,7 +41,7 @@ public class PlayerRotationSettingsScreen extends ConfigScreen
         gridBuilder.addGap();
         gridBuilder.addSingleCell(booleanConfigButton("Pitch/Yaw Display", config.miscellaneous.rotationAnglesEnabled));
         gridBuilder.addSingleCell(booleanConfigButton("Show Yaw Only", config.miscellaneous.rotationAnglesYawOnly,
-            value -> Tooltip.create(Component.literal("Yaw = left/right rotation").withStyle(ChatFormatting.GRAY)),
+            _ -> Tooltip.create(Component.literal("Yaw = left/right rotation").withStyle(ChatFormatting.GRAY)),
             null
         ));
         gridBuilder.addSingleCell(integerConfigSlider(
@@ -49,16 +49,16 @@ public class PlayerRotationSettingsScreen extends ConfigScreen
             config.miscellaneous.rotationAnglesDecimalPlaces, null
         ));
         gridBuilder.addSingleCell(booleanConfigButton("Shorter Yaw", config.miscellaneous.rotationAnglesMinimalYawEnabled,
-            value -> Tooltip.create(Component.literal("Hides the tens and hundreds places of the yaw value").withStyle(ChatFormatting.GRAY)),
+            _ -> Tooltip.create(Component.literal("Hides the tens and hundreds places of the yaw value").withStyle(ChatFormatting.GRAY)),
             null
         ));
         gridBuilder.addGap();
         gridBuilder.addFullWidth(booleanConfigButton("Alternative Crosshair Overlay Layout", config.miscellaneous.alternativeCrosshairLayoutEnabled,
-            value -> Tooltip.create(Component.literal("Makes space for the attack indicator").withStyle(ChatFormatting.GRAY)),
-            (button, value) -> scathaPro.crosshairOverlay.updateLayout()
+            _ -> Tooltip.create(Component.literal("Makes space for the attack indicator").withStyle(ChatFormatting.GRAY)),
+            (_, _) -> scathaPro.crosshairOverlay.updateLayout()
         ));
         gridBuilder.addToContent(layout);
-        
+
         addDoneButtonFooter();
     }
 }

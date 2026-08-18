@@ -29,13 +29,13 @@ public class CustomAlertModeScreen extends LayoutScreen
 {
     private DirectoryWatcher directoryWatcher;
     private long refreshTickTimer = 0L;
-    
+
     public CustomAlertModeScreen(ScathaPro scathaPro, Screen parentScreen)
     {
         super(scathaPro, Component.literal("Custom Alert Modes"), true, parentScreen);
         directoryWatcher = DirectoryWatcher.create(scathaPro.customAlertModeManager.subModesDirectory);
     }
-    
+
     @Override
     protected void initLayout(@NonNull HeaderAndFooterLayout layout)
     {
@@ -46,13 +46,13 @@ public class CustomAlertModeScreen extends LayoutScreen
         addScrollList(new CustomAlertModeList(scathaPro, this, layout));
         addDoneButtonFooter();
     }
-    
+
     public void refresh()
     {
         refreshTickTimer = 0L;
         rebuildWidgets();
     }
-    
+
     @Override
     public void tick()
     {
@@ -71,26 +71,26 @@ public class CustomAlertModeScreen extends LayoutScreen
                 closeWatcher();
             }
         }
-        
+
         if (refreshTickTimer > 0L && --refreshTickTimer == 0L)
         {
             refresh();
         }
     }
-    
+
     @Override
     public void onClose()
     {
         closeWatcher();
         super.onClose();
     }
-    
+
     @Override
     public void onFilesDrop(@NonNull List<Path> list)
     {
         List<FailedImport> failedImports = Lists.newArrayList();
         boolean anyFileImported = false;
-        
+
         for (Path path : list)
         {
             File file = path.toFile();
@@ -104,9 +104,9 @@ public class CustomAlertModeScreen extends LayoutScreen
                 failedImports.add(new FailedImport(file, Component.literal("Not a file")));
                 continue;
             }
-            
+
             String modeFolderName = file.getName();
-            
+
             // validate and remove file extension
             int dotIndex = modeFolderName.lastIndexOf('.');
             if (dotIndex < 0 || !modeFolderName.substring(dotIndex + 1).equals("spmode"))
@@ -115,28 +115,28 @@ public class CustomAlertModeScreen extends LayoutScreen
                 continue;
             }
             modeFolderName = modeFolderName.substring(0, dotIndex);
-            
+
             File importDirectory = FileUtil.getUniqueFile(scathaPro.customAlertModeManager.subModesDirectory.toFile(), modeFolderName);
-            
+
             if (!FileUtil.unzip(file, importDirectory.toPath(), null))
             {
                 failedImports.add(new FailedImport(file, Component.literal("Failed to extract file")));
                 continue;
             }
-            
+
             String subModeId = importDirectory.getName();
-            
+
             new CustomAlertModeMetaUpdater(scathaPro, subModeId).load();
             new CustomAlertModePropertiesUpdater(scathaPro, subModeId).load();
-            
+
             CustomAlertModeMeta meta = scathaPro.customAlertModeManager.subModeMetas.getOrLoad(subModeId);
             // Done to make the new mode appear at the top of the list
             meta.lastUsedAtTimestamp.set(TimeUtil.getEpochMilliseconds());
             meta.save();
-            
+
             anyFileImported = true;
         }
-        
+
         if (!failedImports.isEmpty())
         {
             MutableComponent description = Component.empty();
@@ -145,7 +145,7 @@ public class CustomAlertModeScreen extends LayoutScreen
                 if (!description.equals(CommonComponents.EMPTY)) description.append("\n");
                 description.append(failedImport.file().getName() + ": ").append(failedImport.reason);
             }
-            
+
             scathaPro.minecraft.setScreen(new InfoMessageScreen(scathaPro, this,
                 Component.literal(
                     failedImports.size() > 1
@@ -156,10 +156,10 @@ public class CustomAlertModeScreen extends LayoutScreen
             ));
             return;
         }
-        
+
         if (anyFileImported) refresh();
     }
-    
+
     private void closeWatcher()
     {
         if (directoryWatcher != null)
@@ -172,24 +172,24 @@ public class CustomAlertModeScreen extends LayoutScreen
             catch (Exception ignored) {}
         }
     }
-    
+
     private record FailedImport(File file, Component reason) {}
-    
+
     private static class DirectoryWatcher implements AutoCloseable
     {
         private final WatchService watcher;
         private final Path packPath;
-        
+
         private DirectoryWatcher(Path path) throws IOException
         {
             this.packPath = path;
             this.watcher = path.getFileSystem().newWatchService();
-            
+
             try
             {
                 this.watch(path);
                 DirectoryStream<Path> directoryStream = Files.newDirectoryStream(path);
-                
+
                 try
                 {
                     for (Path childPath : directoryStream)
@@ -210,10 +210,10 @@ public class CustomAlertModeScreen extends LayoutScreen
                     {
                         e.addSuppressed(e2);
                     }
-                    
+
                     throw e;
                 }
-                
+
                 directoryStream.close();
             }
             catch (Exception e)
@@ -222,7 +222,7 @@ public class CustomAlertModeScreen extends LayoutScreen
                 throw e;
             }
         }
-        
+
         public static CustomAlertModeScreen.@Nullable DirectoryWatcher create(Path path)
         {
             try
@@ -235,7 +235,7 @@ public class CustomAlertModeScreen extends LayoutScreen
                 return null;
             }
         }
-        
+
         private void watch(Path path) throws IOException
         {
             path.register(this.watcher,
@@ -244,11 +244,11 @@ public class CustomAlertModeScreen extends LayoutScreen
                 StandardWatchEventKinds.ENTRY_MODIFY
             );
         }
-        
+
         public boolean pollForChanges() throws IOException
         {
             boolean changesFound = false;
-            
+
             WatchKey watchKey;
             while ((watchKey = this.watcher.poll()) != null)
             {
@@ -264,13 +264,13 @@ public class CustomAlertModeScreen extends LayoutScreen
                         }
                     }
                 }
-                
+
                 watchKey.reset();
             }
-            
+
             return changesFound;
         }
-        
+
         public void close() throws IOException
         {
             this.watcher.close();

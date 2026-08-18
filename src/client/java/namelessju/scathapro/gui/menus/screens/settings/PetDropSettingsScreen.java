@@ -22,12 +22,12 @@ public class PetDropSettingsScreen extends ConfigScreen
     {
         super(scathaPro, "Scatha Pet Drop Settings", parentScreen);
     }
-    
+
     @Override
     protected void initLayout(@NonNull HeaderAndFooterLayout layout)
     {
         addTitleHeader();
-        
+
         GridBuilder gridBuilder = new GridBuilder();
         gridBuilder.addSingleCell(booleanConfigButton("Scatha Pet Item Popup", config.petDrop.itemPopupEnabled,
             _ -> Tooltip.create(
@@ -47,7 +47,7 @@ public class PetDropSettingsScreen extends ConfigScreen
                     .withStyle(ChatFormatting.GRAY)
             ), null
         ));
-        
+
         Button popupPreviewButton;
         gridBuilder.addSingleCell(popupPreviewButton = Button.builder(Component.literal("Play Preview"),
             _ -> scathaPro.itemPopupRenderer.popup(
@@ -64,7 +64,7 @@ public class PetDropSettingsScreen extends ConfigScreen
                 Component.literal("Items aren't loaded yet,\ncannot render preview").withStyle(ChatFormatting.YELLOW)
             ));
         }
-        
+
         gridBuilder.addGap();
         gridBuilder.addSingleCell(booleanConfigButton("Firework Explosion", config.petDrop.fireworkEnabled,
             _ -> Tooltip.create(
@@ -75,21 +75,21 @@ public class PetDropSettingsScreen extends ConfigScreen
         gridBuilder.addSingleCell(booleanConfigButton("Automatic Screenshot", config.miscellaneous.automaticPetDropScreenshotEnabled));
         gridBuilder.addFullWidth(subScreenButton("Drop Message Extension...", DropMessageExtensionSettingsScreen::new));
         gridBuilder.addToContent(layout);
-        
+
         addDoneButtonFooter();
     }
-    
+
     @Override
     public boolean isPauseScreen()
     {
         return false;
     }
-    
+
     @Override
     public void removed()
     {
         super.removed();
-        
+
         scathaPro.itemPopupRenderer.clear();
     }
 }

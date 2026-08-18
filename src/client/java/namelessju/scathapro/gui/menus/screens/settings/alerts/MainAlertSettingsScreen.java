@@ -16,44 +16,43 @@ import org.jspecify.annotations.NonNull;
 public class MainAlertSettingsScreen extends ConfigScreen
 {
     private Button customModeButton;
-    
+
     public MainAlertSettingsScreen(ScathaPro scathaPro, Screen parentScreen)
     {
         super(scathaPro, "Alert Settings", parentScreen);
     }
-    
+
     @Override
     protected void initLayout(@NonNull HeaderAndFooterLayout layout)
     {
         addTitleHeader();
-        
+
         GridBuilder gridBuilder = new GridBuilder();
-        
+
         CycleButton<AlertMode> modeButton = CycleButton.builder(
                 value -> Component.literal(value.name), scathaPro.config.alerts.mode.get()
             )
             .withValues(scathaPro.alertModeManager.getAllModes())
-            .withTooltip(value -> Tooltip.create(
+            .withTooltip(_ -> Tooltip.create(
                 Component.literal("Plays different sounds\n(and titles in custom mode)").withStyle(ChatFormatting.GRAY)
             ))
-            .create(Component.literal("Alert Mode"), (button, value) -> {
+            .create(Component.literal("Alert Mode"), (_, value) -> {
                 config.alerts.mode.set(value);
-                scathaPro.mainOverlay.updateScathaPetImage();
                 updateCustomModeButton();
             });
         gridBuilder.addSingleCell(modeButton);
-        
+
         gridBuilder.addSingleCell(customModeButton = subScreenButton("Custom Alert Modes...", CustomAlertModeScreen::new));
         updateCustomModeButton();
-        
+
         gridBuilder.addSingleCell(subScreenButton("Alert Configuration...", AlertConfigurationScreen::new));
         gridBuilder.addSingleCell(subScreenButton("Alert Title Position...", AlertTitleSettingsScreen::new));
-        
+
         gridBuilder.addToContent(layout);
-        
+
         addDoneButtonFooter();
     }
-    
+
     private void updateCustomModeButton()
     {
         if (scathaPro.config.alerts.mode.get() == scathaPro.alertModeManager.customMode)

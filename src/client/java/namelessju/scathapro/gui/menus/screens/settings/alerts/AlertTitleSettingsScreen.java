@@ -17,12 +17,12 @@ public class AlertTitleSettingsScreen extends ConfigScreen
     {
         super(scathaPro, "Alert Title Position", parentScreen);
     }
-    
+
     @Override
     protected void initLayout(@NonNull HeaderAndFooterLayout layout)
     {
         addTitleHeader();
-        
+
         GridBuilder gridBuilder = new GridBuilder();
         gridBuilder.addSingleCell(floatConfigSlider("X Position", 0f, 1f, config.alerts.titlePositionX, null))
             .setStepSize(0.01f).setValueComponentSupplier(FloatSlider.PERCENTAGE_COMPONENT_SUPPLIER);
@@ -36,12 +36,12 @@ public class AlertTitleSettingsScreen extends ConfigScreen
         ));
         addDoneButtonFooterWithWidget(gridBuilder.getGrid());
     }
-    
+
     @Override
     public void extractBackground(@NonNull GuiGraphicsExtractor guiGraphics, int i, int j, float f)
     {
         super.extractBackground(guiGraphics, i, j, f);
-        
+
         scathaPro.alertTitleOverlay.extractWithComponents(
             guiGraphics, minecraft.getDeltaTracker(),
             Component.literal("Example Title").withStyle(ChatFormatting.GREEN),

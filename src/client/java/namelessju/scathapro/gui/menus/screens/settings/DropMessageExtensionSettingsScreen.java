@@ -22,20 +22,20 @@ public class DropMessageExtensionSettingsScreen extends ConfigScreen
     private StringWidget previewWidget;
     private CycleButton<Boolean> coloredRarityButton;
     private CycleButton<Boolean> emphasizedRarityButton;
-    
+
     public DropMessageExtensionSettingsScreen(ScathaPro scathaPro, Screen parentScreen)
     {
         super(scathaPro, "Drop Message Extension Settings", parentScreen);
     }
-    
+
     @Override
     protected void initLayout(@NonNull HeaderAndFooterLayout layout)
     {
         addTitleHeader();
-        
+
         GridBuilder gridBuilder = new GridBuilder();
-        
-        
+
+
         previewWidget = gridBuilder.addFullWidth(new StringWidget(Component.empty(), font)
             .setMaxWidth(GridBuilder.WIDTH, StringWidget.TextOverflow.SCROLLING));
         gridBuilder.addFullWidth(new MultiLineTextWidget(
@@ -43,86 +43,89 @@ public class DropMessageExtensionSettingsScreen extends ConfigScreen
                 .withStyle(ChatFormatting.GRAY),
             font
         ).setCentered(true));
-        
+
         gridBuilder.addGap();
-        
+
         gridBuilder.addFullWidth(nullableEnumCycleButton(
             DropMessageRarityMode.class, "Add Scatha Rarity Text",
             config.miscellaneous.dropMessageRarityMode, null, null,
-            (button, value) -> {
+            (_, _) -> {
                 updatePreview();
                 updateRaritySettingButtons();
             }
         ));
         coloredRarityButton = gridBuilder.addSingleCell(booleanConfigButton(
             "Colored Rarity", config.miscellaneous.dropMessageRarityColored,
-            null, (button, value) -> updatePreview()
+            null, (_, _) -> updatePreview()
         ));
         emphasizedRarityButton = gridBuilder.addSingleCell(booleanConfigButton(
             "Emphasized Rarity", config.miscellaneous.dropMessageRarityUppercase,
-            null, (button, value) -> updatePreview()
+            null, (_, _) -> updatePreview()
         ));
-        
+
         gridBuilder.addGap();
-        
+
         gridBuilder.addSingleCell(nullableEnumCycleButton(
             DropMessageStatMode.class, "Add Magic Find",
             config.miscellaneous.dropMessageMagicFindMode, null, null,
-            (button, value) -> updatePreview()
+            (_, _) -> updatePreview()
         ));
         gridBuilder.addSingleCell(nullableEnumCycleButton(
             DropMessageStatMode.class, "Add Pet Luck",
             config.miscellaneous.dropMessagePetLuckMode, null, null,
-            (button, value) -> updatePreview()
+            (_, _) -> updatePreview()
         ));
         gridBuilder.addFullWidth(nullableEnumCycleButton(
             DropMessageStatMode.class, "Add Effective Magic Find",
             config.miscellaneous.dropMessageEmfMode, null,
-            value -> Tooltip.create(
+            _ -> Tooltip.create(
                 Component.literal("EMF (\"Effective Magic Find\"):\nMagic Find + Pet Luck combined")
                     .withStyle(ChatFormatting.GRAY)
             ),
-            (button, value) -> updatePreview()
+            (_, _) -> updatePreview()
         ));
-        
-        
+
+
         gridBuilder.addToContent(layout);
-        
+
         addDoneButtonFooter();
-        
-        
+
+
         updatePreview();
         updateRaritySettingButtons();
     }
-    
+
     private void updatePreview()
     {
-        Component message = Constants.generatePetDropMessage(Rarity.EPIC);
-        String unformattedText = StringDecomposer.getPlainText(message);
-        previewWidget.setMessage(scathaPro.chatManager.extendPetDropMessage(message, unformattedText, false));
+        Component petDropMessage = Constants.generatePetDropMessage(Rarity.EPIC);
+        previewWidget.setMessage(
+            scathaPro.chatManager.extendPetDropMessage(
+                petDropMessage, StringDecomposer.getPlainText(petDropMessage),
+                false, false
+            )
+        );
         getLayout().arrangeElements();
     }
-    
+
     private void updateRaritySettingButtons()
     {
         if (config.miscellaneous.dropMessageRarityMode.get() != null)
         {
             coloredRarityButton.active = true;
             coloredRarityButton.setTooltip(null);
-            
+
             emphasizedRarityButton.active = true;
             emphasizedRarityButton.setTooltip(null);
         }
         else
         {
             Tooltip tooltip = Tooltip.create(
-                Component.literal("Applies only when the rarity text is added")
-                    .withStyle(ChatFormatting.YELLOW)
+                Component.literal("Applies only when the rarity text is added").withStyle(ChatFormatting.YELLOW)
             );
-            
+
             coloredRarityButton.active = false;
             coloredRarityButton.setTooltip(tooltip);
-            
+
             emphasizedRarityButton.active = false;
             emphasizedRarityButton.setTooltip(tooltip);
         }

@@ -24,7 +24,7 @@ public abstract class GameRendererMixin
     private RenderBuffers renderBuffers;
     @Shadow @Final
     private Projection hudProjection;
-    
+
     @Inject(
         method = "render",
         at = @At(

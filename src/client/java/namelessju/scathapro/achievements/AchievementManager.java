@@ -18,16 +18,16 @@ import java.util.Queue;
 public class AchievementManager
 {
     private final ScathaPro scathaPro;
-    
+
     private final Queue<DelayedAchievementUnlock> delayedAchievementUnlocks = new LinkedList<>();
     private AchievementType lastUnlockedAchievementType = null;
     private SoundInstance lastUnlockSound = null;
-    
+
     public AchievementManager(ScathaPro scathaPro)
     {
         this.scathaPro = scathaPro;
     }
-    
+
     public void tick()
     {
         if (canUnlockAchievement())
@@ -39,17 +39,19 @@ public class AchievementManager
             }
         }
     }
-    
+
     private boolean canUnlockAchievement()
     {
-        return scathaPro.minecraft.level != null && !(scathaPro.minecraft.screen instanceof FakeBanScreen);
+        return scathaPro.minecraft.level != null
+            && !(scathaPro.minecraft.screen instanceof FakeBanScreen)
+            && !scathaPro.scathaDropsSlotMachineManager.shouldHideDrops();
     }
 
     public void unlockAchievement(Achievement achievement)
     {
         unlockAchievement(achievement, -1);
     }
-    
+
     public void unlockAchievement(Achievement achievement, int goalReachedCount)
     {
         if (!canUnlockAchievement())
@@ -58,10 +60,10 @@ public class AchievementManager
             return;
         }
         if (goalReachedCount == 0) return;
-        
+
     	UnlockedAchievement unlockedAchievement = getUnlockedAchievements().getFor(achievement);
         boolean isInitialUnlock = false;
-        
+
         if (unlockedAchievement == null)
     	{
         	unlockedAchievement = new UnlockedAchievement(achievement, TimeUtil.getEpochMilliseconds());
@@ -69,7 +71,7 @@ public class AchievementManager
             isInitialUnlock = true;
     	}
         else if (!achievement.isRepeatable) return;
-        
+
         if (achievement.isRepeatable)
         {
         	int repeatCount = unlockedAchievement.getRepeatCount();
@@ -84,25 +86,25 @@ public class AchievementManager
                 unlockedAchievement.setRepeatCount(repeatCount + 1);
             }
         }
-        
+
         scathaPro.persistentData.save();
-        
+
         sendAchievementUnlockAlert(unlockedAchievement);
-        
-        ScathaProEvents.achievementUnlockedEvent.trigger(scathaPro,
-            new ScathaProEvents.AchievementUnlockedEventData(unlockedAchievement)
+
+        ScathaProEvents.achievementUnlockedEvent.trigger(
+            new ScathaProEvents.AchievementUnlockedEventData(scathaPro, unlockedAchievement)
         );
     }
-    
+
     private void sendAchievementUnlockAlert(UnlockedAchievement unlockedAchievement)
     {
         if (!scathaPro.config.achievements.playAlerts.get()) return;
-        
+
         Achievement achievement = unlockedAchievement.achievement;
         boolean isRepeated = achievement.isRepeatable && unlockedAchievement.getRepeatCount() > 0;
-        
+
         if (isRepeated && !scathaPro.config.achievements.playRepeatAlerts.get()) return;
-        
+
         final Style unlockTextStyle;
         final String unlockWord;
         if (isRepeated)
@@ -115,7 +117,7 @@ public class AchievementManager
             unlockTextStyle = Style.EMPTY.withColor(ChatFormatting.GREEN);
             unlockWord = "unlocked";
         }
-        
+
         MutableComponent message = Component.empty()
             .append(Component.empty().setStyle(unlockTextStyle)
                 .append(
@@ -129,7 +131,10 @@ public class AchievementManager
                 .withColor(ChatFormatting.GOLD)
                 .withItalic(true)
                 .withHoverEvent(new HoverEvent.ShowText(Component.empty()
-                    .append(Component.literal(achievement.achievementName + "\n").withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD))
+                    .append(
+                        Component.literal(achievement.achievementName + "\n")
+                            .withStyle(Style.EMPTY.withColor(ChatFormatting.GREEN).withBold(true))
+                    )
                     .append(Component.literal(achievement.description).withStyle(ChatFormatting.GRAY))
                     .append(achievement.isRepeatable
                         ? Component.empty().append("\n")
@@ -145,7 +150,7 @@ public class AchievementManager
             message.append(" ").append(unlockedAchievement.getRepeatCountUnlockComponent());
         }
         scathaPro.chatManager.sendChatMessage(message);
-        
+
         boolean isLastUnlockSoundPlaying = lastUnlockSound != null && scathaPro.soundManager.isPlaying(lastUnlockSound);
         if (!isLastUnlockSoundPlaying
             || lastUnlockedAchievementType == null || lastUnlockedAchievementType.ordinal() <= achievement.type.ordinal())
@@ -159,7 +164,7 @@ public class AchievementManager
         }
         lastUnlockedAchievementType = achievement.type;
     }
-    
+
     public boolean revokeAchievement(Achievement achievement)
     {
         if (getUnlockedAchievements().remove(achievement))
@@ -170,17 +175,17 @@ public class AchievementManager
         }
         return false;
     }
-    
+
     private UnlockedAchievements getUnlockedAchievements()
     {
         return scathaPro.getProfileData().unlockedAchievements;
     }
-    
+
     public static Achievement[] getAllAchievements()
     {
         return Achievement.values();
     }
-    
-    
+
+
     private record DelayedAchievementUnlock(@NonNull Achievement achievement, int goalReachedCount) {}
 }

@@ -10,7 +10,7 @@ public class OverlayProgressBar extends OverlayElement
     private final int height;
     private final int foregroundColor;
     private final int backgroundColor;
-    
+
     private float progress = 0f;
 
     public OverlayProgressBar(int x, int y, int width, int height, float scale, int foregroundColor, int backgroundColor)
@@ -40,7 +40,7 @@ public class OverlayProgressBar extends OverlayElement
     {
         return height;
     }
-    
+
     public void setProgress(float progress)
     {
         this.progress = Math.clamp(progress, 0f, 1f);

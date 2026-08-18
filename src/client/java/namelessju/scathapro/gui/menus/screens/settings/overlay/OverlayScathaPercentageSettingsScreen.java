@@ -13,27 +13,23 @@ public class OverlayScathaPercentageSettingsScreen extends OverlaySettingsScreen
 {
     private IntegerSlider cycleAmountDurationSlider;
     private IntegerSlider cyclePercentageDurationSlider;
-    
+
     public OverlayScathaPercentageSettingsScreen(ScathaPro scathaPro, Screen parentScreen)
     {
         super(scathaPro, "Overlay Scatha Percentage Settings", parentScreen);
     }
-    
+
     @Override
     protected void initLayout(@NonNull HeaderAndFooterLayout layout)
     {
         addTitleHeader();
-        
+
         GridBuilder gridBuilder = new GridBuilder();
         gridBuilder.addSingleCell(integerConfigSlider("Decimal Places", 0, 3,
-            config.overlay.scathaPercentageDecimalPlaces, value -> scathaPro.mainOverlay.updateTotalKills()));
+            config.overlay.scathaPercentageDecimalPlaces, null));
         gridBuilder.addSingleCell(booleanConfigButton("Move Behind Total Kills",
             config.overlay.scathaPercentageAlternativePositionEnabled, null,
-            (button, enabled) -> {
-                if (enabled) scathaPro.mainOverlay.updateScathaKills();
-                else scathaPro.mainOverlay.updateTotalKills();
-                updateCycleDurationSliders();
-            }));
+            (_, _) -> updateCycleDurationSliders()));
         gridBuilder.addSingleCell(cycleAmountDurationSlider = integerConfigSlider("Amount Duration", 1, 10,
             config.overlay.scathaPercentageCycleAmountDuration, null))
             .setValueComponentSupplier(IntegerSlider.SECONDS_COMPONENT_SUPPLIER_WITH_OFF);
@@ -41,19 +37,18 @@ public class OverlayScathaPercentageSettingsScreen extends OverlaySettingsScreen
             config.overlay.scathaPercentageCyclePercentageDuration, null))
             .setValueComponentSupplier(IntegerSlider.SECONDS_COMPONENT_SUPPLIER_WITH_OFF);
         addDoneButtonFooterWithWidget(gridBuilder.getGrid());
-        
+
         updateCycleDurationSliders();
     }
-    
+
     private void updateCycleDurationSliders()
     {
         if (config.overlay.scathaPercentageAlternativePositionEnabled.get())
         {
             Tooltip tooltip = Tooltip.create(
-                Component.literal("Doesn't apply when displayed behind total kills")
-                    .withStyle(ChatFormatting.YELLOW)
+                Component.literal("Doesn't apply when displayed behind total kills").withStyle(ChatFormatting.YELLOW)
             );
-            
+
             cycleAmountDurationSlider.active = false;
             cycleAmountDurationSlider.setTooltip(tooltip);
             cyclePercentageDurationSlider.active = false;

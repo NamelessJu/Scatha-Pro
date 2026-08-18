@@ -10,7 +10,7 @@ public abstract class AlertTitleTemplate extends AlertTitle
 {
     public final @Nullable String titleText;
     public final @Nullable Style titleStyle;
-    
+
     public AlertTitleTemplate(@Nullable String titleText, @Nullable Style titleStyle,
                               int fadeInTicks, int stayTicks, int fadeOutTicks)
     {
@@ -18,7 +18,7 @@ public abstract class AlertTitleTemplate extends AlertTitle
         this.titleText = titleText;
         this.titleStyle = titleStyle;
     }
-    
+
     public @NonNull DisplayableAlertTitle getDisplayable(@Nullable Component titleOverride, @Nullable Component subtitleOverride, @Nullable Component variableSubtitle)
     {
         return new DisplayableAlertTitle(
@@ -27,7 +27,7 @@ public abstract class AlertTitleTemplate extends AlertTitle
             fadeInTicks, stayTicks, fadeOutTicks
         );
     }
-    
+
     protected final @Nullable Component getComponent(@Nullable String defaultText, @Nullable Component override, @Nullable Style style)
     {
         MutableComponent component = null;
@@ -36,6 +36,6 @@ public abstract class AlertTitleTemplate extends AlertTitle
         if (component != null && style != null) component.setStyle(style);
         return component;
     }
-    
+
     protected abstract @Nullable Component getDisplayableSubtitle(@Nullable Component subtitleOverride, @Nullable Component variableSubtitle);
 }

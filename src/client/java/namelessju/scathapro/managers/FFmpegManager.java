@@ -15,39 +15,39 @@ import java.util.stream.Stream;
 public class FFmpegManager
 {
     private static final String EXTENSION_OGG = ".ogg";
-    
+
     private final ScathaPro scathaPro;
     private final String executablePath;
     private final boolean isWindows;
-    
+
     public FFmpegManager(ScathaPro scathaPro)
     {
         this.scathaPro = scathaPro;
         isWindows = System.getProperty("os.name").startsWith("Windows");
         executablePath = searchForExecutablePath();
     }
-    
+
     public String[] getSupportedFileExtensions()
     {
         if (!isFFmpegInstalled()) return new String[] {EXTENSION_OGG};
         return new String[] {EXTENSION_OGG, ".mp3", ".wav"};
     }
-    
+
     public boolean needsConversion(@NonNull File file)
     {
         return !file.getName().endsWith(EXTENSION_OGG);
     }
-    
+
     public void convertToOgg(String sourcePath, String targetPath, Consumer<Boolean> consumer)
     {
         runWithArgs(new String[] {"-y", "-i", sourcePath, "-map_metadata", "-1", "-map", "0:a", "-c:a", "libvorbis", targetPath}, consumer);
     }
-    
+
     public void runWithArgs(String[] arguments, Consumer<Boolean> consumer)
     {
         CompletableFuture.supplyAsync(() -> execute(arguments)).thenAccept(consumer);
     }
-    
+
     private boolean execute(String... arguments)
     {
         if (executablePath == null)
@@ -55,7 +55,7 @@ public class FFmpegManager
             ScathaPro.LOGGER.debug("Couldn't execute FFmpeg: No installation found");
             return false;
         }
-        
+
         try
         {
             String[] commandArray = Stream.concat(Stream.of(executablePath), Arrays.stream(arguments)).toArray(String[]::new);
@@ -63,19 +63,26 @@ public class FFmpegManager
             {
                 ScathaPro.LOGGER.debug("Executing FFmpeg command: {}", String.join(" ", commandArray));
             }
-            Process process = Runtime.getRuntime().exec(commandArray);
-            
+
             StringBuilder errorMessageBuilder = new StringBuilder();
-            try (BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream())))
+            Process process = Runtime.getRuntime().exec(commandArray);
+            try
             {
-                for (String line; (line = errorReader.readLine()) != null;)
+                try (BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream())))
                 {
-                    if (!errorMessageBuilder.isEmpty()) errorMessageBuilder.append("\n");
-                    errorMessageBuilder.append(line);
+                    for (String line; (line = errorReader.readLine()) != null; )
+                    {
+                        if (!errorMessageBuilder.isEmpty()) errorMessageBuilder.append("\n");
+                        errorMessageBuilder.append(line);
+                    }
                 }
+                if (process.waitFor() == 0) return true;
             }
-            if (process.waitFor() == 0) return true;
-            
+            finally
+            {
+                process.destroy();
+            }
+
             ScathaPro.LOGGER.error("FFmpeg error:\n{}", errorMessageBuilder);
             return false;
         }
@@ -85,17 +92,17 @@ public class FFmpegManager
             return false;
         }
     }
-    
+
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isFFmpegInstalled()
     {
         return executablePath != null;
     }
-    
+
     private String searchForExecutablePath()
     {
         File ffmpegFile;
-        
+
         // exe in mod folder
         File modFolder = new File(scathaPro.minecraft.gameDirectory, "mods");
         ffmpegFile = new File(modFolder, getOsSpecificExecutableFilename("scathapro-ffmpeg"));
@@ -104,7 +111,7 @@ public class FFmpegManager
             ScathaPro.LOGGER.info("FFmpeg installation found in mods folder");
             return ffmpegFile.getAbsolutePath();
         }
-        
+
         // path variable
         String envPaths = System.getenv("PATH");
         for (String path : envPaths.split(";"))
@@ -117,14 +124,13 @@ public class FFmpegManager
                 return ffmpegFile.getAbsolutePath();
             }
         }
-        
+
         ScathaPro.LOGGER.warn("No FFmpeg installation found");
         return null;
     }
-    
+
     private String getOsSpecificExecutableFilename(String fileName)
     {
         return isWindows ? fileName + ".exe" : fileName;
     }
 }
-

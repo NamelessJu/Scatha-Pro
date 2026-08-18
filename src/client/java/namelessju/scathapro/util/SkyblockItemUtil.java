@@ -13,13 +13,13 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.function.Consumer;
 
-public class SkyblockItemUtil
+public class SkyBlockItemUtil
 {
     public static final String KEY_ID = "id";
     public static final String KEY_ENCHANTMENTS = "enchantments";
     public static final String KEY_GEMS = "gems";
-    public static final String KEY_PETINFO = "petInfo";
-    
+    public static final String KEY_PET_INFO = "petInfo";
+
     public static @Nullable CompoundTag getData(@Nullable ItemStack itemStack)
     {
         if (itemStack == null) return null;
@@ -27,27 +27,27 @@ public class SkyblockItemUtil
         if (data == null) return null;
         return data.copyTag();
     }
-    
+
     public static void getData(@Nullable ItemStack itemStack, @NonNull Consumer<CompoundTag> consumer)
     {
         CompoundTag data = getData(itemStack);
         if (data != null) consumer.accept(data);
     }
-    
+
     public static @Nullable String getItemID(@Nullable ItemStack itemStack)
     {
         CompoundTag data = getData(itemStack);
         if (data == null) return null;
         return data.getString(KEY_ID).orElse(null);
     }
-    
+
     public static int getTunnelVisionCooldown(@Nullable ItemStack stack)
     {
         if (stack == null) return -1;
-        
+
         ItemLore lore = stack.get(DataComponents.LORE);
         if (lore == null) return -1;
-        
+
         boolean cooldownLineExpectedNow = false;
         for (int i = 0; i < lore.lines().size();)
         {
@@ -80,13 +80,13 @@ public class SkyblockItemUtil
                 i -= 2;
                 continue;
             }
-            
+
             i ++;
         }
-        
+
         return -1;
     }
-    
-    
-    private SkyblockItemUtil() {}
+
+
+    private SkyBlockItemUtil() {}
 }

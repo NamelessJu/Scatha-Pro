@@ -7,7 +7,7 @@ public class OverlayIconEyePositions
     public final EyePosition leftEyePosition;
     public final EyePosition rightEyePosition;
 
-    
+
     public OverlayIconEyePositions()
     {
         this(null, null);
@@ -20,13 +20,13 @@ public class OverlayIconEyePositions
     {
         this(new EyePosition(leftX, leftY), new EyePosition(rightX, rightY));
     }
-    
+
     private OverlayIconEyePositions(EyePosition leftEyePosition, EyePosition rightEyePosition)
     {
         this.leftEyePosition = leftEyePosition;
         this.rightEyePosition = rightEyePosition;
     }
-    
+
     public record EyePosition(float x, float y)
     {
         public EyePosition(float x, float y)

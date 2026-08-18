@@ -5,7 +5,7 @@ import namelessju.scathapro.achievements.UnlockedAchievement;
 
 public class PersistentDataUpdater
 {
-    public static void update(PersistentData persistentData)
+    public static void updateAfterLoading(PersistentData persistentData)
     {
         for (PersistentData.PlayerData playerData : persistentData.players)
         {

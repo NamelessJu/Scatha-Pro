@@ -33,7 +33,7 @@ public abstract class ChatComponentMixin
             }
         }
     }
-    
+
     @ModifyVariable(
         method = "addMessage",
         at = @At("HEAD"),
@@ -45,7 +45,7 @@ public abstract class ChatComponentMixin
     {
         return ScathaPro.getInstance().chatParser.beforeMessageAddedEarly(contents);
     }
-    
+
     @ModifyVariable(
         method = "addMessage",
         at = @At("HEAD"),

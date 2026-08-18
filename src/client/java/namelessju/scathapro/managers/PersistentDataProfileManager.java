@@ -3,6 +3,7 @@ package namelessju.scathapro.managers;
 import namelessju.scathapro.Constants;
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.achievements.UnlockedAchievement;
+import namelessju.scathapro.events.framework.DataEvent;
 import namelessju.scathapro.files.PersistentData;
 import namelessju.scathapro.util.TextUtil;
 import namelessju.scathapro.util.TimeUtil;
@@ -19,26 +20,28 @@ import java.util.UUID;
 public class PersistentDataProfileManager
 {
     private final ScathaPro scathaPro;
-    
+
     private PersistentData.@NonNull ProfileData currentProfileData = new PersistentData.ProfileData(null);
     private UUID currentPlayerUUID = null;
     private boolean cheaterDetected = false;
-    
+
+    private final DataEvent<EventData> onProfileChangedEvent = new DataEvent<>();
+
     public PersistentDataProfileManager(ScathaPro scathaPro)
     {
         this.scathaPro = scathaPro;
     }
-    
+
     public void init()
     {
         updateCurrentPlayerProfile();
     }
-    
+
     public PersistentData.@NonNull ProfileData getCurrentProfileData()
     {
         return currentProfileData;
     }
-    
+
     public void updateCurrentPlayerProfile()
     {
         UUID playerUUID = scathaPro.minecraft.getUser().getProfileId();
@@ -46,12 +49,12 @@ public class PersistentDataProfileManager
         //noinspection ConstantValue
         if (Objects.equals(playerUUID, currentPlayerUUID)
             && Objects.equals(profileID, currentProfileData.profileID.get())) return;
-        
+
         currentPlayerUUID = playerUUID;
-        
+
         // Note: this mustn't save the persistent data as
         // this gets run before the backup might be made
-        
+
         PersistentData.PlayerData playerData = null;
         for (PersistentData.PlayerData playerDataEntry : scathaPro.persistentData.players)
         {
@@ -68,7 +71,7 @@ public class PersistentDataProfileManager
             scathaPro.persistentData.players.add(playerData);
             ScathaPro.LOGGER.debug("No matching player data found, appending new instance");
         }
-        
+
         PersistentData.ProfileData profileData = null;
         for (PersistentData.ProfileData profileDataEntry : playerData.profiles)
         {
@@ -85,23 +88,22 @@ public class PersistentDataProfileManager
             playerData.profiles.add(profileData);
             ScathaPro.LOGGER.debug("No matching profile data found, appending new instance");
         }
-        
+
+        PersistentData.ProfileData previousData = currentProfileData;
         currentProfileData = profileData;
-        
+
         detectCheater();
-        
-        scathaPro.achievementLogicManager.updateAchievementsAfterDataLoading();
+
+        onProfileChangedEvent.trigger(new EventData(scathaPro, currentProfileData, previousData));
     }
-    
+
     private void detectCheater()
     {
-        // TODO: might not trigger correctly if profile was switched
-        //  -> only a problem if can only trigger on first level join
         cheaterDetected = false;
-        
+
         PersistentData.ProfileData profileData = getCurrentProfileData();
         long now = TimeUtil.getEpochMilliseconds();
-        
+
         if (
             profileData.rarePetDrops.get() > Constants.maxLegitPetDropsAmount || profileData.rarePetDrops.get() < 0
             || profileData.epicPetDrops.get() > Constants.maxLegitPetDropsAmount || profileData.epicPetDrops.get() < 0
@@ -110,7 +112,7 @@ public class PersistentDataProfileManager
             cheaterDetected = true;
             return;
         }
-        
+
         for (UnlockedAchievement unlockedAchievement : profileData.unlockedAchievements.getAll())
         {
             if (unlockedAchievement.unlockTimestamp > now
@@ -125,7 +127,7 @@ public class PersistentDataProfileManager
                 return;
             }
         }
-        
+
         int lastAprilFoolsJokeShownYear = profileData.lastAprilFoolsJokeShownYear.getOr(-1);
         if (lastAprilFoolsJokeShownYear >= 0 && (lastAprilFoolsJokeShownYear <= 2024 || lastAprilFoolsJokeShownYear >= 3000)
             || lastAprilFoolsJokeShownYear < -1)
@@ -133,46 +135,47 @@ public class PersistentDataProfileManager
             cheaterDetected = true;
         }
     }
-    
+
     public boolean isProfileDataCheated()
     {
         return cheaterDetected;
     }
-    
-    
+
+
     public float getTotalMagicFind(boolean allowShuriken)
     {
         PersistentData.ProfileData profileData = getCurrentProfileData();
         float totalMagicFind = -1f;
-        
+
         totalMagicFind = tryAddStatValue(totalMagicFind, profileData.globalMagicFind.getOr(-1f));
         totalMagicFind = tryAddStatValue(totalMagicFind, profileData.wormBestiaryMagicFind.getOr(-1f));
+        totalMagicFind = tryAddStatValue(totalMagicFind, profileData.attributes.getMagicFind());
         totalMagicFind = tryAddStatValue(totalMagicFind, profileData.witchesStewsEaten.getMagicFind());
-        
+
         if (allowShuriken && scathaPro.coreManager.lastScathaHitHadShuriken)
         {
             totalMagicFind = Constants.applyShurikenMagicFind(totalMagicFind);
         }
-        
+
         return totalMagicFind;
     }
-    
+
     private float tryAddStatValue(float current, float value)
     {
         if (value < 0f) return current;
-        
+
         if (current >= 0) current += value;
         else current = value;
         return current;
     }
-    
+
     public float getEffectiveMagicFind(boolean allowShuriken)
     {
         float totalMagicFind = getTotalMagicFind(allowShuriken);
         float petLuck = getCurrentProfileData().petLuck.getOr(-1f);
         return totalMagicFind >= 0f && petLuck >= 0f ? totalMagicFind + petLuck : -1f;
     }
-    
+
     public MutableComponent getGlobalMagicFindComponent(boolean addSymbol)
     {
         return getStatComponent(
@@ -181,7 +184,7 @@ public class PersistentDataProfileManager
             addSymbol
         );
     }
-    
+
     public MutableComponent getBestiaryMagicFindComponent(boolean addSymbol)
     {
         return getStatComponent(
@@ -190,7 +193,7 @@ public class PersistentDataProfileManager
             addSymbol
         );
     }
-    
+
     public MutableComponent getWitchesStewMagicFindComponent(boolean addSymbol)
     {
         return getStatComponent(
@@ -199,7 +202,16 @@ public class PersistentDataProfileManager
             addSymbol
         );
     }
-    
+
+    public MutableComponent getAttributesMagicFindComponent(boolean addSymbol)
+    {
+        return getStatComponent(
+            getCurrentProfileData().attributes.getMagicFind(),
+            ChatFormatting.AQUA, String.valueOf(UnicodeSymbol.magicFind),
+            addSymbol
+        );
+    }
+
     public MutableComponent getTotalMagicFindComponent(boolean allowShuriken, boolean addSymbol)
     {
         return getStatComponent(
@@ -208,7 +220,7 @@ public class PersistentDataProfileManager
             addSymbol
         );
     }
-    
+
     public MutableComponent getPetLuckComponent(boolean addSymbol)
     {
         return getStatComponent(
@@ -217,7 +229,7 @@ public class PersistentDataProfileManager
             addSymbol
         );
     }
-    
+
     private MutableComponent getStatComponent(float value, ChatFormatting color, String symbol, boolean addSymbol)
     {
         MutableComponent component = Component.empty().withStyle(color);
@@ -226,11 +238,26 @@ public class PersistentDataProfileManager
             value, 2, false, RoundingMode.HALF_UP)
         );
     }
-    
+
     public MutableComponent getEffectiveMagicFindComponent(boolean allowShuriken)
     {
         return Component.empty().withStyle(ChatFormatting.BLUE).append(
             TextUtil.numberToComponentOrObf(getEffectiveMagicFind(allowShuriken), 2, false, RoundingMode.HALF_UP)
         );
     }
+
+
+    public void onProfileChanged(DataEvent.Listener<EventData> listener)
+    {
+        onProfileChangedEvent.addListener(listener);
+    }
+
+    public void removeOnProfileChanged(DataEvent.Listener<EventData> listener)
+    {
+        onProfileChangedEvent.removeListener(listener);
+    }
+
+    public record EventData(
+        @NonNull ScathaPro scathaPro, PersistentData.@NonNull ProfileData profileData, PersistentData.@NonNull ProfileData previousProfileData
+    ) {}
 }

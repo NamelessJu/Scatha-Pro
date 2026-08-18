@@ -1,5 +1,6 @@
 package namelessju.scathapro.gui.overlay.elements;
 
+import namelessju.scathapro.miscellaneous.data.IDisplayable;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.util.Mth;
@@ -8,38 +9,38 @@ import org.jspecify.annotations.Nullable;
 
 public abstract class OverlayElement
 {
-    public enum Alignment
+    public enum Alignment implements IDisplayable
     {
         LEFT("Left"), CENTER("Center"), RIGHT("Right");
-        
-        private final String name;
-        
-        Alignment(String name)
+
+        private final String displayName;
+
+        Alignment(String displayName)
         {
-            this.name = name;
+            this.displayName = displayName;
         }
-        
+
         @Override
-        public String toString()
+        public @NonNull String getDisplayName()
         {
-            return name;
+            return displayName;
         }
     }
-    
+
     protected int x, y;
     protected float scale;
     protected @NonNull Alignment alignment = Alignment.LEFT;
     protected boolean visible = true;
     protected int marginRight = 0, marginBottom = 0;
     public boolean expandsContainerSize = true;
-    
+
     public OverlayElement(int x, int y, float scale)
     {
         this.x = x;
         this.y = y;
         this.scale = scale;
     }
-    
+
     @SuppressWarnings("unchecked")
     public <T extends OverlayElement> T setMargin(int right, int bottom)
     {
@@ -47,20 +48,20 @@ public abstract class OverlayElement
         this.marginBottom = bottom;
         return (T) this;
     }
-    
+
     @SuppressWarnings("unchecked")
     public <T extends OverlayElement> T setAlignment(@NonNull Alignment alignment)
     {
         this.alignment = alignment;
         return (T) this;
     }
-    
+
     public void extractRenderStateIfVisible(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker)
     {
         if (!visible) return;
         extractRenderState(guiGraphics, deltaTracker, true, true, this.alignment);
     }
-    
+
     public void extractRenderState(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker, boolean positioned, boolean scaled, @Nullable Alignment alignment)
     {
         guiGraphics.nextStratum();
@@ -79,12 +80,12 @@ public abstract class OverlayElement
                 break;
         }
         if (scaled) guiGraphics.pose().scale(scale, scale);
-        
+
         extractContent(guiGraphics, deltaTracker);
-        
+
         guiGraphics.pose().popMatrix();
     }
-    
+
     protected abstract void extractContent(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker);
 
     public void setPosition(int x, int y)
@@ -92,17 +93,17 @@ public abstract class OverlayElement
         this.x = x;
         this.y = y;
     }
-    
+
     public void setScale(float scale)
     {
         this.scale = scale;
     }
-    
+
     public float getScale()
     {
         return this.scale;
     }
-    
+
     public void setVisible(boolean visible)
     {
         this.visible = visible;
@@ -112,22 +113,22 @@ public abstract class OverlayElement
     {
         return x;
     }
-    
+
     public int getY()
     {
         return y;
     }
-    
+
     public int getScaledWidth()
     {
         return (int) Math.ceil(getWidth() * scale);
     }
-    
+
     public int getScaledHeight()
     {
         return (int) Math.ceil(getHeight() * scale);
     }
-    
+
     public abstract int getWidth();
     public abstract int getHeight();
 

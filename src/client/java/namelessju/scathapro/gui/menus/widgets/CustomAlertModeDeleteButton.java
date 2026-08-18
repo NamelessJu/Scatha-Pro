@@ -13,7 +13,7 @@ public class CustomAlertModeDeleteButton extends Button
 {
     protected CustomAlertModeDeleteButton(int width, int height, ScathaPro scathaPro, Screen screen, String subModeId)
     {
-        super(0, 0, width, height, Component.literal("Delete"), button -> {
+        super(0, 0, width, height, Component.literal("Delete"), _ -> {
             Component modeName = scathaPro.customAlertModeManager.getSubModeDisplayName(subModeId);
             ConfirmScreen confirmGui = new ConfirmScreen(
                 result -> {
@@ -27,7 +27,7 @@ public class CustomAlertModeDeleteButton extends Button
             confirmGui.setDelay(40);
         }, Button.DEFAULT_NARRATION);
     }
-    
+
     @Override
     protected void extractContents(@NonNull GuiGraphicsExtractor guiGraphics, int i, int j, float f)
     {

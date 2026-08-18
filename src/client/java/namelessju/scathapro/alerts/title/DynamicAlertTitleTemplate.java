@@ -10,7 +10,7 @@ public class DynamicAlertTitleTemplate extends AlertTitleTemplate
     {
         super(titleText, titleStyle, fadeInTicks, stayTicks, fadeOutTicks);
     }
-    
+
     @Override
     protected @Nullable Component getDisplayableSubtitle(@Nullable Component subtitleOverride, @Nullable Component variableSubtitle)
     {

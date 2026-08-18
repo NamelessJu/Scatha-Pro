@@ -21,29 +21,29 @@ import java.util.function.Function;
 public class AlertConfigurationScreen extends ConfigScreen
 {
     private IntegerSlider antiSleepIntervalMinSlider, antiSleepIntervalMaxSlider;
-    
+
     public AlertConfigurationScreen(ScathaPro scathaPro, Screen parentScreen)
     {
         super(scathaPro, "Alert Configuration", parentScreen);
     }
-    
+
     @Override
     protected void initLayout(@NonNull HeaderAndFooterLayout layout)
     {
         addTitleHeader();
-        
+
         TwoColumnGuiList list = addScrollList();
         for (Alert alert : scathaPro.alertManager)
         {
             list.addTitle(Component.literal(alert.alertName));
             CycleButton<Boolean> enabledButton = booleanConfigButton(
                 "Enabled", alert.isEnabledConfigValue,
-                value -> alert.description != null ? Tooltip.create(
+                _ -> alert.description != null ? Tooltip.create(
                     Component.empty().withStyle(ChatFormatting.GRAY).append(alert.description)
                 ) : null,
-                (button, value) -> onAlertToggled(alert, value)
+                (_, value) -> onAlertToggled(alert, value)
             );
-            
+
             AbstractWidget[] settingsWidgets = getAlertSettingsWidgets(alert);
             if (settingsWidgets != null)
             {
@@ -56,10 +56,10 @@ public class AlertConfigurationScreen extends ConfigScreen
             }
             else list.addDoubleColumn(enabledButton);
         }
-        
+
         addDoneButtonFooter();
     }
-    
+
     private void onAlertToggled(Alert alert, boolean enabled)
     {
         if (alert == scathaPro.alertManager.antiSleepAlert
@@ -69,7 +69,7 @@ public class AlertConfigurationScreen extends ConfigScreen
             scathaPro.coreManager.setRandomAntiSleepAlertTriggerMinutes();
         }
     }
-    
+
     private @Nullable AbstractWidget[] getAlertSettingsWidgets(Alert alert)
     {
         if (alert == scathaPro.alertManager.bedrockWallAlert)
@@ -81,45 +81,39 @@ public class AlertConfigurationScreen extends ConfigScreen
                         .append(value == 1 ? " Block" : " Blocks"))
             };
         }
-        
+
         if (alert == scathaPro.alertManager.oldLobbyAlert)
         {
             return new AbstractWidget[] {
                 integerConfigSlider(
                     "Trigger Day", 1, 30, config.alerts.oldLobbyAlertTriggerDay, null
                 ),
-                
-                CycleButton.builder(
-                        value -> Component.literal(value.toString()),
-                        config.alerts.oldLobbyAlertTriggerMode.get()
-                    )
-                    .withValues(OldLobbyAlertTriggerMode.values())
-                    .create(Component.literal("Trigger On"),
-                        (button, value)
-                            -> config.alerts.oldLobbyAlertTriggerMode.set(value)
-                    )
+                enumCycleButton(
+                    OldLobbyAlertTriggerMode.class, "Trigger On", config.alerts.oldLobbyAlertTriggerMode,
+                    null, null
+                )
             };
         }
-        
+
         if (alert == scathaPro.alertManager.highHeatAlert)
         {
             return new AbstractWidget[] {
                 integerConfigSlider("Trigger Heat Value", 90, 100, config.alerts.highHeatAlertTriggerValue, null)
             };
         }
-        
+
         if (alert == scathaPro.alertManager.antiSleepAlert)
         {
             Function<Integer, Component> valueComponentSupplier = value -> Component.empty()
                 .append(IntegerSlider.COMPONENT_SUPPLIER.apply(value))
                 .append(value == 1 ? " Minute" : " Minutes");
-            
+
             return new AbstractWidget[] {
                 antiSleepIntervalMinSlider = integerConfigSlider(
                     "Interval Minimum", 0, 60, config.alerts.antiSleepAlertIntervalMin,
                     value -> {
                         config.alerts.antiSleepAlertIntervalMin.set(value);
-                        
+
                         if (config.alerts.antiSleepAlertIntervalMax.get() < value)
                         {
                             config.alerts.antiSleepAlertIntervalMax.set(value);
@@ -127,12 +121,12 @@ public class AlertConfigurationScreen extends ConfigScreen
                         }
                     }
                 ).setValueComponentSupplier(valueComponentSupplier),
-                
+
                 antiSleepIntervalMaxSlider = integerConfigSlider(
                     "Interval Maximum", 1, 60, config.alerts.antiSleepAlertIntervalMax,
                     value -> {
                         config.alerts.antiSleepAlertIntervalMax.set(value);
-                        
+
                         if (config.alerts.antiSleepAlertIntervalMin.get() > value)
                         {
                             config.alerts.antiSleepAlertIntervalMin.set(value);
@@ -142,7 +136,7 @@ public class AlertConfigurationScreen extends ConfigScreen
                 ).setValueComponentSupplier(valueComponentSupplier)
             };
         }
-        
+
         return null;
     }
 }

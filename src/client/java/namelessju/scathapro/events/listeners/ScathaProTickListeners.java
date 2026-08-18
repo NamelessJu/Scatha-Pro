@@ -15,53 +15,53 @@ import net.minecraft.network.chat.Style;
 public final class ScathaProTickListeners
 {
     private ScathaProTickListeners() {}
-    
+
     public static void register()
     {
         ScathaProEvents.firstSessionIngameTickEvent.addListener(ScathaProTickListeners::onFirstIngameTick);
         ScathaProEvents.crystalHollowsTickEvent.addListener(ScathaProTickListeners::onCrystalHollowsTick);
     }
-    
+
     private static int heatCheckTickTimer = 0;
-    
+
     private static void onFirstIngameTick(ScathaPro scathaPro)
     {
         if (scathaPro.config.miscellaneous.automaticUpdateCheckEnabled.get())
         {
             UpdateChecker.checkForUpdate(scathaPro, false);
         }
-        
+
         scathaPro.achievementLogicManager.updatePetDropAchievements();
         scathaPro.achievementLogicManager.updateProgressAchievements();
         scathaPro.achievementLogicManager.updateDailyScathaStreakAchievements();
     }
-    
-    private static void onCrystalHollowsTick(ScathaPro scathaPro, ScathaProEvents.CrystalHollowsTickEventData data)
+
+    private static void onCrystalHollowsTick(ScathaProEvents.CrystalHollowsTickEventData data)
     {
         // TODO: move most of this into core manager
-        
+        ScathaPro scathaPro = data.scathaPro();
         long now = TimeUtil.getEpochMilliseconds();
-        
+
         if (data.isFirstTick())
         {
             if (scathaPro.config.overlay.showImmediately.get())
             {
                 scathaPro.mainOverlay.setShown(true);
             }
-            
+
             heatCheckTickTimer = 0;
-            
+
             if (scathaPro.getProfileData().regularWormKills.get() == 0 && scathaPro.getProfileData().scathaKills.get() == 0
                 && scathaPro.config.miscellaneous.automaticStatsParsingEnabled.get())
             {
                 scathaPro.chatManager.sendChatMessage(
                     Component.literal("Open the worm bestiary once to load previous worm kills into the overlay!")
-                    .withStyle(ChatFormatting.YELLOW)
+                        .withStyle(ChatFormatting.YELLOW)
                 );
             }
-            
+
             scathaPro.coreManager.updateScathaFarmingStreak(false);
-            
+
             if (scathaPro.config.sounds.muteCrystalHollowsSounds.get())
             {
                 String settingsCommand = "/" + scathaPro.mainCommand.getCommandName() + " settings";
@@ -79,32 +79,32 @@ public final class ScathaProTickListeners
                 );
             }
         }
-        
+
         // Sneak start
-        
+
         boolean isCrouching = scathaPro.minecraft.player != null && scathaPro.minecraft.player.isCrouching();
         if (!scathaPro.coreManager.crouchingBefore && isCrouching)
         {
             scathaPro.coreManager.lastCrouchStartTime = now;
         }
         scathaPro.coreManager.crouchingBefore = isCrouching;
-        
-        
+
+
         // Achievements
-        
+
         float hours = (now - scathaPro.coreManager.lastWorldJoinTime) / (1000f*60*60);
         Achievement.crystal_hollows_time_1.setProgress(hours);
         Achievement.crystal_hollows_time_2.setProgress(hours);
         Achievement.crystal_hollows_time_3.setProgress(hours);
-        
-        
+
+
         // Heat check
-        
+
         heatCheckTickTimer ++;
         if (heatCheckTickTimer > 3*20)
         {
             heatCheckTickTimer = 0;
-            
+
             if (scathaPro.config.alerts.highHeatAlertEnabled.get())
             {
                 int newHeat = ScoreboardParser.parseHeat(scathaPro.minecraft).orElse(-1);
@@ -116,7 +116,7 @@ public final class ScathaProTickListeners
                         scathaPro.alertManager.highHeatAlert.play(scathaPro);
                     }
                 }
-                
+
                 scathaPro.coreManager.lastHeat = newHeat;
             }
             else scathaPro.coreManager.lastHeat = -1;

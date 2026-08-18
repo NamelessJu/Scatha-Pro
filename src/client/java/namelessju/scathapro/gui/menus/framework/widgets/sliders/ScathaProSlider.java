@@ -16,9 +16,9 @@ public abstract class ScathaProSlider<T> extends AbstractSliderButton
     private @NonNull Function<T, Component> valueComponentSupplier;
     private final @NonNull Consumer<T> onValueChanged;
     private @Nullable Consumer<T> clickListener = null;
-    
+
     private double previousProgress = -1D;
-    
+
     public ScathaProSlider(int x, int y, int width, int height,
                            @NonNull Component name, @NonNull Function<T, Component> valueComponentSupplier,
                            @NonNull Consumer<T> onValueChanged
@@ -29,7 +29,7 @@ public abstract class ScathaProSlider<T> extends AbstractSliderButton
         this.valueComponentSupplier = valueComponentSupplier;
         this.onValueChanged = onValueChanged;
     }
-    
+
     @SuppressWarnings("unchecked")
     public <S extends ScathaProSlider<T>> S setValueComponentSupplier(@NonNull Function<T, Component> valueComponentSupplier)
     {
@@ -37,20 +37,20 @@ public abstract class ScathaProSlider<T> extends AbstractSliderButton
         updateMessage();
         return (S) this;
     }
-    
+
     @SuppressWarnings("unchecked")
     public <S extends ScathaProSlider<T>> S setClickListener(@Nullable Consumer<T> clickListener)
     {
         this.clickListener = clickListener;
         return (S) this;
     }
-    
+
     @Override
     protected void applyValue()
     {
         handleUpdate();
     }
-    
+
     @Override
     public void updateMessage()
     {
@@ -60,14 +60,14 @@ public abstract class ScathaProSlider<T> extends AbstractSliderButton
             .append(valueComponentSupplier.apply(getMappedValue()))
         );
     }
-    
+
     @Override
     public void onClick(@NonNull MouseButtonEvent mouseButtonEvent, boolean bl)
     {
         super.onClick(mouseButtonEvent, bl);
         if (clickListener != null) clickListener.accept(getMappedValue());
     }
-    
+
     private void handleUpdate()
     {
         snapProgress();
@@ -78,19 +78,19 @@ public abstract class ScathaProSlider<T> extends AbstractSliderButton
         }
         previousProgress = value;
     }
-    
+
     public T getMappedValue()
     {
         return progressToValue();
     }
-    
+
     public void setMappedValue(T mappedValue)
     {
         this.value = Mth.clamp(valueToProgress(mappedValue), 0D, 1D);
         handleUpdate();
         updateMessage();
     }
-    
+
     protected abstract T progressToValue();
     protected abstract double valueToProgress(T floatValue);
     protected abstract void snapProgress();

@@ -12,23 +12,23 @@ public class AverageMoneyCommand extends ScathaProCommand
     {
         super(scathaPro);
     }
-    
+
     @Override
     public String getCommandName()
     {
         return "scathamoney";
     }
-    
+
     @Override
     protected String[] getAliases()
     {
         return new String[0];
     }
-    
+
     @Override
     protected <T> void buildCommand(LiteralArgumentBuilder<T> builder, CommandBuildContext buildContext)
     {
-        builder.executes(commandContext -> {
+        builder.executes(_ -> {
             scathaPro.runNextTick(() -> scathaPro.minecraft.setScreen(new AverageMoneyCalculatorScreen(scathaPro, null)));
             return Command.SINGLE_SUCCESS;
         });

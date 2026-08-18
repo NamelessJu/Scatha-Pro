@@ -11,7 +11,7 @@ public class CustomAlertModeMeta extends ObjectRootJsonFile
         super(scathaPro, scathaPro.customAlertModeManager.getMetaFile(subModeId), true);
         this.savesDefaultValues = true;
     }
-    
+
     public final PrimitiveValueNullable<String> modeName = root.addPrimitiveNullable("modeName", STRING_SERIALIZER);
     public final PrimitiveValueNullable<Long> lastUsedAtTimestamp = root.addPrimitiveNullable("lastUsedAtTimestamp", LONG_SERIALIZER);
 }

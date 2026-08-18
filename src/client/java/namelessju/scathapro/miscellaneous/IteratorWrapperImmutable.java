@@ -12,7 +12,7 @@ public record IteratorWrapperImmutable<T>(Iterator<T> iterator) implements Itera
     {
         return iterator.hasNext();
     }
-    
+
     @Override
     public T next()
     {

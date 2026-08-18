@@ -2,21 +2,22 @@ package namelessju.scathapro.util;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.util.ARGB;
-import org.jspecify.annotations.NonNull;
+import net.minecraft.world.phys.Vec2;
+import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.NullMarked;
 
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.Random;
 
+@NullMarked
 public final class Util
 {
     private Util() {}
-    
-    /**
-     * Utility class for ChatFormatting color integer values with alpha set to 255 (fully opaque)
-     */
-    @SuppressWarnings("DataFlowIssue")
-    public static class Color
+
+    /** Utility class for ChatFormatting color integer values with alpha set to 255 (fully opaque) */
+    @SuppressWarnings({"unused", "DataFlowIssue"})
+    public static final class Color
     {
         public static final int DARK_RED = ARGB.opaque(ChatFormatting.DARK_RED.getColor());
         public static final int RED = ARGB.opaque(ChatFormatting.RED.getColor());
@@ -34,20 +35,20 @@ public final class Util
         public static final int GRAY = ARGB.opaque(ChatFormatting.GRAY.getColor());
         public static final int DARK_GRAY = ARGB.opaque(ChatFormatting.DARK_GRAY.getColor());
         public static final int BLACK = ARGB.opaque(ChatFormatting.BLACK.getColor());
-        
+
         private Color() {}
     }
-    
-    
+
+
     public static final Random random = new Random();
-    
-    
+
+
     @SuppressWarnings("all")
-    public static <T> boolean optionalValueEquals(@NonNull Optional<T> optional, @NonNull T value)
+    public static <T> boolean optionalValueEquals(Optional<T> optional, T value)
     {
         return optional.map(t -> t.equals(value)).orElse(false);
     }
-    
+
     public static Path resolvePath(Path parent, String... pathNodes)
     {
         Path currentNode = parent;
@@ -57,9 +58,14 @@ public final class Util
         }
         return currentNode;
     }
-    
+
     public static Path resolvePath(Path parent, String forwardSlashSeparatedPath)
     {
         return resolvePath(parent, forwardSlashSeparatedPath.split("/"));
+    }
+
+    public static Vec2 getHorizontal(Vec3 vec3)
+    {
+        return new Vec2((float) vec3.x, (float) vec3.z);
     }
 }

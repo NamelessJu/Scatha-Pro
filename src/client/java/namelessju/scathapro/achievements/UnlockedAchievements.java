@@ -13,54 +13,54 @@ import java.util.HashMap;
 public class UnlockedAchievements implements JsonFile.JsonValue
 {
     private final HashMap<String, UnlockedAchievement> unlockedAchievements = new HashMap<>();
-    
+
     public @Nullable UnlockedAchievement getFor(@NonNull Achievement achievement)
     {
         return getById(achievement.id);
     }
-    
+
     public @Nullable UnlockedAchievement getById(@NonNull String achievementId)
     {
         return unlockedAchievements.get(achievementId);
     }
-    
+
     public Collection<UnlockedAchievement> getAll()
     {
         return unlockedAchievements.values();
     }
-    
+
     public boolean isUnlocked(Achievement achievement)
     {
         return unlockedAchievements.containsKey(achievement.id);
     }
-    
+
     public void add(UnlockedAchievement unlockedAchievement)
     {
         unlockedAchievements.put(unlockedAchievement.achievement.id, unlockedAchievement);
     }
-    
+
     public boolean remove(Achievement achievement)
     {
         return unlockedAchievements.remove(achievement.id) != null;
     }
-    
+
     @Override
     public boolean hasValue()
     {
         return !unlockedAchievements.isEmpty();
     }
-    
+
     @Override
     public void reset()
     {
         unlockedAchievements.clear();
     }
-    
+
     @Override
     public void loadFromJson(@Nullable JsonElement jsonElement)
     {
         reset();
-        
+
         if (!(jsonElement instanceof JsonArray jsonArray)) return;
         for (JsonElement arrayElement : jsonArray)
         {
@@ -71,9 +71,9 @@ public class UnlockedAchievements implements JsonFile.JsonValue
             }
         }
     }
-    
+
     @Override
-    public @NonNull JsonElement getAsJson(@NonNull JsonFile jsonFile)
+    public @NonNull JsonElement getAsJson(@NonNull JsonFile<?> jsonFile)
     {
         JsonArray jsonArray = new JsonArray();
         for (UnlockedAchievement unlockedAchievement : getAll())
@@ -82,7 +82,7 @@ public class UnlockedAchievements implements JsonFile.JsonValue
         }
         return jsonArray;
     }
-    
+
     private static final JsonFile.JsonValue.Serializer<UnlockedAchievement, JsonElement> ACHIEVEMENTS_SERIALIZER = new JsonFile.JsonValue.Serializer<>() {
         private final JsonFile.ObjectChildSerializer<Achievement> achievementSerializer
             = new JsonFile.ObjectChildSerializer<>("achievementID", new JsonFile.EnumSerializer<>(Achievement.class));
@@ -90,7 +90,7 @@ public class UnlockedAchievements implements JsonFile.JsonValue
             = new JsonFile.ObjectChildSerializer<>("unlockedAt", JsonFile.LONG_SERIALIZER);
         private final JsonFile.ObjectChildSerializer<Integer> repeatCountSerializer
             = new JsonFile.ObjectChildSerializer<>("repeatCount", JsonFile.INTEGER_SERIALIZER);
-        
+
         @Override
         public @Nullable UnlockedAchievement jsonToValue(@NonNull JsonElement jsonElement)
         {
@@ -103,7 +103,7 @@ public class UnlockedAchievements implements JsonFile.JsonValue
                 ? new UnlockedAchievement(achievement, unlockTimestamp, repeatCount)
                 : new UnlockedAchievement(achievement, unlockTimestamp);
         }
-        
+
         @Override
         public @NonNull JsonElement valueToJson(@NonNull UnlockedAchievement value)
         {

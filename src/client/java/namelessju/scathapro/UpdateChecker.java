@@ -5,12 +5,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import namelessju.scathapro.util.JsonUtil;
 import net.minecraft.ChatFormatting;
+import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
-import net.minecraft.SharedConstants;
-import net.minecraft.network.chat.*;
 import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedReader;
@@ -24,7 +23,7 @@ public class UpdateChecker
     private static final String MODRINTH_API_VERSIONS_ENDPOINT = "https://api.modrinth.com/v2/project/"+MODRINTH_PROJECT_ID+"/version";
     private static final String MODRINTH_VERSIONS_BASE_URL = "https://modrinth.com/mod/"+MODRINTH_PROJECT_ID+"/versions";
     private static final String MOD_LOADER = "fabric";
-    
+
     public static void checkForUpdate(ScathaPro scathaPro, final boolean sendNoUpdateAvailableMessages)
     {
         new Thread(() -> {
@@ -43,9 +42,9 @@ public class UpdateChecker
                 connection.setRequestProperty("Accept", "application/json");
                 connection.setRequestProperty("Accept-Charset", "utf-8");
                 connection.connect();
-                
+
                 int code = connection.getResponseCode();
-                
+
                 StringBuilder response = new StringBuilder();
                 if (code == 200)
                 {
@@ -55,9 +54,9 @@ public class UpdateChecker
                     {
                         response.append(line).append("\n");
                     }
-                    
+
                     connection.disconnect();
-                    
+
                     JsonElement json = JsonUtil.parseJson(response.toString());
                     if (json instanceof JsonArray jsonArray)
                     {
@@ -69,20 +68,20 @@ public class UpdateChecker
                             ));
                             return;
                         }
-                        
+
                         String latestVersion = null;
-                        
+
                         for (JsonElement versionElement : jsonArray)
                         {
                             if (!versionElement.isJsonObject()) continue;
                             JsonObject versionObject = versionElement.getAsJsonObject();
-                            
+
                             if (!"release".equals(JsonUtil.getString(versionObject, "version_type"))) continue;
                             if (!"listed".equals(JsonUtil.getString(versionObject, "status"))) continue;
-                            
+
                             String version = JsonUtil.getString(versionObject, "version_number");
                             if (version == null) continue;
-                            
+
                             int comparison = latestVersion != null ? compareVersions(latestVersion, version) : 1;
                             if (comparison > 0) latestVersion = version;
                         }
@@ -90,7 +89,7 @@ public class UpdateChecker
                         if (latestVersion != null)
                         {
                             int updateComparison = compareVersions(ScathaPro.MOD_VERSION, latestVersion);
-                            
+
                             if (updateComparison > 0)
                             {
                                 String downloadLink = MODRINTH_VERSIONS_BASE_URL + "?l=" + MOD_LOADER + (minecraftVersion != null ? "&g=" + minecraftVersion : "");
@@ -111,16 +110,14 @@ public class UpdateChecker
                                 if (sendNoUpdateAvailableMessages)
                                 {
                                     if (updateComparison < 0) scathaPro.runNextTick(() -> scathaPro.chatManager.sendChatMessage(
-                                        Component.literal("Your version is newer than the latest public release")
-                                            .withStyle(ChatFormatting.AQUA)
+                                        Component.literal("Your version is newer than the latest public release").withStyle(ChatFormatting.AQUA)
                                     ));
                                     else scathaPro.runNextTick(() -> scathaPro.chatManager.sendChatMessage(
-                                        Component.literal("You're using the newest version!")
-                                            .withStyle(ChatFormatting.GREEN)
+                                        Component.literal("You're using the latest version!").withStyle(ChatFormatting.GREEN)
                                     ));
                                 }
                             }
-                            
+
                             return;
                         }
                         else ScathaPro.LOGGER.error("Couldn't check for update: no versions found on API");
@@ -129,7 +126,7 @@ public class UpdateChecker
                 }
                 else
                 {
-                    
+
                     try
                     {
                         BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
@@ -140,9 +137,9 @@ public class UpdateChecker
                         }
                     }
                     catch (Exception ignored) {}
-                    
+
                     connection.disconnect();
-                    
+
                     ScathaPro.LOGGER.error("Couldn't check for update: response code {} - {}", code, !response.isEmpty() ? "response:\n" + response : "no error response");
                 }
             }
@@ -150,34 +147,34 @@ public class UpdateChecker
             {
                 ScathaPro.LOGGER.error("Failed to check for update:\n{}", e.toString());
             }
-            
+
             scathaPro.runNextTick(() -> scathaPro.chatManager.sendChatErrorMessage("Error while checking for update!"));
         }).start();
     }
-    
+
     /**
      * @return If <code>to</code> is newer than <code>from</code> returns 1, if <code>to</code> is older than <code>from</code> returns -1, if both are the same returns 0
      */
+    @SuppressWarnings({"ConstantValue", "UnnecessaryContinue"})
     public static int compareVersions(String from, String to)
     {
         if (from == null || to == null) throw new NullPointerException("Versions cannot be null");
-        
+
         if (from.equals(to)) return 0;
-        
+
         from = getProcessableVersion(from);
         to = getProcessableVersion(to);
-        
+
         String[] fromParts = from.split("\\.");
         String[] toParts = to.split("\\.");
-        
+
         for (int i = 0; (i < fromParts.length || i < toParts.length); i ++)
         {
             int fromInt = 0;
             int toInt = 0;
             String fromString = null;
             String toString = null;
-            
-            
+
             if (i < fromParts.length && !fromParts[i].isEmpty())
             {
                 try
@@ -189,7 +186,7 @@ public class UpdateChecker
                     fromString = fromParts[i];
                 }
             }
-            
+
             if (i < toParts.length && !toParts[i].isEmpty())
             {
                 try
@@ -201,14 +198,14 @@ public class UpdateChecker
                     toString = toParts[i];
                 }
             }
-            
+
             // Pre-releases
             boolean fromIsPreRelease = isPartPreRelease(fromString);
             boolean toIsPreRelease = isPartPreRelease(toString);
             if (fromIsPreRelease && !toIsPreRelease) return 1;
             else if (!fromIsPreRelease && toIsPreRelease) return -1;
             else if (fromIsPreRelease && toIsPreRelease) continue;
-            
+
             // both ints or both strings
             else if (fromInt >= 0 && toInt >= 0 && fromInt != toInt)
             {
@@ -220,59 +217,59 @@ public class UpdateChecker
                 int comparison = (int) Math.signum(toString.compareTo(fromString));
                 if (comparison != 0) return comparison;
             }
-            
+
             // string and int mixed
             else if (fromString == null && toString != null) return -1;
             else if (fromString != null && toString == null) return 1;
         }
-        
+
         return 0;
     }
-    
+
     public static boolean isPreRelease(String version)
     {
         if (version == null) return false;
-        
+
         version = getProcessableVersion(version);
         String[] parts = version.split("\\.");
-        
+
         for (String part : parts)
         {
             if (isPartPreRelease(part)) return true;
         }
-        
+
         return false;
     }
-    
+
     private static String getProcessableVersion(String version)
     {
         version = version.replaceAll("[,_\\-+]", ".");
-        
+
         boolean previousCharacterIsNumerical = false;
         boolean previousCharacterIsDot = false;
         for (int i = 0; i < version.length(); i ++)
         {
             char c = version.charAt(i);
-            
+
             if (c != '.')
             {
                 boolean isNumerical = '0' <= c && c <= '9';
-                
+
                 if (i > 0 && !previousCharacterIsDot && previousCharacterIsNumerical != isNumerical)
                 {
                     version = version.substring(0, i) + "." + version.substring(i);
                     i ++;
                 }
-                
+
                 previousCharacterIsNumerical = isNumerical;
                 previousCharacterIsDot = false;
             }
             else previousCharacterIsDot = true;
         }
-        
+
         return version;
     }
-    
+
     private static boolean isPartPreRelease(String part)
     {
         return part != null && (

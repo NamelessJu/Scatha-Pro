@@ -18,54 +18,54 @@ public class ScathaProGuiList extends ContainerObjectSelectionList<ScathaProGuiL
 {
     public static final int DEFAULT_ENTRY_CONTENT_HEIGHT = 20;
     public static final int DEFAULT_ENTRY_PADDING_BOTTOM = 5;
-    
+
     public ScathaProGuiList(Minecraft minecraft, Screen screen, HeaderAndFooterLayout layout)
     {
         this(minecraft, screen, layout.getHeaderHeight(), layout.getContentHeight(), DEFAULT_ENTRY_CONTENT_HEIGHT + DEFAULT_ENTRY_PADDING_BOTTOM);
     }
-    
+
     public ScathaProGuiList(Minecraft minecraft, Screen screen, HeaderAndFooterLayout layout, int defaultEntryHeight)
     {
         this(minecraft, screen, layout.getHeaderHeight(), layout.getContentHeight(), defaultEntryHeight);
     }
-    
+
     public ScathaProGuiList(Minecraft minecraft, Screen screen, int contentY, int contentHeight, int defaultEntryHeight)
     {
         super(minecraft, screen.width, contentHeight, contentY, defaultEntryHeight);
         this.centerListVertically = false;
     }
-    
+
     @Override
     public int getRowWidth()
     {
         return 310;
     }
-    
+
     @Override
     public int addEntry(@NonNull Entry entry)
     {
         return super.addEntry(entry);
     }
-    
+
     @Override
     public int addEntry(@NonNull Entry entry, int height)
     {
         return super.addEntry(entry, height);
     }
-    
+
     @Override
     public void sort(@NonNull Comparator<Entry> comparator)
     {
         super.sort(comparator);
     }
-    
+
     public static class Entry extends ContainerObjectSelectionList.Entry<Entry>
     {
         private final List<PositionedChild> positionedChildren = Lists.newArrayList();
         private final List<AbstractWidget> widgets = Lists.newArrayList();
-        
+
         public Entry() {}
-        
+
         public Entry(@NonNull AbstractWidget... widgets)
         {
             for (AbstractWidget widget : widgets)
@@ -73,7 +73,7 @@ public class ScathaProGuiList extends ContainerObjectSelectionList<ScathaProGuiL
                 addChild(widget);
             }
         }
-        
+
         public Entry(@NonNull PositionedChild... children)
         {
             for (PositionedChild child : children)
@@ -81,28 +81,28 @@ public class ScathaProGuiList extends ContainerObjectSelectionList<ScathaProGuiL
                 addPositionedChild(child);
             }
         }
-        
+
         public void addChild(AbstractWidget widget)
         {
             addPositionedChild(new PositionedChild(widget, widget.getX(), widget.getY(), false));
         }
-        
+
         public void addCenteredChild(AbstractWidget widget, int x)
         {
             addPositionedChild(new PositionedChild(widget, x, widget.getY(), true));
         }
-        
+
         public void addPositionedChild(int x, int y, @NonNull AbstractWidget widget)
         {
             addPositionedChild(new PositionedChild(widget, x, y, false));
         }
-        
+
         public void addPositionedChild(PositionedChild child)
         {
             positionedChildren.add(child);
             widgets.add(child.widget);
         }
-        
+
         @Override
         public void extractContent(@NonNull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, boolean bl, float partialTicks)
         {
@@ -115,19 +115,19 @@ public class ScathaProGuiList extends ContainerObjectSelectionList<ScathaProGuiL
                 child.widget.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
             }
         }
-        
+
         @Override
         public @NonNull List<? extends GuiEventListener> children()
         {
             return widgets;
         }
-        
+
         @Override
         public @NonNull List<? extends NarratableEntry> narratables()
         {
             return widgets;
         }
-        
+
         public record PositionedChild(@NonNull AbstractWidget widget, int x, int y, boolean isCentered) {}
     }
 }

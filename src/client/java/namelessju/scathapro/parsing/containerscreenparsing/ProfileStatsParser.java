@@ -21,9 +21,9 @@ public class ProfileStatsParser extends ContainerScreenParser
     }
 
     @Override
-    public String getScreenTitle()
+    public boolean shouldParse(String screenTitle)
     {
-        return "Stats & Equipment";
+        return screenTitle.equals("Stats & Equipment");
     }
 
     @Override
@@ -73,7 +73,7 @@ public class ProfileStatsParser extends ContainerScreenParser
                     scathaPro.chatManager.sendChatMessage(Component.empty().withStyle(ChatFormatting.GRAY)
                         .append("Updated saved Magic Find (")
                         .append(TextUtil.numberToComponentOrObf(currentMagicFind))
-                        .append(" " + UnicodeSymbol.heavyArrowRight + " " + TextUtil.numberToString(magicFind, 2) + ")")
+                        .append(" " + UnicodeSymbol.hypixelArrowRight + " " + TextUtil.numberToString(magicFind, 2) + ")")
                     );
                 }
             }
@@ -105,7 +105,7 @@ public class ProfileStatsParser extends ContainerScreenParser
                     scathaPro.chatManager.sendChatMessage(Component.empty().withStyle(ChatFormatting.GRAY)
                         .append("Updated saved Pet Luck (")
                         .append(TextUtil.numberToComponentOrObf(currentPetLuck))
-                        .append(" " + UnicodeSymbol.heavyArrowRight + " " + TextUtil.numberToString(petLuck, 2) + ")")
+                        .append(" " + UnicodeSymbol.hypixelArrowRight + " " + TextUtil.numberToString(petLuck, 2) + ")")
                     );
                 }
             }

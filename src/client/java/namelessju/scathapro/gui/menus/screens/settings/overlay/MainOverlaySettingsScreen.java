@@ -13,36 +13,31 @@ import org.jspecify.annotations.NonNull;
 public class MainOverlaySettingsScreen extends OverlaySettingsScreen
 {
     CycleButton<Boolean> showImmediatelyButton;
-    
+
     public MainOverlaySettingsScreen(ScathaPro scathaPro, Screen parentScreen)
     {
         super(scathaPro, "UI Overlay Settings", parentScreen);
     }
-    
+
     @Override
     protected void initLayout(@NonNull HeaderAndFooterLayout layout)
     {
         addTitleHeader();
-        
+
         GridBuilder gridBuilder = new GridBuilder();
         gridBuilder.addSingleCell(booleanConfigButton("Scatha Farming Overlay", config.overlay.enabled));
         gridBuilder.addSingleCell(showImmediatelyButton = booleanConfigButton("Show Immediately", config.overlay.showImmediately,
-            value -> Tooltip.create(Component.literal("""
+            _ -> Tooltip.create(Component.literal("""
                 Usually the overlay is hidden until you spawn the first worm of a lobby.
                 Enabling this will show it immediately upon entering the Crystal Hollows."""
             ).withStyle(ChatFormatting.GRAY)),
-            (button, isEnabled) -> {
+            (_, isEnabled) -> {
                 if (isEnabled) scathaPro.mainOverlay.setShown(true);
             }
         ));
-        gridBuilder.addSingleCell(CycleButton
-            .builder(value -> Component.literal(value.toString()), config.overlay.statsType.get())
-            .withValues(SecondaryWormStatsType.values())
-            .create(Component.literal("Worm Stats Per"), (button, value) -> {
-                config.overlay.statsType.set(value);
-                scathaPro.mainOverlay.updateStatsType();
-            })
-        );
+        gridBuilder.addSingleCell(enumCycleButton(
+            SecondaryWormStatsType.class, "Worm Stats Per", config.overlay.statsType, null, null
+        ));
         gridBuilder.addSingleCell(subScreenButton("Position...", OverlayPositionScreen::new));
         gridBuilder.addSingleCell(subScreenButton("Content...", OverlayContentScreen::new));
         gridBuilder.addSingleCell(subScreenButton("Scatha Percentage...", OverlayScathaPercentageSettingsScreen::new));

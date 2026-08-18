@@ -12,13 +12,13 @@ public class CustomAlertModeMetaUpdater extends ScathaProFile
 {
     private final @NonNull String subModeId;
     private @Nullable JsonObject root = null;
-    
+
     public CustomAlertModeMetaUpdater(ScathaPro scathaPro, @NonNull String subModeId)
     {
         super(scathaPro, scathaPro.customAlertModeManager.getMetaFile(subModeId));
         this.subModeId = subModeId;
     }
-    
+
     @SuppressWarnings("RedundantIfStatement")
     @Override
     protected void deserialize(@Nullable String content)
@@ -28,10 +28,10 @@ public class CustomAlertModeMetaUpdater extends ScathaProFile
         if (!(parsedJson instanceof JsonObject jsonObject)) return;
         root = jsonObject;
         boolean updated = false;
-        
+
         if (JsonUtil.move(root, "name", "modeName")) updated = true;
         if (JsonUtil.move(root, "lastUsed", "lastUsedAtTimestamp")) updated = true;
-        
+
         if (updated)
         {
             save();
@@ -39,7 +39,7 @@ public class CustomAlertModeMetaUpdater extends ScathaProFile
         }
         root = null;
     }
-    
+
     @Override
     protected @NonNull String serialize()
     {
