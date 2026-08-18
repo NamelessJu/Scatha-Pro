@@ -58,11 +58,7 @@ public class DetectedWorm extends DetectedEntity
             playScappaSound();
         }
 
-        if (entity instanceof IWormArmorStandData data)
-        {
-            data.scathapro$setWorm(this);
-            data.scathapro$setIsWormNametag(true);
-        }
+        passReferenceToNametag();
 
         ScathaProEvents.wormSpawnEvent.trigger(new ScathaProEvents.WormEventData(scathaPro, this));
     }
@@ -81,6 +77,7 @@ public class DetectedWorm extends DetectedEntity
     @Override
     public void onChangedEntity()
     {
+        passReferenceToNametag();
         if (this.scappaSound != null) this.scappaSound.entity = this.entity;
     }
 
@@ -110,6 +107,15 @@ public class DetectedWorm extends DetectedEntity
 
             case null, default:
                 break;
+        }
+    }
+
+    private void passReferenceToNametag()
+    {
+        if (entity instanceof IWormArmorStandData data)
+        {
+            data.scathapro$setWorm(this);
+            data.scathapro$setIsWormNametag(true);
         }
     }
 

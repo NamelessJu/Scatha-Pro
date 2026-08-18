@@ -13,6 +13,7 @@ import namelessju.scathapro.gui.overlay.elements.OverlayDynamicContainer.Directi
 import namelessju.scathapro.gui.overlay.elements.OverlayElement.Alignment;
 import namelessju.scathapro.managers.SecondaryStatsManager;
 import namelessju.scathapro.miscellaneous.data.OverlayIconEyePositions;
+import namelessju.scathapro.miscellaneous.data.Texture;
 import namelessju.scathapro.mixin.PlayerTabOverlayAccessor;
 import namelessju.scathapro.util.TextUtil;
 import namelessju.scathapro.util.TimeUtil;
@@ -27,7 +28,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 
@@ -42,10 +43,8 @@ import java.util.TimeZone;
 
 public class MainOverlay
 {
-    private static final int BACKGROUND_COLOR = 0x50000000;
-
-    private static final Identifier WORM_IMAGE = ScathaPro.getIdentifier("textures/overlay/worm_renders/worm.png");
-    private static final Identifier WORM_OLD_IMAGE = ScathaPro.getIdentifier("textures/overlay/worm_renders/worm_old.png");
+    private static final Texture STONEWORM_RENDER = Texture.scathaPro("overlay/worm_renders/stoneworm.png", 512, 256);
+    private static final Texture STONEWORM_RENDER_OLD = Texture.scathaPro("overlay/worm_renders/stoneworm_old.png", 512, 256);
 
 
     private final ScathaPro scathaPro;
@@ -124,26 +123,28 @@ public class MainOverlay
 
         OverlayContainer iconContainer = new OverlayContainer(0, 0, 0.25f);
 
-        iconContainer.add(scathaIcon = new OverlayAnimatedImage(0, 0, 0.688f));
-        iconContainer.add(scathaIconOverlay = new OverlayImage(0, 0, 0.688f));
+        iconContainer.add(scathaIcon = new OverlayAnimatedImage(0, 0, 64, 64, 0.688f));
+        iconContainer.add(scathaIconOverlay = new OverlayImage(0, 0, 64, 64, 0.688f));
 
         googlyEyeRightContainer = new OverlayContainer(0, 0, 0.4f);
         googlyEyeRightContainer.expandsContainerSize = false;
-        OverlayImage googlyEyeRightOuterImage;
-        googlyEyeRightContainer.add(googlyEyeRightOuterImage = new OverlayImage(0, 0, 1f));
-        googlyEyeRightOuterImage.setImage("overlay/googly_eye_outer.png", 32, 32);
-        googlyEyeRightContainer.add(googlyEyeRightInnerImage = new OverlayImage(0, 0, 1f));
-        googlyEyeRightInnerImage.setImage("overlay/googly_eye_inner.png", 32, 32);
+        googlyEyeRightContainer.add(new OverlayImage(
+            Texture.scathaPro("overlay/googly_eye_outer.png", 32, 32), 0, 0, 32, 32, 1f
+        ));
+        googlyEyeRightContainer.add(googlyEyeRightInnerImage = new OverlayImage(
+            Texture.scathaPro("overlay/googly_eye_inner.png", 32, 32), 0, 0, 32, 32, 1f
+        ));
         googlyEyeRightInnerImage.expandsContainerSize = false;
         iconContainer.add(googlyEyeRightContainer);
 
         googlyEyeLeftContainer = new OverlayContainer(0, 0, 0.44f);
         googlyEyeLeftContainer.expandsContainerSize = false;
-        OverlayImage googlyEyeLeftOuterImage;
-        googlyEyeLeftContainer.add(googlyEyeLeftOuterImage = new OverlayImage(0, 0, 1f));
-        googlyEyeLeftOuterImage.setImage("overlay/googly_eye_outer.png", 32, 32);
-        googlyEyeLeftContainer.add(googlyEyeLeftInnerImage = new OverlayImage(0, 0, 1f));
-        googlyEyeLeftInnerImage.setImage("overlay/googly_eye_inner.png", 32, 32);
+        googlyEyeLeftContainer.add(new OverlayImage(
+            Texture.scathaPro("overlay/googly_eye_outer.png", 32, 32), 0, 0, 32, 32, 1f
+        ));
+        googlyEyeLeftContainer.add(googlyEyeLeftInnerImage = new OverlayImage(
+            Texture.scathaPro("overlay/googly_eye_inner.png", 32, 32), 0, 0, 32, 32, 1f
+        ));
         googlyEyeLeftInnerImage.expandsContainerSize = false;
         iconContainer.add(googlyEyeLeftContainer);
 
@@ -154,16 +155,23 @@ public class MainOverlay
         addToggleableElement("Title", headerContainer, elementStatesConfig.headerShown);
 
 
-        OverlayDynamicContainer countersContainer = new OverlayDynamicContainer(0, 0, 1f, Direction.HORIZONTAL).setMargin(0, 4);
+        OverlayDynamicContainer countersContainer = new OverlayDynamicContainer(0, 0, 1f, Direction.HORIZONTAL)
+            .setMargin(0, 4);
 
 
         OverlayContainer petDropsContainer = new OverlayContainer(0, 0, 1f);
         petDropsContainer.add(new OverlayText("Pets", minecraft.font, Util.Color.GREEN, 0, 0, 1f));
-        petDropsContainer.add(new OverlayImage("overlay/scatha_pet_rare.png", 64, 64, 0, 10, 0.145f));
+        petDropsContainer.add(new OverlayImage(
+            Texture.scathaPro("generic/scatha_pet_rare.png", 256, 256), 0, 10, 16, 16, 0.58f
+        ));
         petDropsContainer.add(rarePetDropsText = new OverlayText(minecraft.font, Util.Color.BLUE, 12, 11, 1f));
-        petDropsContainer.add(new OverlayImage("overlay/scatha_pet_epic.png", 64, 64, 0, 21, 0.145f));
+        petDropsContainer.add(new OverlayImage(
+            Texture.scathaPro("generic/scatha_pet_epic.png", 256, 256), 0, 21, 16, 16, 0.58f
+        ));
         petDropsContainer.add(epicPetDropsText = new OverlayText(minecraft.font, Util.Color.DARK_PURPLE, 12, 22, 1f));
-        petDropsContainer.add(new OverlayImage("overlay/scatha_pet_legendary.png", 64, 64, 0, 32, 0.145f));
+        petDropsContainer.add(new OverlayImage(
+            Texture.scathaPro("generic/scatha_pet_legendary.png", 256, 256), 0, 32, 16, 16, 0.58f
+        ));
         petDropsContainer.add(legendaryPetDropsText = new OverlayText(minecraft.font, Util.Color.GOLD, 12, 33, 1f));
         countersContainer.add(petDropsContainer);
         addToggleableElement("Pet Drop Counters", petDropsContainer, elementStatesConfig.petDropCountersShown);
@@ -175,12 +183,12 @@ public class MainOverlay
         killsContainer.add(spawnCooldownProgressBar = new OverlayProgressBar(0, 10, 77, 21, 1f, 0x50FFFFFF, -1));
 
         killsContainer.add(new OverlayText("Worms", minecraft.font, Util.Color.YELLOW, 15, 0, 1f).setAlignment(Alignment.CENTER));
-        killsContainer.add(wormImage = new OverlayImage(-4, 11, 0.074f));
+        killsContainer.add(wormImage = new OverlayImage(-4, 11, 64, 32, 0.6f));
         killsContainer.add(regularWormKillsText = new OverlayText(minecraft.font, Util.Color.WHITE, 15, 11, 1f).setAlignment(Alignment.CENTER));
         killsContainer.add(secondaryRegularWormKillsText = new OverlayText(minecraft.font, Util.Color.GRAY, 15, 22, 1f).setAlignment(Alignment.CENTER));
 
         killsContainer.add(scathaKillsTitleText = new OverlayText(minecraft.font, Util.Color.YELLOW, 58, 0, 1f).setAlignment(Alignment.CENTER));
-        killsContainer.add(new OverlayImage("overlay/worm_renders/scatha.png", 512, 256, 39, 11, 0.074f));
+        killsContainer.add(new OverlayImage(Texture.scathaPro("overlay/worm_renders/scatha.png", 512, 256), 39, 11, 64, 32, 0.6f));
         killsContainer.add(scathaKillsText = new OverlayText(minecraft.font, Util.Color.WHITE, 58, 11, 1f).setAlignment(Alignment.CENTER));
         killsContainer.add(secondaryScathaKillsText = new OverlayText(minecraft.font, Util.Color.GRAY, 58, 22, 1f).setAlignment(Alignment.CENTER));
 
@@ -235,7 +243,7 @@ public class MainOverlay
             updatePosition();
         });
         config.overlay.alignmentOverride.onValueChanged(_ -> updateContentAlignment());
-        config.overlay.backgroundEnabled.onValueChanged(_ -> updateBackground());
+        config.overlay.backgroundOpacity.onValueChanged(_ -> updateBackground());
         config.overlay.iconsEnabled.onValueChanged(_ -> updateAll());
         config.accessibility.useHighContrastColors.onValueChanged(_ -> updateContrast());
         config.worms.revertRegularWormTexture.onValueChanged(_ -> updateWormImage());
@@ -443,7 +451,7 @@ public class MainOverlay
 
     private void updateBackground()
     {
-        mainContainer.backgroundColor = scathaPro.config.overlay.backgroundEnabled.get() ? BACKGROUND_COLOR : null;
+        mainContainer.backgroundColor = ARGB.black(Mth.clamp(scathaPro.config.overlay.backgroundOpacity.get(), 0f, 1f));
     }
 
     private void updateContentAlignment()
@@ -502,18 +510,18 @@ public class MainOverlay
     {
         if (scathaPro.coreManager.isScappaModeActive())
         {
-            scathaIcon.setImage("overlay/scatha_icons/scatha_spin.png", 64, 64, 20, 42);
+            scathaIcon.setImage(Texture.scathaPro("overlay/scatha_icons/scatha_spin.png", 64, 64), 20, 42);
             scathaIconOverlay.setVisible(false);
         }
         else
         {
-            scathaIcon.setImage(scathaPro.config.alerts.mode.get().getIconPath(), 64, 64);
+            scathaIcon.setImage(scathaPro.config.alerts.mode.get().getIconTexture());
 
-            String overlayPath = scathaPro.config.alerts.mode.get().getIconOverlayPath();
-            if (overlayPath != null)
+            Texture iconOverlayTexture = scathaPro.config.alerts.mode.get().getIconOverlayTexture();
+            if (iconOverlayTexture != null)
             {
                 scathaIconOverlay.setVisible(true);
-                scathaIconOverlay.setImage(overlayPath, 64, 64);
+                scathaIconOverlay.setImage(iconOverlayTexture);
             }
             else
             {
@@ -622,12 +630,12 @@ public class MainOverlay
 
     private void updateWormImage()
     {
-        Identifier wormImageIdentifier = WORM_IMAGE;
+        Texture wormTexture = STONEWORM_RENDER;
         if (scathaPro.config.worms.revertRegularWormTexture.get())
         {
-            wormImageIdentifier = WORM_OLD_IMAGE;
+            wormTexture = STONEWORM_RENDER_OLD;
         }
-        wormImage.setImage(wormImageIdentifier, 512, 256);
+        wormImage.setImage(wormTexture);
     }
 
     public void updateWormKills()

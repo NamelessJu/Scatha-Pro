@@ -6,6 +6,7 @@ import namelessju.scathapro.gui.overlay.elements.OverlayContainer;
 import namelessju.scathapro.gui.overlay.elements.OverlayElement;
 import namelessju.scathapro.gui.overlay.elements.OverlayImage;
 import namelessju.scathapro.gui.overlay.elements.OverlayText;
+import namelessju.scathapro.miscellaneous.data.Texture;
 import namelessju.scathapro.util.TextUtil;
 import namelessju.scathapro.util.Util;
 import net.minecraft.client.DeltaTracker;
@@ -39,7 +40,7 @@ public class CrosshairOverlay
         rotationAnglesOverlay.add(pitchText = new OverlayText(font, Util.Color.WHITE, 0, 0, 1f));
         pitchText.setAlignment(OverlayElement.Alignment.CENTER);
 
-        rotationLockOverlay = new OverlayImage("lock.png", 16, 16, 0, 0, 1f);
+        rotationLockOverlay = new OverlayImage(Texture.scathaPro("lock.png", 16, 16), 0, 0, 1f);
 
         updateLayout();
     }

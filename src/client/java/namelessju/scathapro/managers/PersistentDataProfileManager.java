@@ -149,6 +149,7 @@ public class PersistentDataProfileManager
 
         totalMagicFind = tryAddStatValue(totalMagicFind, profileData.globalMagicFind.getOr(-1f));
         totalMagicFind = tryAddStatValue(totalMagicFind, profileData.wormBestiaryMagicFind.getOr(-1f));
+        totalMagicFind = tryAddStatValue(totalMagicFind, profileData.attributes.getMagicFind());
         totalMagicFind = tryAddStatValue(totalMagicFind, profileData.witchesStewsEaten.getMagicFind());
 
         if (allowShuriken && scathaPro.coreManager.lastScathaHitHadShuriken)
@@ -197,6 +198,15 @@ public class PersistentDataProfileManager
     {
         return getStatComponent(
             getCurrentProfileData().witchesStewsEaten.getMagicFind(),
+            TextColor.AQUA, String.valueOf(UnicodeSymbol.magicFind),
+            addSymbol
+        );
+    }
+
+    public MutableComponent getAttributesMagicFindComponent(boolean addSymbol)
+    {
+        return getStatComponent(
+            getCurrentProfileData().attributes.getMagicFind(),
             TextColor.AQUA, String.valueOf(UnicodeSymbol.magicFind),
             addSymbol
         );

@@ -17,10 +17,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec2;
 
 import java.math.RoundingMode;
 
@@ -256,14 +258,20 @@ public final class ScathaProGameplayListeners
             {
                 Achievement.scatha_kill_black_hole.unlock();
 
-                Integer blackHoleId = data.worm().getBlackHoleEntityId();
-                if (blackHoleId != null)
+                Vec2 blackHolePos = data.worm().getBlackHolePosition();
+                if (blackHolePos == null)
                 {
-                    if (blackHoleId.equals(scathaPro.coreManager.lastBlackHoleEntityId))
+                    Entity nearbyBlackHole = Constants.getNearbyBlackHole(data.worm().entity);
+                    if (nearbyBlackHole != null) blackHolePos = Util.getHorizontal(nearbyBlackHole.position());
+                }
+                if (blackHolePos != null)
+                {
+                    if (scathaPro.coreManager.lastScathaBlackHolePosition != null
+                        && blackHolePos.distanceToSqr(scathaPro.coreManager.lastScathaBlackHolePosition) < 0.01f) // = 0.1 because sqrd
                     {
                         Achievement.scatha_kill_black_hole_2_in_1.unlock();
                     }
-                    scathaPro.coreManager.lastBlackHoleEntityId = blackHoleId;
+                    scathaPro.coreManager.lastScathaBlackHolePosition = blackHolePos;
                 }
             }
             else if (scathaPro.coreManager.lastScathaHitHadShuriken)

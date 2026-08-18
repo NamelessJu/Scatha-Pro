@@ -19,9 +19,9 @@ public class WormBestiaryParser extends ContainerScreenParser
     }
 
     @Override
-    public String getScreenTitle()
+    public boolean shouldParse(String screenTitle)
     {
-        return "Crystal Hollows " + UnicodeSymbol.hypixelArrowRight + " Stoneworm";
+        return screenTitle.equals("Crystal Hollows " + UnicodeSymbol.hypixelArrowRight + " Stoneworm");
     }
 
     @Override

@@ -2,6 +2,7 @@ package namelessju.scathapro.alerts.alertmodes;
 
 import namelessju.scathapro.alerts.Alert;
 import namelessju.scathapro.miscellaneous.data.OverlayIconEyePositions;
+import namelessju.scathapro.miscellaneous.data.Texture;
 import namelessju.scathapro.sounds.SoundData;
 import namelessju.scathapro.util.Util;
 import net.minecraft.network.chat.Component;
@@ -25,9 +26,9 @@ public abstract class AlertMode
     }
 
 
-    public abstract @NonNull String getIconPath();
+    public abstract @NonNull Texture getIconTexture();
 
-    public @Nullable String getIconOverlayPath()
+    public @Nullable Texture getIconOverlayTexture()
     {
         return null;
     }

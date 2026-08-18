@@ -101,6 +101,7 @@ public class DevCommand extends ScathaProCommand
                 for (Entity entity : nearbyEntities)
                 {
                     JsonObject entityObject = new JsonObject();
+                    entityObject.add("id", new JsonPrimitive(entity.getId()));
                     entityObject.add("type", new JsonPrimitive(entity.getClass().getName()));
 
                     TagValueOutput nbtOutput = TagValueOutput.createWithoutContext(ProblemReporter.DISCARDING);

@@ -1,72 +1,64 @@
 package namelessju.scathapro.gui.overlay.elements;
 
-import namelessju.scathapro.ScathaPro;
+import namelessju.scathapro.miscellaneous.data.Texture;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.resources.Identifier;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 @NullMarked
 public class OverlayImage extends OverlayElement
 {
-    protected @Nullable Identifier imageIdentifier;
-    protected int textureWidth, textureHeight;
+    protected int width;
+    protected int height;
+    protected @Nullable Texture texture;
     protected int color = -1;
 
-    public OverlayImage(String texturePath, int textureWidth, int textureHeight, int x, int y, float scale)
+    public OverlayImage(Texture texture, int x, int y, float scale)
     {
-        this(x, y, scale);
-        setImage(texturePath, textureWidth, textureHeight);
+        this(texture, x, y, texture.width(), texture.height(), scale);
     }
 
-    public OverlayImage(int x, int y, float scale)
+    public OverlayImage(Texture texture, int x, int y, int width, int height, float scale)
+    {
+        this(x, y, width, height, scale);
+        setImage(texture);
+    }
+
+    public OverlayImage(int x, int y, int width, int height, float scale)
     {
         super(x, y, scale);
+        this.width = width;
+        this.height = height;
     }
 
     @Override
     protected void extractContent(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker)
     {
-        if (imageIdentifier == null) return;
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, imageIdentifier,
-            0, 0, 0f, 0f,
-            textureWidth, textureHeight,
-            textureWidth, textureHeight, textureWidth, textureHeight,
-            color
-        );
+        if (texture == null) return;
+        texture.extract(guiGraphics, 0, 0, width, height, color);
     }
 
     @Override
     public int getWidth()
     {
-        return textureWidth;
+        return width;
     }
 
     @Override
     public int getHeight()
     {
-        return textureHeight;
+        return height;
     }
 
-    public void setImage(String texturePath, int textureWidth, int textureHeight)
+    public void setImage(Texture texture)
     {
-        setImage(ScathaPro.getIdentifier("textures/" + texturePath),
-            textureWidth, textureHeight
-        );
-    }
-
-    public void setImage(Identifier identifier, int textureWidth, int textureHeight)
-    {
-        this.textureWidth = textureWidth;
-        this.textureHeight = textureHeight;
-        imageIdentifier = identifier;
+        this.texture = texture;
     }
 
     public void clearImage()
     {
-        setImage((Identifier) null, 0, 0);
+        this.texture = null;
     }
 
     public void setColor(int color)

@@ -32,6 +32,7 @@ public class ContainerScreenParsingManager
         registerParser(wormBestiaryParser = new WormBestiaryParser(scathaPro));
         registerParser(profileStatsParser = new ProfileStatsParser(scathaPro));
         registerParser(new WitchesStewParser(scathaPro));
+        registerParser(new AttributesMenuParser(scathaPro));
     }
 
     public void registerParser(ContainerScreenParser parser)
@@ -145,7 +146,7 @@ public class ContainerScreenParsingManager
 
         public static ActiveParser tryMakeParser(String chestName, ContainerScreenParser parser)
         {
-            if (parser.enabled && chestName.equals(parser.getScreenTitle())) return new ActiveParser(parser);
+            if (parser.enabled && parser.shouldParse(chestName)) return new ActiveParser(parser);
             return null;
         }
 
@@ -183,7 +184,7 @@ public class ContainerScreenParsingManager
                     }
                     parser.tryParse(itemStack, slot);
                 }
-                else ScathaPro.LOGGER.warn(ContainerScreenParsingManager.getLogMsg("Slot index " + slot + " out of bounds for screen \"" + parser.getScreenTitle() + "\""));
+                else ScathaPro.LOGGER.warn(ContainerScreenParsingManager.getLogMsg("Slot index " + slot + " out of bounds (" + parser.getClass().getSimpleName() + ")"));
                 finishedSlots[slotReferenceIndex] = true;
             }
 

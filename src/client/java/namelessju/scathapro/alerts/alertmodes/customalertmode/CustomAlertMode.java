@@ -5,6 +5,7 @@ import namelessju.scathapro.alerts.Alert;
 import namelessju.scathapro.alerts.alertmodes.AlertMode;
 import namelessju.scathapro.alerts.alertmodes.AlertModeManager;
 import namelessju.scathapro.files.customalertmode.CustomAlertModeProperties;
+import namelessju.scathapro.miscellaneous.data.Texture;
 import namelessju.scathapro.sounds.SoundData;
 import namelessju.scathapro.util.TextUtil;
 import namelessju.scathapro.util.TimeUtil;
@@ -16,6 +17,9 @@ import org.jspecify.annotations.Nullable;
 
 public class CustomAlertMode extends AlertMode
 {
+    private static final Texture ICON_TEXTURE = Texture.scathaPro("overlay/scatha_icons/mode_custom.png", 64, 64);
+    private static final Texture ICON_OVERLAY_TEXTURE = Texture.scathaPro("overlay/scatha_icons/mode_custom_overlay.png", 64, 64);
+
     private final ScathaPro scathaPro;
 
     public CustomAlertMode(ScathaPro scathaPro)
@@ -25,15 +29,15 @@ public class CustomAlertMode extends AlertMode
     }
 
     @Override
-    public @NonNull String getIconPath()
+    public @NonNull Texture getIconTexture()
     {
-        return "overlay/scatha_icons/mode_custom.png";
+        return ICON_TEXTURE;
     }
 
     @Override
-    public String getIconOverlayPath()
+    public Texture getIconOverlayTexture()
     {
-        return "overlay/scatha_icons/mode_custom_overlay.png";
+        return ICON_OVERLAY_TEXTURE;
     }
 
     @Override

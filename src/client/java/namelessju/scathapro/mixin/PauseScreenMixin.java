@@ -49,8 +49,7 @@ public abstract class PauseScreenMixin extends Screen
         if (advancementsButton == null) return;
 
         scathaProAchievementsButton = new ImageButton(
-            0, 0, 0, 0,
-            "screen/achievements/button_icon.png", 64, 64,
+            0, 0, 0, 0, ScathaPro.MOD_ICON,
             _ -> minecraft.gui.setScreen(new AchievementListScreen(ScathaPro.getInstance(), this))
         );
         scathaProAchievementsButton.setTooltip(Tooltip.create(

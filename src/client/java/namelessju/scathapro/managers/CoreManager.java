@@ -23,6 +23,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec2;
 import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDate;
@@ -49,7 +50,7 @@ public class CoreManager
     public boolean lastScathaHitHadShuriken = false;
     private DetectedWorm.@Nullable WormKillHandler blackHoleWormKillHandler = null;
     private short blackHoleWormKillTicksLeft = 0;
-    public @Nullable Integer lastBlackHoleEntityId = null;
+    public @Nullable Vec2 lastScathaBlackHolePosition = null;
 
     public boolean crouchingBefore = false;
     public long lastCrouchStartTime = -1;
@@ -128,7 +129,7 @@ public class CoreManager
         lastScathaHitHadShuriken = false;
         blackHoleWormKillHandler = null;
         blackHoleWormKillTicksLeft = 0;
-        lastBlackHoleEntityId = null;
+        lastScathaBlackHolePosition = null;
         lastHeat = -1;
         lastCrystalHollowsDay = -1;
         lastOldLobbyAlertTriggerDay = -1;

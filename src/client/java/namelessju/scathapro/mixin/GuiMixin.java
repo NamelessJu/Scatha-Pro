@@ -20,6 +20,7 @@ public class GuiMixin
     {
         if (ScathaPro.getInstance().scathaDropsSlotMachineManager.shouldHideScreen(screen))
         {
+            screen.removed();
             ci.cancel();
         }
     }

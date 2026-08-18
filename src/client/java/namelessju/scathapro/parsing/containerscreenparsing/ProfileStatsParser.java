@@ -21,9 +21,9 @@ public class ProfileStatsParser extends ContainerScreenParser
     }
 
     @Override
-    public String getScreenTitle()
+    public boolean shouldParse(String screenTitle)
     {
-        return "Stats & Equipment";
+        return screenTitle.equals("Stats & Equipment");
     }
 
     @Override

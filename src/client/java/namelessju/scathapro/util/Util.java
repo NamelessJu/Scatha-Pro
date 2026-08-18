@@ -2,12 +2,15 @@ package namelessju.scathapro.util;
 
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.util.ARGB;
-import org.jspecify.annotations.NonNull;
+import net.minecraft.world.phys.Vec2;
+import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.NullMarked;
 
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.Random;
 
+@NullMarked
 public final class Util
 {
     private Util() {}
@@ -41,7 +44,7 @@ public final class Util
 
 
     @SuppressWarnings("all")
-    public static <T> boolean optionalValueEquals(@NonNull Optional<T> optional, @NonNull T value)
+    public static <T> boolean optionalValueEquals(Optional<T> optional, T value)
     {
         return optional.map(t -> t.equals(value)).orElse(false);
     }
@@ -59,5 +62,10 @@ public final class Util
     public static Path resolvePath(Path parent, String forwardSlashSeparatedPath)
     {
         return resolvePath(parent, forwardSlashSeparatedPath.split("/"));
+    }
+
+    public static Vec2 getHorizontal(Vec3 vec3)
+    {
+        return new Vec2((float) vec3.x, (float) vec3.z);
     }
 }

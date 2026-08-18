@@ -22,7 +22,7 @@ public abstract class ContainerScreenParser
         this.scathaPro = scathaPro;
     }
 
-    public abstract String getScreenTitle();
+    public abstract boolean shouldParse(String screenTitle);
     public abstract int[] getSlotNumbers();
 
     public final boolean requiresFilledSlots()

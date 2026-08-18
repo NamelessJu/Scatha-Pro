@@ -1,14 +1,16 @@
 package namelessju.scathapro.managers;
 
 import namelessju.scathapro.ScathaPro;
+import namelessju.scathapro.miscellaneous.data.CachedComponentProvider;
 import namelessju.scathapro.miscellaneous.data.ScathaPetDrop;
 import namelessju.scathapro.sounds.instances.ScathaProSound;
+import namelessju.scathapro.util.TimeUtil;
 import namelessju.scathapro.util.Util;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
-import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
@@ -20,6 +22,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 @NullMarked
 public class ScathaDropsSlotMachineManager
@@ -163,7 +166,7 @@ public class ScathaDropsSlotMachineManager
     public boolean shouldHideScreen(@Nullable Screen screen)
     {
         if (!shouldHideDrops()) return false;
-        return screen instanceof InventoryScreen || screen instanceof CreativeModeInventoryScreen;
+        return screen instanceof AbstractContainerScreen || screen instanceof ChatScreen;
     }
 
     public void tick()
@@ -250,6 +253,9 @@ public class ScathaDropsSlotMachineManager
             float x = getSlotRelativeX(i, scrollProgress);
             if (x + scaledHalfGuiWidth + SLOT_SIZE < 0 || x >= scaledHalfGuiWidth) continue;
 
+            float alphaMultiplier = Mth.clampedMap(Mth.abs(x + halfSlotSize), 150f, 350f, 1f, 0f);
+            if (alphaMultiplier <= 0f) continue;
+
             boolean isTargetSlot = i == START_END_EXTRA_SLOT_COUNT + MAIN_SLOT_COUNT - 1;
 
             SlotContent slot;
@@ -268,7 +274,7 @@ public class ScathaDropsSlotMachineManager
 
             if (i == currentSlotIndex)
             {
-                dropName = slot != null ? slot.name : Component.literal("MISSING SLOT").withColor(TextColor.RED);
+                dropName = slot != null ? slot.nameProvider.apply(scathaPro) : Component.literal("MISSING SLOT").withColor(TextColor.RED);
             }
 
             if (slot == null)
@@ -276,12 +282,10 @@ public class ScathaDropsSlotMachineManager
                 guiGraphics.pose().pushMatrix();
                 guiGraphics.pose().translate(x + halfSlotSize, Y_OFFSET);
                 guiGraphics.pose().scale(3f);
-                guiGraphics.centeredText(scathaPro.minecraft.font, "?", 0, -4, ARGB.white(alpha));
+                guiGraphics.centeredText(scathaPro.minecraft.font, "?", 0, -4, ARGB.white(alpha * alphaMultiplier));
                 guiGraphics.pose().popMatrix();
                 continue;
             }
-
-            float alphaMultiplier = Mth.clamp(1 - (Mth.abs(x + halfSlotSize) / 450f), 0f, 1f);
 
             guiGraphics.pose().pushMatrix();
             if (i == currentSlotIndex)
@@ -298,9 +302,10 @@ public class ScathaDropsSlotMachineManager
                 guiGraphics.pose().translate(-halfSlotSize, -halfSlotSize);
             }
             else guiGraphics.pose().translate(x, -halfSlotSize + Y_OFFSET);
-            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, slot.textureIdentifier,
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, slot.textureProvider.getIdentifier(scathaPro),
                 0, 0, 0, 0, SLOT_SIZE, SLOT_SIZE,
-                slot.textureWidth, slot.textureHeight, slot.textureWidth, slot.textureHeight,
+                slot.textureProvider.getWidth(), slot.textureProvider.getHeight(),
+                slot.textureProvider.getWidth(), slot.textureProvider.getHeight(),
                 ARGB.white(Math.round(alpha * alphaMultiplier))
             );
             guiGraphics.pose().popMatrix();
@@ -348,24 +353,24 @@ public class ScathaDropsSlotMachineManager
     private enum SlotContent
     {
         GEMSTONES(15,
-            Component.literal("Gemstones").withColor(TextColor.WHITE),
-            ScathaPro.getIdentifier("textures/drops_roll/gemstones.png"), 256, 256
+            new CachedComponentProvider(Component.literal("Gemstones").withColor(TextColor.WHITE)),
+            new CachedTextureProvider(ScathaPro.getIdentifier("textures/drops_roll/gemstones.png"), 256, 256)
         ),
         BLOCK_BRAN(10,
-            Component.literal("Dwarven O's Block Bran").withColor(TextColor.GREEN),
-            ScathaPro.getIdentifier("textures/drops_roll/block_bran.png"), 256, 256
+            new CachedComponentProvider(Component.literal("Dwarven O's Block Bran").withColor(TextColor.GREEN)),
+            new CachedTextureProvider(ScathaPro.getIdentifier("textures/drops_roll/block_bran.png"), 256, 256)
         ),
         SCATHA_RARE(0,
-            Component.literal("Rare Scatha Pet").withColor(TextColor.BLUE),
-            ScathaPro.getIdentifier("textures/generic/scatha_pet_rare.png"), 256, 256
+            new ScathaPetComponentProvider(Component.literal("Rare").withColor(TextColor.BLUE)),
+            new ScathaPetTextureProvider(ScathaPro.getIdentifier("textures/generic/scatha_pet_rare.png"))
         ),
         SCATHA_EPIC(0,
-            Component.literal("Epic Scatha Pet").withColor(TextColor.DARK_PURPLE),
-            ScathaPro.getIdentifier("textures/generic/scatha_pet_epic.png"), 256, 256
+            new ScathaPetComponentProvider(Component.literal("Epic").withColor(TextColor.DARK_PURPLE)),
+            new ScathaPetTextureProvider(ScathaPro.getIdentifier("textures/generic/scatha_pet_epic.png"))
         ),
         SCATHA_LEGENDARY(0,
-            Component.literal("Legendary Scatha Pet").withColor(TextColor.GOLD),
-            ScathaPro.getIdentifier("textures/generic/scatha_pet_legendary.png"), 256, 256
+            new ScathaPetComponentProvider(Component.literal("Legendary").withColor(TextColor.GOLD)),
+            new ScathaPetTextureProvider(ScathaPro.getIdentifier("textures/generic/scatha_pet_legendary.png"))
         );
 
         private static int WEIGHT_SUM = -1;
@@ -381,18 +386,14 @@ public class ScathaDropsSlotMachineManager
         }
 
         private int weight;
-        public final Component name;
-        public final Identifier textureIdentifier;
-        public final int textureWidth;
-        public final int textureHeight;
+        public final Function<ScathaPro, Component> nameProvider;
+        public final TextureProvider textureProvider;
 
-        SlotContent(int weight, Component name, Identifier textureIdentifier, int textureWidth, int textureHeight)
+        SlotContent(int weight, Function<ScathaPro, Component> nameProvider, TextureProvider textureProvider)
         {
             this.weight = weight;
-            this.name = name;
-            this.textureIdentifier = textureIdentifier;
-            this.textureWidth = textureWidth;
-            this.textureHeight = textureHeight;
+            this.nameProvider = nameProvider;
+            this.textureProvider = textureProvider;
         }
 
         public void setWeight(int weight)
@@ -412,6 +413,78 @@ public class ScathaDropsSlotMachineManager
                 if (rngValue < 0) return slotContent;
             }
             return GEMSTONES; // should never happen but I gotta keep the compiler happy
+        }
+
+        private record ScathaPetComponentProvider(Component rarityComponent) implements Function<ScathaPro, Component>
+        {
+            private static final Component HIDDEN_RARITY_COMPONENT_RARE = Component.literal("Scatha Pet").withColor(TextColor.BLUE);
+            private static final Component HIDDEN_RARITY_COMPONENT_EPIC = Component.literal("Scatha Pet").withColor(TextColor.DARK_PURPLE);
+            private static final Component HIDDEN_RARITY_COMPONENT_LEGENDARY = Component.literal("Scatha Pet").withColor(TextColor.GOLD);
+
+            private ScathaPetComponentProvider(Component rarityComponent)
+            {
+                this.rarityComponent = Component.literal(rarityComponent.getString() + " Scatha Pet").setStyle(rarityComponent.getStyle());
+            }
+
+            @Override
+            public Component apply(ScathaPro scathaPro)
+            {
+                long t = TimeUtil.getEpochMilliseconds() % 750L;
+                return scathaPro.config.miscellaneous.dropsSlotMachineHidePetRarity.get()
+                    ? (t < 250L ? HIDDEN_RARITY_COMPONENT_RARE : (t < 500L ? HIDDEN_RARITY_COMPONENT_EPIC : HIDDEN_RARITY_COMPONENT_LEGENDARY))
+                    : rarityComponent;
+            }
+        }
+
+        private interface TextureProvider
+        {
+            Identifier getIdentifier(ScathaPro scathaPro);
+            int getWidth();
+            int getHeight();
+        }
+
+        private record CachedTextureProvider(Identifier identifier, int width, int height) implements TextureProvider
+        {
+            @Override
+            public Identifier getIdentifier(ScathaPro scathaPro)
+            {
+                return identifier;
+            }
+
+            @Override
+            public int getWidth()
+            {
+                return width;
+            }
+
+            @Override
+            public int getHeight()
+            {
+                return height;
+            }
+        }
+
+        private record ScathaPetTextureProvider(Identifier identifier) implements TextureProvider
+        {
+            private static final Identifier HIDDEN_RARITY_IDENTIFIER = ScathaPro.getIdentifier("textures/generic/scatha_pet.png");
+
+            @Override
+            public Identifier getIdentifier(ScathaPro scathaPro)
+            {
+                return scathaPro.config.miscellaneous.dropsSlotMachineHidePetRarity.get() ? HIDDEN_RARITY_IDENTIFIER : identifier;
+            }
+
+            @Override
+            public int getWidth()
+            {
+                return 256;
+            }
+
+            @Override
+            public int getHeight()
+            {
+                return 256;
+            }
         }
     }
 }

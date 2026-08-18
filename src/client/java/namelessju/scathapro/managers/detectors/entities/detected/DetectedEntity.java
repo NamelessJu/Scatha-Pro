@@ -2,8 +2,11 @@ package namelessju.scathapro.managers.detectors.entities.detected;
 
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.util.TimeUtil;
+import namelessju.scathapro.util.Util;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.phys.Vec2;
+import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -11,7 +14,7 @@ public abstract class DetectedEntity
 {
     protected final @NonNull ScathaPro scathaPro;
     protected boolean canBeBlackHoled = false;
-    private @Nullable Integer blackHoleEntityId = null;
+    private @Nullable Vec2 blackHolePosition = null;
 
     public final long spawnTime;
     public @NonNull ArmorStand entity;
@@ -39,13 +42,13 @@ public abstract class DetectedEntity
     {
         return canBeBlackHoled;
     }
-    public void setBlackHoleEntityId(int blackHoleEntityId)
+    public void setBlackHolePosition(@NonNull Vec3 blackHolePosition)
     {
-        this.blackHoleEntityId = blackHoleEntityId;
+        this.blackHolePosition = Util.getHorizontal(blackHolePosition);
     }
-    public @Nullable Integer getBlackHoleEntityId()
+    public @Nullable Vec2 getBlackHolePosition()
     {
-        return blackHoleEntityId;
+        return blackHolePosition;
     }
 
     public enum LeaveWorldReason

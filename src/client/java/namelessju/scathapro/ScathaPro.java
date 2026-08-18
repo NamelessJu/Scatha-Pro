@@ -26,6 +26,7 @@ import namelessju.scathapro.gui.overlay.CrosshairOverlay;
 import namelessju.scathapro.gui.overlay.MainOverlay;
 import namelessju.scathapro.managers.*;
 import namelessju.scathapro.miscellaneous.ItemPopupRenderer;
+import namelessju.scathapro.miscellaneous.data.Texture;
 import namelessju.scathapro.parsing.ChatParser;
 import namelessju.scathapro.parsing.SoundParser;
 import namelessju.scathapro.parsing.containerscreenparsing.ContainerScreenParsingManager;
@@ -44,12 +45,14 @@ import java.util.Queue;
 public abstract class ScathaPro
 {
     public static final String MOD_ID = "scathapro";
-    public static final String MOD_VERSION = "2.2.1";
+    public static final String MOD_VERSION = "2.2.2";
 
     /** The true mod name, not influenced by certain features */
     public static final String MOD_NAME = "Scatha-Pro";
     private static final String MOD_NAME_SCAPPA = "Scappa-Pro";
     private static final String MOD_NAME_APRIL_FOOLS = "Schata-Por";
+
+    public static final Texture MOD_ICON = Texture.scathaPro("mod_icon.png", 256, 256);
 
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 

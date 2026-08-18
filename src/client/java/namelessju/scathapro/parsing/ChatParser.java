@@ -11,6 +11,7 @@ import namelessju.scathapro.util.TimeUtil;
 import namelessju.scathapro.util.UnicodeSymbol;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
+import net.minecraft.util.Mth;
 import net.minecraft.util.StringDecomposer;
 import org.jspecify.annotations.NonNull;
 
@@ -84,15 +85,15 @@ public class ChatParser
                     if (stew.stewName.equalsIgnoreCase(stewString))
                     {
                         PersistentData.ProfileData profileData = scathaPro.getProfileData();
-                        int previousMagicFind = profileData.witchesStewsEaten.getMagicFind();
+                        float previousMagicFind = profileData.witchesStewsEaten.getMagicFind();
 
-                        profileData.witchesStewsEaten.setEaten(stew, true);
+                        profileData.witchesStewsEaten.setUnlocked(stew);
                         scathaPro.persistentData.save();
                         scathaPro.mainOverlay.updateProfileStats();
                         ScathaPro.LOGGER.debug(" -> stew {} detected and marked as eaten", stew.name());
 
-                        int newMagicFind = profileData.witchesStewsEaten.getMagicFind();
-                        if (newMagicFind != previousMagicFind)
+                        float newMagicFind = profileData.witchesStewsEaten.getMagicFind();
+                        if (!Mth.equal(newMagicFind, previousMagicFind))
                         {
                             scathaPro.runNextTick(() -> scathaPro.chatManager.sendChatMessage(Component.empty().withColor(TextColor.GRAY)
                                 .append("Updated Witches Stew Scatha Magic Find (")

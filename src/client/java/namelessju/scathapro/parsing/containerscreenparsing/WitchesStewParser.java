@@ -33,9 +33,9 @@ public class WitchesStewParser extends ContainerScreenParser
     }
 
     @Override
-    public String getScreenTitle()
+    public boolean shouldParse(String screenTitle)
     {
-        return "Witches Stew";
+        return screenTitle.equals("Witches Stew");
     }
 
     @Override
@@ -44,7 +44,7 @@ public class WitchesStewParser extends ContainerScreenParser
         int[] slots = new int[21];
         for (int i = 0; i < slots.length; i ++)
         {
-            slots[i] = 10 + i + ((i%7) * 2);
+            slots[i] = 10 + i + ((i/7) * 2);
         }
         return slots;
     }
@@ -71,7 +71,7 @@ public class WitchesStewParser extends ContainerScreenParser
         if (!Mth.equal(newTotalMagicFind, previousTotalMagicFind))
         {
             scathaPro.chatManager.sendChatMessage(Component.empty().withColor(TextColor.GRAY)
-                .append("Updated Witches Stew Scatha Magic Find (")
+                .append("Updated Scatha Magic Find from Witches Stews (")
                 .append(TextUtil.numberToComponentOrObf(previousTotalMagicFind, 2, false, RoundingMode.HALF_UP))
                 .append(" " + UnicodeSymbol.hypixelArrowRight + " ")
                 .append(TextUtil.numberToComponentOrObf(newTotalMagicFind, 2, false, RoundingMode.HALF_UP))
@@ -107,7 +107,8 @@ public class WitchesStewParser extends ContainerScreenParser
             }
 
             PersistentData.ProfileData profileData = scathaPro.getProfileData();
-            profileData.witchesStewsEaten.setEaten(stew, eaten);
+            if (eaten) profileData.witchesStewsEaten.setUnlocked(stew);
+            else profileData.witchesStewsEaten.removeUnlocked(stew);
         }
     }
 }

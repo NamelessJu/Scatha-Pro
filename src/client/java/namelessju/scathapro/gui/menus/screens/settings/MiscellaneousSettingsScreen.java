@@ -116,10 +116,16 @@ public class MiscellaneousSettingsScreen extends ConfigScreen
             "Scale", 0.5f, 1.5f, config.miscellaneous.dropsSlotMachineScaleMultiplier, null
         ).setStepSize(0.01f).setValueComponentSupplier(FloatSlider.PERCENTAGE_COMPONENT_SUPPLIER));
         list.addSingleColumn(enumCycleButton(
-            MaxSlotMachineFakeScathaRarity.class, "Max. Fake Scatha Rarity",
+            MaxSlotMachineFakeScathaRarity.class, "Max. Fake Pet Rarity",
             config.miscellaneous.dropsSlotMachineMaxFakeScathaRarity,
             _ -> Tooltip.create(Component.literal(
                 "The highest rarity of Scatha pets that may be used to fill the non-winning slots that are scrolled past"
+            ).withColor(TextColor.GRAY)), null
+        ));
+        list.addSingleColumn(booleanConfigButton(
+            "Hide Pet Rarity", config.miscellaneous.dropsSlotMachineHidePetRarity,
+            _ -> Tooltip.create(Component.literal(
+                "Hides the rarities of any pet on the wheel (including the winning slot!)"
             ).withColor(TextColor.GRAY)), null
         ));
         list.addSingleColumn(booleanConfigButton(

@@ -1,6 +1,7 @@
 package namelessju.scathapro.miscellaneous.data.enums;
 
 import namelessju.scathapro.ScathaPro;
+import namelessju.scathapro.miscellaneous.data.CachedComponentProvider;
 import namelessju.scathapro.miscellaneous.data.IDisplayable;
 import namelessju.scathapro.util.TextUtil;
 import namelessju.scathapro.util.UnicodeSymbol;
@@ -60,14 +61,5 @@ public enum ChatPrefixType implements IDisplayable
     public @NonNull Component getPrefix(@NonNull ScathaPro scathaPro)
     {
         return componentFunction.apply(scathaPro);
-    }
-
-    private record CachedComponentProvider(@NonNull Component component) implements Function<@NonNull ScathaPro, @NonNull Component>
-    {
-        @Override
-        public @NonNull Component apply(@NonNull ScathaPro scathaPro)
-        {
-            return component;
-        }
     }
 }

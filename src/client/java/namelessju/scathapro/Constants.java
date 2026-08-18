@@ -12,13 +12,16 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.util.Util;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ResolvableProfile;
+import net.minecraft.world.phys.AABB;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import java.util.List;
 import java.util.UUID;
 
 @NullMarked
@@ -132,6 +135,18 @@ public final class Constants
         }
 
         return null;
+    }
+
+    public static @Nullable Entity getNearbyBlackHole(Entity sourceEntity)
+    {
+        List<Entity> nearbyBlackHoles = sourceEntity.level().getEntities(
+            sourceEntity, AABB.ofSize(sourceEntity.position(), 10D, 5D, 10D),
+            entity -> {
+                Component customName = entity.getCustomName();
+                return customName != null && customName.getString().contains("Black Hole");
+            }
+        );
+        return nearbyBlackHoles.isEmpty() ? null : nearbyBlackHoles.getFirst();
     }
 
 

@@ -26,6 +26,7 @@ public final class UnicodeSymbol
     // Generic symbols
     public static final String clipboard = "\uD83D\uDCCB";
     public static final String sword = "\uD83D\uDDE1";
+    public static final char arrowUp = '\u2191';
     public static final char heavyCheckMark = '\u2714';
     public static final char heavyMultiplicationX = '\u2716';
     public static final char writingHand = '\u270D';

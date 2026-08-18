@@ -100,17 +100,11 @@ public class EntityDetectionManager
                         }
                         else if (scathaPro.minecraft.level != null)
                         {
-                            List<Entity> nearbyBlackHoles = scathaPro.minecraft.level.getEntities(
-                                detectedEntity.entity, AABB.ofSize(detectedEntity.entity.position(), 10D, 5D, 10D),
-                                entity -> {
-                                    Component customName = entity.getCustomName();
-                                    return customName != null && customName.getString().contains("Black Hole");
-                                }
-                            );
-                            if (!nearbyBlackHoles.isEmpty())
+                            Entity nearbyBlackHole = Constants.getNearbyBlackHole(detectedEntity.entity);
+                            if (nearbyBlackHole != null)
                             {
                                 wasBlackHoled = true;
-                                detectedEntity.setBlackHoleEntityId(nearbyBlackHoles.getFirst().getId());
+                                detectedEntity.setBlackHolePosition(nearbyBlackHole.position());
                             }
                         }
                     }

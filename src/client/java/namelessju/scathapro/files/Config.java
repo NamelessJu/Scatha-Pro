@@ -60,8 +60,8 @@ public class Config extends ObjectRootJsonFile
             = addPrimitiveWithDefault("scathaPercentage.cycle.percentageDuration", INTEGER_SERIALIZER, 2);
         public final BooleanValue scathaPercentageAlternativePositionEnabled
             = addBoolean("scathaPercentage.alternativePosition", false);
-        public final BooleanValue backgroundEnabled
-            = addBoolean("backgroundEnabled", true);
+        public final PrimitiveValueWithDefault<Float> backgroundOpacity
+            = addPrimitiveWithDefault("backgroundOpacity", FLOAT_SERIALIZER, 0.3f);
         public final BooleanValue iconsEnabled
             = addBoolean("iconsEnabled", true);
 
@@ -253,6 +253,7 @@ public class Config extends ObjectRootJsonFile
         public final PrimitiveValueWithDefault<Float> dropsSlotMachineScaleMultiplier = addPrimitiveWithDefault("scathaDropsSlotMachine.scaleMultiplier", FLOAT_SERIALIZER, 1f);
         public final PrimitiveValueWithDefault<MaxSlotMachineFakeScathaRarity> dropsSlotMachineMaxFakeScathaRarity
             = addPrimitiveWithDefault("scathaDropsSlotMachine.maxFakeScathaRarity", new EnumSerializer<>(MaxSlotMachineFakeScathaRarity.class), MaxSlotMachineFakeScathaRarity.LEGENDARY);
+        public final BooleanValue dropsSlotMachineHidePetRarity = addBoolean("scathaDropsSlotMachine.hidePetRarity", false);
         public final BooleanValue dropsSlotMachineApplyRandomOffset = addBoolean("scathaDropsSlotMachine.applyRandomOffset", false);
         // Other
         public final BooleanValue aprilFoolsFakeDropEnabled = addBoolean("aprilFoolsFakeDropEnabled", true);

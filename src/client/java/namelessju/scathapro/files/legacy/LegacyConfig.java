@@ -2,7 +2,6 @@ package namelessju.scathapro.files.legacy;
 
 import com.google.gson.JsonObject;
 import namelessju.scathapro.ScathaPro;
-import namelessju.scathapro.alerts.alertmodes.AlertMode;
 import namelessju.scathapro.files.Config;
 import namelessju.scathapro.files.framework.JsonFile;
 import namelessju.scathapro.files.framework.ReadOnlyFile;
@@ -81,20 +80,16 @@ public class LegacyConfig extends ReadOnlyFile
                 valueUpdater.accept("realTimeClock", config.overlay.elementStates.realTimeClockShown);
             }
         });
-        mappings.put("overlay/backgroundEnabled", new BooleanMapper(config.overlay.backgroundEnabled));
+        mappings.put("overlay/backgroundEnabled", new PrimitiveValueMapper<>(config.overlay.backgroundOpacity, oldValue -> {
+            if (oldValue.equals("false")) return 0f;
+            return null;
+        }));
 
         mappings.put("sounds/volume", new FloatMapper(config.sounds.volume));
         mappings.put("sounds/muteCrystalHollowsSounds", new BooleanMapper(config.sounds.muteCrystalHollowsSounds));
         mappings.put("sounds/muteCrystalHollowsSounds.keepDragonLairSounds", new BooleanMapper(config.sounds.keepDragonLairSounds));
 
-        mappings.put("alerts/mode", new SingleValueMapper<>(config.alerts.mode) {
-            @Override
-            public void load(String oldValueString)
-            {
-                AlertMode mode = scathaPro.alertModeManager.getModeByID(oldValueString);
-                if (mode != null) configValue.set(mode);
-            }
-        });
+        mappings.put("alerts/mode", new PrimitiveValueMapper<>(config.alerts.mode, scathaPro.alertModeManager::getModeByID));
         mappings.put("alerts/customModeSubmode", new StringMapper(config.alerts.customModeSubmode));
         mappings.put("alerts/title/scale", new FloatMapper(config.alerts.titleScale));
         mappings.put("alerts/title/positionX", new FloatMapper(config.alerts.titlePositionX));
@@ -255,11 +250,11 @@ public class LegacyConfig extends ReadOnlyFile
         }
     }
 
-    private static abstract class PrimitiveValueMapper<T> extends SingleValueMapper<JsonFile.PrimitiveValue<T, ?>>
+    private static class PrimitiveValueMapper<T> extends SingleValueMapper<JsonFile.PrimitiveValue<T, ?>>
     {
-        private final @NonNull Function<String, T> valueParser;
+        private final @NonNull Function<String, @Nullable T> valueParser;
 
-        public PrimitiveValueMapper(JsonFile.@NonNull PrimitiveValue<T, ?> configValue, @NonNull Function<String, T> valueParser)
+        public PrimitiveValueMapper(JsonFile.@NonNull PrimitiveValue<T, ?> configValue, @NonNull Function<String, @Nullable T> valueParser)
         {
             super(configValue);
             this.valueParser = Objects.requireNonNull(valueParser);
