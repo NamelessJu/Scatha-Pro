@@ -220,15 +220,16 @@ public class ScathaDropsSlotMachineManager
         int guiMaxScale = scathaPro.minecraft.getWindow().calculateScale(0, false);
         float scale = Math.max(guiMaxScale - Mth.floor(guiMaxScale * 0.334f), 1)
             * scathaPro.config.miscellaneous.dropsSlotMachineScaleMultiplier.get();
-        float partialTicks = deltaTracker.getRealtimeDeltaTicks();
+        float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(true);
         int animationDuration = scathaPro.config.miscellaneous.dropsSlotMachineAnimationTicks.get();
-        float ticksPassed = animationDuration - animationTicksLeft - partialTicks;
+        float ticksPassed = animationDuration - animationTicksLeft + partialTicks;
+        float ticksLeft = animationTicksLeft - partialTicks;
         float progress = Mth.clamp(ticksPassed / animationDuration, 0f, 1f);
         float scrollProgress = getScrollProgress(progress);
         int alpha = Math.round(
             Math.min(
                 Mth.clamp(ticksPassed * (1f/6f), 0f, 1f), // fade in
-                petDrop == null ? Mth.clamp(animationTicksLeft * 0.2f, 0f, 1f) : 1f // fade out
+                petDrop == null ? Mth.clamp(ticksLeft * 0.2f, 0f, 1f) : 1f // fade out
             )
             * 255f
         );
