@@ -7,10 +7,7 @@ import namelessju.scathapro.alerts.Alert;
 import namelessju.scathapro.events.ScathaProEvents;
 import namelessju.scathapro.files.PersistentData;
 import namelessju.scathapro.gui.menus.screens.FakeBanScreen;
-import namelessju.scathapro.managers.detectors.BedrockWallDetector;
-import namelessju.scathapro.managers.detectors.ObstacleDetector;
-import namelessju.scathapro.managers.detectors.ProjectileWormHitDetector;
-import namelessju.scathapro.managers.detectors.ScathaDropsDetector;
+import namelessju.scathapro.managers.detectors.*;
 import namelessju.scathapro.managers.detectors.entities.EntityDetectionManager;
 import namelessju.scathapro.managers.detectors.entities.detected.DetectedWorm;
 import namelessju.scathapro.miscellaneous.data.enums.OldLobbyAlertTriggerMode;
@@ -35,6 +32,7 @@ public class CoreManager
     public final EntityDetectionManager entityDetectionManager;
     public final ProjectileWormHitDetector projectileWormHitDetector;
     private final BedrockWallDetector bedrockWallDetector;
+    private final CrawlingDetector crawlingDetector;
     private final ObstacleDetector obstacleDetector;
     private final ScathaDropsDetector scathaDropsDetector;
 
@@ -98,6 +96,7 @@ public class CoreManager
         entityDetectionManager = new EntityDetectionManager(scathaPro);
         projectileWormHitDetector = new ProjectileWormHitDetector(scathaPro);
         bedrockWallDetector = new BedrockWallDetector(scathaPro);
+        crawlingDetector = new CrawlingDetector();
         obstacleDetector = new ObstacleDetector(scathaPro);
         scathaDropsDetector = new ScathaDropsDetector(scathaPro);
     }
@@ -140,6 +139,7 @@ public class CoreManager
         entityDetectionManager.reset();
         projectileWormHitDetector.reset();
         bedrockWallDetector.reset();
+        crawlingDetector.reset();
         obstacleDetector.reset();
         scathaDropsDetector.reset();
     }
@@ -239,13 +239,17 @@ public class CoreManager
         }
     }
 
-    public void startBlackHoleKill(DetectedWorm.WormKillHandler killHandler)
+    public void startBlackHoleKill(DetectedWorm worm, DetectedWorm.WormKillHandler killHandler)
     {
-        if (scathaPro.config.miscellaneous.dropsSlotMachineEnabled.get())
-            scathaPro.scathaDropsSlotMachineManager.startPreRoll(Constants.blackHoleSuctionMaxTicksDuration, Constants.blackHoleSuctionMinTicksDuration);
-
         this.blackHoleWormKillHandler = killHandler;
         this.blackHoleWormKillTicksLeft = Constants.blackHoleSuctionMaxTicksDuration;
+
+        if (worm.isScatha && scathaPro.config.miscellaneous.dropsSlotMachineEnabled.get())
+        {
+            scathaPro.scathaDropsSlotMachineManager.startPreRoll(
+                Constants.blackHoleSuctionMaxTicksDuration, Constants.blackHoleSuctionMinTicksDuration
+            );
+        }
     }
 
     public boolean hasPendingBlackHoleKill()
@@ -394,6 +398,7 @@ public class CoreManager
         entityDetectionManager.tick(player);
         projectileWormHitDetector.detect(player);
         bedrockWallDetector.detect(player, now);
+        crawlingDetector.detect(scathaPro);
         obstacleDetector.detect(player);
         scathaDropsDetector.detect(player, now);
 

@@ -11,14 +11,12 @@ import namelessju.scathapro.util.SkyBlockItemUtil;
 import namelessju.scathapro.util.TimeUtil;
 import namelessju.scathapro.util.Util;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDate;
 import java.util.Objects;
@@ -30,8 +28,6 @@ public class AchievementLogicManager
     // Note: doesn't contain all achievement logic, just a bunch of methods that handle multiple similar achievements at once
 
     private final ScathaPro scathaPro;
-
-    private @Nullable BlockPos crawlingStartPos = null;
 
     public AchievementLogicManager(ScathaPro scathaPro)
     {
@@ -54,23 +50,6 @@ public class AchievementLogicManager
             // KEEP LAST
             updateProgressAchievements(false);
         });
-    }
-
-    public void tick()
-    {
-        if (!scathaPro.coreManager.isInCrystalHollows()) return;
-        LocalPlayer player = scathaPro.minecraft.player;
-        if (player == null) return;
-
-        if (player.isVisuallyCrawling())
-        {
-            if (crawlingStartPos == null) crawlingStartPos = player.blockPosition();
-            else if (player.blockPosition().distSqr(crawlingStartPos) >= Achievement.crawl.goal*Achievement.crawl.goal)
-            {
-                Achievement.crawl.unlock();
-            }
-        }
-        else crawlingStartPos = null;
     }
 
     public void updateKillsAchievements()

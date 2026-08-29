@@ -18,6 +18,7 @@ import java.util.List;
 public class AlertManager implements Iterable<Alert>
 {
     public final Alert bedrockWallAlert;
+    public final Alert crawlingAlert;
     public final Alert obstacleAlert;
     public final Alert oldLobbyAlert;
 
@@ -48,6 +49,16 @@ public class AlertManager implements Iterable<Alert>
                 5, 20, 5
             ),
             scathaPro.config.alerts.bedrockWallAlertEnabled
+        ));
+        crawlingAlert = register(new Alert("crawling", "Crawling Alert",
+            Component.literal("Triggers periodically when you're crawling under a block"),
+            SoundData.vanilla("block.note_block.pling", 1f, 0.5f),
+            new FullAlertTitleTemplate(
+                "Crawling", "Get back up!",
+                Style.EMPTY.withColor(TextColor.YELLOW), Style.EMPTY.withColor(TextColor.GRAY),
+                0, 30, 10
+            ),
+            scathaPro.config.alerts.crawlingAlertEnabled
         ));
         obstacleAlert = register(new Alert("obstacle", "Obstacle Alert",
             Component.literal("Triggers when an unmineable block is in your way"),

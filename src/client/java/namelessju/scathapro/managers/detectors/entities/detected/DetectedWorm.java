@@ -96,7 +96,7 @@ public class DetectedWorm extends DetectedEntity
                 if (scappaSound != null) scappaSound.stop();
                 ScathaPro.LOGGER.debug("Worm left world near black hole");
                 scathaPro.coreManager.lastScathaHitHadShuriken = false;
-                scathaPro.coreManager.startBlackHoleKill(new WormKillHandler(this, player, true));
+                scathaPro.coreManager.startBlackHoleKill(this, new WormKillHandler(this, player, true));
                 break;
 
             case LIFETIME_ENDED:

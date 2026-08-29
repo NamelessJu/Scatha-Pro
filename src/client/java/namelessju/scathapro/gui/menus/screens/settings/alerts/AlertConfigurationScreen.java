@@ -82,6 +82,24 @@ public class AlertConfigurationScreen extends ConfigScreen
             };
         }
 
+        if (alert == scathaPro.alertManager.crawlingAlert)
+        {
+            return new AbstractWidget[] {
+                new IntegerSlider(
+                    0, 0, 150, 20,
+                    Component.literal("Trigger Delay"),
+                    0, 10, Math.round(config.alerts.crawlingAlertTriggerDelayTicks.get() / 20f),
+                    value -> config.alerts.crawlingAlertTriggerDelayTicks.set(value * 20)
+                ).setValueComponentSupplier(IntegerSlider.SECONDS_COMPONENT_SUPPLIER),
+                new IntegerSlider(
+                    0, 0, 150, 20,
+                    Component.literal("Trigger Interval"),
+                    0, 10, Math.round(config.alerts.crawlingAlertTriggerIntervalTicks.get() / 20f),
+                    value -> config.alerts.crawlingAlertTriggerIntervalTicks.set(value * 20)
+                ).setValueComponentSupplier(IntegerSlider.SECONDS_COMPONENT_SUPPLIER)
+            };
+        }
+
         if (alert == scathaPro.alertManager.oldLobbyAlert)
         {
             return new AbstractWidget[] {

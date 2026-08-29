@@ -13,16 +13,16 @@ public class WormDetector extends EntityDetector
     @Override
     public DetectedEntity detectEntity(@NonNull ScathaPro scathaPro, @NonNull ArmorStand entity, @Nullable String unformattedEntityName)
     {
-        if (unformattedEntityName == null || !unformattedEntityName.contains(String.valueOf(UnicodeSymbol.hypixelHeart)))
+        if (unformattedEntityName == null || unformattedEntityName.indexOf(UnicodeSymbol.hypixelHeart) < 0)
         {
             return null;
         }
 
-        if (unformattedEntityName.contains("[Lv5]") && unformattedEntityName.contains(" Stoneworm "))
+        if (unformattedEntityName.contains(" Stoneworm "))
         {
             return new DetectedWorm(scathaPro, entity, false);
         }
-        if (unformattedEntityName.contains("[Lv10]") && unformattedEntityName.contains(" Scatha "))
+        if (unformattedEntityName.contains(" Scatha "))
         {
             return new DetectedWorm(scathaPro, entity, true);
         }
