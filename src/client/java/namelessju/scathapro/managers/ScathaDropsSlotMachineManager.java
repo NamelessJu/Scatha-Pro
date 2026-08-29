@@ -9,7 +9,6 @@ import namelessju.scathapro.util.Util;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -166,7 +165,7 @@ public class ScathaDropsSlotMachineManager
     public boolean shouldHideScreen(@Nullable Screen screen)
     {
         if (!shouldHideDrops()) return false;
-        return screen instanceof AbstractContainerScreen || screen instanceof ChatScreen;
+        return screen instanceof AbstractContainerScreen;
     }
 
     public void tick()
@@ -220,15 +219,17 @@ public class ScathaDropsSlotMachineManager
         int guiMaxScale = scathaPro.minecraft.getWindow().calculateScale(0, false);
         float scale = Math.max(guiMaxScale - Mth.floor(guiMaxScale * 0.334f), 1)
             * scathaPro.config.miscellaneous.dropsSlotMachineScaleMultiplier.get();
-        float partialTicks = deltaTracker.getRealtimeDeltaTicks();
+        float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(true);
         int animationDuration = scathaPro.config.miscellaneous.dropsSlotMachineAnimationTicks.get();
-        float ticksPassed = animationDuration - animationTicksLeft - partialTicks;
+        float ticksLeft = animationTicksLeft - partialTicks;
+        float ticksPassed = animationDuration - ticksLeft;
+        float slotTicks = currentSlotIndexTicks + partialTicks;
         float progress = Mth.clamp(ticksPassed / animationDuration, 0f, 1f);
         float scrollProgress = getScrollProgress(progress);
         int alpha = Math.round(
             Math.min(
                 Mth.clamp(ticksPassed * (1f/6f), 0f, 1f), // fade in
-                petDrop == null ? Mth.clamp(animationTicksLeft * 0.2f, 0f, 1f) : 1f // fade out
+                petDrop == null ? Mth.clamp(ticksLeft * 0.2f, 0f, 1f) : 1f // fade out
             )
             * 255f
         );
@@ -290,15 +291,15 @@ public class ScathaDropsSlotMachineManager
             guiGraphics.pose().pushMatrix();
             if (i == currentSlotIndex)
             {
-                float targetSize = (float) (SLOT_SIZE + SLOT_GAP*2) / SLOT_SIZE;
+                float maxSize = (float) (SLOT_SIZE + SLOT_GAP*2*0.75) / SLOT_SIZE;
                 float distanceFromCenter = x+halfSlotSize;
                 float fadeX = Mth.clampedMap(
                     isTargetSlot ? Math.max(distanceFromCenter, 0f) : Math.abs(distanceFromCenter),
-                    halfSlotSize*0.65f, halfSlotSize, 0f, 1f
+                    halfSlotSize * 0.5f, halfSlotSize, 0f, 1f
                 );
                 float scaleIncreaseT = 1 - (fadeX*fadeX);
                 guiGraphics.pose().translate(x + halfSlotSize, Y_OFFSET);
-                guiGraphics.pose().scale(Mth.clampedLerp(scaleIncreaseT, 1f, targetSize));
+                guiGraphics.pose().scale(Mth.clampedLerp(scaleIncreaseT, 1f, maxSize));
                 guiGraphics.pose().translate(-halfSlotSize, -halfSlotSize);
             }
             else guiGraphics.pose().translate(x, -halfSlotSize + Y_OFFSET);
@@ -321,7 +322,7 @@ public class ScathaDropsSlotMachineManager
             ARGB.white(alpha)
         );
 
-        float a = Mth.clamp((currentSlotIndexTicks + partialTicks) / 8f, 0f, 1f) - 1f;
+        float a = Mth.clamp(slotTicks / 8f, 0f, 1f) - 1f;
         float textAnimT = -Math.abs(a*a*a) + 1f;
         float textScale = Mth.lerp(textAnimT, 2.2f, 1.5f);
         guiGraphics.pose().pushMatrix();

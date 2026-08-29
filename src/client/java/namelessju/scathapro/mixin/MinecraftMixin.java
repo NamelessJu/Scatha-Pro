@@ -21,6 +21,8 @@ public abstract class MinecraftMixin
 {
     @Shadow @Nullable
     public LocalPlayer player;
+    @Shadow @Nullable
+    public Screen screen;
 
     @Unique
     private boolean wasInLevelBefore = false;
@@ -68,15 +70,15 @@ public abstract class MinecraftMixin
 
     @Inject(
         method = "setScreen",
-        at = @At("HEAD"),
-        cancellable = true
+        at = @At("RETURN")
     )
-    private void beforeSetScreen(Screen screen, CallbackInfo ci)
+    private void afterSetScreen(CallbackInfo ci)
     {
+        if (screen == null) return;
+
         if (ScathaPro.getInstance().scathaDropsSlotMachineManager.shouldHideScreen(screen))
         {
-            screen.removed();
-            ci.cancel();
+            screen.onClose();
         }
     }
 }

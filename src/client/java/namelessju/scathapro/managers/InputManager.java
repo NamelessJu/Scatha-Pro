@@ -15,6 +15,7 @@ public class InputManager
 {
     private final KeyMapping.Category mainCategory = KeyMapping.Category.register(ScathaPro.getIdentifier("main"));
     private final KeyMapping.Category playerRotationCategory = KeyMapping.Category.register(ScathaPro.getIdentifier("player_rotation"));
+    private final KeyMapping.Category miscellaneousCategory = KeyMapping.Category.register(ScathaPro.getIdentifier("miscellaneous"));
 
 
     private final List<KeyMapping> keyMappings = Lists.newArrayList();
@@ -39,10 +40,15 @@ public class InputManager
         "alternativeSensitivity", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, playerRotationCategory
     );
 
+    private final KeyMapping cancelScathaDropsSlotMachineKeyMapping = registerKeyMapping(
+        "cancelScathaDropsSlotMachine", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, miscellaneousCategory
+    );
+
 
     private final ScathaPro scathaPro;
 
     private boolean isRotationLocked = false;
+    private int cancelSlotMachineDoubleClickTickTimer = 0;
 
     public InputManager(ScathaPro scathaPro)
     {
@@ -101,6 +107,17 @@ public class InputManager
             scathaPro.chatManager.sendChatMessage(
                 Component.literal("Changed overlay worm stats to: Per " + statsType).withStyle(ChatFormatting.GRAY)
             );
+        }
+
+        if (cancelSlotMachineDoubleClickTickTimer > 0) cancelSlotMachineDoubleClickTickTimer--;
+        while (cancelScathaDropsSlotMachineKeyMapping.consumeClick())
+        {
+            if (cancelSlotMachineDoubleClickTickTimer > 0)
+            {
+                scathaPro.scathaDropsSlotMachineManager.reset();
+                cancelSlotMachineDoubleClickTickTimer = 0;
+            }
+            else cancelSlotMachineDoubleClickTickTimer = 20;
         }
     }
 

@@ -103,6 +103,12 @@ public class Config extends ObjectRootJsonFile
 
         public final BooleanValue bedrockWallAlertEnabled
             = addBoolean("alertTypes.bedrockWallAlert.enabled", true);
+        public final BooleanValue crawlingAlertEnabled
+            = addBoolean("alertTypes.crawlingAlert.enabled", true);
+        public final PrimitiveValueWithDefault<Integer> crawlingAlertTriggerDelayTicks
+            = addPrimitiveWithDefault("alertTypes.crawlingAlert.triggerDelayTicks", INTEGER_SERIALIZER, 40);
+        public final PrimitiveValueWithDefault<Integer> crawlingAlertTriggerIntervalTicks
+            = addPrimitiveWithDefault("alertTypes.crawlingAlert.triggerIntervalTicks", INTEGER_SERIALIZER, 60);
         public final BooleanValue obstacleAlertEnabled
             = addBoolean("alertTypes.obstacleAlert.enabled", false);
         public final PrimitiveValueWithDefault<Integer> bedrockWallAlertTriggerDistance
