@@ -6,6 +6,7 @@ import namelessju.scathapro.achievements.Achievement;
 import namelessju.scathapro.events.ScathaProEvents;
 import namelessju.scathapro.managers.ChatManager;
 import namelessju.scathapro.miscellaneous.data.enums.OldLobbyAlertTriggerMode;
+import namelessju.scathapro.miscellaneous.data.enums.SecondaryWormStatsType;
 import namelessju.scathapro.util.TimeUtil;
 import net.minecraft.network.chat.Component;
 
@@ -58,18 +59,20 @@ public final class ScathaProMiscListeners
         }
     }
 
-    private static void onRealDayStarted(ScathaPro scathaPro)
+    private static void onRealDayStarted(ScathaProEvents.RealDayStartedEventData data)
     {
+        ScathaPro scathaPro = data.scathaPro();
+
         scathaPro.getProfileData().lastPlayedDate.set(TimeUtil.today());
         scathaPro.secondaryStatsManager.perDayStats.reset();
         scathaPro.persistentData.save();
 
         ScathaPro.LOGGER.debug("Daily stats reset");
 
-        if (scathaPro.minecraft.level != null)
+        if (scathaPro.config.overlay.statsType.get() == SecondaryWormStatsType.PER_DAY && !data.silent())
         {
             scathaPro.chatManager.sendChatMessage(
-                Component.literal("New IRL day started - per day stats reset").setStyle(ChatManager.HIGHLIGHT_STYLE)
+                Component.literal("New IRL day started - daily stats reset").setStyle(ChatManager.HIGHLIGHT_STYLE)
             );
         }
 

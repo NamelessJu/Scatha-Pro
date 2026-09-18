@@ -316,7 +316,6 @@ public class DevCommand extends ScathaProCommand
     private <T> LiteralArgumentBuilder<T> buildScathaDropRollTrigger()
     {
         BiConsumer<Boolean, ScathaPetDrop> roll = (blockBran, scathaPetDrop) -> {
-            if (scathaPetDrop != null) scathaPetDrop.isEffectsOnly = true;
             scathaPro.scathaDropsSlotMachineManager.startRolling();
             scathaPro.scathaDropsSlotMachineManager.setPetDrop(scathaPetDrop);
             scathaPro.scathaDropsSlotMachineManager.setHasDroppedBlockBran(blockBran);
@@ -340,19 +339,19 @@ public class DevCommand extends ScathaProCommand
                 .executes(getMissingArgumentsCommand())
                 .then(LiteralArgumentBuilder.<T>literal("rare")
                     .executes(_ -> {
-                        roll.accept(false, new ScathaPetDrop(Rarity.RARE));
+                        roll.accept(false, new ScathaPetDrop(Rarity.RARE, false, true));
                         return Command.SINGLE_SUCCESS;
                     })
                 )
                 .then(LiteralArgumentBuilder.<T>literal("epic")
                     .executes(_ -> {
-                        roll.accept(false, new ScathaPetDrop(Rarity.EPIC));
+                        roll.accept(false, new ScathaPetDrop(Rarity.EPIC, false, true));
                         return Command.SINGLE_SUCCESS;
                     })
                 )
                 .then(LiteralArgumentBuilder.<T>literal("legendary")
                     .executes(_ -> {
-                        roll.accept(false, new ScathaPetDrop(Rarity.LEGENDARY));
+                        roll.accept(false, new ScathaPetDrop(Rarity.LEGENDARY, false, true));
                         return Command.SINGLE_SUCCESS;
                     })
                 )

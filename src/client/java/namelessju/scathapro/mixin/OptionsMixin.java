@@ -30,7 +30,7 @@ public abstract class OptionsMixin
     private void injectKeyMappings(CallbackInfo info)
     {
         List<KeyMapping> updatedKeyMappings = Lists.newArrayList(keyMappings);
-        updatedKeyMappings.addAll(ScathaPro.getInstance().inputManager.getKeyMappings());
+        updatedKeyMappings.addAll(ScathaPro.instance().inputManager.getKeyMappings());
         keyMappings = updatedKeyMappings.toArray(KeyMapping[]::new);
         ScathaPro.LOGGER.debug("Injected key mappings");
     }

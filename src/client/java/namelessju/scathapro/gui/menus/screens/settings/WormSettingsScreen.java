@@ -298,10 +298,12 @@ public class WormSettingsScreen extends ConfigScreen
             rootElement.arrangeElements();
         }
 
+        //? if >= 26.2 {
         @Override
         public void removeChildren()
         {
             // No!
         }
+        //? }
     }
 }

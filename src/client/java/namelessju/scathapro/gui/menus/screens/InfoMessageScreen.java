@@ -1,7 +1,7 @@
 package namelessju.scathapro.gui.menus.screens;
 
 import namelessju.scathapro.ScathaPro;
-import namelessju.scathapro.gui.menus.framework.screens.LayoutScreen;
+import namelessju.scathapro.gui.menus.framework.screens.ScathaProLayoutScreen;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.MultiLineTextWidget;
 import net.minecraft.client.gui.components.StringWidget;
@@ -14,7 +14,7 @@ import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-public class InfoMessageScreen extends LayoutScreen
+public class InfoMessageScreen extends ScathaProLayoutScreen
 {
     private final Component description;
     private final Component okButtonText;

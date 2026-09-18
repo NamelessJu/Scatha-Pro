@@ -25,7 +25,7 @@ public abstract class PlayerMixin
         if (((Player) (Object) this) instanceof LocalPlayer player)
         {
             ScathaProEvents.attackEntityEvent.trigger(
-                new ScathaProEvents.AttackEntityEventData(ScathaPro.getInstance(), player, entity, itemStack)
+                new ScathaProEvents.AttackEntityEventData(ScathaPro.instance(), player, entity, itemStack)
             );
         }
         return itemStack;

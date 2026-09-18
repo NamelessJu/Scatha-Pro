@@ -43,6 +43,10 @@ public class ChatParser
             && unformattedText.equalsIgnoreCase("You hear the sound of something approaching..."))
             return true;
 
+        if (scathaPro.hypixelContextManager.shouldCancelChatMessage(unformattedText)) return true;
+
+        // PUT SIMPLE CANCEL CONDITIONS ABOVE THIS LINE
+
         if (scathaPro.coreManager.hasPendingBlackHoleKill() && scathaShardsCaughtPattern.matcher(unformattedText).find())
         {
             scathaPro.coreManager.triggerBlackHoleKill();
@@ -113,7 +117,10 @@ public class ChatParser
         if (stonewormCharmedPattern.matcher(unformattedText).find())
         {
             Achievement.stoneworm_charm.unlock();
+            return;
         }
+
+        if (scathaPro.hypixelContextManager.parseChatMessage(unformattedText)) return;
 
         parseTunnelVisionMessages(unformattedText);
     }

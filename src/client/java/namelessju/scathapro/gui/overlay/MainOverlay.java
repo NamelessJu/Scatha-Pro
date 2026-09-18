@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.TimeZone;
+import java.util.function.Consumer;
 
 public class MainOverlay
 {
@@ -67,7 +68,9 @@ public class MainOverlay
     private OverlayText totalKillsText;
     private OverlayText secondaryTotalKillsText;
     private OverlayText wormStreakText;
+    private OverlayText wormsPerHourText;
     private OverlayText blockBransText;
+    private OverlayText bestiaryRankText;
     private OverlayText coordsText;
     private OverlayText lobbyTimeText;
     private OverlayText rarePetDropsText;
@@ -205,11 +208,23 @@ public class MainOverlay
         mainContainer.add(countersContainer);
 
 
+        OverlayContainer blockBransContainer = new OverlayContainer(0, 2, 1f);
+        blockBransContainer.add(new OverlayImage(
+            Texture.scathaPro("generic/block_bran.png", 256, 256), 0, 0, 16, 16, 0.58f
+        ));
+        blockBransContainer.add(blockBransText = new OverlayText(minecraft.font, Util.Color.WHITE, 12, 1, 1f));
+        mainContainer.add(blockBransContainer);
+        addToggleableElement("Dwarven O's Block Brans Counter", blockBransContainer, elementStatesConfig.blockBransCounterShown);
+
+        mainContainer.add(wormsPerHourText = new OverlayText(minecraft.font, Util.Color.WHITE, 0, 2, 1f));
+        addToggleableElement("Worms Per Hour", wormsPerHourText, elementStatesConfig.wormsPerHourShown);
+
         mainContainer.add(scathaKillsSinceLastDropText = new OverlayText(minecraft.font, Util.Color.WHITE, 0, 2, 1f));
         addToggleableElement("Scathas Since Pet Drop", scathaKillsSinceLastDropText, elementStatesConfig.scathaKillsSinceLastPetDropShown);
 
-        mainContainer.add(blockBransText = new OverlayText(minecraft.font, Util.Color.WHITE, 0, 2, 1f));
-        addToggleableElement("Dwarven O's Block Brans Counter", blockBransText, elementStatesConfig.blockBransCounterShown);
+        mainContainer.add(bestiaryRankText = new OverlayText(minecraft.font, Util.Color.WHITE, 0, 2, 1f));
+        addToggleableElement("Bestiary Rank", bestiaryRankText, elementStatesConfig.bestiaryRankShown,
+            Component.literal("Open Stoneworm bestiary to update").withStyle(Style.EMPTY.withColor(TextColor.YELLOW).withItalic(true)));
 
         mainContainer.add(spawnCooldownTimerText = new OverlayText(minecraft.font, Util.Color.WHITE, 0, 2, 1f));
         addToggleableElement("Spawn Cooldown Status", spawnCooldownTimerText, elementStatesConfig.wormSpawnCooldownTimerShown);
@@ -245,7 +260,7 @@ public class MainOverlay
         config.overlay.alignmentOverride.onValueChanged(_ -> updateContentAlignment());
         config.overlay.backgroundOpacity.onValueChanged(_ -> updateBackground());
         config.overlay.iconsEnabled.onValueChanged(_ -> updateAll());
-        config.accessibility.useHighContrastColors.onValueChanged(_ -> updateContrast());
+        config.accessibility.useHighContrastColors.onValueChanged(_ -> updateAll());
         config.worms.revertRegularWormTexture.onValueChanged(_ -> updateWormImage());
         config.alerts.mode.onValueChanged(_ -> updateScathaPetImage());
         config.unlockables.overlayIconGooglyEyesEnabled.onValueChanged(_ -> updateGooglyEyesEnabled());
@@ -268,8 +283,16 @@ public class MainOverlay
             }
         });
 
+        Consumer<PersistentData.ProfileData> profileDataEventSubscriber = profileData -> {
+            profileData.bestiaryRank.onValueChanged(_ -> updateBestiaryRank());
+        };
+        scathaPro.persistentDataProfileManager.onProfileChanged(data -> {
+            // listeners on old data are removed automatically
+            profileDataEventSubscriber.accept(data.profileData());
 
-        scathaPro.persistentDataProfileManager.onProfileChanged(_ -> updateAll());
+            updateAll();
+        });
+        profileDataEventSubscriber.accept(scathaPro.getProfileData());
     }
 
     public void toggleEnabled()
@@ -286,7 +309,7 @@ public class MainOverlay
 
     public void toggleShown()
     {
-        if (!scathaPro.coreManager.isInCrystalHollows())
+        if (!scathaPro.hypixelContextManager.isInCrystalHollows())
         {
             scathaPro.chatManager.sendChatErrorMessage("Overlay visibility cannot be changed outside of Crystal Hollows");
             return;
@@ -307,7 +330,7 @@ public class MainOverlay
 
     public boolean isVisible()
     {
-        return scathaPro.coreManager.isInCrystalHollows() && isShown && !(minecraft.gui.screen() instanceof OverlaySettingsScreen)
+        return scathaPro.hypixelContextManager.isInCrystalHollows() && isShown && !(minecraft.gui.screen() instanceof OverlaySettingsScreen)
             && !minecraft.debugEntries.isOverlayVisible() && !((PlayerTabOverlayAccessor) minecraft.gui.hud.getTabList()).isVisible();
     }
 
@@ -389,6 +412,8 @@ public class MainOverlay
 
         updateWormKills();
         updateScathaKills();
+        updateWormsPerHour();
+        updateBestiaryRank();
 
         updateBlockBrans();
 
@@ -405,7 +430,7 @@ public class MainOverlay
 
         updateScale();
         updatePosition();
-        updateContrast();
+        updateTextBaseColorContrast();
     }
 
     private void updateTick()
@@ -419,6 +444,7 @@ public class MainOverlay
         updateLobbyTime();
         updateRealTimeClock();
         updatePosition();
+        updateWormsPerHour();
 
         if (scathaPro.config.overlay.scathaPercentageAlternativePositionEnabled.get())
         {
@@ -459,7 +485,7 @@ public class MainOverlay
         this.contentAlignment = scathaPro.config.overlay.alignmentOverride.get();
     }
 
-    private void updateContrast()
+    private void updateTextBaseColorContrast()
     {
         int color = (scathaPro.config.accessibility.useHighContrastColors.get() ? Util.Color.WHITE : Util.Color.GRAY);
 
@@ -467,14 +493,9 @@ public class MainOverlay
         secondaryScathaKillsText.setColor(color);
         secondaryTotalKillsText.setColor(color);
         wormStreakText.setColor(color);
+        wormsPerHourText.setColor(color);
         scathaKillsSinceLastDropText.setColor(color);
         wormSpawnTimerText.setColor(color);
-
-        updateTotalKills();
-        updateLobbyTime();
-        updateCoords();
-        updateRealTimeClock();
-        updateProfileStats();
     }
 
     private void updateScathaName()
@@ -640,7 +661,7 @@ public class MainOverlay
 
     public void updateWormKills()
     {
-        regularWormKillsText.setText(TextUtil.numberToComponentOrObf(getProfileData().regularWormKills.get()));
+        regularWormKillsText.setText(TextUtil.numberToComponentOrObf(getProfileData().stonewormKills.get()));
         secondaryRegularWormKillsText.setText(TextUtil.numberToString(secondaryStats.getRegularWormKills()));
 
         updateTotalKills();
@@ -663,8 +684,8 @@ public class MainOverlay
         {
             // Scatha percentages
 
-            int totalKills = getProfileData().regularWormKills.get() >= 0 && getProfileData().scathaKills.get() >= 0
-                ? getProfileData().regularWormKills.get() + getProfileData().scathaKills.get()
+            int totalKills = getProfileData().stonewormKills.get() >= 0 && getProfileData().scathaKills.get() >= 0
+                ? getProfileData().stonewormKills.get() + getProfileData().scathaKills.get()
                 : -1;
             int secondaryTotalKills = secondaryStats.getRegularWormKills() + secondaryStats.getScathaKills();
 
@@ -694,8 +715,8 @@ public class MainOverlay
     private void updateTotalKills()
     {
         int secondaryTotalKills = secondaryStats.getRegularWormKills() + secondaryStats.getScathaKills();
-        int totalKills = getProfileData().regularWormKills.get() >= 0 && getProfileData().scathaKills.get() >= 0
-            ? getProfileData().regularWormKills.get() + getProfileData().scathaKills.get()
+        int totalKills = getProfileData().stonewormKills.get() >= 0 && getProfileData().scathaKills.get() >= 0
+            ? getProfileData().stonewormKills.get() + getProfileData().scathaKills.get()
             : -1;
 
         TextColor contrastableGray = TextUtil.contrastableGray(scathaPro);
@@ -728,6 +749,19 @@ public class MainOverlay
         secondaryTotalKillsText.setText(secondaryComponent);
     }
 
+    private void updateWormsPerHour()
+    {
+        float hoursPassed = (float) (Math.max(TimeUtil.getEpochMilliseconds() - scathaPro.coreManager.lastWorldJoinTime, 1000L) / 3600000D);
+        int scathaKills = scathaPro.secondaryStatsManager.perLobbyStats.getScathaKills();
+        float scathasPerHour = scathaKills / hoursPassed;
+        float wormsPerHour = (scathaPro.secondaryStatsManager.perLobbyStats.getRegularWormKills() + scathaKills) / hoursPassed;
+        wormsPerHourText.setText(
+            icon(UnicodeSymbol.sword)
+            + "Scathas/h: " + TextUtil.numberToString(scathasPerHour, 0)
+            + " (Total/h: " + TextUtil.numberToString(wormsPerHour, 0) + ")"
+        );
+    }
+
     public void updateWormStreak()
     {
         int scathaSpawnStreak = secondaryStats.getScathaSpawnStreak();
@@ -751,7 +785,7 @@ public class MainOverlay
         int worldDay = worldTime >= 0L ? (int) Math.floor(worldTime / 24000f) : 0;
         float worldDayProgress = worldTime >= 0L ? (worldTime % 24000f) / 24000f : 0f;
 
-        long lobbyTime = level != null && scathaPro.coreManager.isInCrystalHollows() ? TimeUtil.getEpochMilliseconds() - scathaPro.coreManager.lastWorldJoinTime : 0L;
+        long lobbyTime = level != null && scathaPro.hypixelContextManager.isInCrystalHollows() ? TimeUtil.getEpochMilliseconds() - scathaPro.coreManager.lastWorldJoinTime : 0L;
         SimpleDateFormat timerFormat = new SimpleDateFormat("HH:mm:ss");
         timerFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
 
@@ -830,10 +864,35 @@ public class MainOverlay
     public void updateBlockBrans()
     {
         blockBransText.setText(Component.empty().withColor(TextUtil.contrastableGray(scathaPro))
-            .append(Component.literal("Block Brans").withColor(TextColor.BLUE)).append(" dropped: ")
-            .append(TextUtil.numberToComponentOrObf(getProfileData().blockBransDropped.get()))
+            .append(Component.literal("Block Brans").withColor(TextColor.BLUE)).append(": ")
+            .append(Component.empty().withColor(TextColor.WHITE)
+                .append(TextUtil.numberToComponentOrObf(getProfileData().blockBransDropped.get())))
             .append(" / ").append(TextUtil.numberToComponentOrObf(secondaryStats.getBlockBransDropped()))
         );
+    }
+
+    private void updateBestiaryRank()
+    {
+        MutableComponent component = Component.empty().withColor(TextUtil.contrastableGray(scathaPro))
+            .append(icon(UnicodeSymbol.leaderboard) + "Worm bestiary rank: ");
+        Component numberComponent;
+
+        int rank = getProfileData().bestiaryRank.get();
+        if (rank > 0)
+        {
+            numberComponent = Component.literal("#" + TextUtil.numberToString(rank));
+            if (rank == 3) numberComponent =
+                Component.literal(icon(UnicodeSymbol.medal)).withColor(0xD18356).append(numberComponent);
+            else if (rank == 2) numberComponent =
+                Component.literal(icon(UnicodeSymbol.medal)).withColor(0xB9CDD1).append(numberComponent);
+            else if (rank == 1) numberComponent =
+                Component.literal(icon(UnicodeSymbol.medal)).withColor(TextColor.GOLD).append(numberComponent);
+        }
+        else numberComponent = Component.empty()
+            .append("#").append(Component.literal("?").setStyle(Style.EMPTY.withObfuscated(true)));
+
+        component.append(Component.empty().withColor(TextColor.DARK_GREEN).append(numberComponent));
+        bestiaryRankText.setText(component);
     }
 
     private void updateSpawnCooldown()

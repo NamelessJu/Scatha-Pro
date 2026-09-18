@@ -1,0 +1,4 @@
+classTweaker v1 official
+
+# only required on 26.1.2 (doesn't cause an error on higher versions):
+extendable method net/minecraft/client/gui/screens/options/controls/KeyBindsList$Entry refreshEntry ()V

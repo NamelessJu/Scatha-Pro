@@ -94,7 +94,12 @@ public class UpdateChecker
                                 scathaPro.runNextTick(() -> scathaPro.chatManager.sendChatMessage(Component.empty().withColor(TextColor.GOLD)
                                     .append("A newer " + ScathaPro.MOD_NAME + " version (" + finalLatestVersion + ") is available! You can download it ")
                                     .append(Component.literal("here").setStyle(Style.EMPTY
-                                        .withColor(TextColor.BLUE).withUnderlined(true)
+                                        //? if >= 26.2 {
+                                        .withColor(TextColor.BLUE)
+                                        //? } else {
+                                        /*.withColor(   TextColor.BLUE)
+                                        *///? }
+                                        .withUnderlined(true)
                                         .withHoverEvent(new HoverEvent.ShowText(Component.literal(downloadLink).withColor(TextColor.GRAY)))
                                         .withClickEvent(new ClickEvent.OpenUrl(URI.create(downloadLink)))
                                     ))

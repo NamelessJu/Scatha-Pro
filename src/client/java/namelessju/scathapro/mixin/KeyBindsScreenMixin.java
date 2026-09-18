@@ -21,13 +21,13 @@ public abstract class KeyBindsScreenMixin implements IKeyBindsListExtraData
     private boolean isScathaProOnly = false;
 
     @Override
-    public void scathapro$setScathaProOnly()
+    public void scathaPro$setScathaProOnly()
     {
         isScathaProOnly = true;
     }
 
     @Override
-    public boolean scathapro$isScathaProOnly()
+    public boolean scathaPro$isScathaProOnly()
     {
         return isScathaProOnly;
     }
@@ -43,11 +43,11 @@ public abstract class KeyBindsScreenMixin implements IKeyBindsListExtraData
     )
     private Button.OnPress replaceResetButtonOnPress(Button.OnPress onPress)
     {
-        if (!this.scathapro$isScathaProOnly())
+        if (!this.scathaPro$isScathaProOnly())
             return onPress;
 
         return _ -> {
-            for (KeyMapping key : ScathaPro.getInstance().inputManager.getKeyMappings())
+            for (KeyMapping key : ScathaPro.instance().inputManager.getKeyMappings())
             {
                 key.setKey(key.getDefaultKey());
             }

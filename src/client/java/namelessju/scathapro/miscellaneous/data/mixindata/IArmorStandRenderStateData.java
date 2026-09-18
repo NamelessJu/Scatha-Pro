@@ -5,14 +5,14 @@ import org.jspecify.annotations.Nullable;
 
 public interface IArmorStandRenderStateData
 {
-    void scathapro$setWormLifetimeLeft(float lifetimeLeft);
-    float scathapro$getWormLifetimeLeft();
+    void scathaPro$setWormLifetimeLeft(float lifetimeLeft);
+    float scathaPro$getWormLifetimeLeft();
 
-    void scathapro$setIsWorm(boolean isScatha);
+    void scathaPro$setIsWorm(boolean isScatha);
     /** = either Stoneworm or Scatha */
-    boolean scathapro$isWorm();
-    boolean scathapro$isScatha();
+    boolean scathaPro$isWorm();
+    boolean scathaPro$isScatha();
 
-    void scathapro$setWormSegmentType(@Nullable WormSegmentType segmentType);
-    @Nullable WormSegmentType scathapro$getWormSegmentType();
+    void scathaPro$setWormSegmentType(@Nullable WormSegmentType segmentType);
+    @Nullable WormSegmentType scathaPro$getWormSegmentType();
 }

@@ -32,8 +32,7 @@ public class DetectedWorm extends DetectedEntity
     private int ticks = 0;
     private final Set<String> hitWeapons = new HashSet<>();
     private long lastAttackTime = -1;
-    private long lastFireAspectAttackTime = -1;
-    private int lastFireAspectLevel = 0;
+    private long fireAspectEffectEndTime = -1;
     private boolean wasHitWithPerfectGemstoneGauntlet = false;
     private ScathaProMovingEntitySound scappaSound = null;
 
@@ -68,7 +67,11 @@ public class DetectedWorm extends DetectedEntity
     {
         for (int tickCount : referencePassingTickCounts)
         {
-            if (tickCount == ticks) passReferenceToNearbySegments();
+            if (tickCount == ticks)
+            {
+                passReferenceToNearbySegments();
+                break;
+            }
         }
 
         ticks ++;
@@ -114,8 +117,8 @@ public class DetectedWorm extends DetectedEntity
     {
         if (entity instanceof IWormArmorStandData data)
         {
-            data.scathapro$setWorm(this);
-            data.scathapro$setIsWormNametag(true);
+            data.scathaPro$setWorm(this);
+            data.scathaPro$setIsWormNametag(true);
         }
     }
 
@@ -123,17 +126,17 @@ public class DetectedWorm extends DetectedEntity
     {
         int referencesPassed = 0;
         for (ArmorStand armorStand : entity.level().getEntitiesOfClass(ArmorStand.class,
-            AABB.ofSize(entity.position(), 16, 4, 16),
+            AABB.ofSize(entity.position(), 31, 4, 31),
             armorStand -> armorStand != entity
         )) {
             IWormArmorStandData segmentData = ((IWormArmorStandData) armorStand);
-            if (segmentData.scathapro$getWorm() != null) continue;
+            if (segmentData.scathaPro$getWorm() != null) continue;
 
             WormSegmentType segmentType = Constants.getPlayerHeadWormSegmentType(armorStand.getItemBySlot(EquipmentSlot.HEAD));
             if (segmentType != null)
             {
-                segmentData.scathapro$setWorm(this);
-                segmentData.scathapro$setWormSegmentType(segmentType);
+                segmentData.scathaPro$setWorm(this);
+                segmentData.scathaPro$setWormSegmentType(segmentType);
                 referencesPassed ++;
             }
         }
@@ -178,8 +181,13 @@ public class DetectedWorm extends DetectedEntity
                 });
 
                 skyBlockData.getCompound(SkyBlockItemUtil.KEY_ENCHANTMENTS).ifPresent(enchantments -> {
-                    lastFireAspectLevel = enchantments.getInt("fire_aspect").orElse(0);
-                    if (lastFireAspectLevel > 0) lastFireAspectAttackTime = now;
+                    int fireAspectLevel = enchantments.getInt("fire_aspect").orElse(0);
+                    fireAspectEffectEndTime = switch (fireAspectLevel)
+                    {
+                        case 1 -> now + 3000L;
+                        case 2, 3 -> now + 4000L;
+                        default -> -1L;
+                    };
                 });
             });
         }
@@ -213,16 +221,9 @@ public class DetectedWorm extends DetectedEntity
 
     public boolean isFireAspectActive()
     {
-        if (lastFireAspectLevel > 0)
+        if (fireAspectEffectEndTime > 0L)
         {
-            float fireAspectDuration = switch (lastFireAspectLevel)
-            {
-                case 1 -> 3f;
-                case 2, 3 -> 4f;
-                default -> 0f;
-            };
-
-            return TimeUtil.getEpochMilliseconds() - lastFireAspectAttackTime <= fireAspectDuration * 1000f + Constants.pingThreshold;
+            return TimeUtil.getEpochMilliseconds() < fireAspectEffectEndTime + Constants.pingThreshold;
         }
         return false;
     }

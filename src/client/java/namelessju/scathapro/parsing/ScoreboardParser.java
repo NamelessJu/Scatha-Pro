@@ -13,6 +13,8 @@ import java.util.function.Predicate;
 
 public final class ScoreboardParser
 {
+    private static final boolean DEBUG_LOGS_ENABLED = false;
+
     private ScoreboardParser() {}
 
     private static final Comparator<PlayerScoreEntry> SCORE_DISPLAY_ORDER = Comparator.comparing(PlayerScoreEntry::value)
@@ -21,7 +23,7 @@ public final class ScoreboardParser
 
     public static Optional<Integer> parseHeat(Minecraft minecraft)
     {
-        ScathaPro.LOGGER.debug("Parsing scoreboard heat value...");
+        if (DEBUG_LOGS_ENABLED) ScathaPro.LOGGER.debug("Parsing scoreboard heat value...");
 
         AtomicReference<Integer> heat = new AtomicReference<>();
 
@@ -56,16 +58,16 @@ public final class ScoreboardParser
                     try
                     {
                         heat.set(Integer.parseInt(valueString));
-                        ScathaPro.LOGGER.debug("Scoreboard heat entry found - value: {}", heat);
+                        if (DEBUG_LOGS_ENABLED) ScathaPro.LOGGER.debug("Scoreboard heat entry found - value: {}", heat);
                     }
                     catch (NumberFormatException exception)
                     {
-                        ScathaPro.LOGGER.debug("Error while parsing scoreboard heat value: \"{}\" couldn't be parsed to an int", text);
+                        if (DEBUG_LOGS_ENABLED) ScathaPro.LOGGER.debug("Error while parsing scoreboard heat value: \"{}\" couldn't be parsed to an int", text);
                     }
                 }
                 else
                 {
-                    ScathaPro.LOGGER.debug("Scoreboard heat entry found, but has no int value: \"{}\"", text);
+                    if (DEBUG_LOGS_ENABLED) ScathaPro.LOGGER.debug("Scoreboard heat entry found, but has no int value: \"{}\"", text);
                 }
 
                 return true;
@@ -81,14 +83,14 @@ public final class ScoreboardParser
     {
         if (minecraft.getConnection() == null) return;
 
-        ScathaPro.LOGGER.debug("Parsing scoreboard...");
+        if (DEBUG_LOGS_ENABLED) ScathaPro.LOGGER.debug("Parsing scoreboard...");
 
         Scoreboard scoreboard = minecraft.getConnection().scoreboard();
 
         Objective sidebarObjective = scoreboard.getDisplayObjective(DisplaySlot.SIDEBAR);
         if (sidebarObjective != null)
         {
-            ScathaPro.LOGGER.debug("Scoreboard objective found in sidebar: \"{}\"", sidebarObjective.getDisplayName());
+            if (DEBUG_LOGS_ENABLED) ScathaPro.LOGGER.debug("Scoreboard objective found in sidebar: \"{}\"", sidebarObjective.getDisplayName());
 
             Component[] lines = scoreboard.listPlayerScores(sidebarObjective)
                 .stream()
@@ -103,10 +105,10 @@ public final class ScoreboardParser
             for (Component line : lines)
             {
                 String unformattedText = StringDecomposer.getPlainText(line);
-                ScathaPro.LOGGER.debug("Scoreboard line: \"{}\"", unformattedText);
+                if (DEBUG_LOGS_ENABLED) ScathaPro.LOGGER.debug("Scoreboard line: \"{}\"", unformattedText);
                 if (scorePredicate.test(unformattedText)) return;
             }
         }
-        else ScathaPro.LOGGER.debug("No scoreboard objective in sidebar found");
+        else if (DEBUG_LOGS_ENABLED) ScathaPro.LOGGER.debug("No scoreboard objective in sidebar found");
     }
 }

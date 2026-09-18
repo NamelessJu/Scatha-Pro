@@ -3,7 +3,6 @@ package namelessju.scathapro.miscellaneous;
 import com.mojang.blaze3d.ProjectionType;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTexture;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.DeltaTracker;
@@ -24,6 +23,20 @@ import net.minecraft.world.item.Items;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+//? if <= 26.1.2
+//import net.minecraft.client.renderer.RenderBuffers;
+
+//? if >= 26.3 {
+import com.mojang.renderpearl.api.commands.RenderPass;
+import com.mojang.renderpearl.api.textures.GpuTexture;
+import com.mojang.renderpearl.api.textures.GpuTextureView;
+
+import java.util.Optional;
+import java.util.OptionalDouble;
+//? } else {
+/*import com.mojang.blaze3d.textures.GpuTexture;
+*///? }
+
 /**
  * Renders an item popping up like the Totem of Undying, but rendered above EVERYTHING
  */
@@ -32,8 +45,7 @@ public class ItemPopupRenderer
     private final Minecraft minecraft;
     private final RandomSource randomSource = RandomSource.create();
 
-    @Nullable
-    private ItemStack itemStack;
+    private @Nullable ItemStack itemStack;
     private int animationTicks;
     private boolean alternativeRotationAnimationCurve;
     private int animationTicksRemaining;
@@ -61,18 +73,66 @@ public class ItemPopupRenderer
 
     public void render(ProjectionMatrixBuffer hud3dProjectionMatrixBuffer, Projection hudProjection,
                        SubmitNodeStorage submitNodeStorage, DeltaTracker deltaTracker,
-                       FeatureRenderDispatcher featureRenderDispatcher)
+                       FeatureRenderDispatcher featureRenderDispatcher
+                       //? if <= 26.1.2
+                       //, RenderBuffers renderBuffers
+    )
     {
         if (itemStack == null || animationTicksRemaining <= 0) return;
-        GpuTexture depthTexture = Minecraft.getInstance().gameRenderer.mainRenderTarget().getDepthTexture();
+        //? if >= 26.2 {
+        GpuTexture depthTexture = minecraft.gameRenderer.mainRenderTarget().getDepthTexture();
+        //? } else {
+        /*GpuTexture depthTexture = minecraft.getMainRenderTarget().getDepthTexture();
+        *///? }
         if (depthTexture == null) return;
 
         RenderSystem.setProjectionMatrix(hud3dProjectionMatrixBuffer.getBuffer(hudProjection), ProjectionType.PERSPECTIVE);
-        RenderSystem.getDevice().createCommandEncoder().clearDepthTexture(depthTexture, RenderSystem.DEFAULT_DEPTH_CLEAR_VALUE);
+        RenderSystem.getDevice().createCommandEncoder().clearDepthTexture(depthTexture,
+            //? if >= 26.2 {
+            RenderSystem.DEFAULT_DEPTH_CLEAR_VALUE
+            //? } else {
+            /*1D
+            *///? }
+        );
 
         renderItem(submitNodeStorage, deltaTracker.getGameTimeDeltaPartialTick(true));
 
-        featureRenderDispatcher.renderAllFeatures(submitNodeStorage);
+        //? if >= 26.3 {
+        GpuTextureView colorTextureView = minecraft.gameRenderer.mainRenderTarget().getColorTextureView();
+        if (colorTextureView != null)
+            try (FeatureRenderDispatcher.PreparedFrame frame = featureRenderDispatcher.prepareFrame(submitNodeStorage)) {
+                GpuTextureView depthTextureView = minecraft.gameRenderer.mainRenderTarget().getDepthTextureView();
+                RenderPass renderPass = RenderSystem.getDevice()
+                    .createCommandEncoder()
+                    .createRenderPass(() -> "Scatha-Pro item popup", colorTextureView, Optional.empty(), depthTextureView, OptionalDouble.empty());
+
+                try {
+                    RenderSystem.bindDefaultUniforms(renderPass);
+                    FeatureRenderDispatcher.renderAllFeatures(renderPass, frame);
+                } catch (Throwable e) {
+                    //noinspection ConstantValue
+                    if (renderPass != null) {
+                        try {
+                            renderPass.close();
+                        } catch (Throwable e2) {
+                            e.addSuppressed(e2);
+                        }
+                    }
+
+                    throw e;
+                }
+
+                //noinspection ConstantValue
+                if (renderPass != null) {
+                    renderPass.close();
+                }
+            }
+        //? } else if >= 26.2 {
+        /*featureRenderDispatcher.renderAllFeatures(submitNodeStorage);
+        *///? } else {
+        /*featureRenderDispatcher.renderAllFeatures();
+        renderBuffers.bufferSource().endBatch();
+        *///? }
     }
 
     private void renderItem(SubmitNodeCollector submitNodeCollector, float partialTicks)
@@ -113,17 +173,23 @@ public class ItemPopupRenderer
         poseStack.scale(scale, scale, scale);
         if (angled)
         {
-            poseStack.mulPose(Axis.XP.rotationDegrees(30f));
-            poseStack.mulPose(Axis.YP.rotationDegrees(45f));
+            rotate(poseStack, Axis.XP, 30f);
+            rotate(poseStack, Axis.YP, 45f);
         }
-        poseStack.mulPose(Axis.YP.rotationDegrees(900f * (
+        rotate(poseStack, Axis.YP, 900f * (
             alternativeRotationAnimationCurve
                 ? (float) Math.pow(Mth.sin(progress * (float) Math.PI), 0.5D)
                 : Mth.abs(Mth.sin(halfRotations))
-        )));
-        poseStack.mulPose(Axis.XP.rotationDegrees(6f * Mth.cos(progress * 8f)));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(6f * Mth.cos(progress * 8f)));
-        minecraft.gameRenderer.lighting().setupFor(Lighting.Entry.ITEMS_3D);
+        ));
+        rotate(poseStack, Axis.XP, 6f * Mth.cos(progress * 8f));
+        rotate(poseStack, Axis.ZP, 6f * Mth.cos(progress * 8f));
+        minecraft.gameRenderer
+            //? if >= 26.2 {
+            .lighting()
+            //? } else {
+            /*.getLighting()
+            *///? }
+            .setupFor(Lighting.Entry.ITEMS_3D);
         ItemStackRenderState itemStackRenderState = new ItemStackRenderState();
         minecraft.getItemModelResolver().updateForTopItem(itemStackRenderState, itemStack, ItemDisplayContext.FIXED, minecraft.level, null, 0);
         itemStackRenderState.submit(poseStack, submitNodeCollector, 15728880, OverlayTexture.NO_OVERLAY, 0);
@@ -149,5 +215,14 @@ public class ItemPopupRenderer
     public void clear()
     {
         itemStack = null;
+    }
+
+    private void rotate(PoseStack poseStack, Axis axis, float angle)
+    {
+        //? if >= 26.3 {
+        poseStack.rotateDegrees(axis, angle);
+        //? } else {
+        /*poseStack.mulPose(axis.rotationDegrees(angle));
+        *///? }
     }
 }

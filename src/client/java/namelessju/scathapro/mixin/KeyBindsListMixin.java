@@ -52,10 +52,10 @@ public abstract class KeyBindsListMixin extends ContainerObjectSelectionList<Key
     )
     private KeyMapping[] overrideKeyBindsArray(Options instance, Operation<KeyMapping[]> original)
     {
-        if (!((IKeyBindsListExtraData) (keyBindsScreen)).scathapro$isScathaProOnly())
+        if (!((IKeyBindsListExtraData) (keyBindsScreen)).scathaPro$isScathaProOnly())
             return original.call(instance);
 
-        return ScathaPro.getInstance().inputManager.getKeyMappings().toArray(KeyMapping[]::new);
+        return ScathaPro.instance().inputManager.getKeyMappings().toArray(KeyMapping[]::new);
     }
 
     @Inject(
@@ -64,7 +64,7 @@ public abstract class KeyBindsListMixin extends ContainerObjectSelectionList<Key
     )
     private void appendAllKeyBindsButton(KeyBindsScreen keyBindsScreen, Minecraft minecraft, CallbackInfo ci)
     {
-        if (!((IKeyBindsListExtraData) (keyBindsScreen)).scathapro$isScathaProOnly())
+        if (!((IKeyBindsListExtraData) (keyBindsScreen)).scathaPro$isScathaProOnly())
             return;
 
         addEntry(new SingleWidgetEntry(null));

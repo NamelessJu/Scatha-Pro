@@ -5,7 +5,7 @@ import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.alerts.Alert;
 import namelessju.scathapro.alerts.alertmodes.AlertMode;
 import namelessju.scathapro.alerts.alertmodes.AlertModeManager;
-import namelessju.scathapro.gui.menus.framework.screens.LayoutScreen;
+import namelessju.scathapro.gui.menus.framework.screens.ScathaProLayoutScreen;
 import namelessju.scathapro.gui.menus.framework.widgets.lists.ScathaProGuiList;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
@@ -27,7 +27,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-public class CustomAlertModeSelectSoundScreen extends LayoutScreen
+public class CustomAlertModeSelectSoundScreen extends ScathaProLayoutScreen
 {
     private final @NonNull String subModeId;
     private final @NonNull Alert alert;

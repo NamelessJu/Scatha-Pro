@@ -184,7 +184,7 @@ public final class ScathaProGameplayListeners
                 );
 
                 if (scathaPro.config.miscellaneous.dropsSlotMachineEnabled.get()
-                    && unformattedName.contains("1" + UnicodeSymbol.hypixelHeart))
+                    && unformattedName.contains(" 1" + UnicodeSymbol.hypixelHeart))
                 {
                     scathaPro.scathaDropsSlotMachineManager.startPreRoll();
                 }
@@ -445,7 +445,11 @@ public final class ScathaProGameplayListeners
             else if (!droppedPetBefore)
             {
                 scathaPro.chatManager.sendChatMessage(Component.empty().setStyle(Style.EMPTY
+                        //? if >= 26.2 {
                         .withColor(TextColor.YELLOW)
+                        //? } else {
+                        /*.withColor(   TextColor.YELLOW)
+                        *///? }
                         .withHoverEvent(new HoverEvent.ShowText(Component.empty().withColor(TextColor.GRAY)
                             .append(Component.literal("Note:\n").withColor(TextColor.YELLOW))
                             .append(scathaPro.getModDisplayName() + " isn't able to determine whether you\n"
@@ -459,7 +463,11 @@ public final class ScathaProGameplayListeners
             else
             {
                 scathaPro.chatManager.sendChatMessage(Component.empty().setStyle(Style.EMPTY
+                        //? if >= 26.2 {
                         .withColor(TextColor.GRAY)
+                        //? } else {
+                        /*.withColor(   TextColor.GRAY)
+                        *///? }
                         .withHoverEvent(new HoverEvent.ShowText(Component.empty().withColor(TextColor.GRAY)
                             .append(Component.literal("Note:\n").withColor(TextColor.YELLOW))
                             .append("""
@@ -476,7 +484,12 @@ public final class ScathaProGameplayListeners
             {
                 scathaPro.runNextTick(() -> Screenshot.grab(scathaPro.minecraft.gameDirectory,
                     ScathaPro.MOD_NAME + "_Pet_Drop_" + net.minecraft.util.Util.getFilenameFormattedDateTime() + ".png",
-                    scathaPro.minecraft.gameRenderer.mainRenderTarget(), 1,
+                    //? if >= 26.2 {
+                    scathaPro.minecraft.gameRenderer.mainRenderTarget(),
+                    //? } else {
+                    /*scathaPro.minecraft.getMainRenderTarget(),
+                    *///? }
+                    1,
                     scathaPro.chatManager::sendChatMessage
                 ));
             }

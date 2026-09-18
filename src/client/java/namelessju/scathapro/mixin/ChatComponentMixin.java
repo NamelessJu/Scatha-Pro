@@ -24,7 +24,7 @@ public abstract class ChatComponentMixin
     )
     private void beforeAddMessage(Component contents, MessageSignature signature, GuiMessageSource source, GuiMessageTag tag, CallbackInfo ci)
     {
-        if (ScathaPro.getInstance().chatParser.shouldCancelMessage(contents))
+        if (ScathaPro.instance().chatParser.shouldCancelMessage(contents))
         {
             ci.cancel();
             if (ScathaPro.LOGGER.isDebugEnabled())
@@ -43,7 +43,7 @@ public abstract class ChatComponentMixin
     )
     private Component modifyMessageEarly(Component contents)
     {
-        return ScathaPro.getInstance().chatParser.beforeMessageAddedEarly(contents);
+        return ScathaPro.instance().chatParser.beforeMessageAddedEarly(contents);
     }
 
     @ModifyVariable(
@@ -55,6 +55,6 @@ public abstract class ChatComponentMixin
     )
     private Component modifyMessageLate(Component contents)
     {
-        return ScathaPro.getInstance().chatParser.beforeMessageAddedLate(contents);
+        return ScathaPro.instance().chatParser.beforeMessageAddedLate(contents);
     }
 }

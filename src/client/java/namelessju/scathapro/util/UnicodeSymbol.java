@@ -5,12 +5,16 @@ public final class UnicodeSymbol
 {
     private UnicodeSymbol() {}
 
-    // Custom symbols
+    // Custom symbols (high res)
     public static final char modIcon = '\uF250';
     public static final char scathaPetAny = '\uF251';
     public static final char scathaPetRare = '\uF252';
     public static final char scathaPetEpic = '\uF253';
     public static final char scathaPetLegendary = '\uF254';
+    public static final char blockBran = '\uF255';
+    // Custom symbols (pixelated)
+    public static final char leaderboard = '\uF260';
+    public static final char medal = '\uF261';
 
     // Hypixel specific symbols
     public static final char hypixelArrowRight = '\u279C';

@@ -11,6 +11,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
@@ -55,6 +56,16 @@ public class TextUtil
         {
             return null;
         }
+    }
+
+    public static @NonNull UUID parseUUID(@NonNull String uuidString) throws IllegalArgumentException
+    {
+        if (uuidString.length() == 32)
+        {
+            uuidString = uuidString.substring(0, 8) + "-" + uuidString.substring(8, 12) + "-" + uuidString.substring(12, 16)
+                + "-" + uuidString.substring(16, 20) + "-" + uuidString.substring(20, 32);
+        }
+        return UUID.fromString(uuidString);
     }
 
     public static @NonNull String numberToString(int number)
@@ -299,7 +310,11 @@ public class TextUtil
             MutableComponent charComponent = Component.literal(String.valueOf(c));
             if (c != ' ')
             {
+                //? if >= 26.2 {
                 charComponent.withColor(orderedColors[formattingIndex]);
+                //? } else {
+                /*charComponent.withStyle(orderedColors[formattingIndex]);
+                *///? }
                 formattingIndex = (formattingIndex + 1) % orderedColors.length;
             }
             component.append(charComponent);

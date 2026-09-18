@@ -10,7 +10,7 @@ import namelessju.scathapro.alerts.title.DynamicAlertTitleTemplate;
 import namelessju.scathapro.alerts.title.FullAlertTitleTemplate;
 import namelessju.scathapro.files.customalertmode.CustomAlertModeMeta;
 import namelessju.scathapro.files.customalertmode.CustomAlertModeProperties;
-import namelessju.scathapro.gui.menus.framework.screens.LayoutScreen;
+import namelessju.scathapro.gui.menus.framework.screens.ScathaProLayoutScreen;
 import namelessju.scathapro.gui.menus.framework.widgets.lists.ScathaProGuiList;
 import namelessju.scathapro.gui.menus.framework.widgets.sliders.FloatSlider;
 import namelessju.scathapro.gui.menus.screens.InfoMessageScreen;
@@ -36,7 +36,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class CustomAlertModeEditScreen extends LayoutScreen
+public class CustomAlertModeEditScreen extends ScathaProLayoutScreen
 {
     private final CustomAlertModeManager manager;
 
@@ -358,7 +358,14 @@ public class CustomAlertModeEditScreen extends LayoutScreen
             subtitleEditBox.setResponder(newValue -> editData.subtitleText = newValue);
 
             addChild(label(halfRowWidth + 5, 23, Component.literal("Subtitle")
-                .withColor(canEditSubtitle ? TextColor.GRAY : TextColor.DARK_GRAY)));
+                //? if >= 26.2 {
+                .withColor(
+                //? } else {
+                /*.withStyle(
+                *///? }
+                    canEditSubtitle ? TextColor.GRAY : TextColor.DARK_GRAY
+                )
+            ));
 
             if (!canEditSubtitle)
             {

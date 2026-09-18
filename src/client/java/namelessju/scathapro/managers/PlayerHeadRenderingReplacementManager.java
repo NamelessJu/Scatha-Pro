@@ -32,9 +32,9 @@ public class PlayerHeadRenderingReplacementManager
 
     public ResolvableProfile replaceEntityProfile(ResolvableProfile profile, IArmorStandRenderStateData data)
     {
-        if (!data.scathapro$isWorm() || data.scathapro$getWormSegmentType() == null) return profile;
+        if (!data.scathaPro$isWorm() || data.scathaPro$getWormSegmentType() == null) return profile;
 
-        return replaceProfile(profile, data.scathapro$isScatha(), data.scathapro$getWormSegmentType() == WormSegmentType.HEAD);
+        return replaceProfile(profile, data.scathaPro$isScatha(), data.scathaPro$getWormSegmentType() == WormSegmentType.HEAD);
     }
 
     public ResolvableProfile replaceItemProfile(ResolvableProfile profile, ItemStack itemStack)

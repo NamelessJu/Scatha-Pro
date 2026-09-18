@@ -11,7 +11,7 @@ import net.minecraft.world.item.ItemStack;
 
 public class WormBestiaryParser extends ContainerScreenParser
 {
-    private static final int SLOT_GENERIC = 4, SLOT_REGULAR_WORMS = 21, SLOT_SCATHAS = 23;
+    private static final int SLOT_GENERIC = 4, SLOT_REGULAR_WORMS = 21, SLOT_SCATHAS = 23, SLOT_RANKING = 50;
 
     public WormBestiaryParser(ScathaPro scathaPro)
     {
@@ -27,7 +27,7 @@ public class WormBestiaryParser extends ContainerScreenParser
     @Override
     public int[] getSlotNumbers()
     {
-        return new int[] {SLOT_GENERIC, SLOT_REGULAR_WORMS, SLOT_SCATHAS};
+        return new int[] {SLOT_GENERIC, SLOT_REGULAR_WORMS, SLOT_SCATHAS, SLOT_RANKING};
     }
 
     @Override
@@ -42,6 +42,10 @@ public class WormBestiaryParser extends ContainerScreenParser
             case SLOT_REGULAR_WORMS:
             case SLOT_SCATHAS:
                 parseKills(itemStack, slotNumber, scathaPro);
+                break;
+
+            case SLOT_RANKING:
+                parseRanking(itemStack, scathaPro);
                 break;
         }
     }
@@ -74,7 +78,7 @@ public class WormBestiaryParser extends ContainerScreenParser
             scathaPro.mainOverlay.updateProfileStats();
 
             scathaPro.chatManager.sendChatMessage(Component.empty().withColor(TextColor.GRAY)
-                .append("Updated saved worm bestiary Magic Find (")
+                .append("Updated saved Stoneworm bestiary Magic Find (")
                 .append(TextUtil.numberToComponentOrObf(currentBestiaryMagicFind))
                 .append(" " + UnicodeSymbol.hypixelArrowRight + " " + TextUtil.numberToString(bestiaryMagicFind, 2) + ")")
             );
@@ -105,10 +109,10 @@ public class WormBestiaryParser extends ContainerScreenParser
         switch (slotNumber)
         {
             case SLOT_REGULAR_WORMS:
-                int currentRegularWormKills = profileData.regularWormKills.get();
+                int currentRegularWormKills = profileData.stonewormKills.get();
                 if (kills != currentRegularWormKills)
                 {
-                    profileData.regularWormKills.set(kills);
+                    profileData.stonewormKills.set(kills);
                     scathaPro.persistentData.save();
                     scathaPro.mainOverlay.updateWormKills();
 
@@ -143,6 +147,33 @@ public class WormBestiaryParser extends ContainerScreenParser
                     );
                 }
                 break;
+        }
+    }
+
+    private void parseRanking(ItemStack itemStack, ScathaPro scathaPro)
+    {
+        String line = searchLoreWithExpectedIndex(itemStack, 1, ln -> ln.startsWith("#"));
+        if (line == null) return;
+
+        line = line.substring(1).split(" ", 2)[0].replace(",", "");
+        int newRank = -1;
+        try
+        {
+            newRank = Integer.parseInt(line);
+        }
+        catch (NumberFormatException ignored) {}
+        if (newRank < 1) return;
+
+        int currentRank = scathaPro.getProfileData().bestiaryRank.get();
+        if (newRank != currentRank)
+        {
+            scathaPro.getProfileData().bestiaryRank.set(newRank);
+            scathaPro.persistentData.save();
+            scathaPro.chatManager.sendChatMessage(Component.empty().withColor(TextColor.GRAY)
+                .append("Updated saved Stoneworm bestiary rank (#")
+                .append(TextUtil.numberToComponentOrObf(currentRank))
+                .append(" " + UnicodeSymbol.hypixelArrowRight + " #" + TextUtil.numberToString(newRank) + ")")
+            );
         }
     }
 }

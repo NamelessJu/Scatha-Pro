@@ -11,6 +11,6 @@ public class ModMenuApiImplementation implements ModMenuApi
     @Override
     public ConfigScreenFactory<Screen> getModConfigScreenFactory()
     {
-        return parent -> new MainSettingsScreen(ScathaPro.getInstance(), parent);
+        return parent -> new MainSettingsScreen(ScathaPro.instance(), parent);
     }
 }

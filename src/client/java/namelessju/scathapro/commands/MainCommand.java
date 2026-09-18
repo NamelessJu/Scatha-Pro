@@ -19,6 +19,7 @@ import namelessju.scathapro.files.PersistentData;
 import namelessju.scathapro.gui.menus.screens.AchievementListScreen;
 import namelessju.scathapro.gui.menus.screens.settings.MainSettingsScreen;
 import namelessju.scathapro.managers.ChatManager;
+import namelessju.scathapro.miscellaneous.data.UnconnectedProfileDataImport;
 import namelessju.scathapro.miscellaneous.data.enums.ShardsAttribute;
 import namelessju.scathapro.miscellaneous.data.enums.WitchesStew;
 import namelessju.scathapro.util.FileUtil;
@@ -282,6 +283,18 @@ public class MainCommand extends ScathaProCommand
                 return Command.SINGLE_SUCCESS;
             })
         )
+        .then(LiteralArgumentBuilder.<T>literal("updateProfileData")
+            .executes(_ -> {
+                handleProfileDataImport(false);
+                return Command.SINGLE_SUCCESS;
+            })
+            .then(LiteralArgumentBuilder.<T>literal("confirm")
+                .executes(_ -> {
+                    handleProfileDataImport(true);
+                    return Command.SINGLE_SUCCESS;
+                })
+            )
+        )
         .then(LiteralArgumentBuilder.<T>literal("debugLogs")
             .executes(_ -> {
                 boolean isEnabled = ScathaPro.LOGGER.isDebugEnabled();
@@ -513,7 +526,8 @@ public class MainCommand extends ScathaProCommand
             chatManager.sendChatMessage(Component.literal("Equip everything (armor, pet, weapon) you use when killing a Scatha and then ")
                 .setStyle(ChatManager.HIGHLIGHT_STYLE)
                 .append(Component.literal("click here to confirm").setStyle(Style.EMPTY
-                    .withColor(TextColor.GREEN).withUnderlined(true)
+                    // spaces so stonecutter only replaces the TextColor and not the method
+                    .withColor(   TextColor.GREEN).withUnderlined(true)
                     .withHoverEvent(new HoverEvent.ShowText(
                         Component.literal("Opens the Skyblock menu and\nupdates the saved profile stats").withColor(TextColor.GRAY)
                     ))
@@ -549,6 +563,39 @@ public class MainCommand extends ScathaProCommand
                 .append(TextUtil.numberToComponentOrObf(newMagicFind, 2, false, RoundingMode.HALF_UP))
                 .append(")")
             );
+        }
+    }
+
+    private void handleProfileDataImport(boolean confirmed)
+    {
+        UnconnectedProfileDataImport dataImport = UnconnectedProfileDataImport.tryMake(scathaPro);
+        if (dataImport == null)
+        {
+            scathaPro.chatManager.sendChatMessage(
+                Component.literal("No profile data available to import!").withColor(TextColor.RED)
+            );
+            return;
+        }
+
+        if (confirmed)
+        {
+            dataImport.handleImport(scathaPro);
+        }
+        else
+        {
+            scathaPro.chatManager.sendChatDivider();
+            scathaPro.chatManager.sendChatMessage(
+                Component.literal("Profile data available to import:").withColor(TextColor.YELLOW)
+            );
+            scathaPro.chatManager.sendChatMessage(dataImport.getDataPreview(), false);
+            scathaPro.chatManager.sendChatMessage(
+                Component.literal("Confirm").setStyle(
+                    Style.EMPTY.withColor(TextColor.GREEN).withUnderlined(true)
+                        .withClickEvent(new ClickEvent.RunCommand("/sp updateProfileData confirm"))
+                ),
+                false
+            );
+            scathaPro.chatManager.sendChatDivider();
         }
     }
 

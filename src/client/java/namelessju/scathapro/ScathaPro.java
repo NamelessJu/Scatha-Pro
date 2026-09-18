@@ -44,8 +44,8 @@ import java.util.Queue;
 
 public abstract class ScathaPro
 {
-    public static final String MOD_ID = "scathapro";
-    public static final String MOD_VERSION = "2.3";
+    public static final String MOD_ID = /*$mod_id*/ "scathapro";
+    public static final String MOD_VERSION = /*$mod_version*/ "2.4";
 
     /** The true mod name, not influenced by certain features */
     public static final String MOD_NAME = "Scatha-Pro";
@@ -63,7 +63,7 @@ public abstract class ScathaPro
     }
 
     private static ScathaPro instance = null;
-    public static ScathaPro getInstance()
+    public static ScathaPro instance()
     {
         return instance;
     }
@@ -81,6 +81,7 @@ public abstract class ScathaPro
     public final SoundManager soundManager = new SoundManager(this);
     public final InputManager inputManager = new InputManager(this);
     public final CoreManager coreManager = new CoreManager(this);
+    public final HypixelContextManager hypixelContextManager = new HypixelContextManager(this);
     public final PersistentDataProfileManager persistentDataProfileManager = new PersistentDataProfileManager(this);
     public final SecondaryStatsManager secondaryStatsManager = new SecondaryStatsManager(persistentDataProfileManager);
     public final AlertManager alertManager = new AlertManager(this);
@@ -192,6 +193,7 @@ public abstract class ScathaPro
         }
 
         HypixelModApiImplementation.init(this);
+        coreManager.init();
 
         LOGGER.info("Scatha-Pro initialized");
     }
@@ -228,6 +230,7 @@ public abstract class ScathaPro
         }
 
         inputManager.tick();
+        hypixelContextManager.tick();
         coreManager.tick();
         containerScreenParsingManager.tick();
         achievementManager.tick();
@@ -244,7 +247,7 @@ public abstract class ScathaPro
 
     public PersistentData.ProfileData getProfileData()
     {
-        return persistentDataProfileManager.getCurrentProfileData();
+        return persistentDataProfileManager.currentProfileData();
     }
 
     private void checkLastUsedVersion()

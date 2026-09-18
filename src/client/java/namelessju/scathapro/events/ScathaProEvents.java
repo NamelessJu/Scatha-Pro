@@ -7,7 +7,6 @@ import namelessju.scathapro.gui.overlay.elements.OverlayDynamicContainer;
 import namelessju.scathapro.managers.detectors.entities.detected.DetectedEntity;
 import namelessju.scathapro.managers.detectors.entities.detected.DetectedWorm;
 import namelessju.scathapro.miscellaneous.data.ScathaPetDrop;
-import namelessju.scathapro.miscellaneous.data.enums.SkyBlockArea;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
@@ -21,6 +20,7 @@ public class ScathaProEvents
 
     public static final DataEvent<ScathaPro> playerAddedToWorldEvent = new DataEvent<>();
     public static final DataEvent<ScathaPro> worldLeftEvent = new DataEvent<>();
+    public static final DataEvent<ScathaPro> serverLeftEvent = new DataEvent<>();
     public static final DataEvent<UseItemEventData> useItemEvent = new DataEvent<>();
     public static final DataEvent<AttackEntityEventData> attackEntityEvent = new DataEvent<>();
 
@@ -33,7 +33,6 @@ public class ScathaProEvents
     public static final DataEvent<ScathaPro> firstLevelTickEvent = new DataEvent<>();
 
     public static final DataEvent<CrystalHollowsTickEventData> crystalHollowsTickEvent = new DataEvent<>();
-    public static final DataEvent<SkyBlockAreaDetectedEventData> skyBlockAreaDetectedEvent = new DataEvent<>();
     public static final DataEvent<CrystalHollowsDayStartedEventData> crystalHollowsDayStartedEvent = new DataEvent<>();
     public static final DataEvent<ScathaPro> bedrockWallDetectedEvent = new DataEvent<>();
     public static final DataEvent<DetectedEntityRegisteredEventData> detectedEntityRegisteredEvent = new DataEvent<>();
@@ -51,7 +50,7 @@ public class ScathaProEvents
 
     // Other events
 
-    public static final DataEvent<ScathaPro> realDayStartedEvent = new DataEvent<>();
+    public static final DataEvent<RealDayStartedEventData> realDayStartedEvent = new DataEvent<>();
 
 
 
@@ -62,7 +61,6 @@ public class ScathaProEvents
 
     public record NewModVersionUsedEventData(ScathaPro scathaPro, @Nullable String previousVersion, String newVersion) {}
     public record OverlayInitEventData(ScathaPro scathaPro, OverlayDynamicContainer mainContainer) {}
-    public record SkyBlockAreaDetectedEventData(ScathaPro scathaPro, SkyBlockArea area) {}
     public record CrystalHollowsTickEventData(ScathaPro scathaPro, boolean isFirstTick) {}
     public record CrystalHollowsDayStartedEventData(ScathaPro scathaPro, int day) {}
     public record DetectedEntityRegisteredEventData(ScathaPro scathaPro, DetectedEntity entity) {}
@@ -76,4 +74,5 @@ public class ScathaProEvents
     public record ScathaPetDropEventData(ScathaPro scathaPro, ScathaPetDrop scathaPetDrop) {}
     public record ScathaFarmingStreakChangedEventData(ScathaPro scathaPro, int streak, int highScore) {}
     public record AchievementUnlockedEventData(ScathaPro scathaPro, UnlockedAchievement unlockedAchievement) {}
+    public record RealDayStartedEventData(ScathaPro scathaPro, boolean silent) {}
 }

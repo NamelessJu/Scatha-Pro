@@ -18,43 +18,43 @@ public abstract class ArmorStandRenderStateMixin implements IArmorStandRenderSta
     private @Nullable WormSegmentType wormSegmentType = null;
 
     @Override
-    public void scathapro$setWormLifetimeLeft(float lifetimeLeft)
+    public void scathaPro$setWormLifetimeLeft(float lifetimeLeft)
     {
         wormLifetimeLeft = lifetimeLeft;
     }
 
     @Override
-    public float scathapro$getWormLifetimeLeft()
+    public float scathaPro$getWormLifetimeLeft()
     {
         return wormLifetimeLeft;
     }
 
     @Override
-    public void scathapro$setIsWorm(boolean isScatha)
+    public void scathaPro$setIsWorm(boolean isScatha)
     {
         wormType = isScatha;
     }
 
     @Override
-    public boolean scathapro$isWorm()
+    public boolean scathaPro$isWorm()
     {
         return wormType != null;
     }
 
     @Override
-    public boolean scathapro$isScatha()
+    public boolean scathaPro$isScatha()
     {
         return wormType != null && wormType;
     }
 
     @Override
-    public void scathapro$setWormSegmentType(WormSegmentType segmentType)
+    public void scathaPro$setWormSegmentType(WormSegmentType segmentType)
     {
         this.wormSegmentType = segmentType;
     }
 
     @Override
-    public @Nullable WormSegmentType scathapro$getWormSegmentType()
+    public @Nullable WormSegmentType scathaPro$getWormSegmentType()
     {
         return wormSegmentType;
     }

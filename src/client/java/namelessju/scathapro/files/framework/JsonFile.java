@@ -6,6 +6,7 @@ import namelessju.scathapro.events.framework.DataEvent;
 import namelessju.scathapro.events.framework.ScathaProEvent;
 import namelessju.scathapro.miscellaneous.IteratorWrapperImmutable;
 import namelessju.scathapro.util.JsonUtil;
+import namelessju.scathapro.util.TextUtil;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -182,7 +183,7 @@ public abstract class JsonFile<T extends JsonFile.JsonValue> extends ScathaProFi
         private record ChildValue(String path, JsonValue jsonValue) {}
     }
 
-    public abstract static class ArrayValue<T> implements JsonValue, Iterable<T>
+    public abstract static class ArrayValue<T> implements JsonValue, ValueEvents, Iterable<T>
     {
         private final ArrayList<T> list = new ArrayList<>();
 
@@ -270,6 +271,13 @@ public abstract class JsonFile<T extends JsonFile.JsonValue> extends ScathaProFi
         public void removeOnEntryRemoved(DataEvent.Listener<T> listener)
         {
             onEntryRemovedEvent = JsonValue.handleNullableEventRemoveListener(onEntryRemovedEvent, listener);
+        }
+
+        @Override
+        public void clearAllListeners()
+        {
+            onEntryAddedEvent = null;
+            onEntryRemovedEvent = null;
         }
     }
 
@@ -361,7 +369,7 @@ public abstract class JsonFile<T extends JsonFile.JsonValue> extends ScathaProFi
         }
     }
 
-    public abstract static class PrimitiveValue<T, S extends PrimitiveValue<T, S>> implements JsonValue
+    public abstract static class PrimitiveValue<T, S extends PrimitiveValue<T, S>> implements JsonValue, ValueEvents
     {
         protected final Serializer<T, JsonPrimitive> serializer;
         protected @Nullable T value = null;
@@ -425,6 +433,12 @@ public abstract class JsonFile<T extends JsonFile.JsonValue> extends ScathaProFi
         public void removeOnValueChanged(DataEvent.Listener<S> listener)
         {
             onValueChangedEvent = JsonValue.handleNullableEventRemoveListener(onValueChangedEvent, listener);
+        }
+
+        @Override
+        public void clearAllListeners()
+        {
+            onValueChangedEvent = null;
         }
     }
 
@@ -588,14 +602,9 @@ public abstract class JsonFile<T extends JsonFile.JsonValue> extends ScathaProFi
             if (jsonPrimitive.isString())
             {
                 String uuidString = jsonPrimitive.getAsString();
-                if (uuidString.length() == 32)
-                {
-                    uuidString = uuidString.substring(0, 8) + "-" + uuidString.substring(8, 12) + "-" + uuidString.substring(12, 16)
-                        + "-" + uuidString.substring(16, 20) + "-" + uuidString.substring(20, 32);
-                }
                 try
                 {
-                    return UUID.fromString(uuidString);
+                    return TextUtil.parseUUID(uuidString);
                 }
                 catch (IllegalArgumentException ignored) {}
             }
@@ -656,5 +665,10 @@ public abstract class JsonFile<T extends JsonFile.JsonValue> extends ScathaProFi
         {
             JsonUtil.set(jsonObject, path, serializer.valueToJson(value));
         }
+    }
+
+    public interface ValueEvents
+    {
+        void clearAllListeners();
     }
 }

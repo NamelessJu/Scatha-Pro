@@ -21,7 +21,7 @@ public abstract class ClientLevelMixin
     {
         if (entity instanceof LocalPlayer)
         {
-            ScathaProEvents.playerAddedToWorldEvent.trigger(ScathaPro.getInstance());
+            ScathaProEvents.playerAddedToWorldEvent.trigger(ScathaPro.instance());
         }
     }
 }

@@ -81,7 +81,10 @@ public class OverlayContentScreen extends ConfigScreen
 
     private void extractTooltip(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, ClientTooltipPositioner positioner)
     {
-        guiGraphics.tooltip(font, getTooltipComponents(), mouseX, mouseY, positioner, null);
+        guiGraphics.tooltip(font, getTooltipComponents(), mouseX, mouseY, positioner, null
+            //? if >= 26.3
+            , false
+        );
     }
 
     private List<ClientTooltipComponent> getTooltipComponents()

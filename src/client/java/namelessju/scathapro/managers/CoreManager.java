@@ -7,11 +7,12 @@ import namelessju.scathapro.alerts.Alert;
 import namelessju.scathapro.events.ScathaProEvents;
 import namelessju.scathapro.files.PersistentData;
 import namelessju.scathapro.gui.menus.screens.FakeBanScreen;
+import namelessju.scathapro.gui.menus.screens.UnconnectedProfileDataImportScreen;
 import namelessju.scathapro.managers.detectors.*;
 import namelessju.scathapro.managers.detectors.entities.EntityDetectionManager;
 import namelessju.scathapro.managers.detectors.entities.detected.DetectedWorm;
+import namelessju.scathapro.miscellaneous.data.UnconnectedProfileDataImport;
 import namelessju.scathapro.miscellaneous.data.enums.OldLobbyAlertTriggerMode;
-import namelessju.scathapro.miscellaneous.data.enums.SkyBlockArea;
 import namelessju.scathapro.util.TextUtil;
 import namelessju.scathapro.util.TimeUtil;
 import namelessju.scathapro.util.Util;
@@ -35,8 +36,6 @@ public class CoreManager
     private final CrawlingDetector crawlingDetector;
     private final ObstacleDetector obstacleDetector;
     private final ScathaDropsDetector scathaDropsDetector;
-
-    private @Nullable SkyBlockArea currentArea = null;
 
     private boolean firstLevelTickPending = true;
     private boolean firstCrystalHollowsTickPending = true;
@@ -81,12 +80,14 @@ public class CoreManager
 
     private boolean fakeBanScreenPending = true;
     private boolean firstIngameTickPending = true;
+    private UnconnectedProfileDataImport pendingUnconnectedProfileDataImport = null;
 
     private long lastDeveloperCheckTime = -1;
 
     private boolean wormSpawnCooldownRunningBefore = false;
 
     private int newRealDayCheckTickTimer = 0;
+    private boolean nextRealDayCheckShouldBeSilent = false;
 
 
     public CoreManager(ScathaPro scathaPro)
@@ -101,16 +102,20 @@ public class CoreManager
         scathaDropsDetector = new ScathaDropsDetector(scathaPro);
     }
 
-
-    public void setSkyBlockArea(@Nullable SkyBlockArea area)
+    public void init()
     {
-        this.currentArea = area;
+        Runnable unconnectedProfileDataCheck = () -> {
+            if (scathaPro.persistentDataProfileManager.currentProfileData().unconnectedDataImportShown.get())
+                return;
+            pendingUnconnectedProfileDataImport = UnconnectedProfileDataImport.tryMake(scathaPro);
+        };
+        scathaPro.persistentDataProfileManager.onProfileChanged(_ -> {
+            unconnectedProfileDataCheck.run();
+            nextRealDayCheckShouldBeSilent = true;
+        });
+        unconnectedProfileDataCheck.run();
     }
 
-    public boolean isInCrystalHollows()
-    {
-        return currentArea == SkyBlockArea.CRYSTAL_HOLLOWS || scathaPro.config.dev.devModeEnabled.get();
-    }
 
     public boolean isScappaModeActive()
     {
@@ -122,7 +127,6 @@ public class CoreManager
     {
         firstLevelTickPending = true;
         firstCrystalHollowsTickPending = true;
-        currentArea = null;
         lastWormSpawnTime = -1;
         wormSpawnCooldownStartTime = -1;
         lastScathaHitHadShuriken = false;
@@ -159,8 +163,8 @@ public class CoreManager
 
     public void addRegularWormKill()
     {
-        int currentKills = getProfileData().regularWormKills.get();
-        if (currentKills >= 0) getProfileData().regularWormKills.set(currentKills + 1);
+        int currentKills = getProfileData().stonewormKills.get();
+        if (currentKills >= 0) getProfileData().stonewormKills.set(currentKills + 1);
         scathaPro.secondaryStatsManager.addRegularWormKill();
     }
 
@@ -291,13 +295,19 @@ public class CoreManager
         newRealDayCheckTickTimer--;
         if (newRealDayCheckTickTimer <= 0)
         {
-            LocalDate lastPlayedDate = profileData.lastPlayedDate.get();
-            if (lastPlayedDate == null || !lastPlayedDate.equals(TimeUtil.today()))
+            if (!profileData.isDummy())
             {
-                ScathaProEvents.realDayStartedEvent.trigger(scathaPro);
+                LocalDate lastPlayedDate = profileData.lastPlayedDate.get();
+                if (lastPlayedDate == null || !lastPlayedDate.equals(TimeUtil.today()))
+                {
+                    ScathaProEvents.realDayStartedEvent.trigger(new ScathaProEvents.RealDayStartedEventData(
+                        scathaPro, nextRealDayCheckShouldBeSilent
+                    ));
+                }
             }
 
             newRealDayCheckTickTimer = 20;
+            nextRealDayCheckShouldBeSilent = false;
         }
     }
 
@@ -338,7 +348,7 @@ public class CoreManager
     private void tickLevel(LocalPlayer player, Level level)
     {
         long now = TimeUtil.getEpochMilliseconds();
-        boolean isInCrystalHollows = isInCrystalHollows();
+        boolean isInCrystalHollows = scathaPro.hypixelContextManager.isInCrystalHollows();
 
         if (scathaPro.minecraft.gui.screen() == null)
         {
@@ -445,6 +455,15 @@ public class CoreManager
             }
         }
 
+        if (pendingUnconnectedProfileDataImport != null)
+        {
+            scathaPro.minecraft.gui.setScreen(new UnconnectedProfileDataImportScreen(
+                scathaPro, null, pendingUnconnectedProfileDataImport
+            ));
+            pendingUnconnectedProfileDataImport = null;
+            return;
+        }
+
         if (firstIngameTickPending)
         {
             firstIngameTickPending = false;
@@ -472,7 +491,7 @@ public class CoreManager
             else
             {
                 tunnelVisionReadyTime = -1L;
-                if (isInCrystalHollows())
+                if (scathaPro.hypixelContextManager.isInCrystalHollows())
                 {
                     scathaPro.alertManager.tunnelVisionReadyAlert.play(scathaPro);
                 }
@@ -521,8 +540,8 @@ public class CoreManager
 
     private void tickDevCheck(long now)
     {
+        if (scathaPro.getProfileData().isDummy()) return;
         if (now - lastDeveloperCheckTime < 1000) return;
-
         if (scathaPro.getProfileData().unlockedAchievements.isUnlocked(Achievement.meet_developer)) return;
 
         ClientPacketListener connection = scathaPro.minecraft.getConnection();

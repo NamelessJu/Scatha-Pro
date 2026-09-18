@@ -214,7 +214,7 @@ public class SecondaryStatsManager
 
         private PersistentData.ProfileData.@NonNull StatsToday getPersistentStats()
         {
-            return profileManager.getCurrentProfileData().statsToday;
+            return profileManager.currentProfileData().statsToday;
         }
     }
 }

@@ -27,8 +27,7 @@ public class AprilFoolsFakePetDrop extends ScathaPetDrop
 
     private AprilFoolsFakePetDrop()
     {
-        super(Rarity.RARE);
-        isEffectsOnly = true;
+        super(Rarity.RARE, false, true);
     }
 
     @Override

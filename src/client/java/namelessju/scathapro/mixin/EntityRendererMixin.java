@@ -34,19 +34,27 @@ public abstract class EntityRendererMixin
         if (state instanceof IArmorStandRenderStateData stateData) data = stateData;
         if (data == null) return;
 
-        if (data.scathapro$getWormLifetimeLeft() < 0f) return;
+        if (data.scathaPro$getWormLifetimeLeft() < 0f) return;
 
         Component component = Component.literal(
             UnicodeSymbol.hourglass + " "
-                + TextUtil.numberToString(data.scathapro$getWormLifetimeLeft(), 1, true, RoundingMode.UP)
+                + TextUtil.numberToString(data.scathaPro$getWormLifetimeLeft(), 1, true, RoundingMode.UP)
                 + "s"
+        //? if >= 26.2 {
         ).withColor(
-            data.scathapro$getWormLifetimeLeft() < 5f ? TextColor.RED : (
-                data.scathapro$getWormLifetimeLeft() < 15f ? TextColor.YELLOW : TextColor.GREEN
+        //? } else {
+        /*).withStyle(
+        *///? }
+            data.scathaPro$getWormLifetimeLeft() < 5f ? TextColor.RED : (
+                data.scathaPro$getWormLifetimeLeft() < 15f ? TextColor.YELLOW : TextColor.GREEN
             )
         );
 
         poseStack.translate(0.0F, 9.0F * 1.15F * 0.025F, 0.0F);
-        submitNodeCollector.submitNameTag(poseStack, state.nameTagAttachment, offset, component, !state.isDiscrete, state.lightCoords, camera);
+        submitNodeCollector.submitNameTag(poseStack, state.nameTagAttachment, offset, component, !state.isDiscrete, state.lightCoords,
+            //? if <= 26.1.2
+            //state.distanceToCameraSq,
+            camera
+        );
     }
 }

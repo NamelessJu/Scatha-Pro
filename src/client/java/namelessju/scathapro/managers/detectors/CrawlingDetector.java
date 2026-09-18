@@ -15,7 +15,7 @@ public class CrawlingDetector
 
     public void detect(ScathaPro scathaPro)
     {
-        if (!scathaPro.coreManager.isInCrystalHollows()) return;
+        if (!scathaPro.hypixelContextManager.isInCrystalHollows()) return;
         LocalPlayer player = scathaPro.minecraft.player;
         if (player == null) return;
 

@@ -23,7 +23,7 @@ public final class MinecraftLogicListeners
     private static void onPlayerAddedToWorld(ScathaPro scathaPro)
     {
         // Update in case account was switched by an ingame account manager mod
-        scathaPro.persistentDataProfileManager.updateCurrentPlayerProfile();
+        scathaPro.persistentDataProfileManager.updateCurrentPlayerProfile(true);
 
         // Reset
 
@@ -81,7 +81,7 @@ public final class MinecraftLogicListeners
         // Get worm reference from armor stand mixin
         if (attackedWorm == null)
         {
-            attackedWorm = ((IWormArmorStandData) attackedArmorStand).scathapro$getWorm();
+            attackedWorm = ((IWormArmorStandData) attackedArmorStand).scathaPro$getWorm();
         }
 
         if (attackedWorm != null)

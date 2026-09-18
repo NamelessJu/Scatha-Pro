@@ -30,7 +30,7 @@ public abstract class MinecraftMixin
     )
     private void afterGameLoadFinished(CallbackInfo ci)
     {
-        ScathaPro.getInstance().onMinecraftLoaded();
+        ScathaPro.instance().onMinecraftLoaded();
     }
 
     @Inject(
@@ -39,20 +39,25 @@ public abstract class MinecraftMixin
     )
     private void afterTick(CallbackInfo ci)
     {
-        ScathaPro.getInstance().tick();
+        ScathaPro.instance().tick();
     }
 
     @Inject(
         method = "startAttack",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/player/LocalPlayer;swing(Lnet/minecraft/world/InteractionHand;)V"
+            //? if >= 26.3 {
+            target = "Lnet/minecraft/client/player/LocalPlayer;swing(Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/item/component/SwingAnimation;Z)Z",
+            //? } else {
+            /*target = "Lnet/minecraft/client/player/LocalPlayer;swing(Lnet/minecraft/world/InteractionHand;)V",
+            *///? }
+            ordinal = 0
         )
     )
     private void onAttack(CallbackInfoReturnable<Boolean> cir)
     {
         assert player != null;
-        ScathaPro.getInstance().coreManager.projectileWormHitDetector.checkShortbowHitFired(player.getItemInHand(InteractionHand.MAIN_HAND));
+        ScathaPro.instance().coreManager.projectileWormHitDetector.checkShortbowHitFired(player.getItemInHand(InteractionHand.MAIN_HAND));
     }
 
     @Inject(
@@ -61,7 +66,7 @@ public abstract class MinecraftMixin
     )
     private void afterLevelChange(ClientLevel level, boolean stopSound, CallbackInfo ci)
     {
-        if (wasInLevelBefore) ScathaProEvents.worldLeftEvent.trigger(ScathaPro.getInstance());
+        if (wasInLevelBefore) ScathaProEvents.worldLeftEvent.trigger(ScathaPro.instance());
         wasInLevelBefore = level != null;
     }
 }

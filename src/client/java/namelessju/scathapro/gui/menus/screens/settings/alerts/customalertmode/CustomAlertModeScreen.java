@@ -4,7 +4,7 @@ import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.files.customalertmode.CustomAlertModeMeta;
 import namelessju.scathapro.files.customalertmode.CustomAlertModeMetaUpdater;
 import namelessju.scathapro.files.customalertmode.CustomAlertModePropertiesUpdater;
-import namelessju.scathapro.gui.menus.framework.screens.LayoutScreen;
+import namelessju.scathapro.gui.menus.framework.screens.ScathaProLayoutScreen;
 import namelessju.scathapro.gui.menus.screens.InfoMessageScreen;
 import namelessju.scathapro.gui.menus.widgets.CustomAlertModeList;
 import namelessju.scathapro.util.FileUtil;
@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.List;
 
-public class CustomAlertModeScreen extends LayoutScreen
+public class CustomAlertModeScreen extends ScathaProLayoutScreen
 {
     private DirectoryWatcher directoryWatcher;
     private long refreshTickTimer = 0L;

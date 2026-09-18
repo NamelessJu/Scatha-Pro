@@ -17,7 +17,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public abstract class ConfigScreen extends LayoutScreen
+public abstract class ConfigScreen extends ScathaProLayoutScreen
 {
     protected final Config config;
 

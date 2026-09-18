@@ -27,7 +27,7 @@ public abstract class MultiPlayerGameModeMixin
         if (player instanceof LocalPlayer localPlayer)
         {
             ScathaProEvents.useItemEvent.trigger(new ScathaProEvents.UseItemEventData(
-                ScathaPro.getInstance(), localPlayer, localPlayer.getItemInHand(hand)
+                ScathaPro.instance(), localPlayer, localPlayer.getItemInHand(hand)
             ));
         }
     }

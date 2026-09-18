@@ -303,12 +303,17 @@ public class ScathaDropsSlotMachineManager
                 guiGraphics.pose().translate(-halfSlotSize, -halfSlotSize);
             }
             else guiGraphics.pose().translate(x, -halfSlotSize + Y_OFFSET);
+
+            guiGraphics.pose().translate(halfSlotSize, halfSlotSize);
+            guiGraphics.pose().scale(slot.textureProvider.getScale());
+            guiGraphics.pose().translate(-halfSlotSize, -halfSlotSize);
             guiGraphics.blit(RenderPipelines.GUI_TEXTURED, slot.textureProvider.getIdentifier(scathaPro),
                 0, 0, 0, 0, SLOT_SIZE, SLOT_SIZE,
                 slot.textureProvider.getWidth(), slot.textureProvider.getHeight(),
                 slot.textureProvider.getWidth(), slot.textureProvider.getHeight(),
                 ARGB.white(Math.round(alpha * alphaMultiplier))
             );
+
             guiGraphics.pose().popMatrix();
         }
 
@@ -355,23 +360,23 @@ public class ScathaDropsSlotMachineManager
     {
         GEMSTONES(15,
             new CachedComponentProvider(Component.literal("Gemstones").withColor(TextColor.WHITE)),
-            new CachedTextureProvider(ScathaPro.getIdentifier("textures/drops_roll/gemstones.png"), 256, 256)
+            new CachedTextureProvider(ScathaPro.getIdentifier("textures/drops_roll/gemstones.png"), 256, 256, 1f)
         ),
         BLOCK_BRAN(10,
             new CachedComponentProvider(Component.literal("Dwarven O's Block Bran").withColor(TextColor.GREEN)),
-            new CachedTextureProvider(ScathaPro.getIdentifier("textures/drops_roll/block_bran.png"), 256, 256)
+            new CachedTextureProvider(ScathaPro.getIdentifier("textures/generic/block_bran.png"), 256, 256, 0.82f)
         ),
         SCATHA_RARE(0,
             new ScathaPetComponentProvider(Component.literal("Rare").withColor(TextColor.BLUE)),
-            new ScathaPetTextureProvider(ScathaPro.getIdentifier("textures/generic/scatha_pet_rare.png"))
+            new ScathaPetTextureProvider("rare")
         ),
         SCATHA_EPIC(0,
             new ScathaPetComponentProvider(Component.literal("Epic").withColor(TextColor.DARK_PURPLE)),
-            new ScathaPetTextureProvider(ScathaPro.getIdentifier("textures/generic/scatha_pet_epic.png"))
+            new ScathaPetTextureProvider("epic")
         ),
         SCATHA_LEGENDARY(0,
             new ScathaPetComponentProvider(Component.literal("Legendary").withColor(TextColor.GOLD)),
-            new ScathaPetTextureProvider(ScathaPro.getIdentifier("textures/generic/scatha_pet_legendary.png"))
+            new ScathaPetTextureProvider("legendary")
         );
 
         private static int WEIGHT_SUM = -1;
@@ -442,9 +447,10 @@ public class ScathaDropsSlotMachineManager
             Identifier getIdentifier(ScathaPro scathaPro);
             int getWidth();
             int getHeight();
+            float getScale();
         }
 
-        private record CachedTextureProvider(Identifier identifier, int width, int height) implements TextureProvider
+        private record CachedTextureProvider(Identifier identifier, int width, int height, float scale) implements TextureProvider
         {
             @Override
             public Identifier getIdentifier(ScathaPro scathaPro)
@@ -463,11 +469,22 @@ public class ScathaDropsSlotMachineManager
             {
                 return height;
             }
+
+            @Override
+            public float getScale()
+            {
+                return scale;
+            }
         }
 
         private record ScathaPetTextureProvider(Identifier identifier) implements TextureProvider
         {
             private static final Identifier HIDDEN_RARITY_IDENTIFIER = ScathaPro.getIdentifier("textures/generic/scatha_pet.png");
+
+            public ScathaPetTextureProvider(String texturePathRarityName)
+            {
+                this(ScathaPro.getIdentifier("textures/generic/scatha_pet_" + texturePathRarityName + ".png"));
+            }
 
             @Override
             public Identifier getIdentifier(ScathaPro scathaPro)
@@ -485,6 +502,12 @@ public class ScathaDropsSlotMachineManager
             public int getHeight()
             {
                 return 256;
+            }
+
+            @Override
+            public float getScale()
+            {
+                return 1f;
             }
         }
     }

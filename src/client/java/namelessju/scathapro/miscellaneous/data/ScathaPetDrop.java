@@ -18,12 +18,19 @@ import java.util.List;
 public class ScathaPetDrop
 {
     private final Rarity rarity;
-
-    public boolean isEffectsOnly = false;
+    private final boolean triggerResults;
+    private final boolean triggerEffects;
 
     public ScathaPetDrop(Rarity rarity)
     {
+        this(rarity, true, true);
+    }
+
+    public ScathaPetDrop(Rarity rarity, boolean triggerResults, boolean triggerEffects)
+    {
         this.rarity = rarity;
+        this.triggerResults = triggerResults;
+        this.triggerEffects = triggerEffects;
     }
 
     public Rarity rarity()
@@ -33,14 +40,14 @@ public class ScathaPetDrop
 
     public void trigger(ScathaPro scathaPro)
     {
-        if (!isEffectsOnly)
+        if (triggerResults)
         {
             ScathaProEvents.scathaPetDropEvent.trigger(
                 new ScathaProEvents.ScathaPetDropEventData(scathaPro, this)
             );
         }
 
-        playEffects(scathaPro);
+        if (triggerEffects) playEffects(scathaPro);
     }
 
     private void playEffects(ScathaPro scathaPro)
@@ -72,6 +79,8 @@ public class ScathaPetDrop
                         IntList.of(rarity.color), IntList.of(),
                         false, true
                     ))
+                    //? if >= 26.3
+                    , true
                 );
             }
         }

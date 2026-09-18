@@ -198,7 +198,8 @@ public class AchievementsList extends AbstractWidget
         this.hoveredEntry = null;
         if (listEntries.length > 0)
         {
-            guiGraphics.scissorStack.push(getRectangle());
+            ScreenRectangle rect = getRectangle();
+            guiGraphics.enableScissor(rect.left(), rect.top(), rect.right(), rect.bottom());
             for (AchievementListEntry listEntry : listEntries)
             {
                 listEntry.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
@@ -208,7 +209,7 @@ public class AchievementsList extends AbstractWidget
                     this.hoveredEntry = listEntry;
                 }
             }
-            guiGraphics.scissorStack.pop();
+            guiGraphics.disableScissor();
         }
         else
         {
@@ -609,7 +610,14 @@ public class AchievementsList extends AbstractWidget
             }
 
             if (detailsHidden) descriptionComponent = Component.literal(achievement.description.replaceAll("\\S", "?"))
-                .withStyle(Style.EMPTY.withColor(contrastableGray).withObfuscated(true));
+                .withStyle(Style.EMPTY
+                    //? if >= 26.2 {
+                    .withColor(contrastableGray)
+                    //? } else {
+                    /*.withColor(   contrastableGray)
+                    *///? }
+                    .withObfuscated(true)
+                );
             else descriptionComponent = Component.literal(achievement.description).withColor(contrastableGray);
         }
 
@@ -695,15 +703,13 @@ public class AchievementsList extends AbstractWidget
             : 0;
         if (overflow != 0)
         {
-            guiGraphics.scissorStack.push(new ScreenRectangle(
-                x, y, maxWidth, font.lineHeight
-            ));
+            guiGraphics.enableScissor(x, y, x + maxWidth, y + font.lineHeight);
         }
         guiGraphics.text(font, component,
             x - animatedOffset, y,
             Util.Color.WHITE, true
         );
-        if (overflow != 0) guiGraphics.scissorStack.pop();
+        if (overflow != 0) guiGraphics.disableScissor();
     }
 
 

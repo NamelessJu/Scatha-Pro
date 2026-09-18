@@ -22,6 +22,6 @@ public class PlayerHeadSpecialRendererMixin
     )
     private ResolvableProfile replaceProfile(ResolvableProfile profile, @Local(argsOnly = true, name = "stack") ItemStack stack)
     {
-        return ScathaPro.getInstance().playerHeadRenderingReplacementManager.replaceItemProfile(profile, stack);
+        return ScathaPro.instance().playerHeadRenderingReplacementManager.replaceItemProfile(profile, stack);
     }
 }

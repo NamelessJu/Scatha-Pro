@@ -5,6 +5,8 @@ import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.achievements.UnlockedAchievement;
 import namelessju.scathapro.events.framework.DataEvent;
 import namelessju.scathapro.files.PersistentData;
+import namelessju.scathapro.files.framework.JsonFile;
+import namelessju.scathapro.miscellaneous.data.enums.HypixelEnvironment;
 import namelessju.scathapro.util.TextUtil;
 import namelessju.scathapro.util.TimeUtil;
 import namelessju.scathapro.util.UnicodeSymbol;
@@ -12,6 +14,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextColor;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.math.RoundingMode;
 import java.util.Objects;
@@ -21,8 +24,11 @@ public class PersistentDataProfileManager
 {
     private final ScathaPro scathaPro;
 
-    private PersistentData.@NonNull ProfileData currentProfileData = new PersistentData.ProfileData(null);
-    private UUID currentPlayerUUID = null;
+    private PersistentData.@NonNull PlayerData currentPlayerData = new PersistentData.PlayerData(null);
+    private PersistentData.@NonNull ProfileData currentProfileData = new PersistentData.ProfileData(null, null);
+    private @Nullable UUID currentPlayerUUID = null;
+    private @Nullable HypixelEnvironment lastHypixelEnvironment = null;
+    private @Nullable UUID lastProfileId = null;
     private boolean cheaterDetected = false;
 
     private final DataEvent<EventData> onProfileChangedEvent = new DataEvent<>();
@@ -34,27 +40,41 @@ public class PersistentDataProfileManager
 
     public void init()
     {
-        updateCurrentPlayerProfile();
+        scathaPro.hypixelContextManager.contextChangedEvent.addListener(
+            _ -> updateCurrentPlayerProfile(true)
+        );
+
+        // This is run before automatic backups are potentially made
+        // -> do not allow persistent data saving
+        updateCurrentPlayerProfile(false);
     }
 
-    public PersistentData.@NonNull ProfileData getCurrentProfileData()
+    public PersistentData.@NonNull PlayerData currentPlayerData()
+    {
+        return currentPlayerData;
+    }
+
+    public PersistentData.@NonNull ProfileData currentProfileData()
     {
         return currentProfileData;
     }
 
-    public void updateCurrentPlayerProfile()
+    public void updateCurrentPlayerProfile(boolean allowPersistentDataSaving)
     {
         UUID playerUUID = scathaPro.minecraft.getUser().getProfileId();
-        String profileID = null; // TODO: actual multiple profiles support
-        //noinspection ConstantValue
-        if (Objects.equals(playerUUID, currentPlayerUUID)
-            && Objects.equals(profileID, currentProfileData.profileID.get())) return;
+        HypixelEnvironment hypixelEnvironment = scathaPro.hypixelContextManager.environment();
+        UUID profileID = scathaPro.hypixelContextManager.profileId();
 
-        currentPlayerUUID = playerUUID;
+        boolean playerChanged = !Objects.equals(playerUUID, currentPlayerUUID);
+        // Note: profile changes to null every time a level is left
+        boolean profileChanged = !Objects.equals(profileID, currentProfileData.profileID.get());
+        if (!playerChanged
+            && Objects.equals(hypixelEnvironment, currentProfileData.hypixelEnvironment.get())
+            && !profileChanged) return;
 
-        // Note: this mustn't save the persistent data as
-        // this gets run before the backup might be made
+        boolean shouldSavePersistentData = false;
 
+        // Load player data
         PersistentData.PlayerData playerData = null;
         for (PersistentData.PlayerData playerDataEntry : scathaPro.persistentData.players)
         {
@@ -69,39 +89,114 @@ public class PersistentDataProfileManager
         {
             playerData = new PersistentData.PlayerData(playerUUID);
             scathaPro.persistentData.players.add(playerData);
-            ScathaPro.LOGGER.debug("No matching player data found, appending new instance");
+            shouldSavePersistentData = true;
+            ScathaPro.LOGGER.debug("No matching player data found, appended new instance");
         }
 
-        PersistentData.ProfileData profileData = null;
-        for (PersistentData.ProfileData profileDataEntry : playerData.profiles)
+
+        // Cache & save last used profile
+        if (profileChanged && hypixelEnvironment != null && profileID != null)
         {
-            if (Objects.equals(profileDataEntry.profileID.get(), profileID))
+            if (hypixelEnvironment == HypixelEnvironment.PRODUCTION)
             {
-                ScathaPro.LOGGER.debug("Profile data with ID {} found", profileID);
-                profileData = profileDataEntry;
-                break;
+                currentPlayerData.lastUsedProdProfileId.set(profileID);
+                shouldSavePersistentData = true;
+                ScathaPro.LOGGER.debug("Saved last used production profile ID ({})", profileID);
+            }
+            lastHypixelEnvironment = hypixelEnvironment;
+            lastProfileId = profileID;
+            ScathaPro.LOGGER.debug("Cached last used profile ({}) & environment ({})", profileID, hypixelEnvironment);
+        }
+
+        // Load last used PROD profile
+        if ((playerChanged || profileChanged && profileID == null) && playerData.lastUsedProdProfileId.get() != null)
+        {
+            lastHypixelEnvironment = HypixelEnvironment.PRODUCTION;
+            lastProfileId = playerData.lastUsedProdProfileId.get();
+            ScathaPro.LOGGER.debug("Loaded last used production profile ID ({})", lastProfileId);
+        }
+
+        // Fall back to last used profile if none is active
+        if (hypixelEnvironment == null && lastHypixelEnvironment != null)
+        {
+            hypixelEnvironment = lastHypixelEnvironment;
+            ScathaPro.LOGGER.debug("Fell back to last used Hypixel environment ({})", hypixelEnvironment);
+        }
+        if (profileID == null && lastProfileId != null)
+        {
+            profileID = lastProfileId;
+            ScathaPro.LOGGER.debug("Fell back to last used profile ID ({})", profileID);
+        }
+
+
+        // Load profile data
+        PersistentData.ProfileData profileData = null;
+        if (hypixelEnvironment == null || profileID == null)
+        {
+            profileData = new PersistentData.ProfileData(null, null);
+            ScathaPro.LOGGER.debug("Hypixel environment (= {}) or SkyBlock profile ID (= {}) is null, using dummy ProfileData", hypixelEnvironment, profileID);
+        }
+        else
+        {
+            for (PersistentData.ProfileData profileDataEntry : playerData.profiles)
+            {
+                if (Objects.equals(profileDataEntry.profileID.get(), profileID)
+                    && Objects.equals(profileDataEntry.hypixelEnvironment.get(), hypixelEnvironment))
+                {
+                    ScathaPro.LOGGER.debug("Profile data with ID {} and environment {} found", profileID, hypixelEnvironment);
+                    profileData = profileDataEntry;
+                    break;
+                }
+            }
+            if (profileData == null)
+            {
+                profileData = new PersistentData.ProfileData(profileID, hypixelEnvironment);
+                playerData.profiles.add(profileData);
+                shouldSavePersistentData = true;
+                ScathaPro.LOGGER.debug("No matching profile data found, appended new instance with profile ID {} and environment {}", profileID, hypixelEnvironment);
             }
         }
-        if (profileData == null)
-        {
-            profileData = new PersistentData.ProfileData(profileID);
-            playerData.profiles.add(profileData);
-            ScathaPro.LOGGER.debug("No matching profile data found, appending new instance");
-        }
 
-        PersistentData.ProfileData previousData = currentProfileData;
+        // Clear events on previous data
+        currentPlayerData.visit((_, value) -> {
+            if (value instanceof JsonFile.ValueEvents valueEvents)
+            {
+                valueEvents.clearAllListeners();
+            }
+        });
+
+        currentPlayerUUID = playerUUID;
+        currentPlayerData = playerData;
         currentProfileData = profileData;
+
+        ScathaPro.LOGGER.debug(
+            "Updated profile data to: player {}, Hypixel environment {}, profile {}",
+            playerUUID, profileData.hypixelEnvironment.get(), profileData.profileID.get()
+        );
 
         detectCheater();
 
-        onProfileChangedEvent.trigger(new EventData(scathaPro, currentProfileData, previousData));
+        if (shouldSavePersistentData && allowPersistentDataSaving)
+        {
+            scathaPro.persistentData.save();
+        }
+
+        onProfileChangedEvent.trigger(new EventData(scathaPro, currentProfileData));
+    }
+
+    public void forceUpdate()
+    {
+        currentPlayerUUID = null;
+        currentPlayerData = new PersistentData.PlayerData(null);
+        currentProfileData = new PersistentData.ProfileData(null, null);
+        updateCurrentPlayerProfile(true);
     }
 
     private void detectCheater()
     {
         cheaterDetected = false;
 
-        PersistentData.ProfileData profileData = getCurrentProfileData();
+        PersistentData.ProfileData profileData = currentProfileData();
         long now = TimeUtil.getEpochMilliseconds();
 
         if (
@@ -144,7 +239,7 @@ public class PersistentDataProfileManager
 
     public float getTotalMagicFind(boolean allowShuriken)
     {
-        PersistentData.ProfileData profileData = getCurrentProfileData();
+        PersistentData.ProfileData profileData = currentProfileData();
         float totalMagicFind = -1f;
 
         totalMagicFind = tryAddStatValue(totalMagicFind, profileData.globalMagicFind.getOr(-1f));
@@ -172,14 +267,14 @@ public class PersistentDataProfileManager
     public float getEffectiveMagicFind(boolean allowShuriken)
     {
         float totalMagicFind = getTotalMagicFind(allowShuriken);
-        float petLuck = getCurrentProfileData().petLuck.getOr(-1f);
+        float petLuck = currentProfileData().petLuck.getOr(-1f);
         return totalMagicFind >= 0f && petLuck >= 0f ? totalMagicFind + petLuck : -1f;
     }
 
     public MutableComponent getGlobalMagicFindComponent(boolean addSymbol)
     {
         return getStatComponent(
-            getCurrentProfileData().globalMagicFind.getOr(-1f),
+            currentProfileData().globalMagicFind.getOr(-1f),
             TextColor.AQUA, String.valueOf(UnicodeSymbol.magicFind),
             addSymbol
         );
@@ -188,7 +283,7 @@ public class PersistentDataProfileManager
     public MutableComponent getBestiaryMagicFindComponent(boolean addSymbol)
     {
         return getStatComponent(
-            getCurrentProfileData().wormBestiaryMagicFind.getOr(-1f),
+            currentProfileData().wormBestiaryMagicFind.getOr(-1f),
             TextColor.AQUA, String.valueOf(UnicodeSymbol.magicFind),
             addSymbol
         );
@@ -197,7 +292,7 @@ public class PersistentDataProfileManager
     public MutableComponent getWitchesStewMagicFindComponent(boolean addSymbol)
     {
         return getStatComponent(
-            getCurrentProfileData().witchesStewsEaten.getMagicFind(),
+            currentProfileData().witchesStewsEaten.getMagicFind(),
             TextColor.AQUA, String.valueOf(UnicodeSymbol.magicFind),
             addSymbol
         );
@@ -206,7 +301,7 @@ public class PersistentDataProfileManager
     public MutableComponent getAttributesMagicFindComponent(boolean addSymbol)
     {
         return getStatComponent(
-            getCurrentProfileData().attributes.getMagicFind(),
+            currentProfileData().attributes.getMagicFind(),
             TextColor.AQUA, String.valueOf(UnicodeSymbol.magicFind),
             addSymbol
         );
@@ -224,7 +319,7 @@ public class PersistentDataProfileManager
     public MutableComponent getPetLuckComponent(boolean addSymbol)
     {
         return getStatComponent(
-            getCurrentProfileData().petLuck.getOr(-1f),
+            currentProfileData().petLuck.getOr(-1f),
             TextColor.LIGHT_PURPLE, String.valueOf(UnicodeSymbol.petLuck),
             addSymbol
         );
@@ -232,7 +327,12 @@ public class PersistentDataProfileManager
 
     private MutableComponent getStatComponent(float value, TextColor color, String symbol, boolean addSymbol)
     {
-        MutableComponent component = Component.empty().withColor(color);
+        MutableComponent component = Component.empty()
+            //? if >= 26.2 {
+            .withColor(color);
+            //? } else {
+            /*.withStyle(color);
+            *///? }
         if (addSymbol) component.append(symbol + " ");
         return component.append(TextUtil.numberToComponentOrObf(
             value, 2, false, RoundingMode.HALF_UP)
@@ -257,7 +357,5 @@ public class PersistentDataProfileManager
         onProfileChangedEvent.removeListener(listener);
     }
 
-    public record EventData(
-        @NonNull ScathaPro scathaPro, PersistentData.@NonNull ProfileData profileData, PersistentData.@NonNull ProfileData previousProfileData
-    ) {}
+    public record EventData(@NonNull ScathaPro scathaPro, PersistentData.@NonNull ProfileData profileData) {}
 }

@@ -1,7 +1,7 @@
 package namelessju.scathapro.gui.menus.screens;
 
 import namelessju.scathapro.ScathaPro;
-import namelessju.scathapro.gui.menus.framework.screens.LayoutScreen;
+import namelessju.scathapro.gui.menus.framework.screens.ScathaProLayoutScreen;
 import namelessju.scathapro.gui.menus.screens.settings.AchievementSettingsScreen;
 import namelessju.scathapro.gui.menus.widgets.AchievementsList;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
@@ -11,7 +11,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NonNull;
 
-public class AchievementListScreen extends LayoutScreen
+public class AchievementListScreen extends ScathaProLayoutScreen
 {
     private AchievementsList achievementsList = null;
 

@@ -9,6 +9,15 @@
                 "\uF250\uF251\uF252",
                 "\uF253\uF254\uF255"
             ]
+        },
+        {
+            "type": "bitmap",
+            "file": "scathapro:font/icons_pixelated.png",
+            "ascent": 7,
+            "height": 7,
+            "chars": [
+                "\uF260\uF261"
+            ]
         }
     ]
 }

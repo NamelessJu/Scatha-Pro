@@ -25,7 +25,7 @@ public abstract class CustomHeadLayerMixin
     {
         if (state instanceof IArmorStandRenderStateData extraData)
         {
-            return ScathaPro.getInstance().playerHeadRenderingReplacementManager.replaceEntityProfile(profile, extraData);
+            return ScathaPro.instance().playerHeadRenderingReplacementManager.replaceEntityProfile(profile, extraData);
         }
 
         return profile;

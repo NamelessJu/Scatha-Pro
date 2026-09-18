@@ -3,7 +3,7 @@ package namelessju.scathapro.gui.menus.screens.settings.alerts.customalertmode;
 import com.google.common.collect.Lists;
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.alerts.Alert;
-import namelessju.scathapro.gui.menus.framework.screens.LayoutScreen;
+import namelessju.scathapro.gui.menus.framework.screens.ScathaProLayoutScreen;
 import namelessju.scathapro.gui.menus.screens.InfoMessageScreen;
 import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class CustomAlertModeSoundImportScreen extends LayoutScreen
+public class CustomAlertModeSoundImportScreen extends ScathaProLayoutScreen
 {
     private final @NonNull String subModeId;
 

@@ -15,7 +15,11 @@ public abstract class SoundEngineMixin
         method = "play",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/resources/sounds/SoundInstance;resolve(Lnet/minecraft/client/sounds/SoundManager;)Lnet/minecraft/client/sounds/WeighedSoundEvents;",
+            //? if >= 26.3 {
+            target = "Lnet/minecraft/client/resources/sounds/SoundInstance;getOrResolve(Lnet/minecraft/client/sounds/SoundManager;)Lnet/minecraft/client/sounds/WeighedSoundEvents;",
+            //? } else {
+            /*target = "Lnet/minecraft/client/resources/sounds/SoundInstance;resolve(Lnet/minecraft/client/sounds/SoundManager;)Lnet/minecraft/client/sounds/WeighedSoundEvents;",
+            *///? }
             ordinal = 0,
             shift = At.Shift.AFTER
         ),
@@ -23,7 +27,7 @@ public abstract class SoundEngineMixin
     )
     private void onPlaySound(SoundInstance instance, CallbackInfoReturnable<SoundEngine.PlayResult> cir)
     {
-        boolean canPlay = ScathaPro.getInstance().soundParser.handlePlaySound(instance);
+        boolean canPlay = ScathaPro.instance().soundParser.handlePlaySound(instance);
         if (!canPlay)
         {
             cir.setReturnValue(SoundEngine.PlayResult.NOT_STARTED);

@@ -25,28 +25,28 @@ public abstract class ArmorStandRendererMixin
     {
         IArmorStandRenderStateData extraData = ((IArmorStandRenderStateData) state);
         IWormArmorStandData wormData = (IWormArmorStandData) entity;
-        DetectedWorm worm = wormData.scathapro$getWorm();
+        DetectedWorm worm = wormData.scathaPro$getWorm();
 
 
         if (worm != null)
         {
-            extraData.scathapro$setIsWorm(worm.isScatha);
+            extraData.scathaPro$setIsWorm(worm.isScatha);
         }
 
-        extraData.scathapro$setWormSegmentType(wormData.scathapro$getWormSegmentType());
+        extraData.scathaPro$setWormSegmentType(wormData.scathaPro$getWormSegmentType());
 
 
-        if (!ScathaPro.getInstance().config.worms.showLifetimeLeft.get())
+        if (!ScathaPro.instance().config.worms.showLifetimeLeft.get())
         {
-            extraData.scathapro$setWormLifetimeLeft(-1f);
+            extraData.scathaPro$setWormLifetimeLeft(-1f);
             return;
         }
 
-        if (!wormData.scathapro$isWormNametag()) return;
-        wormData.scathapro$getWorm();
+        if (!wormData.scathaPro$isWormNametag()) return;
+        wormData.scathaPro$getWorm();
         if (worm == null) return;
 
-        extraData.scathapro$setWormLifetimeLeft(
+        extraData.scathaPro$setWormLifetimeLeft(
             (float) (Constants.wormLifetime - (TimeUtil.getEpochMilliseconds() - worm.spawnTime)) / 1000f
         );
     }

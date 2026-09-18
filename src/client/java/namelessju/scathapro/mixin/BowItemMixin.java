@@ -24,6 +24,6 @@ public abstract class BowItemMixin
     private void onRelease(ItemStack itemStack, Level level, LivingEntity entity, int remainingTime, CallbackInfoReturnable<Boolean> cir)
     {
         if (!level.isClientSide()) return;
-        ScathaPro.getInstance().coreManager.projectileWormHitDetector.drawnBowReleased(itemStack);
+        ScathaPro.instance().coreManager.projectileWormHitDetector.drawnBowReleased(itemStack);
     }
 }

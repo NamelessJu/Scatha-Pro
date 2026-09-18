@@ -50,6 +50,8 @@ public class AchievementManager
 
     public void unlockAchievement(Achievement achievement, int goalReachedCount)
     {
+        if (scathaPro.persistentDataProfileManager.currentProfileData().isDummy()) return;
+
         if (!canUnlockAchievement())
         {
             delayedAchievementUnlocks.add(new DelayedAchievementUnlock(achievement, goalReachedCount));
@@ -124,7 +126,7 @@ public class AchievementManager
                 .append(" " + unlockWord + ": ")
             )
             .append(Component.literal(achievement.achievementName).setStyle(Style.EMPTY
-                .withColor(TextColor.GOLD)
+                .withColor(   TextColor.GOLD) // spaces so stonecutter only replaces the TextColor and not the method
                 .withItalic(true)
                 .withHoverEvent(new HoverEvent.ShowText(Component.empty()
                     .append(

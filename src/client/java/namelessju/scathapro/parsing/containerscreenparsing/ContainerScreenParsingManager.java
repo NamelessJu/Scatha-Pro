@@ -65,8 +65,6 @@ public class ContainerScreenParsingManager
             guiTickCounter = -1; // -1 so this tick is 0 after incrementing
             currentParsingTickCountIndex = 0;
 
-            updateParserStates();
-
             String chestName = StringDecomposer.getPlainText(containerScreen.getTitle());
             for (ContainerScreenParser parser : parsers)
             {
@@ -124,11 +122,6 @@ public class ContainerScreenParsingManager
             ScathaPro.LOGGER.debug(getLogMsg("Parser {} wasn't finished on menu close"), activeParser.parser.getClass().getSimpleName());
         }
         activeParsers.clear();
-    }
-
-    private void updateParserStates()
-    {
-        wormBestiaryParser.enabled = scathaPro.config.miscellaneous.automaticStatsParsingEnabled.get();
     }
 
     private static String getLogMsg(String text)

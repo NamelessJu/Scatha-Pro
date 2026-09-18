@@ -34,7 +34,7 @@ public final class ScathaProTickListeners
 
     private static void onCrystalHollowsTick(ScathaProEvents.CrystalHollowsTickEventData data)
     {
-        // TODO: move most of this into core manager
+        // TODO: move most of this into core manager?
         ScathaPro scathaPro = data.scathaPro();
         long now = TimeUtil.getEpochMilliseconds();
 
@@ -47,12 +47,22 @@ public final class ScathaProTickListeners
 
             heatCheckTickTimer = 0;
 
-            if (scathaPro.getProfileData().regularWormKills.get() == 0 && scathaPro.getProfileData().scathaKills.get() == 0
-                && scathaPro.config.miscellaneous.automaticStatsParsingEnabled.get())
+            if (scathaPro.getProfileData().stonewormKills.get() == 0 && scathaPro.getProfileData().scathaKills.get() == 0)
             {
+                String bestiaryCommand = "/be Stoneworm";
                 scathaPro.chatManager.sendChatMessage(
-                    Component.literal("Open the worm bestiary once to load previous worm kills into the overlay!")
-                        .withColor(TextColor.YELLOW)
+                    Component.literal("Open the Stoneworm bestiary once to load previous worm kills into the overlay!")
+                        .setStyle(Style.EMPTY
+                            //? if >= 26.2 {
+                            .withColor(TextColor.YELLOW)
+                            //? } else {
+                            /*.withColor(   TextColor.YELLOW)
+                            *///? }
+                            .withHoverEvent(new HoverEvent.ShowText(
+                                Component.literal("Click to run:\n" + bestiaryCommand).withColor(TextColor.GRAY)
+                            ))
+                            .withClickEvent(new ClickEvent.RunCommand(bestiaryCommand))
+                        )
                 );
             }
 

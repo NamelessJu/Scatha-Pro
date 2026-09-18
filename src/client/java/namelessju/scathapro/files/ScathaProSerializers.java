@@ -18,7 +18,7 @@ public class ScathaProSerializers
         public @Nullable Alert jsonToValue(@NonNull JsonPrimitive jsonPrimitive)
         {
             if (!jsonPrimitive.isString()) return null;
-            return ScathaPro.getInstance().alertManager.getAlertById(jsonPrimitive.getAsString());
+            return ScathaPro.instance().alertManager.getAlertById(jsonPrimitive.getAsString());
         }
 
         @Override
@@ -34,7 +34,7 @@ public class ScathaProSerializers
         public @Nullable AlertMode jsonToValue(@NonNull JsonPrimitive jsonPrimitive)
         {
             if (!jsonPrimitive.isString()) return null;
-            return ScathaPro.getInstance().alertModeManager.getModeByID(jsonPrimitive.getAsString());
+            return ScathaPro.instance().alertModeManager.getModeByID(jsonPrimitive.getAsString());
         }
 
         @Override

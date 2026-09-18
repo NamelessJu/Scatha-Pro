@@ -21,7 +21,7 @@ public abstract class PackRepositoryMixin
     private List<PackResources> injectCustomAlertModePack(List<PackResources> original)
     {
         List<PackResources> extended = Lists.newArrayList(original.iterator());
-        extended.add(ScathaPro.getInstance().customAlertModeManager.resourcePack);
+        extended.add(ScathaPro.instance().customAlertModeManager.resourcePack);
         ScathaPro.LOGGER.debug("Custom alert mode pack injected");
         return ImmutableList.copyOf(extended);
     }

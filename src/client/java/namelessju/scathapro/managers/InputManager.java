@@ -7,7 +7,8 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import org.apache.commons.compress.utils.Lists;
-import org.lwjgl.glfw.GLFW;
+//? if <= 26.2
+//import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 
@@ -20,29 +21,22 @@ public class InputManager
 
     private final List<KeyMapping> keyMappings = Lists.newArrayList();
 
-    private final KeyMapping toggleOverlayKeyMapping = registerKeyMapping(
-        "toggleOverlay", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, mainCategory
-    );
-    private final KeyMapping toggleOverlayVisibilityKeyMapping = registerKeyMapping(
-        "toggleOverlayVisibility", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, mainCategory
-    );
-    private final KeyMapping cycleSelectedWormStatsTypeKeyMapping = registerKeyMapping(
-        "cycleSelectedWormStatsType", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, mainCategory
-    );
+    private final KeyMapping toggleOverlayKeyMapping
+        = registerKeyMapping("toggleOverlay", mainCategory);
+    private final KeyMapping toggleOverlayVisibilityKeyMapping
+        = registerKeyMapping("toggleOverlayVisibility", mainCategory);
+    private final KeyMapping cycleSelectedWormStatsTypeKeyMapping
+        = registerKeyMapping("cycleSelectedWormStatsType", mainCategory);
 
-    private final KeyMapping lockRotationKeyMapping = registerKeyMapping(
-        "lockRotation", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, playerRotationCategory
-    );
-    private final KeyMapping toggleRotationAnglesKeyMapping = registerKeyMapping(
-        "toggleRotationAngles", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, playerRotationCategory
-    );
-    private final KeyMapping alternativeSensitivityKeyMapping = registerKeyMapping(
-        "alternativeSensitivity", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, playerRotationCategory
-    );
+    private final KeyMapping lockRotationKeyMapping
+        = registerKeyMapping("lockRotation", playerRotationCategory);
+    private final KeyMapping toggleRotationAnglesKeyMapping
+        = registerKeyMapping("toggleRotationAngles", playerRotationCategory);
+    private final KeyMapping alternativeSensitivityKeyMapping
+        = registerKeyMapping("alternativeSensitivity", playerRotationCategory);
 
-    private final KeyMapping cancelScathaDropsSlotMachineKeyMapping = registerKeyMapping(
-        "cancelScathaDropsSlotMachine", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, miscellaneousCategory
-    );
+    private final KeyMapping cancelScathaDropsSlotMachineKeyMapping
+        = registerKeyMapping("cancelScathaDropsSlotMachine", miscellaneousCategory);
 
 
     private final ScathaPro scathaPro;
@@ -134,6 +128,19 @@ public class InputManager
     public boolean isAlternativeSensitivityEnabled()
     {
         return alternativeSensitivityKeyMapping.isDown();
+    }
+
+    private KeyMapping registerKeyMapping(String keyID, KeyMapping.Category category)
+    {
+        return registerKeyMapping(
+            keyID,
+            //? if >=26.3 {
+            InputConstants.Type.KEYBOARD, InputConstants.UNKNOWN.getValue(),
+            //? } else {
+            /*InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN,
+            *///? }
+            category
+        );
     }
 
     @SuppressWarnings("SameParameterValue")

@@ -144,7 +144,6 @@ public class LegacyConfig extends ReadOnlyFile
         mappings.put("other/alternativeSensitivity", new FloatMapper(config.miscellaneous.alternativeSensitivity));
         mappings.put("other/automaticBackups", new BooleanMapper(config.miscellaneous.automaticBackupsEnabled));
         mappings.put("other/automaticUpdateChecks", new BooleanMapper(config.miscellaneous.automaticUpdateCheckEnabled));
-        mappings.put("other/automaticStatsParsing", new BooleanMapper(config.miscellaneous.automaticStatsParsingEnabled));
         mappings.put("other/automaticPetDropScreenshot", new BooleanMapper(config.miscellaneous.automaticPetDropScreenshotEnabled));
         mappings.put("other/dropMessageRarityMode", new EnumMapper<>(config.miscellaneous.dropMessageRarityMode, enumMappings -> {
             enumMappings.put("SUFFIX", DropMessageRarityMode.SUFFIX);

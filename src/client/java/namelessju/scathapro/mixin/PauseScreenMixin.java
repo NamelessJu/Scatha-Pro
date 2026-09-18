@@ -45,15 +45,15 @@ public abstract class PauseScreenMixin extends Screen
     @Inject(method = "createPauseMenu", at = @At("RETURN"))
     private void afterCreatePauseMenu(CallbackInfo ci)
     {
-        if (!ScathaPro.getInstance().config.miscellaneous.showScathaProMenuButtons.get()) return;
+        if (!ScathaPro.instance().config.miscellaneous.showScathaProMenuButtons.get()) return;
         if (advancementsButton == null) return;
 
         scathaProAchievementsButton = new ImageButton(
             0, 0, 0, 0, ScathaPro.MOD_ICON,
-            _ -> minecraft.gui.setScreen(new AchievementListScreen(ScathaPro.getInstance(), this))
+            _ -> minecraft.gui.setScreen(new AchievementListScreen(ScathaPro.instance(), this))
         );
         scathaProAchievementsButton.setTooltip(Tooltip.create(
-            Component.literal(ScathaPro.getInstance().getModDisplayName() + " Achievements")
+            Component.literal(ScathaPro.instance().getModDisplayName() + " Achievements")
         ));
         addRenderableWidget(scathaProAchievementsButton);
         setAchievementsButtonRectangle();

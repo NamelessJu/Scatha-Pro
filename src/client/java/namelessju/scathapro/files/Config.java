@@ -71,8 +71,10 @@ public class Config extends ObjectRootJsonFile
             public final BooleanValue headerShown = addBoolean("headerShown", true);
             public final BooleanValue petDropCountersShown = addBoolean("petDropCountersShown", true);
             public final BooleanValue wormStatsShown = addBoolean("wormStatsShown", true);
+            public final BooleanValue wormsPerHourShown = addBoolean("wormsPerHourShown", false);
             public final BooleanValue scathaKillsSinceLastPetDropShown = addBoolean("scathaKillsSinceLastPetDropShown", true);
             public final BooleanValue blockBransCounterShown = addBoolean("blockBransCounterShown", false);
+            public final BooleanValue bestiaryRankShown = addBoolean("bestiaryRankShown", false);
             public final BooleanValue wormSpawnCooldownTimerShown = addBoolean("wormSpawnCooldownTimerShown", false);
             public final BooleanValue tunnelVisionStatusTextShown = addBoolean("tunnelVisionStatusTextShown", true);
             public final BooleanValue timeSinceWormSpawnShown = addBoolean("timeSinceWormSpawnShown", false);
@@ -238,7 +240,6 @@ public class Config extends ObjectRootJsonFile
         // Automatic stuff
         public final BooleanValue automaticBackupsEnabled = addBoolean("automaticBackups", true);
         public final BooleanValue automaticUpdateCheckEnabled = addBoolean("automaticUpdateCheck", false);
-        public final BooleanValue automaticStatsParsingEnabled = addBoolean("automaticStatsParsing", true);
         public final BooleanValue automaticPetDropScreenshotEnabled = addBoolean("automaticPetDropScreenshot", false);
         // Drop message extension
         public final PrimitiveValueNullable<DropMessageRarityMode> dropMessageRarityMode

@@ -6,6 +6,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.StringDecomposer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemLore;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -34,7 +35,7 @@ public abstract class ContainerScreenParser
     public abstract void tryParse(ItemStack itemStack, int slotNumber);
     public void onFinishParsing() {}
 
-    protected String searchLoreWithExpectedIndex(ItemStack itemStack, int expectedLoreIndex, Predicate<String> linePredicate)
+    protected @Nullable String searchLoreWithExpectedIndex(ItemStack itemStack, int expectedLoreIndex, Predicate<String> linePredicate)
     {
         ItemLore itemLore = itemStack.get(DataComponents.LORE);
         if (itemLore == null) return null;

@@ -21,37 +21,37 @@ public abstract class ArmorStandMixin implements IWormArmorStandData
     private boolean isWormNametag = false;
 
     @Override
-    public void scathapro$setWorm(DetectedWorm worm)
+    public void scathaPro$setWorm(DetectedWorm worm)
     {
         this.worm = new WeakReference<>(worm);
     }
 
     @Override
-    public @Nullable DetectedWorm scathapro$getWorm()
+    public @Nullable DetectedWorm scathaPro$getWorm()
     {
         return worm != null ? worm.get() : null;
     }
 
     @Override
-    public void scathapro$setWormSegmentType(WormSegmentType segmentType)
+    public void scathaPro$setWormSegmentType(WormSegmentType segmentType)
     {
         this.wormSegmentType = segmentType;
     }
 
     @Override
-    public @Nullable WormSegmentType scathapro$getWormSegmentType()
+    public @Nullable WormSegmentType scathaPro$getWormSegmentType()
     {
         return wormSegmentType;
     }
 
     @Override
-    public void scathapro$setIsWormNametag(boolean isWormNametag)
+    public void scathaPro$setIsWormNametag(boolean isWormNametag)
     {
         this.isWormNametag = isWormNametag;
     }
 
     @Override
-    public boolean scathapro$isWormNametag()
+    public boolean scathaPro$isWormNametag()
     {
         return isWormNametag;
     }

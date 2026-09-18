@@ -2,7 +2,7 @@ package namelessju.scathapro.gui.menus.screens;
 
 import namelessju.scathapro.Constants;
 import namelessju.scathapro.ScathaPro;
-import namelessju.scathapro.gui.menus.framework.screens.LayoutScreen;
+import namelessju.scathapro.gui.menus.framework.screens.ScathaProLayoutScreen;
 import namelessju.scathapro.util.TextUtil;
 import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
@@ -16,7 +16,7 @@ import org.jspecify.annotations.NonNull;
 import java.math.RoundingMode;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class AverageMoneyCalculatorScreen extends LayoutScreen
+public class AverageMoneyCalculatorScreen extends ScathaProLayoutScreen
 {
     private StringWidget resultLabel;
     private EditBox scathaPetPriceRareInput, scathaPetPriceEpicInput, scathaPetPriceLegendaryInput;

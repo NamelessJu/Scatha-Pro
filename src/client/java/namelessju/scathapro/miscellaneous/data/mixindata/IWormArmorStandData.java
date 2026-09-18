@@ -6,12 +6,12 @@ import org.jspecify.annotations.Nullable;
 
 public interface IWormArmorStandData
 {
-    void scathapro$setWorm(DetectedWorm worm);
-    @Nullable DetectedWorm scathapro$getWorm();
+    void scathaPro$setWorm(DetectedWorm worm);
+    @Nullable DetectedWorm scathaPro$getWorm();
 
-    void scathapro$setWormSegmentType(WormSegmentType segmentType);
-    @Nullable WormSegmentType scathapro$getWormSegmentType();
+    void scathaPro$setWormSegmentType(WormSegmentType segmentType);
+    @Nullable WormSegmentType scathaPro$getWormSegmentType();
 
-    void scathapro$setIsWormNametag(boolean isWormNametag);
-    boolean scathapro$isWormNametag();
+    void scathaPro$setIsWormNametag(boolean isWormNametag);
+    boolean scathaPro$isWormNametag();
 }

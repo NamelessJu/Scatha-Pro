@@ -194,7 +194,7 @@ public enum Achievement
 
         int goalReachedCount = (int) Math.max(progressValue / this.goal, 0f);
 
-        UnlockedAchievement unlockedAchievement = ScathaPro.getInstance().getProfileData().unlockedAchievements.getFor(this);
+        UnlockedAchievement unlockedAchievement = ScathaPro.instance().getProfileData().unlockedAchievements.getFor(this);
         if (unlockedAchievement != null && unlockedAchievement.getRepeatCount() > goalReachedCount - 1)
         {
             setProgress(0f, false);
@@ -203,7 +203,7 @@ public enum Achievement
 
         if (allowUnlocking && goalReachedCount >= 1)
         {
-            ScathaPro.getInstance().achievementManager.unlockAchievement(this, goalReachedCount);
+            ScathaPro.instance().achievementManager.unlockAchievement(this, goalReachedCount);
         }
 
         setProgress(progressValue > 0f ? progressValue % this.goal : 0f, false);
@@ -224,6 +224,6 @@ public enum Achievement
 
     public void unlock()
     {
-        ScathaPro.getInstance().achievementManager.unlockAchievement(this);
+        ScathaPro.instance().achievementManager.unlockAchievement(this);
     }
 }

@@ -36,7 +36,7 @@ public class SoundParser
         }
 
 
-        if (!scathaPro.coreManager.isInCrystalHollows()) return true;
+        if (!scathaPro.hypixelContextManager.isInCrystalHollows()) return true;
 
 
         // Detect worm pre-spawn

@@ -59,8 +59,9 @@ public class EntityDetectionManager
 
     public void tick(LocalPlayer player)
     {
-        AABB entityDetectionAABB = AABB.ofSize(player.position(), 60, 10, 60);
-        AABB killAABB = AABB.ofSize(player.position(), 20, 255, 20);
+        AABB entityDetectionAABB = AABB.ofSize(player.position(), 60D, 10D, 60D);
+        // Note: nametags currently disappear at ~30 blocks distance to the player
+        AABB loadedEntityDistanceAABB = AABB.ofSize(player.position(), 55D, 999D, 55D);
 
         long now = TimeUtil.getEpochMilliseconds();
 
@@ -118,7 +119,7 @@ public class EntityDetectionManager
                             getEntityString(detectedEntity), registeredEntities.size()
                         );
                     }
-                    else if (killAABB.contains(detectedEntity.entity.position()))
+                    else if (loadedEntityDistanceAABB.contains(detectedEntity.entity.position()))
                     {
                         registeredEntities.remove(detectedEntity.entity.getId());
 

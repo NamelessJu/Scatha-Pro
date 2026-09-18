@@ -42,7 +42,11 @@ public class ChatManager
 
     public void init()
     {
+        //? if >= 26.2 {
         chatMessages = ((ChatComponentAccessor) scathaPro.minecraft.gui.hud.getChat()).getMessages();
+        //? } else {
+        /*chatMessages = ((ChatComponentAccessor) scathaPro.minecraft.gui.getChat()).getMessages();
+        *///? }
     }
 
     public void sendChatMessage(@NonNull String message)
@@ -68,7 +72,7 @@ public class ChatManager
 
     public void sendCrystalHollowsMessage(@NonNull Component message)
     {
-        sendCacheableMessage(message, true, scathaPro.coreManager.isInCrystalHollows(),
+        sendCacheableMessage(message, true, scathaPro.hypixelContextManager.isInCrystalHollows(),
             cachedCrystalHollowsMessages, "Crystal Hollows");
     }
 

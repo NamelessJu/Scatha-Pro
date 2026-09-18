@@ -93,7 +93,7 @@ public class ProjectileWormHitDetector
 
     public void checkItemUsed(ItemStack itemStack)
     {
-        if (!scathaPro.coreManager.isInCrystalHollows()) return;
+        if (!scathaPro.hypixelContextManager.isInCrystalHollows()) return;
 
         Item item = itemStack.getItem();
         if (item == Items.FISHING_ROD || item == Items.BOW)
@@ -107,7 +107,7 @@ public class ProjectileWormHitDetector
 
     public void checkShortbowHitFired(ItemStack itemStack)
     {
-        if (!scathaPro.coreManager.isInCrystalHollows()) return;
+        if (!scathaPro.hypixelContextManager.isInCrystalHollows()) return;
         if (itemStack.getItem() != Items.BOW) return;
 
         String skyBlockId = SkyBlockItemUtil.getItemID(itemStack);
@@ -119,7 +119,7 @@ public class ProjectileWormHitDetector
 
     public void drawnBowReleased(ItemStack itemStack)
     {
-        if (!scathaPro.coreManager.isInCrystalHollows()) return;
+        if (!scathaPro.hypixelContextManager.isInCrystalHollows()) return;
         lastProjectileWeaponUsed = itemStack;
         ScathaPro.LOGGER.debug("Bow released");
         hitNearbyWorms(itemStack);

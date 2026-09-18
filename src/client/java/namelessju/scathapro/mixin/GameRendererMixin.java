@@ -1,7 +1,11 @@
 package namelessju.scathapro.mixin;
 
 import namelessju.scathapro.ScathaPro;
-import net.minecraft.client.DeltaTracker;
+//? if >= 26.3 {
+import net.minecraft.client.Minecraft;
+//? } else {
+/*import net.minecraft.client.DeltaTracker;
+ *///? }
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.Projection;
 import net.minecraft.client.renderer.ProjectionMatrixBuffer;
@@ -14,11 +18,18 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+//? if <= 26.1.2
+//import net.minecraft.client.renderer.RenderBuffers;
+
 @Mixin(GameRenderer.class)
 public abstract class GameRendererMixin
 {
     @Shadow @Final
+    //? if >= 26.2 {
     private SubmitNodeStorage handAndScreenSubmitNodeStorage;
+    //? } else {
+    /*private SubmitNodeStorage submitNodeStorage;
+    *///? }
     @Shadow @Final
     private FeatureRenderDispatcher featureRenderDispatcher;
     @Shadow @Final
@@ -26,19 +37,44 @@ public abstract class GameRendererMixin
     @Shadow @Final
     private Projection hudProjection;
 
+    //? if <= 26.1.2 {
+    /*@Shadow @Final
+    private RenderBuffers renderBuffers;
+    *///? }
+
     @Inject(
         method = "render",
         at = @At(
             value = "INVOKE",
+            //? if >= 26.2 {
             target = "Lnet/minecraft/client/renderer/RenderBuffers;endFrame()V"
+            //? } else {
+            /*target = "Lnet/minecraft/client/gui/render/GuiRenderer;endFrame()V",
+            shift = At.Shift.AFTER
+            *///? }
         )
     )
-    private void renderItemPopup(DeltaTracker deltaTracker, boolean advanceGameTime, CallbackInfo ci)
+    //? if >= 26.3 {
+    private void renderItemPopup(CallbackInfo ci)
+    //?} else {
+    /*private void renderItemPopup(DeltaTracker deltaTracker, boolean advanceGameTime, CallbackInfo ci)
+    *///? }
     {
-        ScathaPro.getInstance().itemPopupRenderer.render(
+        ScathaPro.instance().itemPopupRenderer.render(
             hud3dProjectionMatrixBuffer, hudProjection,
-            handAndScreenSubmitNodeStorage, deltaTracker,
+            //? if >= 26.2 {
+            handAndScreenSubmitNodeStorage,
+            //? } else {
+            /*submitNodeStorage,
+            *///? }
+            //? if >= 26.3 {
+            Minecraft.getInstance().getDeltaTracker(),
+            //? } else {
+            /*deltaTracker,
+            *///? }
             featureRenderDispatcher
+            //? if <= 26.1.2
+            //, renderBuffers
         );
     }
 }

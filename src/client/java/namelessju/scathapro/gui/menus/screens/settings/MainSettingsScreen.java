@@ -54,7 +54,7 @@ public class MainSettingsScreen extends ConfigScreen
 
         gridBuilder.addSingleCell(subScreenButton("Key Binds...", (_, parent) -> {
             KeyBindsScreen keyBindsScreen = new KeyBindsScreen(parent, minecraft.options);
-            ((IKeyBindsListExtraData) keyBindsScreen).scathapro$setScathaProOnly();
+            ((IKeyBindsListExtraData) keyBindsScreen).scathaPro$setScathaProOnly();
             return keyBindsScreen;
         }));
         gridBuilder.addSingleCell(subScreenButton("Miscellaneous...", MiscellaneousSettingsScreen::new));

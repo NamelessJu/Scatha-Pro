@@ -144,7 +144,8 @@ public final class PlayerListParser
     private static void parseNamedIntValue(String playerListLine, String valueName, Consumer<Integer> valueConsumer)
     {
         ScathaPro.LOGGER.debug("Checking for player list int value \"{}\"", valueName);
-        if (playerListLine.substring(1, valueName.length() + 1).equalsIgnoreCase(valueName))
+        if (playerListLine.length() > valueName.length() + 3
+            && playerListLine.substring(1, valueName.length() + 1).equalsIgnoreCase(valueName))
         {
             String valueString = playerListLine.substring(valueName.length() + 3);
 

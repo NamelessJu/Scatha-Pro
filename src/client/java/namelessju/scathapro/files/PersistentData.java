@@ -6,6 +6,7 @@ import namelessju.scathapro.achievements.UnlockedAchievements;
 import namelessju.scathapro.files.framework.JsonFile;
 import namelessju.scathapro.files.framework.ObjectRootJsonFile;
 import namelessju.scathapro.miscellaneous.data.MagicFindSource;
+import namelessju.scathapro.miscellaneous.data.enums.HypixelEnvironment;
 import namelessju.scathapro.miscellaneous.data.enums.ShardsAttribute;
 import namelessju.scathapro.miscellaneous.data.enums.WitchesStew;
 import namelessju.scathapro.util.JsonUtil;
@@ -37,24 +38,37 @@ public class PersistentData extends ObjectRootJsonFile
         }
 
         public final PrimitiveValueNullable<UUID> playerUUID = addPrimitiveNullable("playerUUID", UUID_SERIALIZER);
+        public final PrimitiveValueNullable<UUID> lastUsedProdProfileId = addPrimitiveNullable("lastUsedProdProfileId", UUID_SERIALIZER);
 
-        public final JsonValueArrayValue<ProfileData> profiles = addValue("profiles", new JsonValueArrayValue<>(() -> new ProfileData(null)));
+        public final JsonValueArrayValue<ProfileData> profiles = addValue("profiles", new JsonValueArrayValue<>(() -> new ProfileData(null, null)));
     }
 
     public final static class ProfileData extends ObjectValue
     {
-        public ProfileData(String profileID)
+        public ProfileData(UUID profileID, HypixelEnvironment environment)
         {
             this.profileID.set(profileID);
+            this.hypixelEnvironment.set(environment);
         }
 
-        public final PrimitiveValueNullable<String> profileID = addPrimitiveNullable("profileID", STRING_SERIALIZER);
+        public boolean isDummy()
+        {
+            return profileID.get() == null || hypixelEnvironment.get() == null;
+        }
+
+        public final PrimitiveValueNullable<UUID> profileID = addPrimitiveNullable("profileID", UUID_SERIALIZER);
+        public final PrimitiveValueNullable<HypixelEnvironment> hypixelEnvironment
+            = addPrimitiveNullable("hypixelEnvironment", new EnumSerializer<>(HypixelEnvironment.class));
+        public final BooleanValue unconnectedDataImportShown
+            = addBoolean("unconnectedDataImportShown", false);
 
 
-        public final PrimitiveValueWithDefault<Integer> regularWormKills
+        public final PrimitiveValueWithDefault<Integer> stonewormKills
             = addPrimitiveWithDefault("wormKills.regularWorms", INTEGER_SERIALIZER, 0);
         public final PrimitiveValueWithDefault<Integer> scathaKills
             = addPrimitiveWithDefault("wormKills.scathas", INTEGER_SERIALIZER, 0);
+        public final PrimitiveValueWithDefault<Integer> bestiaryRank
+            = addPrimitiveWithDefault("wormKills.bestiaryRank", INTEGER_SERIALIZER, -1);
 
         public final PrimitiveValueWithDefault<Integer> rarePetDrops
             = addPrimitiveWithDefault("petDrops.rare", INTEGER_SERIALIZER, 0);

@@ -26,7 +26,7 @@ public abstract class MouseHandlerMixin
     )
     private void preventPlayerRotation(double mousea, CallbackInfo ci)
     {
-        if (ScathaPro.getInstance().inputManager.isCameraRotationLocked())
+        if (ScathaPro.instance().inputManager.isCameraRotationLocked())
         {
             smoothTurnX.reset();
             smoothTurnY.reset();
@@ -44,9 +44,9 @@ public abstract class MouseHandlerMixin
     )
     private Object modifySensitivity(OptionInstance<?> instance, Operation<?> original)
     {
-        if (ScathaPro.getInstance().inputManager.isAlternativeSensitivityEnabled())
+        if (ScathaPro.instance().inputManager.isAlternativeSensitivityEnabled())
         {
-            return (double) ScathaPro.getInstance().config.miscellaneous.alternativeSensitivity.get();
+            return (double) ScathaPro.instance().config.miscellaneous.alternativeSensitivity.get();
         }
         return original.call(instance);
     }

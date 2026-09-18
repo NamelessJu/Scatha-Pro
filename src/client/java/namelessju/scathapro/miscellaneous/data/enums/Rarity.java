@@ -25,7 +25,13 @@ public enum Rarity
     {
         this.rarityName = rarityName;
         this.style = (style != null ? style : Style.EMPTY).withColor(color);
-        this.color = ARGB.opaque(color.getValue());
+        this.color = ARGB.opaque(
+            //? if >= 26.2 {
+            color.getValue()
+            //? } else {
+            /*color.getColor()
+            *///? }
+        );
     }
 
     /**

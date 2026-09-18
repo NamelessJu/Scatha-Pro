@@ -5,6 +5,7 @@ import namelessju.scathapro.gui.menus.framework.screens.ConfigScreen;
 import namelessju.scathapro.gui.menus.framework.widgets.lists.TwoColumnGuiList;
 import namelessju.scathapro.gui.menus.framework.widgets.sliders.FloatSlider;
 import namelessju.scathapro.gui.menus.framework.widgets.sliders.IntegerSlider;
+import namelessju.scathapro.gui.menus.screens.ScathaDropsSlotMachinePreviewScreen;
 import namelessju.scathapro.miscellaneous.data.enums.DateFormat;
 import namelessju.scathapro.miscellaneous.data.enums.MaxSlotMachineFakeScathaRarity;
 import namelessju.scathapro.miscellaneous.data.enums.TimeFormat;
@@ -52,26 +53,14 @@ public class MiscellaneousSettingsScreen extends ConfigScreen
             null
         ));
 
-
-        CycleButton<Boolean> bestiaryParsingButton = booleanConfigButton(
-            "Bestiary Parsing",
-            config.miscellaneous.automaticStatsParsingEnabled,
-            _ -> Tooltip.create(
-                Component.literal("Automatically reads kills and bestiary Magic Find from the worm bestiary menu")
-                    .withColor(TextColor.GRAY)
-            ), null
-        );
-
         if (scathaPro.getProfileData().lastAprilFoolsJokeShownYear.getOr(-1) >= 0)
         {
-            list.addSingleColumn(bestiaryParsingButton);
-            list.addSingleColumn(booleanConfigButton(
+            list.addDoubleColumn(booleanConfigButton(
                 "April Fools Fake Drop", config.miscellaneous.aprilFoolsFakeDropEnabled
             ));
         }
-        else list.addDoubleColumn(bestiaryParsingButton);
 
-        list.addTitle(Component.literal("Accessibilty"));
+        list.addTitle(Component.literal("Accessibility"));
 
         list.addSingleColumn(enumCycleButton(
             TimeFormat.class, "Time Format", config.accessibility.timeFormat,
@@ -137,6 +126,9 @@ public class MiscellaneousSettingsScreen extends ConfigScreen
                     ).withColor(TextColor.GRAY)
             ), null
         ));
+        list.addCentered(subScreenButtonBuilder(
+            Component.literal("Preview..."), () -> new ScathaDropsSlotMachinePreviewScreen(scathaPro, this)
+        ).width(200).build());
 
         // Unlockables
         OptionalCategoryBuilder unlockables = new OptionalCategoryBuilder("Unlockables", list);

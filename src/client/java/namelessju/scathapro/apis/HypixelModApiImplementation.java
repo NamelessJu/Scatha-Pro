@@ -1,9 +1,10 @@
 package namelessju.scathapro.apis;
 
 import namelessju.scathapro.ScathaPro;
-import namelessju.scathapro.events.ScathaProEvents;
+import namelessju.scathapro.miscellaneous.data.enums.HypixelEnvironment;
 import namelessju.scathapro.miscellaneous.data.enums.SkyBlockArea;
 import net.hypixel.modapi.HypixelModAPI;
+import net.hypixel.modapi.packet.impl.clientbound.ClientboundHelloPacket;
 import net.hypixel.modapi.packet.impl.clientbound.event.ClientboundLocationPacket;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -17,14 +18,24 @@ public class HypixelModApiImplementation
     {
         HypixelModAPI modApi = HypixelModAPI.getInstance();
 
+        modApi.createHandler(ClientboundHelloPacket.class, packet -> {
+            ScathaPro.LOGGER.debug("Received Hypixel Hello packet for environment {}", packet.getEnvironment().name());
+            scathaPro.hypixelContextManager.setEnvironment(switch (packet.getEnvironment())
+            {
+                case PRODUCTION -> HypixelEnvironment.PRODUCTION;
+                case BETA -> HypixelEnvironment.ALPHA;
+                case null, default -> HypixelEnvironment.OTHER;
+            });
+        });
+
         modApi.subscribeToEventPacket(ClientboundLocationPacket.class);
         modApi.createHandler(ClientboundLocationPacket.class, packet -> {
             AtomicReference<SkyBlockArea> newArea = new AtomicReference<>();
-            AtomicBoolean isSkyblock = new AtomicBoolean(false);
+            AtomicBoolean isSkyBlock = new AtomicBoolean(false);
             packet.getServerType().ifPresent(serverType -> {
-                if (serverType.name().equals("SKYBLOCK")) isSkyblock.set(true);
+                if (serverType.name().equals("SKYBLOCK")) isSkyBlock.set(true);
             });
-            if (isSkyblock.get())
+            if (isSkyBlock.get())
             {
                 ScathaPro.LOGGER.debug("Server is of type SKYBLOCK!");
 
@@ -34,10 +45,6 @@ public class HypixelModApiImplementation
                         if (area.serverModeId.equals(mode))
                         {
                             newArea.set(area);
-                            ScathaProEvents.skyBlockAreaDetectedEvent.trigger(
-                                new ScathaProEvents.SkyBlockAreaDetectedEventData(scathaPro, area)
-                            );
-                            ScathaPro.LOGGER.debug("Skyblock area detected: {}", area.name());
                             break;
                         }
                     }
@@ -46,7 +53,7 @@ public class HypixelModApiImplementation
                 });
             }
 
-            scathaPro.coreManager.setSkyBlockArea(newArea.get());
+            scathaPro.hypixelContextManager.setLocation(isSkyBlock.get(), newArea.get());
         });
 
         ScathaPro.LOGGER.debug("Hypixel mod API initialized");
