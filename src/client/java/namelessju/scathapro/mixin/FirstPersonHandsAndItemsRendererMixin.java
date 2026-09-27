@@ -39,7 +39,7 @@ public abstract class FirstPersonHandsAndItemsRendererMixin
          *///? }
     )
     {
-        if (ScathaPro.instance().scathaDropsSlotMachineManager.shouldHideDrops())
+        if (ScathaPro.instance().scathaDropsGamblingReelManager.shouldHideDrops())
         {
             ci.cancel();
         }

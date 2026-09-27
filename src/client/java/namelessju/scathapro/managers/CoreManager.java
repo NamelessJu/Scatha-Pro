@@ -248,9 +248,9 @@ public class CoreManager
         this.blackHoleWormKillHandler = killHandler;
         this.blackHoleWormKillTicksLeft = Constants.blackHoleSuctionMaxTicksDuration;
 
-        if (worm.isScatha && scathaPro.config.miscellaneous.dropsSlotMachineEnabled.get())
+        if (worm.isScatha && scathaPro.config.miscellaneous.dropsGamblingReelEnabled.get())
         {
-            scathaPro.scathaDropsSlotMachineManager.startPreRoll(
+            scathaPro.scathaDropsGamblingReelManager.startPreRoll(
                 Constants.blackHoleSuctionMaxTicksDuration, Constants.blackHoleSuctionMinTicksDuration
             );
         }

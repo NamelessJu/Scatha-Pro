@@ -11,7 +11,6 @@ public final class UnicodeSymbol
     public static final char scathaPetRare = '\uF252';
     public static final char scathaPetEpic = '\uF253';
     public static final char scathaPetLegendary = '\uF254';
-    public static final char blockBran = '\uF255';
     // Custom symbols (pixelated)
     public static final char leaderboard = '\uF260';
     public static final char medal = '\uF261';

@@ -8,14 +8,11 @@ import namelessju.scathapro.miscellaneous.data.enums.WitchesStew;
 import namelessju.scathapro.util.SkyBlockItemUtil;
 import namelessju.scathapro.util.TextUtil;
 import namelessju.scathapro.util.TimeUtil;
-import namelessju.scathapro.util.UnicodeSymbol;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextColor;
 import net.minecraft.util.Mth;
 import net.minecraft.util.StringDecomposer;
 import org.jspecify.annotations.NonNull;
 
-import java.math.RoundingMode;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,9 +49,9 @@ public class ChatParser
             scathaPro.coreManager.triggerBlackHoleKill();
         }
 
-        if (scathaPro.scathaDropsSlotMachineManager.shouldHideDrops())
+        if (scathaPro.scathaDropsGamblingReelManager.shouldHideDrops())
         {
-            scathaPro.scathaDropsSlotMachineManager.addDelayedChatMessage(message);
+            scathaPro.scathaDropsGamblingReelManager.addDelayedChatMessage(message);
             return true;
         }
 
@@ -99,12 +96,8 @@ public class ChatParser
                         float newMagicFind = profileData.witchesStewsEaten.getMagicFind();
                         if (!Mth.equal(newMagicFind, previousMagicFind))
                         {
-                            scathaPro.runNextTick(() -> scathaPro.chatManager.sendChatMessage(Component.empty().withColor(TextColor.GRAY)
-                                .append("Updated Witches Stew Scatha Magic Find (")
-                                .append(TextUtil.numberToComponentOrObf(previousMagicFind, 2, false, RoundingMode.HALF_UP))
-                                .append(" " + UnicodeSymbol.hypixelArrowRight + " ")
-                                .append(TextUtil.numberToComponentOrObf(newMagicFind, 2, false, RoundingMode.HALF_UP))
-                                .append(")")
+                            scathaPro.runNextTick(() -> scathaPro.chatManager.sendValueUpdatedMessage(
+                                "saved Witches Stew Scatha Magic Find", previousMagicFind, newMagicFind
                             ));
                         }
                         break;

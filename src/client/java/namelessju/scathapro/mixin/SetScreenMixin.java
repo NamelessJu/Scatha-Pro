@@ -31,7 +31,7 @@ public class SetScreenMixin
     {
         if (screen == null) return;
 
-        if (ScathaPro.instance().scathaDropsSlotMachineManager.shouldHideScreen(screen))
+        if (ScathaPro.instance().scathaDropsGamblingReelManager.shouldHideScreen(screen))
         {
             screen.onClose();
         }

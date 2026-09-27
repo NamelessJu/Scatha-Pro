@@ -2,7 +2,7 @@ package namelessju.scathapro.mixin;
 
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.gui.menus.screens.FakeBanScreen;
-import namelessju.scathapro.gui.menus.screens.ScathaDropsSlotMachinePreviewScreen;
+import namelessju.scathapro.gui.menus.screens.ScathaDropsGamblingReelPreviewScreen;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -52,11 +52,11 @@ public abstract class HudMixin
             ci.cancel();
         }
 
-        if (!(currentScreen instanceof ScathaDropsSlotMachinePreviewScreen))
+        if (!(currentScreen instanceof ScathaDropsGamblingReelPreviewScreen))
         {
-            ScathaPro.instance().scathaDropsSlotMachineManager.extractHudRenderState(graphics, deltaTracker);
+            ScathaPro.instance().scathaDropsGamblingReelManager.extractHudRenderState(graphics, deltaTracker);
         }
-        if (ScathaPro.instance().scathaDropsSlotMachineManager.shouldHideDrops())
+        if (ScathaPro.instance().scathaDropsGamblingReelManager.shouldHideDrops())
         {
             extractCameraOverlays(graphics, deltaTracker);
             ci.cancel();

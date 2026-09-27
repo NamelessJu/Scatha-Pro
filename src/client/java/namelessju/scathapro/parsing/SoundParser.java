@@ -28,8 +28,8 @@ public class SoundParser
             return false;
         }
 
-        // Mute sounds in Scatha drops slot machine
-        if (scathaPro.scathaDropsSlotMachineManager.shouldHideDrops()
+        // Mute sounds in Scatha drops gambling reel
+        if (scathaPro.scathaDropsGamblingReelManager.shouldHideDrops()
             && !(sound instanceof ScathaProSound))
         {
             return false;

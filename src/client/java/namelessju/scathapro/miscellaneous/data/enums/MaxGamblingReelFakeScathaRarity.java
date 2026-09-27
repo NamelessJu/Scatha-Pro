@@ -6,13 +6,13 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 @NullMarked
-public enum MaxSlotMachineFakeScathaRarity implements IDisplayable
+public enum MaxGamblingReelFakeScathaRarity implements IDisplayable
 {
     NONE(null), RARE(Rarity.RARE), EPIC(Rarity.EPIC), LEGENDARY(Rarity.LEGENDARY);
 
     private final @Nullable Rarity rarity;
 
-    MaxSlotMachineFakeScathaRarity(@Nullable Rarity rarity)
+    MaxGamblingReelFakeScathaRarity(@Nullable Rarity rarity)
     {
         this.rarity = rarity;
     }

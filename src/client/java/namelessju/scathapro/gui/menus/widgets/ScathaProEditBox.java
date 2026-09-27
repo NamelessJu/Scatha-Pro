@@ -1,5 +1,6 @@
 package namelessju.scathapro.gui.menus.widgets;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import namelessju.scathapro.util.TextUtil;
 import net.minecraft.client.Minecraft;
@@ -324,26 +325,19 @@ public class ScathaProEditBox extends AbstractWidget
         {
             switch (event.key())
             {
-                case 259:
+                case InputConstants.KEY_BACKSPACE:
                     if (this.isEditable)
                     {
                         this.deleteText(-1, event.hasControlDownWithQuirk());
                     }
-
                     return true;
-                case 260:
-                case 264:
-                case 265:
-                case 266:
-                case 267:
-                case 261:
+                case InputConstants.KEY_DELETE:
                     if (this.isEditable)
                     {
                         this.deleteText(1, event.hasControlDownWithQuirk());
                     }
-
                     return true;
-                case 262:
+                case InputConstants.KEY_RIGHT:
                     if (event.hasControlDownWithQuirk())
                     {
                         this.moveCursorTo(this.getWordPosition(1), event.hasShiftDown());
@@ -352,9 +346,8 @@ public class ScathaProEditBox extends AbstractWidget
                     {
                         this.moveCursor(1, event.hasShiftDown());
                     }
-
                     return true;
-                case 263:
+                case InputConstants.KEY_LEFT:
                     if (event.hasControlDownWithQuirk())
                     {
                         this.moveCursorTo(this.getWordPosition(-1), event.hasShiftDown());
@@ -363,14 +356,18 @@ public class ScathaProEditBox extends AbstractWidget
                     {
                         this.moveCursor(-1, event.hasShiftDown());
                     }
-
                     return true;
-                case 268:
+                case InputConstants.KEY_HOME:
                     this.moveCursorToStart(event.hasShiftDown());
                     return true;
-                case 269:
+                case InputConstants.KEY_END:
                     this.moveCursorToEnd(event.hasShiftDown());
                     return true;
+                case InputConstants.KEY_INSERT:
+                case InputConstants.KEY_DOWN:
+                case InputConstants.KEY_UP:
+                case InputConstants.KEY_PAGEUP:
+                case InputConstants.KEY_PAGEDOWN:
                 default:
                     if (event.isSelectAll())
                     {
@@ -389,7 +386,6 @@ public class ScathaProEditBox extends AbstractWidget
                         {
                             this.insertText(Minecraft.getInstance().keyboardHandler.getClipboard());
                         }
-
                         return true;
                     }
                     else
@@ -401,10 +397,8 @@ public class ScathaProEditBox extends AbstractWidget
                             {
                                 this.insertText("");
                             }
-
                             return true;
                         }
-
                         return false;
                     }
             }

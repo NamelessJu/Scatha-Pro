@@ -316,7 +316,7 @@ public class CustomAlertModeEditScreen extends ScathaProLayoutScreen
             int halfRowWidth = rowWidth / 2;
 
             addCenteredChild(
-                label(0, 5, Component.literal(alert.alertName).withColor(TextColor.YELLOW)),
+                label(0, 5, sectionHeaderStyle(Component.literal(alert.alertName).withColor(TextColor.YELLOW))),
                 halfRowWidth
             );
 

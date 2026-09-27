@@ -227,6 +227,7 @@ public class Config extends ObjectRootJsonFile
         public final BooleanValue wormSpawnTimerMessageEnabled = addBoolean("wormSpawnTimerMessage", false);
         public final BooleanValue dryStreakMessageEnabled = addBoolean("dryStreakMessage", true);
         public final BooleanValue dailyStreakMessagesEnabled = addBoolean("dailyStreakMessages", true);
+        public final BooleanValue valueUpdatedMessagesEnabled = addBoolean("valueUpdatedMessagesEnabled", true);
         // Player rotation
         public final BooleanValue rotationAnglesEnabled = addBoolean("rotationAngles.enabled", false);
         public final PrimitiveValueWithDefault<Integer> rotationAnglesDecimalPlaces
@@ -254,14 +255,14 @@ public class Config extends ObjectRootJsonFile
             = addPrimitiveNullable("dropMessageExtension.stats.addPetLuck", new EnumSerializer<>(DropMessageStatMode.class));
         public final PrimitiveValueNullable<DropMessageStatMode> dropMessageEmfMode
             = addPrimitiveNullable("dropMessageExtension.stats.addEffectiveMagicFind", new EnumSerializer<>(DropMessageStatMode.class));
-        // Scatha Drops Slot Machine
-        public final BooleanValue dropsSlotMachineEnabled = addBoolean("scathaDropsSlotMachine.enabled", false);
-        public final PrimitiveValueWithDefault<Integer> dropsSlotMachineAnimationTicks = addPrimitiveWithDefault("scathaDropsSlotMachine.animationDurationTicks", INTEGER_SERIALIZER, 120);
-        public final PrimitiveValueWithDefault<Float> dropsSlotMachineScaleMultiplier = addPrimitiveWithDefault("scathaDropsSlotMachine.scaleMultiplier", FLOAT_SERIALIZER, 1f);
-        public final PrimitiveValueWithDefault<MaxSlotMachineFakeScathaRarity> dropsSlotMachineMaxFakeScathaRarity
-            = addPrimitiveWithDefault("scathaDropsSlotMachine.maxFakeScathaRarity", new EnumSerializer<>(MaxSlotMachineFakeScathaRarity.class), MaxSlotMachineFakeScathaRarity.LEGENDARY);
-        public final BooleanValue dropsSlotMachineHidePetRarity = addBoolean("scathaDropsSlotMachine.hidePetRarity", false);
-        public final BooleanValue dropsSlotMachineApplyRandomOffset = addBoolean("scathaDropsSlotMachine.applyRandomOffset", false);
+        // Scatha Drops Gambling Reel
+        public final BooleanValue dropsGamblingReelEnabled = addBoolean("scathaDropsSlotMachine.enabled", false);
+        public final PrimitiveValueWithDefault<Integer> dropsGamblingReelAnimationTicks = addPrimitiveWithDefault("scathaDropsSlotMachine.animationDurationTicks", INTEGER_SERIALIZER, 120);
+        public final PrimitiveValueWithDefault<Float> dropsGamblingReelScaleMultiplier = addPrimitiveWithDefault("scathaDropsSlotMachine.scaleMultiplier", FLOAT_SERIALIZER, 1f);
+        public final PrimitiveValueWithDefault<MaxGamblingReelFakeScathaRarity> dropsGamblingReelMaxFakeScathaRarity
+            = addPrimitiveWithDefault("scathaDropsSlotMachine.maxFakeScathaRarity", new EnumSerializer<>(MaxGamblingReelFakeScathaRarity.class), MaxGamblingReelFakeScathaRarity.LEGENDARY);
+        public final BooleanValue dropsGamblingReelHidePetRarity = addBoolean("scathaDropsSlotMachine.hidePetRarity", false);
+        public final BooleanValue dropsGamblingReelApplyRandomOffset = addBoolean("scathaDropsSlotMachine.applyRandomOffset", false);
         // Other
         public final BooleanValue aprilFoolsFakeDropEnabled = addBoolean("aprilFoolsFakeDropEnabled", true);
     }

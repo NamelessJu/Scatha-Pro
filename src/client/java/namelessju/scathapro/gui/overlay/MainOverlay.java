@@ -849,16 +849,21 @@ public class MainOverlay
     public void updateScathaKillsSinceLastDrop()
     {
         int dryStreak = -1;
-        if (!getProfileData().isPetDropDryStreakInvalidated.get())
+        PersistentData.ProfileData profileData = getProfileData();
+        int scathaKillsAtLastDrop = profileData.scathaKillsAtLastDrop.getOr(-1);
+        if (scathaKillsAtLastDrop >= 0)
         {
-            int scathaKillsAtLastDrop = getProfileData().scathaKillsAtLastDrop.getOr(-1);
-            if (scathaKillsAtLastDrop < 0) dryStreak = getProfileData().scathaKills.get();
-            else dryStreak = getProfileData().scathaKills.get() - scathaKillsAtLastDrop;
+            dryStreak = profileData.scathaKills.get() - scathaKillsAtLastDrop;
         }
 
-        scathaKillsSinceLastDropText.setText(Component.empty()
+        MutableComponent component = Component.empty()
             .append(icon(UnicodeSymbol.sword) + (scathaPro.coreManager.isScappaModeActive() ? "Scappas" : "Scathas") + " since last pet: ")
-            .append(TextUtil.numberToComponentOrObf(dryStreak)));
+            .append(TextUtil.numberToComponentOrObf(dryStreak));
+        if (dryStreak >= 0 && profileData.isPetDropDryStreakInvalidated.get())
+        {
+            component.append("(?)");
+        }
+        scathaKillsSinceLastDropText.setText(component);
     }
 
     public void updateBlockBrans()

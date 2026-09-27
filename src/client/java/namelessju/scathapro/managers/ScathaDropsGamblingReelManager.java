@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.function.Function;
 
 @NullMarked
-public class ScathaDropsSlotMachineManager
+public class ScathaDropsGamblingReelManager
 {
     private static final int MAIN_SLOT_COUNT = 20;
     private static final int START_END_EXTRA_SLOT_COUNT = 5;
@@ -32,7 +32,7 @@ public class ScathaDropsSlotMachineManager
     private static final int SLOT_GAP = 10;
     private static final int Y_OFFSET = 20;
 
-    private static final Identifier BAR_TEXTURE = ScathaPro.getIdentifier("textures/drops_roll/bar.png");
+    private static final Identifier BAR_TEXTURE = ScathaPro.getIdentifier("textures/gambling_reel/bar.png");
 
 
     private final ScathaPro scathaPro;
@@ -49,7 +49,7 @@ public class ScathaDropsSlotMachineManager
     private boolean hasDroppedBlockBran = false;
     private final List<Component> delayedMessages = new ArrayList<>();
 
-    public ScathaDropsSlotMachineManager(ScathaPro scathaPro)
+    public ScathaDropsGamblingReelManager(ScathaPro scathaPro)
     {
         this.scathaPro = scathaPro;
         this.slotClickSound = new ScathaProSound(
@@ -80,8 +80,8 @@ public class ScathaDropsSlotMachineManager
 
     public void startRolling()
     {
-        animationTicksLeft = scathaPro.config.miscellaneous.dropsSlotMachineAnimationTicks.get();
-        randomOffset = scathaPro.config.miscellaneous.dropsSlotMachineApplyRandomOffset.get()
+        animationTicksLeft = scathaPro.config.miscellaneous.dropsGamblingReelAnimationTicks.get();
+        randomOffset = scathaPro.config.miscellaneous.dropsGamblingReelApplyRandomOffset.get()
                         ? Util.random.nextFloat(0.1f, 0.9f)
                         : 0.5f;
         currentSlotIndex = -1;
@@ -90,7 +90,7 @@ public class ScathaDropsSlotMachineManager
         SlotContent.SCATHA_RARE.setWeight(0);
         SlotContent.SCATHA_EPIC.setWeight(0);
         SlotContent.SCATHA_LEGENDARY.setWeight(0);
-        switch (scathaPro.config.miscellaneous.dropsSlotMachineMaxFakeScathaRarity.get())
+        switch (scathaPro.config.miscellaneous.dropsGamblingReelMaxFakeScathaRarity.get())
         {
             case LEGENDARY:
                 SlotContent.SCATHA_LEGENDARY.setWeight(1);
@@ -175,7 +175,7 @@ public class ScathaDropsSlotMachineManager
 
         if (animationTicksLeft <= 0) return;
 
-        int animationDuration = scathaPro.config.miscellaneous.dropsSlotMachineAnimationTicks.get();
+        int animationDuration = scathaPro.config.miscellaneous.dropsGamblingReelAnimationTicks.get();
 
         animationTicksLeft = (short) (Math.min(animationTicksLeft, animationDuration) - 1);
         if (animationTicksLeft <= 0)
@@ -218,9 +218,9 @@ public class ScathaDropsSlotMachineManager
         int guiScale = scathaPro.minecraft.getWindow().getGuiScale();
         int guiMaxScale = scathaPro.minecraft.getWindow().calculateScale(0, false);
         float scale = Math.max(guiMaxScale - Mth.floor(guiMaxScale * 0.334f), 1)
-            * scathaPro.config.miscellaneous.dropsSlotMachineScaleMultiplier.get();
+            * scathaPro.config.miscellaneous.dropsGamblingReelScaleMultiplier.get();
         float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(true);
-        int animationDuration = scathaPro.config.miscellaneous.dropsSlotMachineAnimationTicks.get();
+        int animationDuration = scathaPro.config.miscellaneous.dropsGamblingReelAnimationTicks.get();
         float ticksLeft = animationTicksLeft - partialTicks;
         float ticksPassed = animationDuration - ticksLeft;
         float slotTicks = currentSlotIndexTicks + partialTicks;
@@ -360,7 +360,7 @@ public class ScathaDropsSlotMachineManager
     {
         GEMSTONES(15,
             new CachedComponentProvider(Component.literal("Gemstones").withColor(TextColor.WHITE)),
-            new CachedTextureProvider(ScathaPro.getIdentifier("textures/drops_roll/gemstones.png"), 256, 256, 1f)
+            new CachedTextureProvider(ScathaPro.getIdentifier("textures/gambling_reel/gemstones.png"), 256, 256, 1f)
         ),
         BLOCK_BRAN(10,
             new CachedComponentProvider(Component.literal("Dwarven O's Block Bran").withColor(TextColor.GREEN)),
@@ -436,7 +436,7 @@ public class ScathaDropsSlotMachineManager
             public Component apply(ScathaPro scathaPro)
             {
                 long t = TimeUtil.getEpochMilliseconds() % 750L;
-                return scathaPro.config.miscellaneous.dropsSlotMachineHidePetRarity.get()
+                return scathaPro.config.miscellaneous.dropsGamblingReelHidePetRarity.get()
                     ? (t < 250L ? HIDDEN_RARITY_COMPONENT_RARE : (t < 500L ? HIDDEN_RARITY_COMPONENT_EPIC : HIDDEN_RARITY_COMPONENT_LEGENDARY))
                     : rarityComponent;
             }
@@ -489,7 +489,7 @@ public class ScathaDropsSlotMachineManager
             @Override
             public Identifier getIdentifier(ScathaPro scathaPro)
             {
-                return scathaPro.config.miscellaneous.dropsSlotMachineHidePetRarity.get() ? HIDDEN_RARITY_IDENTIFIER : identifier;
+                return scathaPro.config.miscellaneous.dropsGamblingReelHidePetRarity.get() ? HIDDEN_RARITY_IDENTIFIER : identifier;
             }
 
             @Override

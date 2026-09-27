@@ -3,7 +3,9 @@ package namelessju.scathapro.gui.menus.framework.screens;
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.gui.menus.framework.widgets.lists.ScathaProGuiList;
 import namelessju.scathapro.gui.menus.framework.widgets.lists.TwoColumnGuiList;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.layouts.*;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -218,6 +220,23 @@ public abstract class ScathaProLayoutScreen extends ScathaProScreen
                 if (overrideHeight) widget.setHeight(20);
             }
             return addElement(layoutElement, columns, null);
+        }
+
+        public void addTitle(Component component, Font font)
+        {
+            component = ScathaProScreen.sectionHeaderStyle(component);
+            int heightToPad = 20 - font.lineHeight;
+            addElement(
+                new StringWidget(
+                    0, 0,
+                    font.width(component.getVisualOrderText()), font.lineHeight,
+                    component, font
+                ),
+                columns,
+                grid.newCellSettings().alignHorizontallyCenter()
+                    .paddingTop((heightToPad + 1) / 2 + grid.defaultCellSetting().getExposed().paddingTop)
+                    .paddingBottom(heightToPad / 2 + grid.defaultCellSetting().getExposed().paddingBottom)
+            );
         }
 
         public void addGap()

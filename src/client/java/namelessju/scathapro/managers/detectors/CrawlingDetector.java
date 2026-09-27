@@ -22,8 +22,9 @@ public class CrawlingDetector
         if (player.isVisuallyCrawling())
         {
             crawlingTicks++;
-            if ((crawlingTicks - scathaPro.config.alerts.crawlingAlertTriggerDelayTicks.get())
-                % scathaPro.config.alerts.crawlingAlertTriggerIntervalTicks.get() == 0)
+            int offsetTicks = crawlingTicks - scathaPro.config.alerts.crawlingAlertTriggerDelayTicks.get();
+            if (offsetTicks >= 0
+                && offsetTicks % Math.max(scathaPro.config.alerts.crawlingAlertTriggerIntervalTicks.get(), 1) == 0)
             {
                 scathaPro.alertManager.crawlingAlert.play(scathaPro);
             }

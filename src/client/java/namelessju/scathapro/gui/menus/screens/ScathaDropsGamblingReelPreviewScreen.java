@@ -11,11 +11,11 @@ import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NonNull;
 
-public class ScathaDropsSlotMachinePreviewScreen extends ScathaProLayoutScreen
+public class ScathaDropsGamblingReelPreviewScreen extends ScathaProLayoutScreen
 {
-    public ScathaDropsSlotMachinePreviewScreen(ScathaPro scathaPro, Screen parentScreen)
+    public ScathaDropsGamblingReelPreviewScreen(ScathaPro scathaPro, Screen parentScreen)
     {
-        super(scathaPro, Component.literal("Scatha Drops Slot Machine Preview"), true, parentScreen);
+        super(scathaPro, Component.literal("Scatha Drops Gambling Reel Preview"), true, parentScreen);
     }
 
     @Override
@@ -30,8 +30,8 @@ public class ScathaDropsSlotMachinePreviewScreen extends ScathaProLayoutScreen
     {
         super.added();
 
-        scathaPro.scathaDropsSlotMachineManager.startRolling();
-        scathaPro.scathaDropsSlotMachineManager.setPetDrop(
+        scathaPro.scathaDropsGamblingReelManager.startRolling();
+        scathaPro.scathaDropsGamblingReelManager.setPetDrop(
             new ScathaPetDrop(Rarity.LEGENDARY, false, false), false
         );
     }
@@ -41,7 +41,7 @@ public class ScathaDropsSlotMachinePreviewScreen extends ScathaProLayoutScreen
     {
         super.tick();
 
-        if (!scathaPro.scathaDropsSlotMachineManager.isRolling())
+        if (!scathaPro.scathaDropsGamblingReelManager.isRolling())
         {
             onClose();
         }
@@ -50,14 +50,14 @@ public class ScathaDropsSlotMachinePreviewScreen extends ScathaProLayoutScreen
     @Override
     public void onClose()
     {
-        scathaPro.scathaDropsSlotMachineManager.reset();
+        scathaPro.scathaDropsGamblingReelManager.reset();
         super.onClose();
     }
 
     @Override
     public void extractRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a)
     {
-        scathaPro.scathaDropsSlotMachineManager.extractHudRenderState(graphics, minecraft.getDeltaTracker());
+        scathaPro.scathaDropsGamblingReelManager.extractHudRenderState(graphics, minecraft.getDeltaTracker());
 
         super.extractRenderState(graphics, mouseX, mouseY, a);
     }

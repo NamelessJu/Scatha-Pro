@@ -2,15 +2,10 @@ package namelessju.scathapro.parsing.containerscreenparsing;
 
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.miscellaneous.data.enums.ShardsAttribute;
-import namelessju.scathapro.util.TextUtil;
-import namelessju.scathapro.util.UnicodeSymbol;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
-
-import java.math.RoundingMode;
 
 // Note: when the menu page changes, Hypixel opens a new
 // ContainerScreen (as the container name shows the page number),
@@ -63,12 +58,8 @@ public class AttributesMenuParser extends ContainerScreenParser
         float newTotalMagicFind = scathaPro.getProfileData().attributes.getMagicFind();
         if (!Mth.equal(newTotalMagicFind, previousTotalMagicFind))
         {
-            scathaPro.chatManager.sendChatMessage(Component.empty().withColor(TextColor.GRAY)
-                .append("Updated Scatha Magic Find from Attributes (")
-                .append(TextUtil.numberToComponentOrObf(previousTotalMagicFind, 2, false, RoundingMode.HALF_UP))
-                .append(" " + UnicodeSymbol.hypixelArrowRight + " ")
-                .append(TextUtil.numberToComponentOrObf(newTotalMagicFind, 2, false, RoundingMode.HALF_UP))
-                .append(")")
+            scathaPro.chatManager.sendValueUpdatedMessage(
+                "saved Attributes Scatha Magic Find", previousTotalMagicFind, newTotalMagicFind
             );
         }
 

@@ -556,12 +556,8 @@ public class MainCommand extends ScathaProCommand
         float newMagicFind = profileData.witchesStewsEaten.getMagicFind();
         if (!Mth.equal(newMagicFind, previousMagicFind))
         {
-            scathaPro.chatManager.sendChatMessage(Component.empty().withColor(TextColor.GRAY)
-                .append("Updated Witches Stew Scatha Magic Find (")
-                .append(TextUtil.numberToComponentOrObf(previousMagicFind, 2, false, RoundingMode.HALF_UP))
-                .append(" " + UnicodeSymbol.hypixelArrowRight + " ")
-                .append(TextUtil.numberToComponentOrObf(newMagicFind, 2, false, RoundingMode.HALF_UP))
-                .append(")")
+            scathaPro.chatManager.sendValueUpdatedMessage(
+                "saved Witches Stew Scatha Magic Find", previousMagicFind, newMagicFind
             );
         }
     }

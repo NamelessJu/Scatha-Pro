@@ -1,11 +1,13 @@
 package namelessju.scathapro.gui.menus.framework.widgets.lists;
 
+import namelessju.scathapro.gui.menus.framework.screens.ScathaProScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import org.jspecify.annotations.NonNull;
 
 public final class TwoColumnGuiList extends ScathaProGuiList
@@ -52,6 +54,7 @@ public final class TwoColumnGuiList extends ScathaProGuiList
     @SuppressWarnings("UnusedReturnValue")
     public StringWidget addTitle(Component component)
     {
+        component = ScathaProScreen.sectionHeaderStyle(component);
         return addCentered(new StringWidget(
             0, DEFAULT_ENTRY_CONTENT_HEIGHT /2 - screen.getFont().lineHeight/2,
             screen.getFont().width(component.getVisualOrderText()), screen.getFont().lineHeight,

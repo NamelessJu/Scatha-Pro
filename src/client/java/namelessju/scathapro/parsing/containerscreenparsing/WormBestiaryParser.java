@@ -77,10 +77,8 @@ public class WormBestiaryParser extends ContainerScreenParser
             scathaPro.persistentData.save();
             scathaPro.mainOverlay.updateProfileStats();
 
-            scathaPro.chatManager.sendChatMessage(Component.empty().withColor(TextColor.GRAY)
-                .append("Updated saved Stoneworm bestiary Magic Find (")
-                .append(TextUtil.numberToComponentOrObf(currentBestiaryMagicFind))
-                .append(" " + UnicodeSymbol.hypixelArrowRight + " " + TextUtil.numberToString(bestiaryMagicFind, 2) + ")")
+            scathaPro.chatManager.sendValueUpdatedMessage(
+                "saved Stoneworm bestiary Magic Find", currentBestiaryMagicFind, bestiaryMagicFind
             );
         }
     }
@@ -116,10 +114,8 @@ public class WormBestiaryParser extends ContainerScreenParser
                     scathaPro.persistentData.save();
                     scathaPro.mainOverlay.updateWormKills();
 
-                    scathaPro.chatManager.sendChatMessage(Component.empty().withColor(TextColor.GRAY)
-                        .append("Updated Stoneworm kills from bestiary (")
-                        .append(TextUtil.numberToComponentOrObf(currentRegularWormKills))
-                        .append(" " + UnicodeSymbol.hypixelArrowRight + " " + TextUtil.numberToString(kills, 2) + ")")
+                    scathaPro.chatManager.sendValueUpdatedMessage(
+                        "saved Stoneworm kills from bestiary", currentRegularWormKills, kills
                     );
                 }
                 break;
@@ -140,10 +136,8 @@ public class WormBestiaryParser extends ContainerScreenParser
 
                     scathaPro.achievementLogicManager.updateDryStreakAchievements(false);
 
-                    scathaPro.chatManager.sendChatMessage(Component.empty().withColor(TextColor.GRAY)
-                        .append("Updated Scatha kills from bestiary (")
-                        .append(TextUtil.numberToComponentOrObf(currentScathaKills))
-                        .append(" " + UnicodeSymbol.hypixelArrowRight + " " + TextUtil.numberToString(kills, 2) + ")")
+                    scathaPro.chatManager.sendValueUpdatedMessage(
+                        "saved Scatha kills from bestiary", currentScathaKills, kills
                     );
                 }
                 break;
@@ -169,10 +163,9 @@ public class WormBestiaryParser extends ContainerScreenParser
         {
             scathaPro.getProfileData().bestiaryRank.set(newRank);
             scathaPro.persistentData.save();
-            scathaPro.chatManager.sendChatMessage(Component.empty().withColor(TextColor.GRAY)
-                .append("Updated saved Stoneworm bestiary rank (#")
-                .append(TextUtil.numberToComponentOrObf(currentRank))
-                .append(" " + UnicodeSymbol.hypixelArrowRight + " #" + TextUtil.numberToString(newRank) + ")")
+
+            scathaPro.chatManager.sendValueUpdatedMessage(
+                "saved Stoneworm bestiary rank", currentRank, newRank
             );
         }
     }

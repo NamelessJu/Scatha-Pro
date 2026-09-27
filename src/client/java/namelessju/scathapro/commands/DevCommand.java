@@ -316,9 +316,9 @@ public class DevCommand extends ScathaProCommand
     private <T> LiteralArgumentBuilder<T> buildScathaDropRollTrigger()
     {
         BiConsumer<Boolean, ScathaPetDrop> roll = (blockBran, scathaPetDrop) -> {
-            scathaPro.scathaDropsSlotMachineManager.startRolling();
-            scathaPro.scathaDropsSlotMachineManager.setPetDrop(scathaPetDrop);
-            scathaPro.scathaDropsSlotMachineManager.setHasDroppedBlockBran(blockBran);
+            scathaPro.scathaDropsGamblingReelManager.startRolling();
+            scathaPro.scathaDropsGamblingReelManager.setPetDrop(scathaPetDrop);
+            scathaPro.scathaDropsGamblingReelManager.setHasDroppedBlockBran(blockBran);
         };
 
         return LiteralArgumentBuilder.<T>literal("scathaDropRoll")

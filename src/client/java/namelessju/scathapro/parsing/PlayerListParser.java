@@ -2,13 +2,10 @@ package namelessju.scathapro.parsing;
 
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.files.PersistentData;
-import namelessju.scathapro.util.TextUtil;
-import namelessju.scathapro.util.UnicodeSymbol;
 import net.minecraft.Optionull;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextColor;
 import net.minecraft.util.StringDecomposer;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.scores.PlayerTeam;
@@ -97,10 +94,9 @@ public final class PlayerListParser
         int magicFind = Objects.requireNonNullElse(parsedMagicFind.get(), -1);
         if (magicFind >= 0 && magicFind > profileData.globalMagicFind.getOr(0f))
         {
-            scathaPro.chatManager.sendChatMessage(Component.empty().withColor(TextColor.GRAY)
-                .append("Updated Magic Find from tab list (")
-                .append(TextUtil.numberToComponentOrObf(profileData.globalMagicFind.getOr(-1f)))
-                .append(" " + UnicodeSymbol.hypixelArrowRight + " " + TextUtil.numberToString(magicFind, 2) + ")"));
+            scathaPro.chatManager.sendValueUpdatedMessage(
+                "saved Magic Find from tab list", profileData.globalMagicFind.getOr(-1f), magicFind
+            );
             profileData.globalMagicFind.set((float) magicFind);
             updated = true;
         }
@@ -108,10 +104,9 @@ public final class PlayerListParser
         int petLuck = Objects.requireNonNullElse(parsedPetLuck.get(), -1);
         if (petLuck >= 0 && petLuck > profileData.petLuck.getOr(0f))
         {
-            scathaPro.chatManager.sendChatMessage(Component.empty().withColor(TextColor.GRAY)
-                .append("Updated Pet Luck from tab list (")
-                .append(TextUtil.numberToComponentOrObf(profileData.petLuck.getOr(-1f)))
-                .append(" " + UnicodeSymbol.hypixelArrowRight + " " + TextUtil.numberToString(petLuck, 2) + ")"));
+            scathaPro.chatManager.sendValueUpdatedMessage(
+                "saved Pet Luck from tab list", profileData.petLuck.getOr(-1f), petLuck
+            );
             profileData.petLuck.set((float) petLuck);
             updated = true;
         }

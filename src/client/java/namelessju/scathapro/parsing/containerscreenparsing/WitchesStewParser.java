@@ -70,12 +70,8 @@ public class WitchesStewParser extends ContainerScreenParser
         float newTotalMagicFind = scathaPro.getProfileData().witchesStewsEaten.getMagicFind();
         if (!Mth.equal(newTotalMagicFind, previousTotalMagicFind))
         {
-            scathaPro.chatManager.sendChatMessage(Component.empty().withColor(TextColor.GRAY)
-                .append("Updated Scatha Magic Find from Witches Stews (")
-                .append(TextUtil.numberToComponentOrObf(previousTotalMagicFind, 2, false, RoundingMode.HALF_UP))
-                .append(" " + UnicodeSymbol.hypixelArrowRight + " ")
-                .append(TextUtil.numberToComponentOrObf(newTotalMagicFind, 2, false, RoundingMode.HALF_UP))
-                .append(")")
+            scathaPro.chatManager.sendValueUpdatedMessage(
+                "saved Witches Stews Scatha Magic Find ", previousTotalMagicFind, newTotalMagicFind
             );
         }
 

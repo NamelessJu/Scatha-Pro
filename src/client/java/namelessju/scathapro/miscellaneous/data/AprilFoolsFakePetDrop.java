@@ -13,10 +13,10 @@ public class AprilFoolsFakePetDrop extends ScathaPetDrop
     {
         AprilFoolsFakePetDrop petDrop = new AprilFoolsFakePetDrop();
         Component dropMessage = Constants.generatePetDropMessage(Rarity.RARE);
-        if (scathaPro.scathaDropsSlotMachineManager.isRolling())
+        if (scathaPro.scathaDropsGamblingReelManager.isRolling())
         {
-            scathaPro.scathaDropsSlotMachineManager.setPetDrop(petDrop, false);
-            scathaPro.scathaDropsSlotMachineManager.addDelayedChatMessage(dropMessage);
+            scathaPro.scathaDropsGamblingReelManager.setPetDrop(petDrop, false);
+            scathaPro.scathaDropsGamblingReelManager.addDelayedChatMessage(dropMessage);
         }
         else
         {

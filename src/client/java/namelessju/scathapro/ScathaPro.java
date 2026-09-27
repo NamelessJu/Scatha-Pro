@@ -45,7 +45,7 @@ import java.util.Queue;
 public abstract class ScathaPro
 {
     public static final String MOD_ID = /*$mod_id*/ "scathapro";
-    public static final String MOD_VERSION = /*$mod_version*/ "2.4";
+    public static final String MOD_VERSION = /*$mod_version*/ "2.4.1";
 
     /** The true mod name, not influenced by certain features */
     public static final String MOD_NAME = "Scatha-Pro";
@@ -91,7 +91,7 @@ public abstract class ScathaPro
     public final AchievementLogicManager achievementLogicManager = new AchievementLogicManager(this);
     public final PlayerHeadRenderingReplacementManager playerHeadRenderingReplacementManager
         = new PlayerHeadRenderingReplacementManager(this);
-    public final ScathaDropsSlotMachineManager scathaDropsSlotMachineManager = new ScathaDropsSlotMachineManager(this);
+    public final ScathaDropsGamblingReelManager scathaDropsGamblingReelManager = new ScathaDropsGamblingReelManager(this);
     public final FFmpegManager ffmpegManager = new FFmpegManager(this);
 
     // Parsers
@@ -237,7 +237,7 @@ public abstract class ScathaPro
         alertTitleOverlay.tick();
         mainOverlay.tick();
         itemPopupRenderer.tick();
-        scathaDropsSlotMachineManager.tick();
+        scathaDropsGamblingReelManager.tick();
     }
 
     public void runNextTick(Runnable runnable)

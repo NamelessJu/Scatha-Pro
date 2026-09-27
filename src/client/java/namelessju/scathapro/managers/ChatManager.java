@@ -9,12 +9,14 @@ import namelessju.scathapro.miscellaneous.data.enums.DropMessageStatMode;
 import namelessju.scathapro.miscellaneous.data.enums.Rarity;
 import namelessju.scathapro.mixin.ChatComponentAccessor;
 import namelessju.scathapro.util.TextUtil;
+import namelessju.scathapro.util.UnicodeSymbol;
 import net.minecraft.client.multiplayer.chat.GuiMessage;
 import net.minecraft.network.chat.*;
 import net.minecraft.util.StringDecomposer;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import java.math.RoundingMode;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -162,6 +164,19 @@ public class ChatManager
         {
             sendMessageRaw(cachedCrystalHollowsMessages.poll());
         }
+    }
+
+    public void sendValueUpdatedMessage(String valueName, float valueBefore, float valueNew)
+    {
+        if (!scathaPro.config.miscellaneous.valueUpdatedMessagesEnabled.get()) return;
+
+        sendChatMessage(Component.empty().withColor(TextColor.DARK_GRAY)
+            .append("Updated " + valueName + " (")
+            .append(TextUtil.numberToComponentOrObf(valueBefore, 2, false, RoundingMode.HALF_UP))
+            .append(" " + UnicodeSymbol.hypixelArrowRight + " ")
+            .append(TextUtil.numberToComponentOrObf(valueNew, 2, false, RoundingMode.HALF_UP))
+            .append(")")
+        );
     }
 
     public Component extendPetDropMessage(@NonNull Component message, @NonNull String unformattedText, boolean allowShuriken, boolean isClickable)

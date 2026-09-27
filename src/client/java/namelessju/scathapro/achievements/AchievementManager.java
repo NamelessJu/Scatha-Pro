@@ -40,7 +40,7 @@ public class AchievementManager
     {
         return scathaPro.minecraft.level != null
             && !(scathaPro.minecraft.gui.screen() instanceof FakeBanScreen)
-            && !scathaPro.scathaDropsSlotMachineManager.shouldHideDrops();
+            && !scathaPro.scathaDropsGamblingReelManager.shouldHideDrops();
     }
 
     public void unlockAchievement(Achievement achievement)

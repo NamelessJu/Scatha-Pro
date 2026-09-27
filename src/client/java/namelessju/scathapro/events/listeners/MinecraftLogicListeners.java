@@ -50,7 +50,7 @@ public final class MinecraftLogicListeners
 
     private static void onWorldLeft(ScathaPro scathaPro)
     {
-        scathaPro.scathaDropsSlotMachineManager.reset();
+        scathaPro.scathaDropsGamblingReelManager.reset();
         scathaPro.secondaryStatsManager.perLobbyStats.reset();
 
         ScathaPro.LOGGER.debug("Left world");

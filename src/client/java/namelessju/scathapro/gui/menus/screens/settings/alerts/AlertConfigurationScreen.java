@@ -94,7 +94,7 @@ public class AlertConfigurationScreen extends ConfigScreen
                 new IntegerSlider(
                     0, 0, 150, 20,
                     Component.literal("Trigger Interval"),
-                    0, 10, Math.round(config.alerts.crawlingAlertTriggerIntervalTicks.get() / 20f),
+                    1, 10, Math.round(config.alerts.crawlingAlertTriggerIntervalTicks.get() / 20f),
                     value -> config.alerts.crawlingAlertTriggerIntervalTicks.set(value * 20)
                 ).setValueComponentSupplier(IntegerSlider.SECONDS_COMPONENT_SUPPLIER)
             };

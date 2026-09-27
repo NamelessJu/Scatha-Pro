@@ -5,9 +5,9 @@ import namelessju.scathapro.gui.menus.framework.screens.ConfigScreen;
 import namelessju.scathapro.gui.menus.framework.widgets.lists.TwoColumnGuiList;
 import namelessju.scathapro.gui.menus.framework.widgets.sliders.FloatSlider;
 import namelessju.scathapro.gui.menus.framework.widgets.sliders.IntegerSlider;
-import namelessju.scathapro.gui.menus.screens.ScathaDropsSlotMachinePreviewScreen;
+import namelessju.scathapro.gui.menus.screens.ScathaDropsGamblingReelPreviewScreen;
 import namelessju.scathapro.miscellaneous.data.enums.DateFormat;
-import namelessju.scathapro.miscellaneous.data.enums.MaxSlotMachineFakeScathaRarity;
+import namelessju.scathapro.miscellaneous.data.enums.MaxGamblingReelFakeScathaRarity;
 import namelessju.scathapro.miscellaneous.data.enums.TimeFormat;
 import namelessju.scathapro.util.TextUtil;
 import namelessju.scathapro.util.TimeUtil;
@@ -83,42 +83,42 @@ public class MiscellaneousSettingsScreen extends ConfigScreen
             ), null
         ));
 
-        list.addTitle(Component.literal("Scatha Drops Slot Machine"));
+        list.addTitle(Component.literal("Scatha Drops Gambling Reel"));
         list.addSingleColumn(booleanConfigButton(
-            "Slot Machine Enabled", config.miscellaneous.dropsSlotMachineEnabled,
+            "Gambling Reel Enabled", config.miscellaneous.dropsGamblingReelEnabled,
             _ -> Tooltip.create(
                 Component.empty().withColor(TextColor.GRAY)
                     .append("""
-                        Shows a slot-machine-esque overlay when killing a Scatha that rolls for drops.
-                        (Selects the actual item you dropped!)
+                        Shows a gambling reel overlay when killing a Scatha that rolls for drops.
+                        (Lands on the actual item you dropped!)
 
-                        Note: I discourage from gambling with real money!""")
+                        Note: I discourage from actual gambling with real money!""")
             ), null
         ));
         list.addSingleColumn(new IntegerSlider(
             0, 0, 150, 20,
             Component.literal("Animation Duration"),
-            2, 10, Math.round(config.miscellaneous.dropsSlotMachineAnimationTicks.get() / 20f),
-            value -> config.miscellaneous.dropsSlotMachineAnimationTicks.set(value * 20)
+            2, 10, Math.round(config.miscellaneous.dropsGamblingReelAnimationTicks.get() / 20f),
+            value -> config.miscellaneous.dropsGamblingReelAnimationTicks.set(value * 20)
         ).setValueComponentSupplier(IntegerSlider.SECONDS_COMPONENT_SUPPLIER));
         list.addSingleColumn(floatConfigSlider(
-            "Scale", 0.5f, 1.5f, config.miscellaneous.dropsSlotMachineScaleMultiplier, null
+            "Scale", 0.5f, 1.5f, config.miscellaneous.dropsGamblingReelScaleMultiplier, null
         ).setStepSize(0.01f).setValueComponentSupplier(FloatSlider.PERCENTAGE_COMPONENT_SUPPLIER));
         list.addSingleColumn(enumCycleButton(
-            MaxSlotMachineFakeScathaRarity.class, "Max. Fake Pet Rarity",
-            config.miscellaneous.dropsSlotMachineMaxFakeScathaRarity,
+            MaxGamblingReelFakeScathaRarity.class, "Max. Fake Pet Rarity",
+            config.miscellaneous.dropsGamblingReelMaxFakeScathaRarity,
             _ -> Tooltip.create(Component.literal(
                 "The highest rarity of Scatha pets that may be used to fill the non-winning slots that are scrolled past"
             ).withColor(TextColor.GRAY)), null
         ));
         list.addSingleColumn(booleanConfigButton(
-            "Hide Pet Rarity", config.miscellaneous.dropsSlotMachineHidePetRarity,
+            "Hide Pet Rarity", config.miscellaneous.dropsGamblingReelHidePetRarity,
             _ -> Tooltip.create(Component.literal(
                 "Hides the rarities of any pet on the wheel (including the winning slot!)"
             ).withColor(TextColor.GRAY)), null
         ));
         list.addSingleColumn(booleanConfigButton(
-            "Apply Random Offset", config.miscellaneous.dropsSlotMachineApplyRandomOffset,
+            "Apply Random Offset", config.miscellaneous.dropsGamblingReelApplyRandomOffset,
             _ -> Tooltip.create(
                 Component.literal("""
                         When enabled, the selector bar will end up at a random position on the winning slot.
@@ -127,7 +127,7 @@ public class MiscellaneousSettingsScreen extends ConfigScreen
             ), null
         ));
         list.addCentered(subScreenButtonBuilder(
-            Component.literal("Preview..."), () -> new ScathaDropsSlotMachinePreviewScreen(scathaPro, this)
+            Component.literal("Preview..."), () -> new ScathaDropsGamblingReelPreviewScreen(scathaPro, this)
         ).width(200).build());
 
         // Unlockables

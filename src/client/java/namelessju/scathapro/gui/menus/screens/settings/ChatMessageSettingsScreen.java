@@ -24,6 +24,20 @@ public class ChatMessageSettingsScreen extends ConfigScreen
         addTitleHeader();
 
         GridBuilder gridBuilder = new GridBuilder();
+        gridBuilder.addFullWidth(nullableEnumCycleButton(ChatCopyButtonMode.class,
+            "Chat Message Copy Button", config.miscellaneous.chatCopyButtonMode, null,
+            _ -> Tooltip.create(
+                Component.literal("Adds a clickable icon behind each chat message that copies the message content")
+                    .withColor(TextColor.GRAY)
+            ), null
+        ));
+        gridBuilder.addFullWidth(booleanConfigButton("Hide Worm Approaching Message", config.miscellaneous.hideWormSpawnMessage,
+            _ -> Tooltip.create(
+                Component.literal("Hides Hypixel's chat message that appears when a worm is about to spawn")
+                    .withColor(TextColor.GRAY)
+            ), null
+        ));
+        gridBuilder.addTitle(Component.literal(scathaPro.getModDisplayName() + " Messages"), font);
         gridBuilder.addFullWidth(enumCycleButton(
                 ChatPrefixType.class, scathaPro.getModDisplayName() + " Message Prefix", config.miscellaneous.chatPrefixType,
                 value -> Tooltip.create(Component.empty()
@@ -44,19 +58,12 @@ public class ChatMessageSettingsScreen extends ConfigScreen
                         .withColor(TextColor.GRAY)
                 ), null
             ));
-        gridBuilder.addFullWidth(nullableEnumCycleButton(ChatCopyButtonMode.class,
-            "Chat Message Copy Button", config.miscellaneous.chatCopyButtonMode, null,
-                _ -> Tooltip.create(
-                    Component.literal("Adds a clickable icon behind each chat message that copies the message content")
-                        .withColor(TextColor.GRAY)
-                ), null
-            ));
-        gridBuilder.addFullWidth(booleanConfigButton("Hide Worm Approaching Message", config.miscellaneous.hideWormSpawnMessage,
-                _ -> Tooltip.create(
-                    Component.literal("Hides Hypixel's chat message that appears when a worm is about to spawn")
-                        .withColor(TextColor.GRAY)
-                ), null
-            ));
+        gridBuilder.addFullWidth(booleanConfigButton("Saved Value Update Messages", config.miscellaneous.valueUpdatedMessagesEnabled,
+            _ -> Tooltip.create(
+                Component.literal("Whether to send messages when the mod updates it's stored values by reading them from various UI elements (e.g. worm kills from bestiary)")
+                    .withColor(TextColor.GRAY)
+            ), null
+        ));
         gridBuilder.addToContent(layout);
 
         addDoneButtonFooter();

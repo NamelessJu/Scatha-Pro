@@ -132,7 +132,7 @@ public final class ScathaProGameplayListeners
 
             scathaPro.achievementLogicManager.updateScathaSpawnAchievements(data.worm());
 
-            scathaPro.scathaDropsSlotMachineManager.reset();
+            scathaPro.scathaDropsGamblingReelManager.reset();
         }
         // Regular worm spawn
         else
@@ -183,10 +183,10 @@ public final class ScathaProGameplayListeners
                     || unformattedName.indexOf(UnicodeSymbol.magicFind) >= 0 // in case Hypixel fixes their spaghetti code
                 );
 
-                if (scathaPro.config.miscellaneous.dropsSlotMachineEnabled.get()
+                if (scathaPro.config.miscellaneous.dropsGamblingReelEnabled.get()
                     && unformattedName.contains(" 1" + UnicodeSymbol.hypixelHeart))
                 {
-                    scathaPro.scathaDropsSlotMachineManager.startPreRoll();
+                    scathaPro.scathaDropsGamblingReelManager.startPreRoll();
                 }
             }
             else scathaPro.coreManager.lastScathaHitHadShuriken = false;
@@ -226,9 +226,9 @@ public final class ScathaProGameplayListeners
             scathaPro.coreManager.addScathaKill();
             scathaPro.coreManager.lastScathaKillTime = TimeUtil.getEpochMilliseconds();
 
-            if (scathaPro.config.miscellaneous.dropsSlotMachineEnabled.get())
+            if (scathaPro.config.miscellaneous.dropsGamblingReelEnabled.get())
             {
-                scathaPro.scathaDropsSlotMachineManager.startRolling();
+                scathaPro.scathaDropsGamblingReelManager.startRolling();
             }
 
             if (TimeUtil.isAprilFools() && TimeUtil.getCurrentYear() != scathaPro.getProfileData().lastAprilFoolsJokeShownYear.getOr(-1)
@@ -505,7 +505,7 @@ public final class ScathaProGameplayListeners
             scathaPro.getProfileData().blockBransDropped.set(scathaPro.getProfileData().blockBransDropped.get() + 1);
             scathaPro.secondaryStatsManager.addBlockBran();
             scathaPro.persistentData.save();
-            scathaPro.scathaDropsSlotMachineManager.setHasDroppedBlockBran(true);
+            scathaPro.scathaDropsGamblingReelManager.setHasDroppedBlockBran(true);
         }
     }
 

@@ -35,14 +35,14 @@ public class InputManager
     private final KeyMapping alternativeSensitivityKeyMapping
         = registerKeyMapping("alternativeSensitivity", playerRotationCategory);
 
-    private final KeyMapping cancelScathaDropsSlotMachineKeyMapping
+    private final KeyMapping skipGamblingReelKeyMapping
         = registerKeyMapping("cancelScathaDropsSlotMachine", miscellaneousCategory);
 
 
     private final ScathaPro scathaPro;
 
     private boolean isRotationLocked = false;
-    private int cancelSlotMachineDoubleClickTickTimer = 0;
+    private int skipGamblingReelDoubleClickTickTimer = 0;
 
     public InputManager(ScathaPro scathaPro)
     {
@@ -103,15 +103,15 @@ public class InputManager
             );
         }
 
-        if (cancelSlotMachineDoubleClickTickTimer > 0) cancelSlotMachineDoubleClickTickTimer--;
-        while (cancelScathaDropsSlotMachineKeyMapping.consumeClick())
+        if (skipGamblingReelDoubleClickTickTimer > 0) skipGamblingReelDoubleClickTickTimer--;
+        while (skipGamblingReelKeyMapping.consumeClick())
         {
-            if (cancelSlotMachineDoubleClickTickTimer > 0)
+            if (skipGamblingReelDoubleClickTickTimer > 0)
             {
-                scathaPro.scathaDropsSlotMachineManager.reset();
-                cancelSlotMachineDoubleClickTickTimer = 0;
+                scathaPro.scathaDropsGamblingReelManager.reset();
+                skipGamblingReelDoubleClickTickTimer = 0;
             }
-            else cancelSlotMachineDoubleClickTickTimer = 20;
+            else skipGamblingReelDoubleClickTickTimer = 20;
         }
     }
 

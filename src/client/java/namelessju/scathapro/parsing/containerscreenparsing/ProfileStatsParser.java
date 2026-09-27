@@ -70,10 +70,8 @@ public class ProfileStatsParser extends ContainerScreenParser
                     scathaPro.persistentData.save();
                     scathaPro.mainOverlay.updateProfileStats();
 
-                    scathaPro.chatManager.sendChatMessage(Component.empty().withColor(TextColor.GRAY)
-                        .append("Updated saved Magic Find (")
-                        .append(TextUtil.numberToComponentOrObf(currentMagicFind))
-                        .append(" " + UnicodeSymbol.hypixelArrowRight + " " + TextUtil.numberToString(magicFind, 2) + ")")
+                    scathaPro.chatManager.sendValueUpdatedMessage(
+                        "saved Magic Find", currentMagicFind, magicFind
                     );
                 }
             }
@@ -102,10 +100,8 @@ public class ProfileStatsParser extends ContainerScreenParser
                     scathaPro.persistentData.save();
                     scathaPro.mainOverlay.updateProfileStats();
 
-                    scathaPro.chatManager.sendChatMessage(Component.empty().withColor(TextColor.GRAY)
-                        .append("Updated saved Pet Luck (")
-                        .append(TextUtil.numberToComponentOrObf(currentPetLuck))
-                        .append(" " + UnicodeSymbol.hypixelArrowRight + " " + TextUtil.numberToString(petLuck, 2) + ")")
+                    scathaPro.chatManager.sendValueUpdatedMessage(
+                        "saved Pet Luck", currentPetLuck, petLuck
                     );
                 }
             }

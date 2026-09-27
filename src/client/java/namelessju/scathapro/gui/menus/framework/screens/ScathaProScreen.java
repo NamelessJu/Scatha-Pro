@@ -7,6 +7,7 @@ import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import org.apache.commons.compress.utils.Lists;
 import org.jspecify.annotations.NonNull;
 
@@ -57,6 +58,15 @@ public abstract class ScathaProScreen extends Screen
         minecraft.gui.setScreen(parentScreen);
     }
 
+
+    public static Component sectionHeaderStyle(Component component)
+    {
+        //? if >= 26.3 {
+        return Component.empty().append(component).setStyle(Style.EMPTY.withBold(true).withUnderlined(true));
+        //? } else {
+        /*return component;
+         *///? }
+    }
 
     public StringWidget label(int x, int y, Component component)
     {

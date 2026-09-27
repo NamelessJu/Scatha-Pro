@@ -155,9 +155,9 @@ public class ScathaDropsDetector
         public PetDrop(ScathaPetDrop scathaPetDrop, long dropTime)
         {
             super(dropTime, scathaPro -> {
-                if (scathaPro.config.miscellaneous.dropsSlotMachineEnabled.get())
+                if (scathaPro.config.miscellaneous.dropsGamblingReelEnabled.get())
                 {
-                    scathaPro.scathaDropsSlotMachineManager.setPetDrop(scathaPetDrop);
+                    scathaPro.scathaDropsGamblingReelManager.setPetDrop(scathaPetDrop);
                 }
                 else scathaPetDrop.trigger(scathaPro);
             });
