@@ -29,6 +29,8 @@ import java.util.List;
 public class MiscellaneousSettingsScreen extends ConfigScreen
 {
     private CycleButton<Boolean> googlyEyesButton;
+    private IntegerSlider gamblingReelDurationMinSlider;
+    private IntegerSlider gamblingReelDurationMaxSlider;
 
     public MiscellaneousSettingsScreen(ScathaPro scathaPro, Screen parentScreen)
     {
@@ -95,21 +97,45 @@ public class MiscellaneousSettingsScreen extends ConfigScreen
                         Note: I discourage from actual gambling with real money!""")
             ), null
         ));
-        list.addSingleColumn(new IntegerSlider(
-            0, 0, 150, 20,
-            Component.literal("Animation Duration"),
-            2, 10, Math.round(config.miscellaneous.dropsGamblingReelAnimationTicks.get() / 20f),
-            value -> config.miscellaneous.dropsGamblingReelAnimationTicks.set(value * 20)
-        ).setValueComponentSupplier(IntegerSlider.SECONDS_COMPONENT_SUPPLIER));
         list.addSingleColumn(floatConfigSlider(
             "Scale", 0.5f, 1.5f, config.miscellaneous.dropsGamblingReelScaleMultiplier, null
         ).setStepSize(0.01f).setValueComponentSupplier(FloatSlider.PERCENTAGE_COMPONENT_SUPPLIER));
-        list.addSingleColumn(enumCycleButton(
-            MaxGamblingReelFakeScathaRarity.class, "Max. Fake Pet Rarity",
-            config.miscellaneous.dropsGamblingReelMaxFakeScathaRarity,
-            _ -> Tooltip.create(Component.literal(
-                "The highest rarity of Scatha pets that may be used to fill the non-winning slots that are scrolled past"
-            ).withColor(TextColor.GRAY)), null
+
+        list.addSingleColumn(gamblingReelDurationMinSlider = new IntegerSlider(
+            0, 0, 150, 20,
+            Component.literal("Animation Duration Min"),
+            1, 10, Math.round(config.miscellaneous.dropsGamblingReelAnimationTicksMin.get() / 20f),
+            value -> {
+                int ticks = value * 20;
+                config.miscellaneous.dropsGamblingReelAnimationTicksMin.set(ticks);
+                if (config.miscellaneous.dropsGamblingReelAnimationTicksMax.get() < ticks)
+                {
+                    gamblingReelDurationMaxSlider.setMappedValue(value);
+                }
+            }
+        ).setValueComponentSupplier(IntegerSlider.SECONDS_COMPONENT_SUPPLIER));
+        list.addSingleColumn(gamblingReelDurationMaxSlider = new IntegerSlider(
+            0, 0, 150, 20,
+            Component.literal("Animation Duration Max"),
+            1, 10, Math.round(config.miscellaneous.dropsGamblingReelAnimationTicksMax.get() / 20f),
+            value -> {
+                int ticks = value * 20;
+                config.miscellaneous.dropsGamblingReelAnimationTicksMax.set(ticks);
+                if (config.miscellaneous.dropsGamblingReelAnimationTicksMin.get() > ticks)
+                {
+                    gamblingReelDurationMinSlider.setMappedValue(value);
+                }
+            }
+        ).setValueComponentSupplier(IntegerSlider.SECONDS_COMPONENT_SUPPLIER));
+
+        list.addSingleColumn(booleanConfigButton(
+            "Apply Random Offset", config.miscellaneous.dropsGamblingReelApplyRandomOffset,
+            _ -> Tooltip.create(
+                Component.literal("""
+                        When enabled, the selector bar will end up at a random position on the winning slot.
+                        When disabled, it will always stop exactly in the middle of the slot."""
+                ).withColor(TextColor.GRAY)
+            ), null
         ));
         list.addSingleColumn(booleanConfigButton(
             "Hide Pet Rarity", config.miscellaneous.dropsGamblingReelHidePetRarity,
@@ -117,14 +143,12 @@ public class MiscellaneousSettingsScreen extends ConfigScreen
                 "Hides the rarities of any pet on the wheel (including the winning slot!)"
             ).withColor(TextColor.GRAY)), null
         ));
-        list.addSingleColumn(booleanConfigButton(
-            "Apply Random Offset", config.miscellaneous.dropsGamblingReelApplyRandomOffset,
-            _ -> Tooltip.create(
-                Component.literal("""
-                        When enabled, the selector bar will end up at a random position on the winning slot.
-                        When disabled, it will always stop exactly in the middle of the slot."""
-                    ).withColor(TextColor.GRAY)
-            ), null
+        list.addDoubleColumn(enumCycleButton(
+            MaxGamblingReelFakeScathaRarity.class, "Maximum Fake Pet Rarity",
+            config.miscellaneous.dropsGamblingReelMaxFakeScathaRarity,
+            _ -> Tooltip.create(Component.literal(
+                "The highest rarity of Scatha pets that may be used to fill the non-winning slots that are scrolled past"
+            ).withColor(TextColor.GRAY)), null
         ));
         list.addCentered(subScreenButtonBuilder(
             Component.literal("Preview..."), () -> new ScathaDropsGamblingReelPreviewScreen(scathaPro, this)

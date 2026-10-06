@@ -9,10 +9,15 @@ import namelessju.scathapro.util.SkyBlockItemUtil;
 import namelessju.scathapro.util.TextUtil;
 import namelessju.scathapro.util.TimeUtil;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.util.Mth;
 import net.minecraft.util.StringDecomposer;
 import org.jspecify.annotations.NonNull;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,6 +28,9 @@ public class ChatParser
     private final Pattern witchesStewEatenPattern = Pattern.compile("^EW! You ate an? (.+?)\\.");
     private final Pattern scathaShardsCaughtPattern = Pattern.compile("^You caught (?:a|x\\d+) Scatha Shards?!$");
     private final Pattern stonewormCharmedPattern = Pattern.compile("^CHARM! You charmed the Stoneworm and received \\d+ Stoneworm Shards?!$");
+
+    private byte chestPotentialMsgsRemaining = 0;
+    private final List<Component> chestRewards = new ArrayList<>();
 
     public ChatParser(ScathaPro scathaPro)
     {
@@ -36,11 +44,56 @@ public class ChatParser
     {
         String unformattedText = StringDecomposer.getPlainText(message);
 
+        if (scathaPro.hypixelContextManager.shouldCancelChatMessage(unformattedText)) return true;
+
         if (scathaPro.config.miscellaneous.hideWormSpawnMessage.get()
             && unformattedText.equalsIgnoreCase("You hear the sound of something approaching..."))
             return true;
+        if (scathaPro.config.miscellaneous.hideUncoveredChestMessage.get()
+            && unformattedText.equalsIgnoreCase("You uncovered a treasure chest!"))
+            return true;
 
-        if (scathaPro.hypixelContextManager.shouldCancelChatMessage(unformattedText)) return true;
+        // compact chest lockpicked messages
+        if (chestPotentialMsgsRemaining > 0)
+        {
+            chestPotentialMsgsRemaining--;
+
+            if (unformattedText.startsWith("▬▬▬"))
+            {
+                chestPotentialMsgsRemaining = 0;
+            }
+            else if (unformattedText.startsWith("    "))
+            {
+                chestRewards.add(TextUtil.subStringFormatted(message, 4));
+            }
+
+            if (chestPotentialMsgsRemaining <= 0)
+            {
+                MutableComponent compactMessage = Component.empty()
+                    .append(Component.literal("CHEST LOCKPICKED").setStyle(Style.EMPTY.withColor(TextColor.GOLD).withBold(true)))
+                    .append(Component.literal(": ").withColor(TextColor.GRAY));
+                for (int i = 0; i < chestRewards.size(); i ++)
+                {
+                    if (i > 0) compactMessage.append(Component.literal(", ").withColor(TextColor.GRAY));
+                    compactMessage.append(chestRewards.get(i));
+                }
+                chestRewards.clear();
+                scathaPro.runNextTick(() -> scathaPro.chatManager.sendChatMessage(compactMessage, false));
+            }
+            return true;
+        }
+        else if (scathaPro.config.miscellaneous.compactLockpickMessagesEnabled.get()
+            && unformattedText.startsWith("CHEST LOCKPICKED", 2))
+        {
+            chestPotentialMsgsRemaining = 10;
+            chestRewards.clear();
+            if (scathaPro.chatManager.chatMessages().getFirst().content().getString().startsWith("▬▬▬"))
+            {
+                scathaPro.chatManager.chatMessages().removeFirst();
+                scathaPro.minecraft.gui.hud.getChat().refreshTrimmedMessages();
+            }
+            return true;
+        }
 
         // PUT SIMPLE CANCEL CONDITIONS ABOVE THIS LINE
 
@@ -72,6 +125,8 @@ public class ChatParser
 
     private void parseMessage(@NonNull String unformattedText)
     {
+        if (scathaPro.hypixelContextManager.parseChatMessage(unformattedText)) return;
+
         Matcher matcher;
 
         if ((matcher = witchesStewEatenPattern.matcher(unformattedText)).find())
@@ -113,7 +168,11 @@ public class ChatParser
             return;
         }
 
-        if (scathaPro.hypixelContextManager.parseChatMessage(unformattedText)) return;
+        if (unformattedText.equals("Your Nothing-in-a-Bottle transformed into a Scatha-in-a-Bottle!"))
+        {
+            Achievement.scatha_in_a_bottle.unlock();
+            return;
+        }
 
         parseTunnelVisionMessages(unformattedText);
     }

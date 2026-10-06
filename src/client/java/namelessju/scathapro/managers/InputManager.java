@@ -7,35 +7,36 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import org.apache.commons.compress.utils.Lists;
-//? if <= 26.2
-//import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 
+//? if <= 26.2
+//import org.lwjgl.glfw.GLFW;
+
 public class InputManager
 {
-    private final KeyMapping.Category mainCategory = KeyMapping.Category.register(ScathaPro.getIdentifier("main"));
-    private final KeyMapping.Category playerRotationCategory = KeyMapping.Category.register(ScathaPro.getIdentifier("player_rotation"));
-    private final KeyMapping.Category miscellaneousCategory = KeyMapping.Category.register(ScathaPro.getIdentifier("miscellaneous"));
+    public final KeyMapping.Category mainCategory = KeyMapping.Category.register(ScathaPro.getIdentifier("main"));
+    public final KeyMapping.Category playerRotationCategory = KeyMapping.Category.register(ScathaPro.getIdentifier("player_rotation"));
+    public final KeyMapping.Category miscellaneousCategory = KeyMapping.Category.register(ScathaPro.getIdentifier("miscellaneous"));
 
 
     private final List<KeyMapping> keyMappings = Lists.newArrayList();
 
-    private final KeyMapping toggleOverlayKeyMapping
+    public final KeyMapping toggleOverlayKeyMapping
         = registerKeyMapping("toggleOverlay", mainCategory);
-    private final KeyMapping toggleOverlayVisibilityKeyMapping
+    public final KeyMapping toggleOverlayVisibilityKeyMapping
         = registerKeyMapping("toggleOverlayVisibility", mainCategory);
-    private final KeyMapping cycleSelectedWormStatsTypeKeyMapping
+    public final KeyMapping cycleSelectedWormStatsTypeKeyMapping
         = registerKeyMapping("cycleSelectedWormStatsType", mainCategory);
 
-    private final KeyMapping lockRotationKeyMapping
+    public final KeyMapping lockRotationKeyMapping
         = registerKeyMapping("lockRotation", playerRotationCategory);
-    private final KeyMapping toggleRotationAnglesKeyMapping
+    public final KeyMapping toggleRotationAnglesKeyMapping
         = registerKeyMapping("toggleRotationAngles", playerRotationCategory);
-    private final KeyMapping alternativeSensitivityKeyMapping
+    public final KeyMapping alternativeSensitivityKeyMapping
         = registerKeyMapping("alternativeSensitivity", playerRotationCategory);
 
-    private final KeyMapping skipGamblingReelKeyMapping
+    public final KeyMapping skipGamblingReelKeyMapping
         = registerKeyMapping("cancelScathaDropsSlotMachine", miscellaneousCategory);
 
 

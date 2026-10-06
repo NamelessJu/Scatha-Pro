@@ -61,6 +61,8 @@ public final class ScathaProMiscListeners
 
     private static void onRealDayStarted(ScathaProEvents.RealDayStartedEventData data)
     {
+        TimeUtil.updateSeasons();
+
         ScathaPro scathaPro = data.scathaPro();
 
         scathaPro.getProfileData().lastPlayedDate.set(TimeUtil.today());

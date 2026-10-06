@@ -1,7 +1,11 @@
 package namelessju.scathapro.util;
 
 import namelessju.scathapro.ScathaPro;
-import net.minecraft.network.chat.*;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FormattedText;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.util.StringDecomposer;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
@@ -122,12 +126,12 @@ public class TextUtil
         return decimalFormat.format(number);
     }
 
-    public static @NonNull FormattedText subStringFormatted(@NonNull FormattedText formattedText, int start)
+    public static @NonNull Component subStringFormatted(@NonNull FormattedText formattedText, int start)
     {
         return subStringFormatted(formattedText, start, Integer.MAX_VALUE);
     }
 
-    public static @NonNull FormattedText subStringFormatted(@NonNull FormattedText formattedText, int start, int end)
+    public static @NonNull Component subStringFormatted(@NonNull FormattedText formattedText, int start, int end)
     {
         MutableComponent subComponent = Component.empty();
         AtomicInteger currentLength = new AtomicInteger(0);

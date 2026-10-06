@@ -13,7 +13,15 @@ import namelessju.scathapro.alerts.alertmodes.AlertModeManager;
 import namelessju.scathapro.files.framework.JsonFile;
 import namelessju.scathapro.files.framework.ObjectRootJsonFile;
 import namelessju.scathapro.gui.overlay.elements.OverlayElement;
-import namelessju.scathapro.miscellaneous.data.enums.*;
+import namelessju.scathapro.miscellaneous.data.enums.ChatCopyButtonMode;
+import namelessju.scathapro.miscellaneous.data.enums.ChatPrefixType;
+import namelessju.scathapro.miscellaneous.data.enums.DateFormat;
+import namelessju.scathapro.miscellaneous.data.enums.DropMessageRarityMode;
+import namelessju.scathapro.miscellaneous.data.enums.DropMessageStatMode;
+import namelessju.scathapro.miscellaneous.data.enums.MaxGamblingReelFakeScathaRarity;
+import namelessju.scathapro.miscellaneous.data.enums.OldLobbyAlertTriggerMode;
+import namelessju.scathapro.miscellaneous.data.enums.SecondaryWormStatsType;
+import namelessju.scathapro.miscellaneous.data.enums.TimeFormat;
 import namelessju.scathapro.util.JsonUtil;
 import net.minecraft.world.item.component.ResolvableProfile;
 import org.jspecify.annotations.NonNull;
@@ -209,6 +217,7 @@ public class Config extends ObjectRootJsonFile
         public final BooleanValue revertRegularWormTexture = addBoolean("revertRegularWormTexture", false);
         public final ResolvableProfileValue regularWormPlayerHeadProfile = addValue("regularWormPlayerHeadProfile", new ResolvableProfileValue());
         public final ResolvableProfileValue scathaPlayerHeadProfile = addValue("scathaPlayerHeadProfile", new ResolvableProfileValue());
+        public final BooleanValue seasonalWormTexturesEnabled = addBoolean("seasonalWormTexturesEnabled", true);
     }
 
     //===============//
@@ -224,6 +233,8 @@ public class Config extends ObjectRootJsonFile
         public final PrimitiveValueNullable<ChatCopyButtonMode> chatCopyButtonMode
             = addPrimitiveNullable("chatCopyButtonMode", new EnumSerializer<>(ChatCopyButtonMode.class));
         public final BooleanValue hideWormSpawnMessage = addBoolean("hideWormSpawnMessage", false);
+        public final BooleanValue hideUncoveredChestMessage = addBoolean("hideUncoveredChestMessage", false);
+        public final BooleanValue compactLockpickMessagesEnabled = addBoolean("compactLockpickMessagesEnabled", false);
         public final BooleanValue wormSpawnTimerMessageEnabled = addBoolean("wormSpawnTimerMessage", false);
         public final BooleanValue dryStreakMessageEnabled = addBoolean("dryStreakMessage", true);
         public final BooleanValue dailyStreakMessagesEnabled = addBoolean("dailyStreakMessages", true);
@@ -235,9 +246,13 @@ public class Config extends ObjectRootJsonFile
         public final BooleanValue rotationAnglesYawOnly = addBoolean("rotationAngles.yawOnly", false);
         public final BooleanValue rotationAnglesMinimalYawEnabled = addBoolean("rotationAngles.minimalYaw", false);
         public final BooleanValue alternativeCrosshairLayoutEnabled = addBoolean("alternativeCrosshairLayoutEnabled", false);
-        public final PrimitiveValueWithDefault<Float> alternativeSensitivity =
+        public final PrimitiveValueWithDefault<Float> alternativeSensitivity
             // note: sensitivity is 0-1 as % of the setting slider
-            addPrimitiveWithDefault("alternativeSensitivity", FLOAT_SERIALIZER, 0f);
+            = addPrimitiveWithDefault("alternativeSensitivity", FLOAT_SERIALIZER, 0f);
+        public final PrimitiveValueWithDefault<Integer> rotationLockIconOffsetX
+            = addPrimitiveWithDefault("rotationLock.iconOffset.x", INTEGER_SERIALIZER, 0);
+        public final PrimitiveValueWithDefault<Integer> rotationLockIconOffsetY
+            = addPrimitiveWithDefault("rotationLock.iconOffset.y", INTEGER_SERIALIZER, 0);
         // Automatic stuff
         public final BooleanValue automaticBackupsEnabled = addBoolean("automaticBackups", true);
         public final BooleanValue automaticUpdateCheckEnabled = addBoolean("automaticUpdateCheck", false);
@@ -257,7 +272,8 @@ public class Config extends ObjectRootJsonFile
             = addPrimitiveNullable("dropMessageExtension.stats.addEffectiveMagicFind", new EnumSerializer<>(DropMessageStatMode.class));
         // Scatha Drops Gambling Reel
         public final BooleanValue dropsGamblingReelEnabled = addBoolean("scathaDropsSlotMachine.enabled", false);
-        public final PrimitiveValueWithDefault<Integer> dropsGamblingReelAnimationTicks = addPrimitiveWithDefault("scathaDropsSlotMachine.animationDurationTicks", INTEGER_SERIALIZER, 120);
+        public final PrimitiveValueWithDefault<Integer> dropsGamblingReelAnimationTicksMin = addPrimitiveWithDefault("scathaDropsSlotMachine.animationDurationTicksMin", INTEGER_SERIALIZER, 120);
+        public final PrimitiveValueWithDefault<Integer> dropsGamblingReelAnimationTicksMax = addPrimitiveWithDefault("scathaDropsSlotMachine.animationDurationTicksMax", INTEGER_SERIALIZER, 120);
         public final PrimitiveValueWithDefault<Float> dropsGamblingReelScaleMultiplier = addPrimitiveWithDefault("scathaDropsSlotMachine.scaleMultiplier", FLOAT_SERIALIZER, 1f);
         public final PrimitiveValueWithDefault<MaxGamblingReelFakeScathaRarity> dropsGamblingReelMaxFakeScathaRarity
             = addPrimitiveWithDefault("scathaDropsSlotMachine.maxFakeScathaRarity", new EnumSerializer<>(MaxGamblingReelFakeScathaRarity.class), MaxGamblingReelFakeScathaRarity.LEGENDARY);
@@ -287,6 +303,13 @@ public class Config extends ObjectRootJsonFile
     public static class DeveloperSettings extends ObjectValue
     {
         public final BooleanValue devModeEnabled = addBoolean("devMode", false);
+        public final PrimitiveValueNullable<SeasonOverride> seasonOverride
+            = addPrimitiveNullable("seasonOverride", new EnumSerializer<>(SeasonOverride.class));
+
+        public enum SeasonOverride
+        {
+            APRIL_FOOLS, HALLOWEEN, CHRISTMAS
+        }
     }
 
 

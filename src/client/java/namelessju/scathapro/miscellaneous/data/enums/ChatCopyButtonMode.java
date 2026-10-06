@@ -3,7 +3,11 @@ package namelessju.scathapro.miscellaneous.data.enums;
 import namelessju.scathapro.miscellaneous.data.IDisplayable;
 import namelessju.scathapro.util.TextUtil;
 import namelessju.scathapro.util.UnicodeSymbol;
-import net.minecraft.network.chat.*;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
 import org.jspecify.annotations.NonNull;
 
 import java.util.function.Function;

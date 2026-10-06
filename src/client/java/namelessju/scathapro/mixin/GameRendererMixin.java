@@ -1,11 +1,6 @@
 package namelessju.scathapro.mixin;
 
 import namelessju.scathapro.ScathaPro;
-//? if >= 26.3 {
-import net.minecraft.client.Minecraft;
-//? } else {
-/*import net.minecraft.client.DeltaTracker;
- *///? }
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.Projection;
 import net.minecraft.client.renderer.ProjectionMatrixBuffer;
@@ -18,6 +13,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+//? if >= 26.3 {
+import net.minecraft.client.Minecraft;
+//? } else {
+/*import net.minecraft.client.DeltaTracker;
+ *///? }
 //? if <= 26.1.2
 //import net.minecraft.client.renderer.RenderBuffers;
 

@@ -22,6 +22,7 @@ import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.UpdateChecker;
 import namelessju.scathapro.achievements.Achievement;
 import namelessju.scathapro.alerts.Alert;
+import namelessju.scathapro.files.Config;
 import namelessju.scathapro.miscellaneous.data.ScathaPetDrop;
 import namelessju.scathapro.miscellaneous.data.enums.Rarity;
 import namelessju.scathapro.util.JsonUtil;
@@ -173,6 +174,30 @@ public class DevCommand extends ScathaProCommand
                         }
                         else scathaPro.chatManager.sendChatErrorMessage("Achievement \"" + achievement.achievementName + "\" is not unlocked");
                     }
+                    return Command.SINGLE_SUCCESS;
+                })
+            )
+        )
+        .then(LiteralArgumentBuilder.<T>literal("seasonOverride")
+            .executes(getMissingArgumentsCommand())
+            .then(LiteralArgumentBuilder.<T>literal("set")
+                .executes(getMissingArgumentsCommand())
+                .then(RequiredArgumentBuilder.<T, Config.DeveloperSettings.SeasonOverride>argument("seasonOverride", new EnumArgumentType<>(Config.DeveloperSettings.SeasonOverride.class))
+                    .executes(context -> {
+                        Config.DeveloperSettings.SeasonOverride value
+                            = context.getArgument("seasonOverride", Config.DeveloperSettings.SeasonOverride.class);
+                        scathaPro.config.dev.seasonOverride.set(value);
+                        scathaPro.config.save();
+                        scathaPro.chatManager.sendDevChatMessage("Season override set to " + value.name());
+                        return Command.SINGLE_SUCCESS;
+                    })
+                )
+            )
+            .then(LiteralArgumentBuilder.<T>literal("clear")
+                .executes(_ -> {
+                    scathaPro.config.dev.seasonOverride.set(null);
+                    scathaPro.config.save();
+                    scathaPro.chatManager.sendDevChatMessage("Season override cleared");
                     return Command.SINGLE_SUCCESS;
                 })
             )

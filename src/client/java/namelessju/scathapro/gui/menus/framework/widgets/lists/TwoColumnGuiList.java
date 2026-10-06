@@ -7,7 +7,6 @@ import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
 import org.jspecify.annotations.NonNull;
 
 public final class TwoColumnGuiList extends ScathaProGuiList

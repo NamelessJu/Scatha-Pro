@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 
 public class ConfigUpdater implements Consumer<@Nullable JsonElement>
 {
-    public static final int TARGET_VERSION = 3;
+    public static final int TARGET_VERSION = 4;
 
     private final @NonNull Config config;
 
@@ -29,7 +29,8 @@ public class ConfigUpdater implements Consumer<@Nullable JsonElement>
         if (currentVersion >= TARGET_VERSION) return;
 
         if (currentVersion < 2) updateToV2(jsonObject, config);
-        updateToV3(jsonObject, config);
+        if (currentVersion < 3) updateToV3(jsonObject, config);
+        updateToV4(jsonObject, config);
 
         // doesn't need saving because config is always saved after loading
     }
@@ -46,5 +47,15 @@ public class ConfigUpdater implements Consumer<@Nullable JsonElement>
     {
         Boolean overlayBackgroundEnabled = JsonUtil.getBoolean(jsonObject, "overlay.backgroundEnabled");
         if (overlayBackgroundEnabled != null) config.overlay.backgroundOpacity.set(overlayBackgroundEnabled ? null : 0f);
+    }
+
+    private void updateToV4(@NonNull JsonObject jsonObject, @NonNull Config config)
+    {
+        Integer gamblingReelDurationOld = JsonUtil.getInt(jsonObject, "miscellaneous.scathaDropsSlotMachine.animationDurationTicks");
+        if (gamblingReelDurationOld != null)
+        {
+            config.miscellaneous.dropsGamblingReelAnimationTicksMin.set(gamblingReelDurationOld);
+            config.miscellaneous.dropsGamblingReelAnimationTicksMax.set(gamblingReelDurationOld);
+        }
     }
 }

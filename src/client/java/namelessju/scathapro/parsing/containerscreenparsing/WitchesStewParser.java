@@ -3,17 +3,13 @@ package namelessju.scathapro.parsing.containerscreenparsing;
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.files.PersistentData;
 import namelessju.scathapro.miscellaneous.data.enums.WitchesStew;
-import namelessju.scathapro.util.TextUtil;
-import namelessju.scathapro.util.UnicodeSymbol;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextColor;
 import net.minecraft.util.Mth;
 import net.minecraft.util.StringDecomposer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemLore;
 
-import java.math.RoundingMode;
 import java.util.ListIterator;
 import java.util.Locale;
 

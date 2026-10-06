@@ -5,8 +5,6 @@ import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.files.PersistentData;
 import namelessju.scathapro.util.TextUtil;
 import namelessju.scathapro.util.UnicodeSymbol;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextColor;
 import net.minecraft.world.item.ItemStack;
 
 public class WormBestiaryParser extends ContainerScreenParser

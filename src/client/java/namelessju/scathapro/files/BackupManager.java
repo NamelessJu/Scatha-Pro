@@ -2,7 +2,11 @@ package namelessju.scathapro.files;
 
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.util.FileUtil;
-import net.minecraft.network.chat.*;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;

@@ -41,6 +41,7 @@ public class ScathaDropsGamblingReelManager
 
     private short preRollTicksLeft = 0;
     private short preRollDelayTicksLeft = 0;
+    private int animationDuration = 1;
     private int animationTicksLeft = 0;
     private float randomOffset = 0f;
     private int currentSlotIndex = -1;
@@ -80,7 +81,11 @@ public class ScathaDropsGamblingReelManager
 
     public void startRolling()
     {
-        animationTicksLeft = scathaPro.config.miscellaneous.dropsGamblingReelAnimationTicks.get();
+        animationDuration = Util.random.nextInt(
+            scathaPro.config.miscellaneous.dropsGamblingReelAnimationTicksMin.get(),
+            scathaPro.config.miscellaneous.dropsGamblingReelAnimationTicksMax.get() + 1
+        );
+        animationTicksLeft = animationDuration;
         randomOffset = scathaPro.config.miscellaneous.dropsGamblingReelApplyRandomOffset.get()
                         ? Util.random.nextFloat(0.1f, 0.9f)
                         : 0.5f;
@@ -175,8 +180,6 @@ public class ScathaDropsGamblingReelManager
 
         if (animationTicksLeft <= 0) return;
 
-        int animationDuration = scathaPro.config.miscellaneous.dropsGamblingReelAnimationTicks.get();
-
         animationTicksLeft = (short) (Math.min(animationTicksLeft, animationDuration) - 1);
         if (animationTicksLeft <= 0)
         {
@@ -220,7 +223,6 @@ public class ScathaDropsGamblingReelManager
         float scale = Math.max(guiMaxScale - Mth.floor(guiMaxScale * 0.334f), 1)
             * scathaPro.config.miscellaneous.dropsGamblingReelScaleMultiplier.get();
         float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(true);
-        int animationDuration = scathaPro.config.miscellaneous.dropsGamblingReelAnimationTicks.get();
         float ticksLeft = animationTicksLeft - partialTicks;
         float ticksPassed = animationDuration - ticksLeft;
         float slotTicks = currentSlotIndexTicks + partialTicks;

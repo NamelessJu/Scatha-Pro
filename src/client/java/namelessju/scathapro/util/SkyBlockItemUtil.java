@@ -22,7 +22,7 @@ public class SkyBlockItemUtil
 
     public static @Nullable CompoundTag getData(@Nullable ItemStack itemStack)
     {
-        if (itemStack == null) return null;
+        if (itemStack == null || itemStack.isEmpty()) return null;
         CustomData data = itemStack.getComponents().get(DataComponents.CUSTOM_DATA);
         if (data == null) return null;
         return data.copyTag();

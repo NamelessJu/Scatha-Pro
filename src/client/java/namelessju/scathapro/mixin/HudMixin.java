@@ -3,10 +3,12 @@ package namelessju.scathapro.mixin;
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.gui.menus.screens.FakeBanScreen;
 import namelessju.scathapro.gui.menus.screens.ScathaDropsGamblingReelPreviewScreen;
+import namelessju.scathapro.gui.menus.screens.settings.playerrotation.PlayerRotationSettingsScreen;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -24,8 +26,8 @@ import net.minecraft.client.gui.Hud;
 *///? }
 public abstract class HudMixin
 {
-    @Shadow
-    private int titleTime;
+    @Shadow @Final private Minecraft minecraft;
+    @Shadow private int titleTime;
 
     @Inject(
         method = "setTitle",
@@ -114,7 +116,20 @@ public abstract class HudMixin
     )
     private void afterExtractCrosshair(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci)
     {
-        ScathaPro.instance().crosshairOverlay.extractRenderState(graphics, deltaTracker);
+        ScathaPro.instance().crosshairOverlay.render(graphics, deltaTracker);
+    }
+
+    @Inject(
+        method = "extractCrosshair",
+        at = @At("HEAD"),
+        cancellable = true
+    )
+    private void onExtractCrosshair(CallbackInfo ci)
+    {
+        if (minecraft.gui.screen() instanceof PlayerRotationSettingsScreen)
+        {
+            ci.cancel();
+        }
     }
 
     @Shadow

@@ -4,6 +4,7 @@ import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.gui.menus.framework.screens.ConfigScreen;
 import namelessju.scathapro.gui.menus.screens.settings.alerts.MainAlertSettingsScreen;
 import namelessju.scathapro.gui.menus.screens.settings.overlay.MainOverlaySettingsScreen;
+import namelessju.scathapro.gui.menus.screens.settings.playerrotation.MainPlayerRotationSettingsScreen;
 import namelessju.scathapro.miscellaneous.data.mixindata.IKeyBindsListExtraData;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
@@ -46,7 +47,7 @@ public class MainSettingsScreen extends ConfigScreen
         gridBuilder.addSingleCell(subScreenButton("Worms...", WormSettingsScreen::new));
         gridBuilder.addSingleCell(subScreenButton("Scatha Pet Drop...", PetDropSettingsScreen::new));
 
-        gridBuilder.addSingleCell(subScreenButton("Player Rotation...", PlayerRotationSettingsScreen::new));
+        gridBuilder.addSingleCell(subScreenButton("Player Rotation...", MainPlayerRotationSettingsScreen::new));
         gridBuilder.addSingleCell(subScreenButton("Chat Messages...", ChatMessageSettingsScreen::new));
 
         gridBuilder.addSingleCell(subScreenButton("Sounds...", SoundSettingsScreen::new));

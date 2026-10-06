@@ -1,7 +1,9 @@
 package namelessju.scathapro.gui.overlay;
 
-import com.mojang.blaze3d.platform.Window;
 import namelessju.scathapro.ScathaPro;
+import namelessju.scathapro.events.framework.DataEvent;
+import namelessju.scathapro.files.framework.JsonFile;
+import namelessju.scathapro.gui.menus.screens.settings.playerrotation.PlayerRotationSettingsScreen;
 import namelessju.scathapro.gui.overlay.elements.OverlayContainer;
 import namelessju.scathapro.gui.overlay.elements.OverlayElement;
 import namelessju.scathapro.gui.overlay.elements.OverlayImage;
@@ -24,7 +26,7 @@ public class CrosshairOverlay
     private OverlayContainer rotationAnglesOverlay;
     private OverlayText yawText;
     private OverlayText pitchText;
-    private OverlayImage rotationLockOverlay;
+    private OverlayImage rotationLockImage;
 
     public CrosshairOverlay(ScathaPro scathaPro)
     {
@@ -40,65 +42,80 @@ public class CrosshairOverlay
         rotationAnglesOverlay.add(pitchText = new OverlayText(font, Util.Color.WHITE, 0, 0, 1f));
         pitchText.setAlignment(OverlayElement.Alignment.CENTER);
 
-        rotationLockOverlay = new OverlayImage(Texture.scathaPro("lock.png", 16, 16), 0, 0, 1f);
+        rotationLockImage = new OverlayImage(Texture.scathaPro("lock.png", 16, 16), 0, 0, 1f);
 
+        scathaPro.config.miscellaneous.alternativeCrosshairLayoutEnabled.onValueChanged(_ -> updateLayout());
+        DataEvent.Listener<JsonFile.PrimitiveValueWithDefault<Integer>> lockIconOffsetChangeListener = _ -> updateLayout();
+        scathaPro.config.miscellaneous.rotationLockIconOffsetX.onValueChanged(lockIconOffsetChangeListener);
+        scathaPro.config.miscellaneous.rotationLockIconOffsetY.onValueChanged(lockIconOffsetChangeListener);
         updateLayout();
     }
 
-    public void updateLayout()
+    private void updateLayout()
     {
         Font font = scathaPro.minecraft.font;
+
+        int lockOffsetX = scathaPro.config.miscellaneous.rotationLockIconOffsetX.get();
+        int lockOffsetY = scathaPro.config.miscellaneous.rotationLockIconOffsetY.get();
 
         if (scathaPro.config.miscellaneous.alternativeCrosshairLayoutEnabled.get())
         {
             yawText.setPosition(11, -Mth.ceil(font.lineHeight / 2f));
             pitchText.setPosition(-1, -10 - font.lineHeight);
-            rotationLockOverlay.setPosition(-22, -8);
+            rotationLockImage.setPosition(-22 + lockOffsetX, -8 - lockOffsetY);
         }
         else
         {
             yawText.setPosition(10, -Mth.ceil(font.lineHeight / 2f));
             pitchText.setPosition(-1, 10);
-            rotationLockOverlay.setPosition(-8, -21);
+            rotationLockImage.setPosition(-8 + lockOffsetX, -21 - lockOffsetY);
         }
     }
 
-    public void extractRenderState(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker)
+    public void render(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker)
     {
-        LocalPlayer player = scathaPro.minecraft.player;
-        if (player == null) return;
+        if (scathaPro.minecraft.gui.screen() instanceof PlayerRotationSettingsScreen) return;
+        extractRenderState(guiGraphics, deltaTracker, false);
+    }
 
-        Window window = scathaPro.minecraft.getWindow();
+    public void renderPreview(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker)
+    {
+        extractRenderState(guiGraphics, deltaTracker, true);
+    }
 
+    private void extractRenderState(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker, boolean forceShowLock)
+    {
         guiGraphics.nextStratum();
         guiGraphics.pose().pushMatrix();
-        guiGraphics.pose().translate(
-            (int) (window.getGuiScaledWidth() / 2f),
-            (int) (window.getGuiScaledHeight() / 2f)
-        );
+        //noinspection IntegerDivisionInFloatingPointContext
+        guiGraphics.pose().translate(guiGraphics.guiWidth() / 2, guiGraphics.guiHeight() / 2);
 
         // Rotation Angles
         if (scathaPro.config.miscellaneous.rotationAnglesEnabled.get())
         {
-            updateRotationAngles(player);
+            updateRotationAngles();
             rotationAnglesOverlay.extractRenderStateIfVisible(guiGraphics, deltaTracker);
         }
 
         // Rotation Lock
-        if (scathaPro.inputManager.isCameraRotationLocked())
+        if (forceShowLock || scathaPro.inputManager.isCameraRotationLocked())
         {
-            rotationLockOverlay.extractRenderStateIfVisible(guiGraphics, deltaTracker);
+            rotationLockImage.extractRenderStateIfVisible(guiGraphics, deltaTracker);
         }
 
         guiGraphics.pose().popMatrix();
     }
 
-    private void updateRotationAngles(LocalPlayer player)
+    private void updateRotationAngles()
     {
         int decimalDigits = scathaPro.config.miscellaneous.rotationAnglesDecimalPlaces.get();
         TextColor contrastableGray = TextUtil.contrastableGray(scathaPro);
 
-        float yaw = player.getYRot() % 360f;
+        LocalPlayer player = scathaPro.minecraft.player;
+        float yRot = player != null ? player.getYRot() : 0f;
+        float xRot = player != null ? player.getXRot() : 0f;
+
+        float yaw = yRot % 360f;
         if (yaw < 0f) yaw += 360f;
         String yawString = TextUtil.numberToString(yaw, decimalDigits, true);
         if (scathaPro.config.miscellaneous.rotationAnglesMinimalYawEnabled.get())
@@ -116,7 +133,7 @@ public class CrosshairOverlay
         {
             pitchText.setVisible(true);
             pitchText.setText(Component.literal(
-                TextUtil.numberToString(player.getXRot(), decimalDigits, true)
+                TextUtil.numberToString(xRot, decimalDigits, true)
             ).withColor(contrastableGray));
         }
     }

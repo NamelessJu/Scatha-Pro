@@ -2,14 +2,29 @@ package namelessju.scathapro.commands;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.StringReader;
+import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.managers.ChatManager;
 import net.minecraft.commands.CommandBuildContext;
-import net.minecraft.network.chat.*;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+
+import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 
 public abstract class ScathaProCommand
 {
@@ -144,6 +159,40 @@ public abstract class ScathaProCommand
         public void buildAndSend(ChatManager chatManager)
         {
             chatManager.sendChatMessage(build(), false);
+        }
+    }
+
+    protected static class EnumArgumentType<T extends Enum<T>> implements ArgumentType<T>
+    {
+        private final Class<T> enumClass;
+
+        public EnumArgumentType(Class<T> enumClass)
+        {
+            this.enumClass = enumClass;
+        }
+
+        @Override
+        public T parse(StringReader reader) throws CommandSyntaxException
+        {
+            String value = reader.readUnquotedString();
+            try
+            {
+                return Enum.valueOf(enumClass, value.toUpperCase(Locale.ROOT));
+            }
+            catch (Exception e)
+            {
+                throw new SimpleCommandExceptionType(Component.literal("\"" + value + "\" is not a valid value")).create();
+            }
+        }
+
+        @Override
+        public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder)
+        {
+            for (T value : enumClass.getEnumConstants())
+            {
+                builder.suggest(value.name().toLowerCase(Locale.ROOT));
+            }
+            return builder.buildFuture();
         }
     }
 }

@@ -6,7 +6,11 @@ import namelessju.scathapro.achievements.Achievement;
 import namelessju.scathapro.events.ScathaProEvents;
 import namelessju.scathapro.parsing.ScoreboardParser;
 import namelessju.scathapro.util.TimeUtil;
-import net.minecraft.network.chat.*;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
 
 public final class ScathaProTickListeners
 {

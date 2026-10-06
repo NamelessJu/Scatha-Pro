@@ -14,12 +14,12 @@
         "ConnectionMixin",
         "CustomHeadLayerMixin",
         "EntityRendererMixin",
-        "GameRendererMixin",
-        "SetScreenMixin",
-        "HudMixin",
         "FirstPersonHandsAndItemsRendererMixin",
+        "GameRendererMixin",
+        "HudMixin",
         "KeyBindsListMixin",
         "KeyBindsScreenMixin",
+        "LivingEntityMixin",
         "MinecraftMixin",
         "MouseHandlerMixin",
         "MultiPlayerGameModeMixin",
@@ -30,6 +30,7 @@
         "PlayerHeadSpecialRendererMixin",
         "PlayerMixin",
         "PlayerTabOverlayAccessor",
+        "SetScreenMixin",
         "SoundEngineMixin"
     ],
     "injectors": {

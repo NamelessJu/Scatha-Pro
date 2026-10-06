@@ -1,11 +1,8 @@
 package namelessju.scathapro.parsing.containerscreenparsing;
 
 import namelessju.scathapro.ScathaPro;
-import namelessju.scathapro.util.TextUtil;
-import namelessju.scathapro.util.UnicodeSymbol;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextColor;
 import net.minecraft.util.StringDecomposer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemLore;

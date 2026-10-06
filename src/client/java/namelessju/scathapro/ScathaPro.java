@@ -16,7 +16,11 @@ import namelessju.scathapro.events.listeners.MinecraftLogicListeners;
 import namelessju.scathapro.events.listeners.ScathaProGameplayListeners;
 import namelessju.scathapro.events.listeners.ScathaProMiscListeners;
 import namelessju.scathapro.events.listeners.ScathaProTickListeners;
-import namelessju.scathapro.files.*;
+import namelessju.scathapro.files.BackupManager;
+import namelessju.scathapro.files.Config;
+import namelessju.scathapro.files.ConfigUpdater;
+import namelessju.scathapro.files.PersistentData;
+import namelessju.scathapro.files.PersistentDataUpdater;
 import namelessju.scathapro.files.customalertmode.CustomAlertModeMetaUpdater;
 import namelessju.scathapro.files.customalertmode.CustomAlertModePropertiesUpdater;
 import namelessju.scathapro.files.legacy.LegacyConfig;
@@ -24,7 +28,15 @@ import namelessju.scathapro.files.legacy.LegacyPersistentData;
 import namelessju.scathapro.gui.overlay.AlertTitleOverlay;
 import namelessju.scathapro.gui.overlay.CrosshairOverlay;
 import namelessju.scathapro.gui.overlay.MainOverlay;
-import namelessju.scathapro.managers.*;
+import namelessju.scathapro.managers.ChatManager;
+import namelessju.scathapro.managers.CoreManager;
+import namelessju.scathapro.managers.FFmpegManager;
+import namelessju.scathapro.managers.HypixelContextManager;
+import namelessju.scathapro.managers.InputManager;
+import namelessju.scathapro.managers.PersistentDataProfileManager;
+import namelessju.scathapro.managers.PlayerHeadRenderingReplacementManager;
+import namelessju.scathapro.managers.ScathaDropsGamblingReelManager;
+import namelessju.scathapro.managers.SecondaryStatsManager;
 import namelessju.scathapro.miscellaneous.ItemPopupRenderer;
 import namelessju.scathapro.miscellaneous.data.Texture;
 import namelessju.scathapro.parsing.ChatParser;
@@ -45,7 +57,7 @@ import java.util.Queue;
 public abstract class ScathaPro
 {
     public static final String MOD_ID = /*$mod_id*/ "scathapro";
-    public static final String MOD_VERSION = /*$mod_version*/ "2.4.1";
+    public static final String MOD_VERSION = /*$mod_version*/ "2.5";
 
     /** The true mod name, not influenced by certain features */
     public static final String MOD_NAME = "Scatha-Pro";
@@ -82,7 +94,8 @@ public abstract class ScathaPro
     public final InputManager inputManager = new InputManager(this);
     public final CoreManager coreManager = new CoreManager(this);
     public final HypixelContextManager hypixelContextManager = new HypixelContextManager(this);
-    public final PersistentDataProfileManager persistentDataProfileManager = new PersistentDataProfileManager(this);
+    public final PersistentDataProfileManager persistentDataProfileManager
+        = new PersistentDataProfileManager(this);
     public final SecondaryStatsManager secondaryStatsManager = new SecondaryStatsManager(persistentDataProfileManager);
     public final AlertManager alertManager = new AlertManager(this);
     public final AlertModeManager alertModeManager = new AlertModeManager(this);
@@ -91,7 +104,8 @@ public abstract class ScathaPro
     public final AchievementLogicManager achievementLogicManager = new AchievementLogicManager(this);
     public final PlayerHeadRenderingReplacementManager playerHeadRenderingReplacementManager
         = new PlayerHeadRenderingReplacementManager(this);
-    public final ScathaDropsGamblingReelManager scathaDropsGamblingReelManager = new ScathaDropsGamblingReelManager(this);
+    public final ScathaDropsGamblingReelManager scathaDropsGamblingReelManager
+        = new ScathaDropsGamblingReelManager(this);
     public final FFmpegManager ffmpegManager = new FFmpegManager(this);
 
     // Parsers
@@ -141,6 +155,8 @@ public abstract class ScathaPro
      */
     protected final void onInitialization()
     {
+        TimeUtil.updateSeasons();
+
         MinecraftLogicListeners.register();
         ScathaProTickListeners.register();
         ScathaProGameplayListeners.register();

@@ -2,7 +2,7 @@ package namelessju.scathapro.gui.menus.screens.settings.overlay;
 
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.gui.menus.framework.screens.ConfigScreen;
-import namelessju.scathapro.gui.menus.widgets.HoverArea;
+import namelessju.scathapro.gui.menus.framework.widgets.HoverArea;
 import namelessju.scathapro.gui.menus.widgets.OverlayContentList;
 import namelessju.scathapro.gui.overlay.elements.OverlayElement;
 import net.minecraft.client.gui.Font;

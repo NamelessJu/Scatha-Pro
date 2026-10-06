@@ -8,7 +8,11 @@ import namelessju.scathapro.events.ScathaProEvents;
 import namelessju.scathapro.files.PersistentData;
 import namelessju.scathapro.gui.menus.screens.FakeBanScreen;
 import namelessju.scathapro.gui.menus.screens.UnconnectedProfileDataImportScreen;
-import namelessju.scathapro.managers.detectors.*;
+import namelessju.scathapro.managers.detectors.BedrockWallDetector;
+import namelessju.scathapro.managers.detectors.CrawlingDetector;
+import namelessju.scathapro.managers.detectors.ObstacleDetector;
+import namelessju.scathapro.managers.detectors.ProjectileWormHitDetector;
+import namelessju.scathapro.managers.detectors.ScathaDropsDetector;
 import namelessju.scathapro.managers.detectors.entities.EntityDetectionManager;
 import namelessju.scathapro.managers.detectors.entities.detected.DetectedWorm;
 import namelessju.scathapro.miscellaneous.data.UnconnectedProfileDataImport;
@@ -48,6 +52,7 @@ public class CoreManager
     private DetectedWorm.@Nullable WormKillHandler blackHoleWormKillHandler = null;
     private short blackHoleWormKillTicksLeft = 0;
     public @Nullable Vec2 lastScathaBlackHolePosition = null;
+    public long lastNothingInABottleUseTime = -1L;
 
     public boolean crouchingBefore = false;
     public long lastCrouchStartTime = -1;
@@ -133,6 +138,7 @@ public class CoreManager
         blackHoleWormKillHandler = null;
         blackHoleWormKillTicksLeft = 0;
         lastScathaBlackHolePosition = null;
+        lastNothingInABottleUseTime = -1L;
         lastHeat = -1;
         lastCrystalHollowsDay = -1;
         lastOldLobbyAlertTriggerDay = -1;

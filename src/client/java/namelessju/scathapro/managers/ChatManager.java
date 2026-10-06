@@ -11,7 +11,12 @@ import namelessju.scathapro.mixin.ChatComponentAccessor;
 import namelessju.scathapro.util.TextUtil;
 import namelessju.scathapro.util.UnicodeSymbol;
 import net.minecraft.client.multiplayer.chat.GuiMessage;
-import net.minecraft.network.chat.*;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.util.StringDecomposer;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -32,7 +37,7 @@ public class ChatManager
 
 
     private final ScathaPro scathaPro;
-    private List<GuiMessage> chatMessages;
+    private List<GuiMessage> chatMessages = List.of();
 
     private final Queue<Component> cachedChatMessages = new LinkedList<>();
     private final Queue<Component> cachedCrystalHollowsMessages = new LinkedList<>();
@@ -49,6 +54,11 @@ public class ChatManager
         //? } else {
         /*chatMessages = ((ChatComponentAccessor) scathaPro.minecraft.gui.getChat()).getMessages();
         *///? }
+    }
+
+    public List<GuiMessage> chatMessages()
+    {
+        return chatMessages;
     }
 
     public void sendChatMessage(@NonNull String message)

@@ -1,17 +1,10 @@
 package namelessju.scathapro.commands;
 
 import com.mojang.brigadier.Command;
-import com.mojang.brigadier.StringReader;
-import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
-import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
-import com.mojang.brigadier.suggestion.Suggestions;
-import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import namelessju.scathapro.Constants;
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.UpdateChecker;
@@ -23,20 +16,20 @@ import namelessju.scathapro.miscellaneous.data.UnconnectedProfileDataImport;
 import namelessju.scathapro.miscellaneous.data.enums.ShardsAttribute;
 import namelessju.scathapro.miscellaneous.data.enums.WitchesStew;
 import namelessju.scathapro.util.FileUtil;
-import namelessju.scathapro.util.TextUtil;
 import namelessju.scathapro.util.TimeUtil;
 import namelessju.scathapro.util.UnicodeSymbol;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.commands.CommandBuildContext;
-import net.minecraft.network.chat.*;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.util.Mth;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 
 import java.io.IOException;
-import java.math.RoundingMode;
-import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
 
 public class MainCommand extends ScathaProCommand
 {
@@ -159,7 +152,7 @@ public class MainCommand extends ScathaProCommand
                 .executes(missingArgsCommand)
                 .then(LiteralArgumentBuilder.<T>literal("setEaten")
                     .executes(missingArgsCommand)
-                    .then(RequiredArgumentBuilder.<T, WitchesStew>argument("Witches Stew", new WitchesStewArgumentType())
+                    .then(RequiredArgumentBuilder.<T, WitchesStew>argument("Witches Stew", new EnumArgumentType<>(WitchesStew.class))
                         .executes(missingArgsCommand)
                         .then(RequiredArgumentBuilder.<T, Boolean>argument("Eaten", BoolArgumentType.bool())
                             .executes(context -> {
@@ -592,34 +585,6 @@ public class MainCommand extends ScathaProCommand
                 false
             );
             scathaPro.chatManager.sendChatDivider();
-        }
-    }
-
-
-    private static class WitchesStewArgumentType implements ArgumentType<WitchesStew>
-    {
-        @Override
-        public WitchesStew parse(StringReader reader) throws CommandSyntaxException
-        {
-            String id = reader.readUnquotedString();
-            try
-            {
-                return WitchesStew.valueOf(id.toUpperCase(Locale.ROOT));
-            }
-            catch (Exception e)
-            {
-                throw new SimpleCommandExceptionType(Component.literal("Witches Stew \"" + id + "\" not found")).create();
-            }
-        }
-
-        @Override
-        public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder)
-        {
-            for (WitchesStew stew : WitchesStew.values())
-            {
-                builder.suggest(stew.name().toLowerCase(Locale.ROOT), Component.literal(stew.stewName));
-            }
-            return builder.buildFuture();
         }
     }
 }

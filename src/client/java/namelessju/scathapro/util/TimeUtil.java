@@ -1,5 +1,6 @@
 package namelessju.scathapro.util;
 
+import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.files.Config;
 import org.jspecify.annotations.NonNull;
 
@@ -93,8 +94,36 @@ public class TimeUtil
         );
     }
 
+    private static boolean isAprilFools = false;
+    private static boolean isHalloween = false;
+    private static boolean isChristmas = false;
+
+    public static void updateSeasons()
+    {
+        isAprilFools = isDate(4, 1);
+        isHalloween = isDateBetween(10, 25, 10, 31);
+        isChristmas = isDateBetween(12, 24, 12, 31);
+    }
+
     public static boolean isAprilFools()
     {
-        return isDate(4, 1);
+        return getSeason(isAprilFools, Config.DeveloperSettings.SeasonOverride.APRIL_FOOLS);
+    }
+
+    public static boolean isHalloween()
+    {
+        return getSeason(isHalloween, Config.DeveloperSettings.SeasonOverride.HALLOWEEN);
+    }
+
+    public static boolean isChristmas()
+    {
+        return getSeason(isChristmas, Config.DeveloperSettings.SeasonOverride.CHRISTMAS);
+    }
+
+    private static boolean getSeason(boolean original, Config.DeveloperSettings.SeasonOverride allowedOverride)
+    {
+        Config.DeveloperSettings.SeasonOverride override = ScathaPro.instance().config.dev.seasonOverride.get();
+        if (override != null) return override == allowedOverride;
+        return original;
     }
 }

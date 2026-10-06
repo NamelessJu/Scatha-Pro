@@ -1,6 +1,10 @@
 package namelessju.scathapro.files;
 
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.achievements.UnlockedAchievements;
 import namelessju.scathapro.files.framework.JsonFile;

@@ -21,7 +21,11 @@ import net.minecraft.client.gui.Gui;
 public class SetScreenMixin
 {
     @Shadow
+    //? if >= 26.2 {
     private @Nullable Screen screen;
+    //? } else {
+    /*public @Nullable Screen screen;
+    *///? }
 
     @Inject(
         method = "setScreen",

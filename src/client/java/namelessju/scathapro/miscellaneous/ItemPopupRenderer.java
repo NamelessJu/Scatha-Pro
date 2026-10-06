@@ -25,7 +25,6 @@ import org.jspecify.annotations.Nullable;
 
 //? if <= 26.1.2
 //import net.minecraft.client.renderer.RenderBuffers;
-
 //? if >= 26.3 {
 import com.mojang.renderpearl.api.commands.RenderPass;
 import com.mojang.renderpearl.api.textures.GpuTexture;

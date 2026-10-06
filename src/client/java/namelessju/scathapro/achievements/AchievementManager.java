@@ -5,7 +5,11 @@ import namelessju.scathapro.events.ScathaProEvents;
 import namelessju.scathapro.gui.menus.screens.FakeBanScreen;
 import namelessju.scathapro.util.TimeUtil;
 import net.minecraft.client.resources.sounds.SoundInstance;
-import net.minecraft.network.chat.*;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
 import org.jspecify.annotations.NonNull;
 
 import java.util.LinkedList;

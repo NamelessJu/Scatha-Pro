@@ -1,6 +1,7 @@
 package namelessju.scathapro.gui.menus.framework.screens;
 
 import namelessju.scathapro.ScathaPro;
+import namelessju.scathapro.gui.menus.framework.widgets.KeyMappingButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.StringWidget;
@@ -53,8 +54,15 @@ public abstract class ScathaProScreen extends Screen
     }
 
     @Override
+    public boolean shouldCloseOnEsc()
+    {
+        return !KeyMappingButton.isAnySelected();
+    }
+
+    @Override
     public void onClose()
     {
+        KeyMappingButton.clearSelection();
         minecraft.gui.setScreen(parentScreen);
     }
 

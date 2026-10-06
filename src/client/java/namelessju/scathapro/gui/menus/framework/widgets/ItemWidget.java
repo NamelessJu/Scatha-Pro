@@ -1,4 +1,4 @@
-package namelessju.scathapro.gui.menus.widgets;
+package namelessju.scathapro.gui.menus.framework.widgets;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;

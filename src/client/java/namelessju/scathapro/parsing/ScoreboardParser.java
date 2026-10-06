@@ -4,7 +4,11 @@ import namelessju.scathapro.ScathaPro;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.StringDecomposer;
-import net.minecraft.world.scores.*;
+import net.minecraft.world.scores.DisplaySlot;
+import net.minecraft.world.scores.Objective;
+import net.minecraft.world.scores.PlayerScoreEntry;
+import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.world.scores.Scoreboard;
 
 import java.util.Comparator;
 import java.util.Optional;

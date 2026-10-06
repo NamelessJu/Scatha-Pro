@@ -253,12 +253,13 @@ public class DetectedWorm extends DetectedEntity
 
         public static void handleKill(@NonNull DetectedWorm worm, @NonNull LocalPlayer player, boolean wasBlackHoled)
         {
-            // check for direct kill
-            boolean countAsKilled;
+            boolean countAsKilled = false;
 
             if (wasBlackHoled) countAsKilled = true;
-            else
+            else if (worm.scathaPro.coreManager.lastNothingInABottleUseTime < 0L
+                || TimeUtil.getEpochMilliseconds() - worm.scathaPro.coreManager.lastNothingInABottleUseTime >= 2000L + Constants.pingThreshold)
             {
+                // check for direct kill
                 countAsKilled = worm.getLastAttackTime() >= 0 && TimeUtil.getEpochMilliseconds() - worm.getLastAttackTime() < Constants.pingThreshold;
 
                 if (!countAsKilled) // check for kill by fire aspect

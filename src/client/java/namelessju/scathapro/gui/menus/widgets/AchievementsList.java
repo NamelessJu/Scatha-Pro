@@ -3,7 +3,11 @@ package namelessju.scathapro.gui.menus.widgets;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import namelessju.scathapro.ScathaPro;
-import namelessju.scathapro.achievements.*;
+import namelessju.scathapro.achievements.Achievement;
+import namelessju.scathapro.achievements.AchievementCategory;
+import namelessju.scathapro.achievements.AchievementManager;
+import namelessju.scathapro.achievements.AchievementType;
+import namelessju.scathapro.achievements.UnlockedAchievement;
 import namelessju.scathapro.files.Config;
 import namelessju.scathapro.util.TextUtil;
 import namelessju.scathapro.util.TimeUtil;
@@ -16,14 +20,22 @@ import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.sounds.SoundManager;
-import net.minecraft.network.chat.*;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
 
 public class AchievementsList extends AbstractWidget
 {

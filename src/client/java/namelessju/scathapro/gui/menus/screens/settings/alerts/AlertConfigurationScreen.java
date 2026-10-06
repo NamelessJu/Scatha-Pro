@@ -131,10 +131,8 @@ public class AlertConfigurationScreen extends ConfigScreen
                     "Interval Minimum", 0, 60, config.alerts.antiSleepAlertIntervalMin,
                     value -> {
                         config.alerts.antiSleepAlertIntervalMin.set(value);
-
                         if (config.alerts.antiSleepAlertIntervalMax.get() < value)
                         {
-                            config.alerts.antiSleepAlertIntervalMax.set(value);
                             antiSleepIntervalMaxSlider.setMappedValue(value);
                         }
                     }
@@ -144,10 +142,8 @@ public class AlertConfigurationScreen extends ConfigScreen
                     "Interval Maximum", 1, 60, config.alerts.antiSleepAlertIntervalMax,
                     value -> {
                         config.alerts.antiSleepAlertIntervalMax.set(value);
-
                         if (config.alerts.antiSleepAlertIntervalMin.get() > value)
                         {
-                            config.alerts.antiSleepAlertIntervalMin.set(value);
                             antiSleepIntervalMinSlider.setMappedValue(value);
                         }
                     }

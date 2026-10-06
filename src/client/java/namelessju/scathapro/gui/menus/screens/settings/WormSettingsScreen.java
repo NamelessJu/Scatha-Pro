@@ -8,10 +8,18 @@ import namelessju.scathapro.Constants;
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.files.Config;
 import namelessju.scathapro.gui.menus.framework.screens.ConfigScreen;
-import namelessju.scathapro.gui.menus.widgets.ItemWidget;
+import namelessju.scathapro.gui.menus.framework.widgets.ItemWidget;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.*;
-import net.minecraft.client.gui.layouts.*;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.StringWidget;
+import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.layouts.FrameLayout;
+import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
+import net.minecraft.client.gui.layouts.Layout;
+import net.minecraft.client.gui.layouts.LayoutElement;
+import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -53,11 +61,16 @@ public class WormSettingsScreen extends ConfigScreen
             ), null
         ));
 
-        gridBuilder.addGap();
-
-        gridBuilder.addFullWidth(booleanConfigButton("Revert Worm Texture", config.worms.revertRegularWormTexture,
+        gridBuilder.addTitle(Component.literal("Worm Textures"), font);
+        gridBuilder.addFullWidth(booleanConfigButton("Revert Stoneworm Texture", config.worms.revertRegularWormTexture,
             _ -> Tooltip.create(
                 Component.literal("Replaces the new Stoneworm texture with the old one (= the same as Scathas)")
+                    .withColor(TextColor.GRAY)
+            ), null
+        ));
+        gridBuilder.addFullWidth(booleanConfigButton("Seasonal Worm Textures", config.worms.seasonalWormTexturesEnabled,
+            _ -> Tooltip.create(
+                Component.literal("Replaces the textures for Stoneworms and Scathas with seasonal variants on certain dates, along with some matching particle effects")
                     .withColor(TextColor.GRAY)
             ), null
         ));
@@ -72,7 +85,7 @@ public class WormSettingsScreen extends ConfigScreen
         );
         gridBuilder.addAbsoluteGap(0);
         gridBuilder.addSingleCell(new PlayerHeadProfileEditSection(minecraft,
-            config.worms.regularWormPlayerHeadProfile, Constants.wormHeadTextureDefault
+            config.worms.regularWormPlayerHeadProfile, Constants.stonewormHeadTextureDefault
         ).setStoneworm());
         gridBuilder.addSingleCell(new PlayerHeadProfileEditSection(minecraft,
             config.worms.scathaPlayerHeadProfile, Constants.scathaHeadTextureDefault

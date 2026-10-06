@@ -47,7 +47,7 @@ public abstract class MinecraftMixin
         at = @At(
             value = "INVOKE",
             //? if >= 26.3 {
-            target = "Lnet/minecraft/client/player/LocalPlayer;swing(Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/item/component/SwingAnimation;Z)Z",
+            target = "Lnet/minecraft/client/multiplayer/ClientPacketListener;send(Lnet/minecraft/network/protocol/Packet;)V",
             //? } else {
             /*target = "Lnet/minecraft/client/player/LocalPlayer;swing(Lnet/minecraft/world/InteractionHand;)V",
             *///? }
@@ -56,7 +56,7 @@ public abstract class MinecraftMixin
     )
     private void onAttack(CallbackInfoReturnable<Boolean> cir)
     {
-        assert player != null;
+        if (player == null) return;
         ScathaPro.instance().coreManager.projectileWormHitDetector.checkShortbowHitFired(player.getItemInHand(InteractionHand.MAIN_HAND));
     }
 
