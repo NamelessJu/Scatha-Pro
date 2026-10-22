@@ -56,7 +56,7 @@ import java.util.Queue;
 public abstract class ScathaPro
 {
     public static final String MOD_ID = /*$mod_id*/ "scathapro";
-    public static final String MOD_VERSION = /*$mod_version*/ "2.6.dev-1";
+    public static final String MOD_VERSION = /*$mod_version*/ "2.6";
 
     /** The true mod name, not influenced by certain features */
     public static final String MOD_NAME = "Scatha-Pro";
