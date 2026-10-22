@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
 import namelessju.scathapro.Constants;
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.managers.ChatManager;
@@ -36,27 +37,27 @@ public class ScathaChancesCommand extends ScathaProCommand
     @Override
     protected String[] getAliases()
     {
-        return new String[] {"scacha"};
+        return new String[] {"scacha", "scacha_alpha", "scathachances_alpha"};
     }
 
     @Override
     protected <T> void buildCommand(LiteralArgumentBuilder<T> builder, CommandBuildContext buildContext)
     {
-        builder.executes(_ -> {
-                calculateChances(0f, 0f, 0);
+        builder.executes(commandContext -> {
+                calculateChances(commandContext, 0f, 0f, 0);
                 return Command.SINGLE_SUCCESS;
             })
             .then(RequiredArgumentBuilder.<T, Float>argument("Magic Find", FloatArgumentType.floatArg(0))
                 .executes(commandContext -> {
                     float magicFind = FloatArgumentType.getFloat(commandContext, "Magic Find");
-                    calculateChances(magicFind, 0f, 0);
+                    calculateChances(commandContext, magicFind, 0f, 0);
                     return Command.SINGLE_SUCCESS;
                 })
                 .then(RequiredArgumentBuilder.<T, Float>argument("Pet Luck", FloatArgumentType.floatArg(0))
                     .executes(commandContext -> {
                         float magicFind = FloatArgumentType.getFloat(commandContext, "Magic Find");
                         float petLuck = FloatArgumentType.getFloat(commandContext, "Pet Luck");
-                        calculateChances(magicFind, petLuck, 0);
+                        calculateChances(commandContext, magicFind, petLuck, 0);
                         return Command.SINGLE_SUCCESS;
                     })
                     .then(RequiredArgumentBuilder.<T, Integer>argument("Scatha Kills", IntegerArgumentType.integer(2))
@@ -64,7 +65,7 @@ public class ScathaChancesCommand extends ScathaProCommand
                             float magicFind = FloatArgumentType.getFloat(commandContext, "Magic Find");
                             float petLuck = FloatArgumentType.getFloat(commandContext, "Pet Luck");
                             int kills = IntegerArgumentType.getInteger(commandContext, "Scatha Kills");
-                            calculateChances(magicFind, petLuck, kills);
+                            calculateChances(commandContext, magicFind, petLuck, kills);
                             return Command.SINGLE_SUCCESS;
                         })
                     )
@@ -72,13 +73,17 @@ public class ScathaChancesCommand extends ScathaProCommand
             );
     }
 
-    private void calculateChances(float magicFind, float petLuck, int kills)
+    private void calculateChances(CommandContext<?> context, float magicFind, float petLuck, int kills)
     {
         boolean hasAttributes = magicFind > 0 || petLuck > 0;
 
-        float rareChance = Constants.scathaPetBaseChanceRare;
-        float epicChance = Constants.scathaPetBaseChanceEpic;
-        float legendaryChance = Constants.scathaPetBaseChanceLegendary;
+        boolean useAlphaChances = context.getInput().split(" ", 2)[0].endsWith("_alpha");
+        float rareChance
+            = useAlphaChances ? Constants.scathaPetBaseChanceRareAlpha : Constants.scathaPetBaseChanceRare;
+        float epicChance
+            = useAlphaChances ? Constants.scathaPetBaseChanceEpicAlpha : Constants.scathaPetBaseChanceEpic;
+        float legendaryChance
+            = useAlphaChances ? Constants.scathaPetBaseChanceLegendaryAlpha : Constants.scathaPetBaseChanceLegendary;
 
         if (hasAttributes)
         {
@@ -100,12 +105,14 @@ public class ScathaChancesCommand extends ScathaProCommand
         if (kills > 0)
         {
             calculateChancesForKills(
+                useAlphaChances,
                 rareChance, epicChance, legendaryChance, anyChance,
                 kills,
                 getAttributesComponent(magicFind, petLuck)
             );
         }
         else calculateRegularChances(
+            useAlphaChances,
             rareChance, epicChance, legendaryChance, anyChance,
             hasAttributes ? getAttributesComponent(magicFind, petLuck) : null
         );
@@ -131,6 +138,7 @@ public class ScathaChancesCommand extends ScathaProCommand
     }
 
     private void calculateRegularChances(
+        boolean isAlphaChances,
         float finalChanceRare, float finalChanceEpic, float finalChanceLegendary, float finalChanceAny,
         @Nullable Component attributesComponent
     )
@@ -181,10 +189,20 @@ public class ScathaChancesCommand extends ScathaProCommand
             .append(Component.literal("(" + legendaryKillsAverage + " Scatha kills on average)").withStyle(grayItalicStyle)),
             false
         );
+        if (isAlphaChances)
+        {
+            scathaPro.chatManager.sendChatMessage(
+                Component.empty().withColor(TextColor.GRAY)
+                    .append(Component.literal("\u26A0 ").withColor(TextColor.YELLOW))
+                    .append("This command is for the Magic Find update on the alpha network! For the regular calculation remove the \"_alpha\" suffix."),
+                false
+            );
+        }
         scathaPro.chatManager.sendChatDivider();
     }
 
     private void calculateChancesForKills(
+        boolean isAlphaChances,
         float finalChanceRare, float finalChanceEpic, float finalChanceLegendary, float finalChanceAny,
         int kills, @NonNull Component attributesComponent
     )
@@ -243,6 +261,15 @@ public class ScathaChancesCommand extends ScathaProCommand
                 .withColor(TextColor.GOLD)),
             false
         );
+        if (isAlphaChances)
+        {
+            scathaPro.chatManager.sendChatMessage(
+                Component.empty().withColor(TextColor.GRAY)
+                    .append(Component.literal("\u26A0 ").withColor(TextColor.YELLOW))
+                    .append("This command is for the Magic Find update on the alpha network!"),
+                false
+            );
+        }
         scathaPro.chatManager.sendChatDivider();
     }
 

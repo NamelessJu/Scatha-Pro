@@ -2,7 +2,7 @@ package namelessju.scathapro.managers;
 
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.events.ScathaProEvents;
-import namelessju.scathapro.events.framework.DataEvent;
+import namelessju.scathapro.events.framework.DatalessEvent;
 import namelessju.scathapro.miscellaneous.data.enums.HypixelEnvironment;
 import namelessju.scathapro.miscellaneous.data.enums.SkyBlockArea;
 import namelessju.scathapro.util.TextUtil;
@@ -19,8 +19,12 @@ public class HypixelContextManager
     private static final UUID DEV_MODE_PROFILE_ID = new UUID(0L, 0L);
     private static final SkyBlockArea DEV_MODE_SKYBLOCK_AREA = SkyBlockArea.CRYSTAL_HOLLOWS;
 
+    private static final short PROFILE_ID_COMMAND_WAIT_TICKS = 9 * 20;
+    private static final short NO_PROFILE_DETECTED_WAIT_TICKS = 15 * 20;
 
-    public final DataEvent<ScathaPro> contextChangedEvent = new DataEvent<>();
+
+    public final DatalessEvent contextChangedEvent = new DatalessEvent();
+    public final DatalessEvent profileDetectionFailedEvent = new DatalessEvent();
 
     private final ScathaPro scathaPro;
 
@@ -32,6 +36,9 @@ public class HypixelContextManager
     private short profileIdCommandTickTimer = 0;
     private byte profileIdSuggestMessagesToIgnore = 0;
 
+    private short profileDetectionTimeoutTicksLeft = 0;
+    private boolean profileDetectionFailed = false;
+
     public HypixelContextManager(ScathaPro scathaPro)
     {
         this.scathaPro = scathaPro;
@@ -40,11 +47,11 @@ public class HypixelContextManager
             isOnSkyBlock = false;
             skyBlockArea = null;
             profileId = null;
-            contextChangedEvent.trigger(scathaPro);
+            contextChangedEvent.trigger();
         });
         ScathaProEvents.serverLeftEvent.addListener(_ -> {
             environment = null;
-            contextChangedEvent.trigger(scathaPro);
+            contextChangedEvent.trigger();
         });
     }
 
@@ -60,11 +67,17 @@ public class HypixelContextManager
         return profileId;
     }
 
+    public boolean hasProfileDetectionFailed()
+    {
+        return profileDetectionFailed;
+    }
+
     private boolean shouldUseDevModeProfile()
     {
         return profileId == null && environment == null && scathaPro.config.dev.devModeEnabled.get();
     }
 
+    @SuppressWarnings("unused")
     public boolean isOnSkyBlock()
     {
         if (scathaPro.config.dev.devModeEnabled.get()) return true;
@@ -103,6 +116,20 @@ public class HypixelContextManager
                 }
             }
         }
+
+        if (profileDetectionTimeoutTicksLeft > 0)
+        {
+            profileDetectionTimeoutTicksLeft--;
+            if (profileDetectionTimeoutTicksLeft == 0)
+            {
+                profileDetectionFailed = true;
+                if (isInCrystalHollows())
+                {
+                    scathaPro.chatManager.sendChatErrorMessage("Failed to detect SkyBlock profile! Data from this lobby can not be saved.");
+                }
+                profileDetectionFailedEvent.trigger();
+            }
+        }
     }
 
     public boolean shouldCancelChatMessage(String message)
@@ -127,7 +154,8 @@ public class HypixelContextManager
         if (!Objects.equals(profileId, profileIdBefore))
         {
             ScathaPro.LOGGER.debug("Profile ID changed: {} -> {}", profileIdBefore, profileId);
-            contextChangedEvent.trigger(scathaPro);
+            profileDetectionTimeoutTicksLeft = 0;
+            contextChangedEvent.trigger();
         }
 
         return true;
@@ -137,9 +165,10 @@ public class HypixelContextManager
     {
         HypixelEnvironment previousEnvironment = this.environment;
         this.environment = environment;
+        clearProfile();
         if (!Objects.equals(previousEnvironment, this.environment))
         {
-            contextChangedEvent.trigger(scathaPro);
+            contextChangedEvent.trigger();
         }
     }
 
@@ -147,18 +176,28 @@ public class HypixelContextManager
     {
         this.isOnSkyBlock = isOnSkyBlock;
         this.skyBlockArea = area;
+        clearProfile();
 
         if (isOnSkyBlock)
         {
-            profileIdCommandTickTimer = 20 * 9;
+            profileIdCommandTickTimer = PROFILE_ID_COMMAND_WAIT_TICKS;
+            profileDetectionTimeoutTicksLeft = NO_PROFILE_DETECTED_WAIT_TICKS;
         }
 
         ScathaPro.LOGGER.debug("Hypixel location changed - is SkyBlock: {}, SkyBlock area: {}", isOnSkyBlock, area);
-        contextChangedEvent.trigger(scathaPro);
+        contextChangedEvent.trigger();
     }
 
     public void cancelProfileIdCommandTimer()
     {
         profileIdCommandTickTimer = 0;
+    }
+
+    private void clearProfile()
+    {
+        profileId = null;
+        profileDetectionFailed = false;
+        profileIdCommandTickTimer = 0;
+        profileDetectionTimeoutTicksLeft = 0;
     }
 }

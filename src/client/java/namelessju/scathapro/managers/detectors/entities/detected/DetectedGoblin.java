@@ -31,7 +31,6 @@ public class DetectedGoblin extends DetectedEntity
     @Override
     public void onRegistration()
     {
-        if (!scathaPro.config.alerts.goblinSpawnAlertEnabled.get()) return;
         scathaPro.alertManager.goblinSpawnAlert.play(scathaPro, switch (type) {
             case GOLD -> Component.literal("Golden").withColor(TextColor.GOLD);
             case DIAMOND -> Component.literal("Diamond").withColor(TextColor.AQUA);

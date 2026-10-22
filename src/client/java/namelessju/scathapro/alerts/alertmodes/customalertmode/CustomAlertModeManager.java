@@ -144,7 +144,7 @@ public class CustomAlertModeManager
         scathaPro.customAlertModeManager.reloadResourcePack();
     }
 
-    private void loadCurrentSubMode()
+    public void loadCurrentSubMode()
     {
         String loadedSubmode = scathaPro.config.alerts.customModeSubmode.get();
         if (!doesSubModeExist(loadedSubmode)) loadedSubmode = null;

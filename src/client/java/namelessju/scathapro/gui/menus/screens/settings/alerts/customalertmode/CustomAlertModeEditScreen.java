@@ -128,7 +128,7 @@ public class CustomAlertModeEditScreen extends ScathaProLayoutScreen
                 );
                 if (success)
                 {
-                    InfoMessageScreen infoScreen = new InfoMessageScreen(scathaPro, CustomAlertModeEditScreen.this,
+                    InfoMessageScreen infoScreen = new InfoMessageScreen(CustomAlertModeEditScreen.this,
                         Component.literal("Custom alert mode exported"),
                         Component.literal("Exported as \"" + file.getName() + "\"")
                     );
@@ -146,7 +146,7 @@ public class CustomAlertModeEditScreen extends ScathaProLayoutScreen
                     });
                     minecraft.gui.setScreen(infoScreen);
                 }
-                else minecraft.gui.setScreen(new InfoMessageScreen(scathaPro, CustomAlertModeEditScreen.this,
+                else minecraft.gui.setScreen(new InfoMessageScreen(CustomAlertModeEditScreen.this,
                     Component.literal("Custom alert mode export failed").withColor(TextColor.RED),
                     Component.literal("Couldn't create/write the file")
                 ));

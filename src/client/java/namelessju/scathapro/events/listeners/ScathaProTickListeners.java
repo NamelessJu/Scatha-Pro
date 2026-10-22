@@ -31,7 +31,7 @@ public final class ScathaProTickListeners
             UpdateChecker.checkForUpdate(scathaPro, false);
         }
 
-        scathaPro.achievementLogicManager.updatePetDropAchievements();
+        scathaPro.achievementLogicManager.updatePetDropAmountAchievements();
         scathaPro.achievementLogicManager.updateProgressAchievements();
         scathaPro.achievementLogicManager.updateDailyScathaStreakAchievements();
     }

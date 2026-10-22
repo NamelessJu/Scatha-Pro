@@ -22,16 +22,15 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @NullMarked
-public abstract class JsonFile<T extends JsonFile.JsonValue> extends ScathaProFile
+public abstract class JsonFile<F extends JsonFile<F, V>, V extends JsonFile.JsonValue> extends ScathaProFile
 {
-    public final T root;
+    public final V root;
     public boolean prettyPrintEnabled;
     public boolean savesDefaultValues = false;
-    public @Nullable Consumer<@Nullable JsonElement> postLoadConsumer = null;
+    public @Nullable BiConsumer<@Nullable JsonElement, F> postLoadConsumer = null;
 
     public JsonFile(ScathaPro scathaPro, File file, boolean prettyPrintEnabled)
     {
@@ -40,7 +39,9 @@ public abstract class JsonFile<T extends JsonFile.JsonValue> extends ScathaProFi
         this.prettyPrintEnabled = prettyPrintEnabled;
     }
 
-    protected abstract T initializeRoot();
+    protected abstract F self();
+
+    protected abstract V initializeRoot();
 
     @Override
     protected void deserialize(@Nullable String content)
@@ -49,7 +50,7 @@ public abstract class JsonFile<T extends JsonFile.JsonValue> extends ScathaProFi
         {
             JsonElement jsonElement = JsonUtil.parseJson(content);
             root.loadFromJson(jsonElement);
-            if (postLoadConsumer != null) postLoadConsumer.accept(jsonElement);
+            if (postLoadConsumer != null) postLoadConsumer.accept(jsonElement, self());
         }
         else reset();
     }
@@ -78,7 +79,7 @@ public abstract class JsonFile<T extends JsonFile.JsonValue> extends ScathaProFi
          * If the JsonElement doesn't represent a valid value for this JsonValue, the value gets reset.
          */
         void loadFromJson(@Nullable JsonElement jsonElement);
-        JsonElement getAsJson(JsonFile<?> jsonFile);
+        JsonElement getAsJson(JsonFile<?, ?> jsonFile);
 
         interface Serializer<T, S extends JsonElement>
         {
@@ -156,7 +157,7 @@ public abstract class JsonFile<T extends JsonFile.JsonValue> extends ScathaProFi
         }
 
         @Override
-        public JsonElement getAsJson(JsonFile<?> jsonFile)
+        public JsonElement getAsJson(JsonFile<?, ?> jsonFile)
         {
             JsonObject jsonObject = new JsonObject();
             for (ChildValue child : childValues)
@@ -327,7 +328,7 @@ public abstract class JsonFile<T extends JsonFile.JsonValue> extends ScathaProFi
         }
 
         @Override
-        public JsonElement getAsJson(JsonFile<?> jsonFile)
+        public JsonElement getAsJson(JsonFile<?, ?> jsonFile)
         {
             JsonArray array = new JsonArray();
             for (T element : this)
@@ -367,7 +368,7 @@ public abstract class JsonFile<T extends JsonFile.JsonValue> extends ScathaProFi
         }
 
         @Override
-        public JsonElement getAsJson(JsonFile<?> jsonFile)
+        public JsonElement getAsJson(JsonFile<?, ?> jsonFile)
         {
             JsonArray array = new JsonArray();
             for (T child : this)
@@ -467,7 +468,7 @@ public abstract class JsonFile<T extends JsonFile.JsonValue> extends ScathaProFi
         }
 
         @Override
-        public JsonElement getAsJson(JsonFile<?> jsonFile)
+        public JsonElement getAsJson(JsonFile<?, ?> jsonFile)
         {
             T currentValue = get();
             if (currentValue == null) return JsonNull.INSTANCE;
@@ -495,7 +496,7 @@ public abstract class JsonFile<T extends JsonFile.JsonValue> extends ScathaProFi
         }
 
         @Override
-        public JsonElement getAsJson(JsonFile<?> jsonFile)
+        public JsonElement getAsJson(JsonFile<?, ?> jsonFile)
         {
             return serializer.valueToJson(get());
         }

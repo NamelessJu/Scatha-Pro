@@ -73,7 +73,7 @@ public class UnlockedAchievements implements JsonFile.JsonValue
     }
 
     @Override
-    public @NonNull JsonElement getAsJson(@NonNull JsonFile<?> jsonFile)
+    public @NonNull JsonElement getAsJson(@NonNull JsonFile<?, ?> jsonFile)
     {
         JsonArray jsonArray = new JsonArray();
         for (UnlockedAchievement unlockedAchievement : getAll())

@@ -1012,11 +1012,11 @@ public class MainOverlay
     {
         TextColor contrastableGray = TextUtil.contrastableGray(scathaPro);
         profileStatsText.setText(Component.empty()
-            .append(scathaPro.persistentDataProfileManager.getTotalMagicFindComponent(false, true))
+            .append(scathaPro.persistentDataProfileManager.getTotalMagicFindComponent(null, true))
             .append(Component.literal(" ").withColor(contrastableGray))
             .append(scathaPro.persistentDataProfileManager.getPetLuckComponent(true))
             .append(Component.literal(" / ").withColor(contrastableGray))
-            .append(scathaPro.persistentDataProfileManager.getEffectiveMagicFindComponent(false).append(" EMF"))
+            .append(scathaPro.persistentDataProfileManager.getEffectiveMagicFindComponent(null).append(" EMF"))
         );
     }
 

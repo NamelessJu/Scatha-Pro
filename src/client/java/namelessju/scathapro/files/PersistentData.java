@@ -25,11 +25,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class PersistentData extends ObjectRootJsonFile
+public class PersistentData extends ObjectRootJsonFile<PersistentData>
 {
     public PersistentData(ScathaPro scathaPro)
     {
         super(scathaPro, scathaPro.getSaveDirectoryPath().resolve("persistentDataV2.json").toFile(), false);
+        this.postLoadConsumer = new PersistentDataUpdater();
+    }
+
+    @Override
+    protected @NonNull PersistentData self()
+    {
+        return this;
     }
 
 
@@ -130,6 +137,9 @@ public class PersistentData extends ObjectRootJsonFile
 
         public final UnlockedAchievements unlockedAchievements
             = addValue("unlockedAchievements", new UnlockedAchievements());
+
+        public final PrimitiveValueWithDefault<Integer> wrongAxisNotificationsShown
+            = addPrimitiveWithDefault("wrongAxisNotificationsShown", INTEGER_SERIALIZER, 0);
     }
 
 
@@ -284,7 +294,7 @@ public class PersistentData extends ObjectRootJsonFile
         }
 
         @Override
-        public JsonElement getAsJson(JsonFile<?> jsonFile)
+        public JsonElement getAsJson(JsonFile<?, ?> jsonFile)
         {
             if (!hasValue()) return JsonNull.INSTANCE;
 

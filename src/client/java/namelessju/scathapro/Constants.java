@@ -6,6 +6,7 @@ import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
 import namelessju.scathapro.miscellaneous.data.enums.Rarity;
 import namelessju.scathapro.miscellaneous.data.enums.WormSegmentType;
+import namelessju.scathapro.util.UnicodeSymbol;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
@@ -34,12 +35,44 @@ public final class Constants
     /** The numbers of ticks after opening a chest GUI at which the parser tries to parse it's contents */
     public static final int[] chestGuiParserTickCounts = new int[] {4, 10, 20, 40, 60, 100};
 
+    public static boolean isStonewormBestiary(String screenTitle)
+    {
+        return screenTitle.equals("Crystal Hollows " + UnicodeSymbol.hypixelArrowRight + " Stoneworm");
+    }
+
     public static final int wormSpawnCooldown = 30_000;
     public static final int wormLifetime = 30_000;
 
-    public static final float scathaPetBaseChanceRare = 0.00_24f;
-    public static final float scathaPetBaseChanceEpic = 0.00_12f;
-    public static final float scathaPetBaseChanceLegendary = 0.00_04f;
+    /** The actual statistical chance calculated to match Hypixel's weird pet drop rolling system */
+    public static final float scathaPetBaseChanceRare;
+    /** The actual statistical chance calculated to match Hypixel's weird pet drop rolling system */
+    public static final float scathaPetBaseChanceEpic;
+    /** The actual statistical chance calculated to match Hypixel's weird pet drop rolling system */
+    public static final float scathaPetBaseChanceLegendary;
+
+    /** The actual statistical chance calculated to match Hypixel's weird pet drop rolling system */
+    public static final float scathaPetBaseChanceRareAlpha;
+    /** The actual statistical chance calculated to match Hypixel's weird pet drop rolling system */
+    public static final float scathaPetBaseChanceEpicAlpha;
+    /** The actual statistical chance calculated to match Hypixel's weird pet drop rolling system */
+    public static final float scathaPetBaseChanceLegendaryAlpha;
+
+    static
+    {
+        ScathaPetDropChancesCalculation prodChances = new ScathaPetDropChancesCalculation(
+            0.00_24f, 0.00_12f, 0.00_04f
+        );
+        scathaPetBaseChanceRare = prodChances.rareChance;
+        scathaPetBaseChanceEpic = prodChances.epicChance;
+        scathaPetBaseChanceLegendary = prodChances.legendaryChance;
+
+        ScathaPetDropChancesCalculation alphaChances = new ScathaPetDropChancesCalculation(
+            0.00_6f, 0.00_3f, 0.00_1f
+        );
+        scathaPetBaseChanceRareAlpha = alphaChances.rareChance;
+        scathaPetBaseChanceEpicAlpha = alphaChances.epicChance;
+        scathaPetBaseChanceLegendaryAlpha = alphaChances.legendaryChance;
+    }
 
     public static final int maxLegitPetDropsAmount = 9999;
     /** Dry streak gets invalidated if the mod's and the bestiary's Scatha kills differ more than this threshold */
@@ -214,6 +247,22 @@ public final class Constants
         public static boolean isBlackHole(@Nullable String skyBlockId)
         {
             return skyBlockId != null && skyBlockId.endsWith(_blackHoleSuffix);
+        }
+    }
+
+
+    private static class ScathaPetDropChancesCalculation
+    {
+        public final float rareChance;
+        public final float epicChance;
+        public final float legendaryChance;
+
+        public ScathaPetDropChancesCalculation(float rareChanceBestiary, float epicChanceBestiary, float legendaryChanceBestiary)
+        {
+            float totalChance = rareChanceBestiary + epicChanceBestiary + legendaryChanceBestiary;
+            this.rareChance = rareChanceBestiary * (rareChanceBestiary / totalChance);
+            this.epicChance = rareChanceBestiary * (epicChanceBestiary / totalChance);
+            this.legendaryChance = rareChanceBestiary * (legendaryChanceBestiary / totalChance);
         }
     }
 }

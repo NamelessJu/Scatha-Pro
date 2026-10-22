@@ -2,60 +2,66 @@ package namelessju.scathapro.files;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import namelessju.scathapro.ScathaPro;
+import namelessju.scathapro.managers.BackupManager;
 import namelessju.scathapro.miscellaneous.data.enums.ChatPrefixType;
 import namelessju.scathapro.util.JsonUtil;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
-public class ConfigUpdater implements Consumer<@Nullable JsonElement>
+public class ConfigUpdater implements BiConsumer<@Nullable JsonElement, Config>
 {
-    public static final int TARGET_VERSION = 4;
+    public static final int TARGET_VERSION = 5;
 
-    private final @NonNull Config config;
+    private final ScathaPro scathaPro;
 
-    public ConfigUpdater(@NonNull Config config)
+    public ConfigUpdater(ScathaPro scathaPro)
     {
-        this.config = config;
+        this.scathaPro = scathaPro;
     }
 
     @Override
-    public void accept(@Nullable JsonElement jsonElement)
+    public void accept(@Nullable JsonElement jsonElement, Config config)
     {
         if (!(jsonElement instanceof JsonObject jsonObject)) return;
 
         int currentVersion = config.version.getOr(-1);
         if (currentVersion >= TARGET_VERSION) return;
 
-        if (currentVersion < 2) updateToV2(jsonObject, config);
-        if (currentVersion < 3) updateToV3(jsonObject, config);
-        updateToV4(jsonObject, config);
-
-        // doesn't need saving because config is always saved after loading
-    }
-
-    private void updateToV2(@NonNull JsonObject jsonObject, @NonNull Config config)
-    {
-        Boolean shortChatPrefix = JsonUtil.getBoolean(jsonObject, "miscellaneous.shortChatPrefix");
-        if (shortChatPrefix != null) config.miscellaneous.chatPrefixType.set(
-            shortChatPrefix ? ChatPrefixType.ACRONYM_BRACKETS : ChatPrefixType.FULL_NAME_BRACKETS
-        );
-    }
-
-    private void updateToV3(@NonNull JsonObject jsonObject, @NonNull Config config)
-    {
-        Boolean overlayBackgroundEnabled = JsonUtil.getBoolean(jsonObject, "overlay.backgroundEnabled");
-        if (overlayBackgroundEnabled != null) config.overlay.backgroundOpacity.set(overlayBackgroundEnabled ? null : 0f);
-    }
-
-    private void updateToV4(@NonNull JsonObject jsonObject, @NonNull Config config)
-    {
-        Integer gamblingReelDurationOld = JsonUtil.getInt(jsonObject, "miscellaneous.scathaDropsSlotMachine.animationDurationTicks");
-        if (gamblingReelDurationOld != null)
+        if (currentVersion < 2)
         {
-            config.miscellaneous.dropsGamblingReelAnimationTicksMin.set(gamblingReelDurationOld);
-            config.miscellaneous.dropsGamblingReelAnimationTicksMax.set(gamblingReelDurationOld);
+            Boolean shortChatPrefix = JsonUtil.getBoolean(jsonObject, "miscellaneous.shortChatPrefix");
+            if (shortChatPrefix != null) config.miscellaneous.chatPrefixType.set(
+                shortChatPrefix ? ChatPrefixType.ACRONYM_BRACKETS : ChatPrefixType.FULL_NAME_BRACKETS
+            );
         }
+        if (currentVersion < 3)
+        {
+            Boolean overlayBackgroundEnabled = JsonUtil.getBoolean(jsonObject, "overlay.backgroundEnabled");
+            if (overlayBackgroundEnabled != null) config.overlay.backgroundOpacity.set(overlayBackgroundEnabled ? null : 0f);
+        }
+        if (currentVersion < 4)
+        {
+            Integer gamblingReelDurationOld = JsonUtil.getInt(jsonObject, "miscellaneous.scathaDropsSlotMachine.animationDurationTicks");
+            if (gamblingReelDurationOld != null)
+            {
+                config.miscellaneous.dropsGamblingReelAnimationTicksMin.set(gamblingReelDurationOld);
+                config.miscellaneous.dropsGamblingReelAnimationTicksMax.set(gamblingReelDurationOld);
+            }
+        }
+
+
+        Boolean automaticPetDropScreenshotEnabled = JsonUtil.getBoolean(jsonObject, "miscellaneous.automaticPetDropScreenshot");
+        if (automaticPetDropScreenshotEnabled != null) config.petDrop.automaticScreenshotEnabled.set(automaticPetDropScreenshotEnabled);
+
+        if (scathaPro.backupManager.getBackupFiles(BackupManager.BackupType.FULL, null).length > config.miscellaneous.fullBackupsLimit.get())
+        {
+            config.miscellaneous.fullBackupsLimit.set(0);
+        }
+
+
+        // NO SAVING, gets called before backups are made
+        // (doesn't need saving anyways because config is always saved after loading)
     }
 }

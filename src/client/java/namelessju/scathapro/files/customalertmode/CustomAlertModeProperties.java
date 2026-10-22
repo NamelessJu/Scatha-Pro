@@ -15,13 +15,20 @@ import org.jspecify.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CustomAlertModeProperties extends ObjectRootJsonFile
+public class CustomAlertModeProperties extends ObjectRootJsonFile<CustomAlertModeProperties>
 {
     public CustomAlertModeProperties(ScathaPro scathaPro, @NonNull String subModeId)
     {
         super(scathaPro, scathaPro.customAlertModeManager.getPropertiesFile(subModeId), true);
         this.savesDefaultValues = true;
     }
+
+    @Override
+    protected @NonNull CustomAlertModeProperties self()
+    {
+        return this;
+    }
+
 
     public final AlertMapValue alertProperties = root.addValue("alerts", new AlertMapValue());
 
@@ -88,7 +95,7 @@ public class CustomAlertModeProperties extends ObjectRootJsonFile
         }
 
         @Override
-        public @NonNull JsonElement getAsJson(@NonNull JsonFile<?> jsonFile)
+        public @NonNull JsonElement getAsJson(@NonNull JsonFile<?, ?> jsonFile)
         {
             JsonObject jsonObject = new JsonObject();
             for (Map.Entry<Alert, AlertPropertiesValue> entry : map.entrySet())

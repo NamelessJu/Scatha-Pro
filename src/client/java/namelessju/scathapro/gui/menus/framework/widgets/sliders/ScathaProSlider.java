@@ -1,6 +1,7 @@
 package namelessju.scathapro.gui.menus.framework.widgets.sliders;
 
 import net.minecraft.client.gui.components.AbstractSliderButton;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -42,6 +43,13 @@ public abstract class ScathaProSlider<T> extends AbstractSliderButton
     public <S extends ScathaProSlider<T>> S setClickListener(@Nullable Consumer<T> clickListener)
     {
         this.clickListener = clickListener;
+        return (S) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <S extends ScathaProSlider<T>> S setTooltip(Component component)
+    {
+        setTooltip(Tooltip.create(component));
         return (S) this;
     }
 

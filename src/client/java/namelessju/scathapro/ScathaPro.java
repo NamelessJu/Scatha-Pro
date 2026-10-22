@@ -16,11 +16,9 @@ import namelessju.scathapro.events.listeners.MinecraftLogicListeners;
 import namelessju.scathapro.events.listeners.ScathaProGameplayListeners;
 import namelessju.scathapro.events.listeners.ScathaProMiscListeners;
 import namelessju.scathapro.events.listeners.ScathaProTickListeners;
-import namelessju.scathapro.files.BackupManager;
 import namelessju.scathapro.files.Config;
 import namelessju.scathapro.files.ConfigUpdater;
 import namelessju.scathapro.files.PersistentData;
-import namelessju.scathapro.files.PersistentDataUpdater;
 import namelessju.scathapro.files.customalertmode.CustomAlertModeMetaUpdater;
 import namelessju.scathapro.files.customalertmode.CustomAlertModePropertiesUpdater;
 import namelessju.scathapro.files.legacy.LegacyConfig;
@@ -28,6 +26,7 @@ import namelessju.scathapro.files.legacy.LegacyPersistentData;
 import namelessju.scathapro.gui.overlay.AlertTitleOverlay;
 import namelessju.scathapro.gui.overlay.CrosshairOverlay;
 import namelessju.scathapro.gui.overlay.MainOverlay;
+import namelessju.scathapro.managers.BackupManager;
 import namelessju.scathapro.managers.ChatManager;
 import namelessju.scathapro.managers.CoreManager;
 import namelessju.scathapro.managers.FFmpegManager;
@@ -57,7 +56,7 @@ import java.util.Queue;
 public abstract class ScathaPro
 {
     public static final String MOD_ID = /*$mod_id*/ "scathapro";
-    public static final String MOD_VERSION = /*$mod_version*/ "2.5";
+    public static final String MOD_VERSION = /*$mod_version*/ "2.6.dev-1";
 
     /** The true mod name, not influenced by certain features */
     public static final String MOD_NAME = "Scatha-Pro";
@@ -180,8 +179,6 @@ public abstract class ScathaPro
             LOGGER.info("Config loaded");
         }
         config.version.set(ConfigUpdater.TARGET_VERSION);
-        // Save to initialize missing values & save version
-        config.save();
 
         if (!persistentData.getFile().exists())
         {
@@ -195,11 +192,10 @@ public abstract class ScathaPro
         persistentData.load();
         LOGGER.info("Persistent data loaded");
 
-        PersistentDataUpdater.updateAfterLoading(persistentData);
+        checkLastUsedVersion();
 
         persistentDataProfileManager.init();
-
-        checkLastUsedVersion();
+        config.save(); // initialize missing values in file & save version
 
         customAlertModeManager.init();
         for (String subModeId : customAlertModeManager.findAllSubModeIds())
@@ -273,7 +269,7 @@ public abstract class ScathaPro
         {
             if (config.miscellaneous.automaticBackupsEnabled.get())
             {
-                backupManager.backup("update_" + (lastUsedVersion != null ? lastUsedVersion : "unknown") + "_to_" + MOD_VERSION);
+                backupManager.backup((lastUsedVersion != null ? "v" + lastUsedVersion : "UNKNOWN") + "-to-v" + MOD_VERSION, true);
             }
 
             persistentData.lastUsedModVersion.set(MOD_VERSION);

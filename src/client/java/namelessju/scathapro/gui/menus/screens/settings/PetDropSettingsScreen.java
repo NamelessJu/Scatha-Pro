@@ -72,7 +72,7 @@ public class PetDropSettingsScreen extends ConfigScreen
                     .withColor(TextColor.GRAY)
             ), null
         ));
-        gridBuilder.addSingleCell(booleanConfigButton("Automatic Screenshot", config.miscellaneous.automaticPetDropScreenshotEnabled));
+        gridBuilder.addSingleCell(booleanConfigButton("Automatic Screenshot", config.petDrop.automaticScreenshotEnabled));
         gridBuilder.addFullWidth(subScreenButton("Drop Message Extension...", DropMessageExtensionSettingsScreen::new));
         gridBuilder.addToContent(layout);
 

@@ -60,7 +60,7 @@ public class AverageMoneyCalculatorScreen extends ScathaProLayoutScreen
         ));
         gridBuilder.addSingleCell(Button.builder(Component.literal("Import Saved EMF"),
             _ -> {
-                setValue(magicFindInput, scathaPro.persistentDataProfileManager.getTotalMagicFind(false));
+                setValue(magicFindInput, scathaPro.persistentDataProfileManager.getTotalMagicFind(null));
                 setValue(petLuckInput, scathaPro.getProfileData().petLuck.getOr(-1f));
             }
         ).build()).setTooltip(Tooltip.create(Component.literal("""

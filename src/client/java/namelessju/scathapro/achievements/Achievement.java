@@ -67,6 +67,7 @@ public enum Achievement
 
     scatha_pet_drop_super_secret_setting(AchievementCategory.SCATHA_PET_DROPS, "Super Secret Scatha", "Drop a Scatha pet in a Super Secret Setting", 1, AchievementType.LEGACY),
     scatha_pet_drop_b2b(AchievementCategory.SCATHA_PET_DROPS, "Sold your soul to RNGesus", "Drop two Scatha pets back to back", 2, AchievementType.HIDDEN, true),
+    scatha_pet_drop_alpha(AchievementCategory.SCATHA_PET_DROPS, "Alpha Scatha", "Drop a Scatha pet on Hypixel's alpha network", 1, AchievementType.HIDDEN, true),
 
     scatha_pet_drop_mode_normal(AchievementCategory.ALERT_MODES, "The Default Experience", "Drop a Scatha pet in vanilla mode", 1),
     scatha_pet_drop_mode_meme(AchievementCategory.ALERT_MODES, "Stonks", "Drop a Scatha pet in meme mode", 1),

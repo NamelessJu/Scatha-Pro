@@ -1,11 +1,16 @@
 package namelessju.scathapro.files;
 
+import com.google.gson.JsonElement;
 import namelessju.scathapro.achievements.Achievement;
 import namelessju.scathapro.achievements.UnlockedAchievement;
+import org.jspecify.annotations.Nullable;
 
-public class PersistentDataUpdater
+import java.util.function.BiConsumer;
+
+public class PersistentDataUpdater implements BiConsumer<@Nullable JsonElement, PersistentData>
 {
-    public static void updateAfterLoading(PersistentData persistentData)
+    @Override
+    public void accept(@Nullable JsonElement jsonElement, PersistentData persistentData)
     {
         for (PersistentData.PlayerData playerData : persistentData.players)
         {
@@ -23,5 +28,7 @@ public class PersistentDataUpdater
                 }
             }
         }
+
+        // NO SAVING, gets called before backups are made
     }
 }

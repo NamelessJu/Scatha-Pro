@@ -248,7 +248,7 @@ public class ChatManager
         MutableComponent statsComponent = null;
         statsComponent = addPetDropStatComponent(statsComponent,
             scathaPro.config.miscellaneous.dropMessageMagicFindMode,
-            scathaPro.persistentDataProfileManager.getTotalMagicFindComponent(allowShuriken, true),
+            scathaPro.persistentDataProfileManager.getTotalMagicFindComponent(allowShuriken ? PersistentDataProfileManager.ShurikenApplyType.FROM_LAST_KILL : null, true),
             "Magic Find", "MF"
         );
         statsComponent = addPetDropStatComponent(statsComponent,
@@ -258,7 +258,7 @@ public class ChatManager
         );
         statsComponent = addPetDropStatComponent(statsComponent,
             scathaPro.config.miscellaneous.dropMessageEmfMode,
-            scathaPro.persistentDataProfileManager.getEffectiveMagicFindComponent(allowShuriken),
+            scathaPro.persistentDataProfileManager.getEffectiveMagicFindComponent(allowShuriken ? PersistentDataProfileManager.ShurikenApplyType.FROM_LAST_KILL : null),
             "Effective Magic Find", "EMF"
         );
         if (statsComponent != null)

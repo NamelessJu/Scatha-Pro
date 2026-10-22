@@ -23,7 +23,7 @@ public final class MinecraftLogicListeners
     private static void onPlayerAddedToWorld(ScathaPro scathaPro)
     {
         // Update in case account was switched by an ingame account manager mod
-        scathaPro.persistentDataProfileManager.updateCurrentPlayerProfile(true);
+        scathaPro.persistentDataProfileManager.updateCurrentPlayerProfile();
 
         // Reset
 

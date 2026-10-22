@@ -11,7 +11,17 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import org.apache.commons.compress.utils.Lists;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -119,5 +129,108 @@ public abstract class ScathaProScreen extends Screen
         list.add(Optional.empty());
         for (T value : options) list.add(Optional.ofNullable(value));
         return list;
+    }
+
+
+    public static class DirectoryWatcher implements AutoCloseable
+    {
+        private final WatchService watcher;
+        private final Path packPath;
+
+        private DirectoryWatcher(Path path) throws IOException
+        {
+            this.packPath = path;
+            this.watcher = path.getFileSystem().newWatchService();
+
+            try
+            {
+                this.watch(path);
+                DirectoryStream<Path> directoryStream = Files.newDirectoryStream(path);
+
+                try
+                {
+                    for (Path childPath : directoryStream)
+                    {
+                        if (Files.isDirectory(childPath, LinkOption.NOFOLLOW_LINKS))
+                        {
+                            this.watch(childPath);
+                        }
+                    }
+                }
+                catch (Throwable e)
+                {
+                    try
+                    {
+                        directoryStream.close();
+                    }
+                    catch (Throwable e2)
+                    {
+                        e.addSuppressed(e2);
+                    }
+
+                    throw e;
+                }
+
+                directoryStream.close();
+            }
+            catch (Exception e)
+            {
+                this.watcher.close();
+                throw e;
+            }
+        }
+
+        public static @Nullable DirectoryWatcher create(Path path)
+        {
+            try
+            {
+                return new DirectoryWatcher(path);
+            }
+            catch (IOException e)
+            {
+                ScathaPro.LOGGER.warn("Failed to initialize DirectoryWatcher for {}", path, e);
+                return null;
+            }
+        }
+
+        private void watch(Path path) throws IOException
+        {
+            path.register(this.watcher,
+                StandardWatchEventKinds.ENTRY_CREATE,
+                StandardWatchEventKinds.ENTRY_DELETE,
+                StandardWatchEventKinds.ENTRY_MODIFY
+            );
+        }
+
+        public boolean pollForChanges() throws IOException
+        {
+            boolean changesFound = false;
+
+            WatchKey watchKey;
+            while ((watchKey = this.watcher.poll()) != null)
+            {
+                for (WatchEvent<?> watchEvent : watchKey.pollEvents())
+                {
+                    changesFound = true;
+                    if (watchKey.watchable() == this.packPath && watchEvent.kind() == StandardWatchEventKinds.ENTRY_CREATE)
+                    {
+                        Path path = this.packPath.resolve((Path) watchEvent.context());
+                        if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS))
+                        {
+                            this.watch(path);
+                        }
+                    }
+                }
+
+                watchKey.reset();
+            }
+
+            return changesFound;
+        }
+
+        public void close() throws IOException
+        {
+            this.watcher.close();
+        }
     }
 }

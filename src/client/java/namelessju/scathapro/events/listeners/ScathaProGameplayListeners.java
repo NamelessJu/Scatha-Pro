@@ -373,7 +373,7 @@ public final class ScathaProGameplayListeners
                 break;
         }
 
-        scathaPro.achievementLogicManager.updatePetDropAchievements();
+        scathaPro.achievementLogicManager.updatePetDropAmountAchievements();
 
         switch (scathaPro.config.alerts.mode.get().id)
         {
@@ -485,7 +485,7 @@ public final class ScathaProGameplayListeners
             }
 
 
-            if (scathaPro.config.miscellaneous.automaticPetDropScreenshotEnabled.get())
+            if (scathaPro.config.petDrop.automaticScreenshotEnabled.get())
             {
                 scathaPro.runNextTick(() -> Screenshot.grab(scathaPro.minecraft.gameDirectory,
                     ScathaPro.MOD_NAME + "_Pet_Drop_" + net.minecraft.util.Util.getFilenameFormattedDateTime() + ".png",

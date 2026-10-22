@@ -149,8 +149,17 @@ tasks {
         description = "Builds mod jars and copies results to `build/libs/{mod version}/`"
 
         inputs.property("version", project.property("mod.version"))
-        // loomx.mod(Sources)Jar returns the jar task for the applied loom variant
+        val versionDir = rootProject.layout.buildDirectory.dir("libs/${project.property("mod.version")}")
+
         from(loomx.modJar.flatMap { it.archiveFile }, loomx.modSourcesJar.flatMap { it.archiveFile })
-        into(rootProject.layout.buildDirectory.file("libs/${project.property("mod.version")}"))
+        into(versionDir)
+
+        doLast {
+            val changelog = versionDir.get().file("CHANGELOG.md").asFile
+            if (!changelog.exists()) {
+                changelog.parentFile.mkdirs()
+                changelog.writeText("## Changes\n\n- ")
+            }
+        }
     }
 }

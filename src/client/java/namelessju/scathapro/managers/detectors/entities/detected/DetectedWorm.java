@@ -89,7 +89,7 @@ public class DetectedWorm extends DetectedEntity
     {
         switch (leaveWorldReason)
         {
-            case KILLED:
+            case DISAPPEAR_CLOSE:
                 if (scappaSound != null) scappaSound.stop();
                 ScathaPro.LOGGER.debug("Worm left world near player");
                 WormKillHandler.handleKill(this, player, false);

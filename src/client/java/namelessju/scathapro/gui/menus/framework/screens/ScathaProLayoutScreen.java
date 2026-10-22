@@ -111,7 +111,8 @@ public abstract class ScathaProLayoutScreen extends ScathaProScreen
     @Override
     protected void repositionElements()
     {
-        this.layout.arrangeElements();
+        if (layout == null) return;
+        layout.arrangeElements();
         if (list != null) list.updateSize(width, layout);
     }
 

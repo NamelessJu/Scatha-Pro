@@ -52,16 +52,20 @@ public class AchievementManager
         unlockAchievement(achievement, -1);
     }
 
+    /**
+     * <code>goalReachedCount > 0</code>: sets repeat count to <code>goalReachedCount - 1</code> (only for unlockable achievements)<br>
+     * <code>goalReachedCount = 0</code>: invalid, unlock gets cancelled<br>
+     * <code>goalReachedCount < 0</code>: simple unlock, adds 1 to the repeat count for repeatable achievements
+     */
     public void unlockAchievement(Achievement achievement, int goalReachedCount)
     {
         if (scathaPro.persistentDataProfileManager.currentProfileData().isDummy()) return;
-
+        if (goalReachedCount == 0) return;
         if (!canUnlockAchievement())
         {
             delayedAchievementUnlocks.add(new DelayedAchievementUnlock(achievement, goalReachedCount));
             return;
         }
-        if (goalReachedCount == 0) return;
 
     	UnlockedAchievement unlockedAchievement = getUnlockedAchievements().getFor(achievement);
         boolean isInitialUnlock = false;
@@ -80,7 +84,7 @@ public class AchievementManager
         	if (goalReachedCount > 0)
         	{
         	    int newRepeatCount = goalReachedCount - 1;
-        	    if (newRepeatCount <= repeatCount) return;
+        	    if (newRepeatCount <= repeatCount && !isInitialUnlock) return;
         	    unlockedAchievement.setRepeatCount(newRepeatCount);
         	}
         	else if (!isInitialUnlock)

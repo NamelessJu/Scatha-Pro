@@ -1,7 +1,8 @@
 mod.id = "scathapro"
 mod.name = "Scatha-Pro"
 mod.group = "namelessju.scathapro"
-mod.version = "2.5"
+mod.version = "2.6"
+mod.version_code = "2.6"
 
 deps.fabric_loader = "0.19.5"
 loomx.loom_version = "1.17-SNAPSHOT"

@@ -29,14 +29,21 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 
-public class Config extends ObjectRootJsonFile
+public class Config extends ObjectRootJsonFile<Config>
 {
     public Config(ScathaPro scathaPro)
     {
         super(scathaPro, scathaPro.getSaveDirectoryPath().resolve("configV2.json").toFile(), true);
         this.savesDefaultValues = true;
-        this.postLoadConsumer = new ConfigUpdater(this);
+        this.postLoadConsumer = new ConfigUpdater(scathaPro);
     }
+
+    @Override
+    protected @NonNull Config self()
+    {
+        return this;
+    }
+
 
     public final PrimitiveValueNullable<Integer> version = root.addPrimitiveNullable("version", INTEGER_SERIALIZER);
 
@@ -69,7 +76,7 @@ public class Config extends ObjectRootJsonFile
         public final BooleanValue scathaPercentageAlternativePositionEnabled
             = addBoolean("scathaPercentage.alternativePosition", false);
         public final PrimitiveValueWithDefault<Float> backgroundOpacity
-            = addPrimitiveWithDefault("backgroundOpacity", FLOAT_SERIALIZER, 0.3f);
+            = addPrimitiveWithDefault("backgroundOpacity", FLOAT_SERIALIZER, 0.35f);
         public final BooleanValue iconsEnabled
             = addBoolean("iconsEnabled", true);
 
@@ -168,6 +175,7 @@ public class Config extends ObjectRootJsonFile
         public final PrimitiveValueWithDefault<Integer> itemPopupAnimationTicks = addPrimitiveWithDefault("itemPopup.animationTicks", INTEGER_SERIALIZER, 40);
         public final BooleanValue itemPopupUseAltRotAnimCurve = addBoolean("itemPopup.useAlternativeRotationAnimationCurve", false);
         public final BooleanValue fireworkEnabled = addBoolean("firework.enabled", true);
+        public final BooleanValue automaticScreenshotEnabled = addBoolean("automaticScreenshot", false);
     }
 
     //==============//
@@ -226,10 +234,15 @@ public class Config extends ObjectRootJsonFile
     public final MiscellaneousSettings miscellaneous = root.addValue("miscellaneous", new MiscellaneousSettings());
     public static class MiscellaneousSettings extends ObjectValue
     {
+        // Mod behaviour
         public final BooleanValue showScathaProMenuButtons = addBoolean("showScathaProMenuButtons", true);
+        public final BooleanValue automaticUpdateCheckEnabled = addBoolean("automaticUpdateCheck", false);
+        public final BooleanValue automaticBackupsEnabled = addBoolean("automaticBackups", true);
+        public final PrimitiveValueWithDefault<Integer> fullBackupsLimit
+            = addPrimitiveWithDefault("fullBackupsLimit", INTEGER_SERIALIZER, 5);
         // Chat stuff
         public final PrimitiveValueWithDefault<ChatPrefixType> chatPrefixType
-            = addPrimitiveWithDefault("chatPrefixType", new EnumSerializer<>(ChatPrefixType.class), ChatPrefixType.FULL_NAME_BRACKETS);
+            = addPrimitiveWithDefault("chatPrefixType", new EnumSerializer<>(ChatPrefixType.class), ChatPrefixType.ICON_BRACKETS);
         public final PrimitiveValueNullable<ChatCopyButtonMode> chatCopyButtonMode
             = addPrimitiveNullable("chatCopyButtonMode", new EnumSerializer<>(ChatCopyButtonMode.class));
         public final BooleanValue hideWormSpawnMessage = addBoolean("hideWormSpawnMessage", false);
@@ -253,10 +266,6 @@ public class Config extends ObjectRootJsonFile
             = addPrimitiveWithDefault("rotationLock.iconOffset.x", INTEGER_SERIALIZER, 0);
         public final PrimitiveValueWithDefault<Integer> rotationLockIconOffsetY
             = addPrimitiveWithDefault("rotationLock.iconOffset.y", INTEGER_SERIALIZER, 0);
-        // Automatic stuff
-        public final BooleanValue automaticBackupsEnabled = addBoolean("automaticBackups", true);
-        public final BooleanValue automaticUpdateCheckEnabled = addBoolean("automaticUpdateCheck", false);
-        public final BooleanValue automaticPetDropScreenshotEnabled = addBoolean("automaticPetDropScreenshot", false);
         // Drop message extension
         public final PrimitiveValueNullable<DropMessageRarityMode> dropMessageRarityMode
             = addPrimitiveNullable("dropMessageExtension.rarity.addRarity", new EnumSerializer<>(DropMessageRarityMode.class));
@@ -356,7 +365,7 @@ public class Config extends ObjectRootJsonFile
         }
 
         @Override
-        public @NonNull JsonElement getAsJson(@NonNull JsonFile<?> jsonFile)
+        public @NonNull JsonElement getAsJson(@NonNull JsonFile<?, ?> jsonFile)
         {
             JsonObject object = new JsonObject();
             if (value != null)

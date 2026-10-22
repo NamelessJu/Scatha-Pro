@@ -12,6 +12,7 @@ import namelessju.scathapro.files.PersistentData;
 import namelessju.scathapro.gui.menus.screens.AchievementListScreen;
 import namelessju.scathapro.gui.menus.screens.settings.MainSettingsScreen;
 import namelessju.scathapro.managers.ChatManager;
+import namelessju.scathapro.managers.PersistentDataProfileManager;
 import namelessju.scathapro.miscellaneous.data.UnconnectedProfileDataImport;
 import namelessju.scathapro.miscellaneous.data.enums.ShardsAttribute;
 import namelessju.scathapro.miscellaneous.data.enums.WitchesStew;
@@ -310,6 +311,30 @@ public class MainCommand extends ScathaProCommand
                     return Command.SINGLE_SUCCESS;
                 })
             )
+        )
+        .then(LiteralArgumentBuilder.<T>literal("petDropChances")
+            .executes(_ -> {
+                scathaPro.chatManager.sendChatDivider();
+                scathaPro.chatManager.sendChatMessage("""
+                    Pet drops are rolled in a way that causes the values shown in the bestiary to be statistically incorrect:
+                    1. rolls for any pet drop using the most common rarity's chance
+                    2. if 1. succeeded, rolls for rarity using their respective weights (= rarity_chance/sum_of_all_rarities)
+
+                    For Scatha pets this means that the true drop chances are 60% of what Hypixel shows."""
+                );
+                String scathaChancesCommand = "/" + scathaPro.scathaChancesCommand.getCommandName();
+                scathaPro.chatManager.sendChatMessage(Component.empty().withColor(TextColor.GRAY)
+                    .append("(Use ")
+                    .append(Component.literal(scathaChancesCommand).setStyle(Style.EMPTY
+                        .withClickEvent(new ClickEvent.SuggestCommand(scathaChancesCommand + " "))
+                        .withUnderlined(true)
+                    ))
+                    .append(" to calculate precise chances)"),
+                    false
+                );
+                scathaPro.chatManager.sendChatDivider();
+                return Command.SINGLE_SUCCESS;
+            })
         );
     }
 
@@ -433,14 +458,22 @@ public class MainCommand extends ScathaProCommand
 
         chatManager.sendChatDivider();
         chatManager.sendChatMessage(Component.literal("Saved Scatha farming profile stats:").setStyle(ChatManager.HIGHLIGHT_STYLE));
-        chatManager.sendChatMessage(Component.literal(" ").append(
-                scathaPro.persistentDataProfileManager.getEffectiveMagicFindComponent(false).append(" Effective Magic Find")
-            ), false);
-        chatManager.sendChatMessage(Component.empty()
-            .append(Component.literal(" ├ ").withColor(TextColor.GRAY))
-            .append(
-                scathaPro.persistentDataProfileManager.getTotalMagicFindComponent(false, true).append(" Total Magic Find")
-            ), false);
+        chatManager.sendChatMessage(
+            Component.literal(" ").withColor(TextColor.GRAY)
+                .append(scathaPro.persistentDataProfileManager.getEffectiveMagicFindComponent(null).append(" Effective Scatha Magic Find"))
+                .append(" (")
+                .append(scathaPro.persistentDataProfileManager.getEffectiveMagicFindComponent(PersistentDataProfileManager.ShurikenApplyType.ALWAYS))
+                .append(" w/ Shuriken)"),
+            false
+        );
+        chatManager.sendChatMessage(
+            Component.literal(" ├ ").withColor(TextColor.GRAY)
+                .append(scathaPro.persistentDataProfileManager.getTotalMagicFindComponent(null, true).append(" Total Scatha Magic Find"))
+                .append(" (")
+                .append(scathaPro.persistentDataProfileManager.getTotalMagicFindComponent(PersistentDataProfileManager.ShurikenApplyType.ALWAYS, true))
+                .append(" w/ Shuriken)"),
+            false
+        );
         chatManager.sendChatMessage(Component.empty()
             .append(Component.literal(" │ ├ ").withColor(TextColor.GRAY))
             .append(

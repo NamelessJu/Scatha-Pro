@@ -121,19 +121,17 @@ public class EntityDetectionManager
                     }
                     else if (loadedEntityDistanceAABB.contains(detectedEntity.entity.position()))
                     {
-                        registeredEntities.remove(detectedEntity.entity.getId());
-
-                        leaveWorldReason = DetectedEntity.LeaveWorldReason.KILLED;
+                        leaveWorldReason = DetectedEntity.LeaveWorldReason.DISAPPEAR_CLOSE;
                         if (ScathaPro.LOGGER.isDebugEnabled()) ScathaPro.LOGGER.debug(
-                            "Entity {} unloaded close to player, unregistered ({} total)",
+                            "Entity {} disappeared close to player, unregistered ({} total)",
                             getEntityString(detectedEntity), registeredEntities.size()
                         );
                     }
                     else
                     {
-                        leaveWorldReason = DetectedEntity.LeaveWorldReason.LEFT_SIMULATION_DISTANCE;
+                        leaveWorldReason = DetectedEntity.LeaveWorldReason.DISAPPEAR_FAR;
                         if (ScathaPro.LOGGER.isDebugEnabled()) ScathaPro.LOGGER.debug(
-                            "Entity {} unloaded away from player, has likely left the simulation distance...",
+                            "Entity {} disappeared far from player, has probably left the nametag display distance",
                             getEntityString(detectedEntity)
                         );
                     }

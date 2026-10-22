@@ -5,7 +5,6 @@ import org.apache.commons.io.IOUtils;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.awt.*;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -19,7 +18,7 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.function.Predicate;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -94,19 +93,6 @@ public class FileUtil
         return directory.delete();
     }
 
-    public static boolean copy(File source, File copyFile)
-    {
-        try
-        {
-            Files.copy(source.toPath(), copyFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            return true;
-        }
-        catch (IOException e)
-        {
-            return false;
-        }
-    }
-
     /**
      * Returns a file reference that makes sure the file doesn't exist yet by adding a number to the end of the file name if required
      */
@@ -131,7 +117,8 @@ public class FileUtil
     }
 
 
-    public static boolean unzip(File zipFile, Path targetDirectory, Predicate<String> zipEntryFilter) {
+    public static boolean unzip(File zipFile, Path targetDirectory, @Nullable Predicate<String> zipEntryFilter)
+    {
         targetDirectory = targetDirectory.toAbsolutePath();
         File targetDirectoryFile = targetDirectory.toFile();
         if (targetDirectoryFile.exists() && !targetDirectoryFile.isDirectory())
@@ -248,23 +235,23 @@ public class FileUtil
         zos.closeEntry();
     }
 
-    @SuppressWarnings("resource")
     public static void openFileInExplorer(File file) throws IOException
     {
-        if (file.isFile())
+        if (!file.exists()) throw new IOException("File does not exist");
+
+        String os = System.getProperty("os.name").toLowerCase();
+        String path = file.getAbsolutePath();
+        boolean isFile = file.isFile();
+
+        if (os.contains("win"))
         {
-            String os = System.getProperty("os.name").toLowerCase();
-            if (os.contains("win"))
-            {
-                new ProcessBuilder("explorer.exe", "/select,", file.getAbsolutePath()).start();
-            }
-            else if (os.contains("mac"))
-            {
-                new ProcessBuilder("open", "-R", file.getAbsolutePath()).start();
-            }
-            else Desktop.getDesktop().open(file.getParentFile());
+            new ProcessBuilder(isFile ? List.of("explorer.exe", "/select,", path) : List.of("explorer.exe", path)).start();
         }
-        else Desktop.getDesktop().open(file);
+        else if (os.contains("mac"))
+        {
+            new ProcessBuilder(isFile ? List.of("open", "-R", path) : List.of("open", path)).start();
+        }
+        else new ProcessBuilder("xdg-open", isFile ? file.getParent() : path).start();
     }
 
 

@@ -40,13 +40,18 @@ public class PersistentDataProfileManager
 
     public void init()
     {
-        scathaPro.hypixelContextManager.contextChangedEvent.addListener(
-            _ -> updateCurrentPlayerProfile(true)
-        );
+        scathaPro.hypixelContextManager.contextChangedEvent.addListener(this::updateCurrentPlayerProfile);
+        scathaPro.hypixelContextManager.profileDetectionFailedEvent.addListener(() -> {
+            if (scathaPro.hypixelContextManager.environment() == HypixelEnvironment.PRODUCTION)
+            {
+                lastProfileId = null;
+                currentPlayerData.lastUsedProdProfileId.set(null);
+                scathaPro.persistentData.save();
+            }
+            updateCurrentPlayerProfile();
+        });
 
-        // This is run before automatic backups are potentially made
-        // -> do not allow persistent data saving
-        updateCurrentPlayerProfile(false);
+        updateCurrentPlayerProfile();
     }
 
     public PersistentData.@NonNull PlayerData currentPlayerData()
@@ -59,7 +64,7 @@ public class PersistentDataProfileManager
         return currentProfileData;
     }
 
-    public void updateCurrentPlayerProfile(boolean allowPersistentDataSaving)
+    public void updateCurrentPlayerProfile()
     {
         UUID playerUUID = scathaPro.minecraft.getUser().getProfileId();
         HypixelEnvironment hypixelEnvironment = scathaPro.hypixelContextManager.environment();
@@ -122,7 +127,7 @@ public class PersistentDataProfileManager
             hypixelEnvironment = lastHypixelEnvironment;
             ScathaPro.LOGGER.debug("Fell back to last used Hypixel environment ({})", hypixelEnvironment);
         }
-        if (profileID == null && lastProfileId != null)
+        if (profileID == null && lastProfileId != null && !scathaPro.hypixelContextManager.hasProfileDetectionFailed())
         {
             profileID = lastProfileId;
             ScathaPro.LOGGER.debug("Fell back to last used profile ID ({})", profileID);
@@ -176,7 +181,7 @@ public class PersistentDataProfileManager
 
         detectCheater();
 
-        if (shouldSavePersistentData && allowPersistentDataSaving)
+        if (shouldSavePersistentData)
         {
             scathaPro.persistentData.save();
         }
@@ -189,7 +194,7 @@ public class PersistentDataProfileManager
         currentPlayerUUID = null;
         currentPlayerData = new PersistentData.PlayerData(null);
         currentProfileData = new PersistentData.ProfileData(null, null);
-        updateCurrentPlayerProfile(true);
+        updateCurrentPlayerProfile();
     }
 
     private void detectCheater()
@@ -237,7 +242,7 @@ public class PersistentDataProfileManager
     }
 
 
-    public float getTotalMagicFind(boolean allowShuriken)
+    public float getTotalMagicFind(@Nullable ShurikenApplyType shurikenApplyType)
     {
         PersistentData.ProfileData profileData = currentProfileData();
         float totalMagicFind = -1f;
@@ -247,7 +252,8 @@ public class PersistentDataProfileManager
         totalMagicFind = tryAddStatValue(totalMagicFind, profileData.attributes.getMagicFind());
         totalMagicFind = tryAddStatValue(totalMagicFind, profileData.witchesStewsEaten.getMagicFind());
 
-        if (allowShuriken && scathaPro.coreManager.lastScathaHitHadShuriken)
+        if (shurikenApplyType == ShurikenApplyType.ALWAYS
+            || (shurikenApplyType == ShurikenApplyType.FROM_LAST_KILL && scathaPro.coreManager.lastScathaHitHadShuriken))
         {
             totalMagicFind = Constants.applyShurikenMagicFind(totalMagicFind);
         }
@@ -264,9 +270,9 @@ public class PersistentDataProfileManager
         return current;
     }
 
-    public float getEffectiveMagicFind(boolean allowShuriken)
+    public float getEffectiveMagicFind(@Nullable ShurikenApplyType shurikenApplyType)
     {
-        float totalMagicFind = getTotalMagicFind(allowShuriken);
+        float totalMagicFind = getTotalMagicFind(shurikenApplyType);
         float petLuck = currentProfileData().petLuck.getOr(-1f);
         return totalMagicFind >= 0f && petLuck >= 0f ? totalMagicFind + petLuck : -1f;
     }
@@ -307,10 +313,10 @@ public class PersistentDataProfileManager
         );
     }
 
-    public MutableComponent getTotalMagicFindComponent(boolean allowShuriken, boolean addSymbol)
+    public MutableComponent getTotalMagicFindComponent(@Nullable ShurikenApplyType shurikenApplyType, boolean addSymbol)
     {
         return getStatComponent(
-            getTotalMagicFind(allowShuriken),
+            getTotalMagicFind(shurikenApplyType),
             TextColor.AQUA, String.valueOf(UnicodeSymbol.magicFind),
             addSymbol
         );
@@ -339,11 +345,16 @@ public class PersistentDataProfileManager
         );
     }
 
-    public MutableComponent getEffectiveMagicFindComponent(boolean allowShuriken)
+    public MutableComponent getEffectiveMagicFindComponent(@Nullable ShurikenApplyType shurikenApplyType)
     {
         return Component.empty().withColor(TextColor.BLUE).append(
-            TextUtil.numberToComponentOrObf(getEffectiveMagicFind(allowShuriken), 2, false, RoundingMode.HALF_UP)
+            TextUtil.numberToComponentOrObf(getEffectiveMagicFind(shurikenApplyType), 2, false, RoundingMode.HALF_UP)
         );
+    }
+
+    public enum ShurikenApplyType
+    {
+        FROM_LAST_KILL, ALWAYS
     }
 
 

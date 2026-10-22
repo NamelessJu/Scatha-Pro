@@ -2,6 +2,7 @@ package namelessju.scathapro.gui.menus.screens.settings;
 
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.gui.menus.framework.screens.ConfigScreen;
+import namelessju.scathapro.gui.menus.screens.backups.BackupsScreen;
 import namelessju.scathapro.gui.menus.screens.settings.alerts.MainAlertSettingsScreen;
 import namelessju.scathapro.gui.menus.screens.settings.overlay.MainOverlaySettingsScreen;
 import namelessju.scathapro.gui.menus.screens.settings.playerrotation.MainPlayerRotationSettingsScreen;
@@ -31,12 +32,7 @@ public class MainSettingsScreen extends ConfigScreen
                         .withColor(TextColor.GRAY)
                 ), null
             ),
-            booleanConfigButton("Automatic Backups", scathaPro.config.miscellaneous.automaticBackupsEnabled,
-                _ -> Tooltip.create(
-                    Component.literal("Creates a full backup of this mod's save files when a new version is installed")
-                        .withColor(TextColor.GRAY)
-                ), null
-            )
+            subScreenButton("Backups...", BackupsScreen::new)
         );
 
         GridBuilder gridBuilder = new GridBuilder();

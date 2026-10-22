@@ -18,18 +18,10 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextColor;
 import org.apache.commons.compress.utils.Lists;
 import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
 import java.util.List;
 
 public class CustomAlertModeScreen extends ScathaProLayoutScreen
@@ -153,7 +145,7 @@ public class CustomAlertModeScreen extends ScathaProLayoutScreen
                 description.append(failedImport.file().getName() + ": ").append(failedImport.reason);
             }
 
-            scathaPro.minecraft.gui.setScreen(new InfoMessageScreen(scathaPro, this,
+            scathaPro.minecraft.gui.setScreen(new InfoMessageScreen(this,
                 Component.literal(
                     failedImports.size() > 1
                         ? "Failed custom alert mode imports"
@@ -181,106 +173,4 @@ public class CustomAlertModeScreen extends ScathaProLayoutScreen
     }
 
     private record FailedImport(File file, Component reason) {}
-
-    private static class DirectoryWatcher implements AutoCloseable
-    {
-        private final WatchService watcher;
-        private final Path packPath;
-
-        private DirectoryWatcher(Path path) throws IOException
-        {
-            this.packPath = path;
-            this.watcher = path.getFileSystem().newWatchService();
-
-            try
-            {
-                this.watch(path);
-                DirectoryStream<Path> directoryStream = Files.newDirectoryStream(path);
-
-                try
-                {
-                    for (Path childPath : directoryStream)
-                    {
-                        if (Files.isDirectory(childPath, LinkOption.NOFOLLOW_LINKS))
-                        {
-                            this.watch(childPath);
-                        }
-                    }
-                }
-                catch (Throwable e)
-                {
-                    try
-                    {
-                        directoryStream.close();
-                    }
-                    catch (Throwable e2)
-                    {
-                        e.addSuppressed(e2);
-                    }
-
-                    throw e;
-                }
-
-                directoryStream.close();
-            }
-            catch (Exception e)
-            {
-                this.watcher.close();
-                throw e;
-            }
-        }
-
-        public static CustomAlertModeScreen.@Nullable DirectoryWatcher create(Path path)
-        {
-            try
-            {
-                return new DirectoryWatcher(path);
-            }
-            catch (IOException e)
-            {
-                ScathaPro.LOGGER.warn("Failed to initialize custom alert mode directory {} monitoring", path, e);
-                return null;
-            }
-        }
-
-        private void watch(Path path) throws IOException
-        {
-            path.register(this.watcher,
-                StandardWatchEventKinds.ENTRY_CREATE,
-                StandardWatchEventKinds.ENTRY_DELETE,
-                StandardWatchEventKinds.ENTRY_MODIFY
-            );
-        }
-
-        public boolean pollForChanges() throws IOException
-        {
-            boolean changesFound = false;
-
-            WatchKey watchKey;
-            while ((watchKey = this.watcher.poll()) != null)
-            {
-                for (WatchEvent<?> watchEvent : watchKey.pollEvents())
-                {
-                    changesFound = true;
-                    if (watchKey.watchable() == this.packPath && watchEvent.kind() == StandardWatchEventKinds.ENTRY_CREATE)
-                    {
-                        Path path = this.packPath.resolve((Path) watchEvent.context());
-                        if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS))
-                        {
-                            this.watch(path);
-                        }
-                    }
-                }
-
-                watchKey.reset();
-            }
-
-            return changesFound;
-        }
-
-        public void close() throws IOException
-        {
-            this.watcher.close();
-        }
-    }
 }

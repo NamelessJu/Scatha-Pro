@@ -36,7 +36,7 @@ public class CustomAlertModeList extends ScathaProGuiList
                 String newModeId = scathaPro.customAlertModeManager.getNewSubModeId();
                 if (newModeId == null)
                 {
-                    minecraft.gui.setScreen(new InfoMessageScreen(scathaPro, CustomAlertModeList.this.screen,
+                    minecraft.gui.setScreen(new InfoMessageScreen(CustomAlertModeList.this.screen,
                         Component.literal("Failed to set up new custom alert mode").withColor(TextColor.RED),
                         Component.literal("Generating a new unique ID failed!\n(Exceeded maximum number of tries)")
                     ));

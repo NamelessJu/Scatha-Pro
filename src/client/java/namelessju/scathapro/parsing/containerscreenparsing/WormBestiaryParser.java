@@ -4,7 +4,6 @@ import namelessju.scathapro.Constants;
 import namelessju.scathapro.ScathaPro;
 import namelessju.scathapro.files.PersistentData;
 import namelessju.scathapro.util.TextUtil;
-import namelessju.scathapro.util.UnicodeSymbol;
 import net.minecraft.world.item.ItemStack;
 
 public class WormBestiaryParser extends ContainerScreenParser
@@ -19,7 +18,7 @@ public class WormBestiaryParser extends ContainerScreenParser
     @Override
     public boolean shouldParse(String screenTitle)
     {
-        return screenTitle.equals("Crystal Hollows " + UnicodeSymbol.hypixelArrowRight + " Stoneworm");
+        return Constants.isStonewormBestiary(screenTitle);
     }
 
     @Override
@@ -132,7 +131,7 @@ public class WormBestiaryParser extends ContainerScreenParser
                     scathaPro.persistentData.save();
                     scathaPro.mainOverlay.updateScathaKills();
 
-                    scathaPro.achievementLogicManager.updateDryStreakAchievements(false);
+                    scathaPro.achievementLogicManager.updateDryStreakAchievements();
 
                     scathaPro.chatManager.sendValueUpdatedMessage(
                         "saved Scatha kills from bestiary", currentScathaKills, kills

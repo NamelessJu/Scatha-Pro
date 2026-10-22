@@ -57,9 +57,9 @@ public class OverlayScathaPercentageSettingsScreen extends OverlaySettingsScreen
         else
         {
             cycleAmountDurationSlider.active = true;
-            cycleAmountDurationSlider.setTooltip(null);
+            cycleAmountDurationSlider.setTooltip((Tooltip) null);
             cyclePercentageDurationSlider.active = true;
-            cyclePercentageDurationSlider.setTooltip(null);
+            cyclePercentageDurationSlider.setTooltip((Tooltip) null);
         }
     }
 }

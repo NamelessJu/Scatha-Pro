@@ -53,6 +53,6 @@ public abstract class DetectedEntity
 
     public enum LeaveWorldReason
     {
-        LIFETIME_ENDED, KILLED, BLACK_HOLE, LEFT_SIMULATION_DISTANCE
+        LIFETIME_ENDED, DISAPPEAR_CLOSE, BLACK_HOLE, DISAPPEAR_FAR
     }
 }

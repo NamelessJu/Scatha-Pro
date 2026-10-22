@@ -40,7 +40,7 @@ public class ChatParser
     /**
      * Checks a message and potentially stops it from being added to chat
      */
-    public boolean shouldCancelMessage(@NonNull Component message)
+    public boolean shouldCancelSystemMessage(@NonNull Component message)
     {
         String unformattedText = StringDecomposer.getPlainText(message);
 
@@ -111,7 +111,7 @@ public class ChatParser
         return false;
     }
 
-    public @NonNull Component beforeMessageAddedEarly(@NonNull Component message)
+    public @NonNull Component beforeHandleSystemMessage(@NonNull Component message)
     {
         String unformattedText = StringDecomposer.getPlainText(message);
         parseMessage(unformattedText);

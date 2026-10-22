@@ -40,7 +40,6 @@ public class DetectedJerry extends DetectedEntity
     @Override
     public void onRegistration()
     {
-        if (!scathaPro.config.alerts.goblinSpawnAlertEnabled.get()) return;
         scathaPro.alertManager.jerrySpawnAlert.play(scathaPro, switch (type) {
             case GREEN -> Component.literal("Green").withColor(TextColor.GREEN);
             case BLUE -> Component.literal("Blue").withColor(TextColor.BLUE);

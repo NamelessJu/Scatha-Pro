@@ -172,7 +172,7 @@ public class CustomAlertModeSoundImportScreen extends ScathaProLayoutScreen
                     .append(getFileNames.apply(failedFileConversions));
             }
 
-            returnScreen = new InfoMessageScreen(scathaPro, returnScreen,
+            returnScreen = new InfoMessageScreen(returnScreen,
                 Component.literal("Failed sound imports").withColor(TextColor.RED),
                 Component.literal(description.toString())
             );
