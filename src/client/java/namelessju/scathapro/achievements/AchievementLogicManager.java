@@ -35,11 +35,11 @@ public class AchievementLogicManager
         this.scathaPro = scathaPro;
 
         scathaPro.persistentDataProfileManager.onProfileChanged(eventData -> {
-            updateTotalKillsAchievements();
-            updateDryStreakAchievements();
-            updateKillsTodayAchievements();
-            updatePetDropAmountAchievements();
-            updateDailyScathaStreakAchievements();
+            updateTotalKillsAchievements(false);
+            updateDryStreakAchievements(false);
+            updateKillsTodayAchievements(false);
+            updatePetDropAmountAchievements(false);
+            updateDailyScathaStreakAchievements(false);
 
             int scathaKills = eventData.profileData().scathaKills.get();
             int scathaKillsAtLastDrop = eventData.profileData().scathaKillsAtLastDrop.getOr(-1);
@@ -49,61 +49,61 @@ public class AchievementLogicManager
             }
 
             // KEEP LAST
-            updateProgressAchievements();
+            updateProgressAchievements(false);
         });
     }
 
-    public void updateKillsAchievements()
+    public void updateKillsAchievements(boolean allowUnlock)
     {
         int lobbyWormKills = scathaPro.secondaryStatsManager.perLobbyStats.getRegularWormKills()
             + scathaPro.secondaryStatsManager.perLobbyStats.getScathaKills();
-        Achievement.lobby_kills_1.setProgress(lobbyWormKills);
-        Achievement.lobby_kills_2.setProgress(lobbyWormKills);
-        Achievement.lobby_kills_3.setProgress(lobbyWormKills);
+        Achievement.lobby_kills_1.setProgress(lobbyWormKills, allowUnlock);
+        Achievement.lobby_kills_2.setProgress(lobbyWormKills, allowUnlock);
+        Achievement.lobby_kills_3.setProgress(lobbyWormKills, allowUnlock);
 
-        updateTotalKillsAchievements();
-        updateDryStreakAchievements();
-        updateKillsTodayAchievements();
+        updateTotalKillsAchievements(allowUnlock);
+        updateDryStreakAchievements(allowUnlock);
+        updateKillsTodayAchievements(allowUnlock);
     }
 
-    public void updateTotalKillsAchievements()
+    public void updateTotalKillsAchievements(boolean allowUnlock)
     {
         int highestWormKills = Math.max(
             scathaPro.secondaryStatsManager.perSessionStats.getRegularWormKills()
                 + scathaPro.secondaryStatsManager.perSessionStats.getScathaKills(),
             scathaPro.getProfileData().stonewormKills.get() + scathaPro.getProfileData().scathaKills.get()
         );
-        Achievement.worm_bestiary_max_v2.setProgress(highestWormKills);
-        Achievement.worm_kills_1.setProgress(highestWormKills);
-        Achievement.worm_kills_2.setProgress(highestWormKills);
-        Achievement.worm_kills_3.setProgress(highestWormKills);
-        Achievement.worm_kills_4.setProgress(highestWormKills);
-        Achievement.worm_kills_5.setProgress(highestWormKills);
-        Achievement.worm_kills_6.setProgress(highestWormKills);
-        Achievement.worm_kills_7.setProgress(highestWormKills);
+        Achievement.worm_bestiary_max_v2.setProgress(highestWormKills, allowUnlock);
+        Achievement.worm_kills_1.setProgress(highestWormKills, allowUnlock);
+        Achievement.worm_kills_2.setProgress(highestWormKills, allowUnlock);
+        Achievement.worm_kills_3.setProgress(highestWormKills, allowUnlock);
+        Achievement.worm_kills_4.setProgress(highestWormKills, allowUnlock);
+        Achievement.worm_kills_5.setProgress(highestWormKills, allowUnlock);
+        Achievement.worm_kills_6.setProgress(highestWormKills, allowUnlock);
+        Achievement.worm_kills_7.setProgress(highestWormKills, allowUnlock);
 
         int highestScathaKills = Math.max(
             scathaPro.secondaryStatsManager.perSessionStats.getScathaKills(),
             scathaPro.getProfileData().scathaKills.get()
         );
-        Achievement.scatha_kills_1.setProgress(highestScathaKills);
-        Achievement.scatha_kills_2.setProgress(highestScathaKills);
-        Achievement.scatha_kills_3.setProgress(highestScathaKills);
-        Achievement.scatha_kills_4.setProgress(highestScathaKills);
-        Achievement.scatha_kills_5.setProgress(highestScathaKills);
-        Achievement.scatha_kills_repeatable.setRepeatingProgress(Achievement.scatha_kills_5.goal, highestScathaKills, true);
+        Achievement.scatha_kills_1.setProgress(highestScathaKills, allowUnlock);
+        Achievement.scatha_kills_2.setProgress(highestScathaKills, allowUnlock);
+        Achievement.scatha_kills_3.setProgress(highestScathaKills, allowUnlock);
+        Achievement.scatha_kills_4.setProgress(highestScathaKills, allowUnlock);
+        Achievement.scatha_kills_5.setProgress(highestScathaKills, allowUnlock);
+        Achievement.scatha_kills_repeatable.setRepeatingProgress(Achievement.scatha_kills_5.goal, highestScathaKills, allowUnlock);
     }
 
-    public void updateKillsTodayAchievements()
+    public void updateKillsTodayAchievements(boolean allowUnlock)
     {
         int totalWormKillsToday = scathaPro.secondaryStatsManager.perDayStats.getRegularWormKills()
             + scathaPro.secondaryStatsManager.perDayStats.getScathaKills();
-        Achievement.day_kills_1.setProgress(totalWormKillsToday);
-        Achievement.day_kills_2.setProgress(totalWormKillsToday);
-        Achievement.day_kills_3.setProgress(totalWormKillsToday);
+        Achievement.day_kills_1.setProgress(totalWormKillsToday, allowUnlock);
+        Achievement.day_kills_2.setProgress(totalWormKillsToday, allowUnlock);
+        Achievement.day_kills_3.setProgress(totalWormKillsToday, allowUnlock);
     }
 
-    public void updateDryStreakAchievements()
+    public void updateDryStreakAchievements(boolean allowUnlock)
     {
         PersistentData.ProfileData profileData = scathaPro.getProfileData();
 
@@ -116,31 +116,31 @@ public class AchievementLogicManager
             if (dryStreak < 0) dryStreak = 0;
         }
 
-        Achievement.scatha_pet_drop_dry_streak_1.setProgress(dryStreak);
-        Achievement.scatha_pet_drop_dry_streak_2.setProgress(dryStreak);
+        Achievement.scatha_pet_drop_dry_streak_1.setProgress(dryStreak, allowUnlock);
+        Achievement.scatha_pet_drop_dry_streak_2.setProgress(dryStreak, allowUnlock);
     }
 
-    public void updateSpawnAchievements()
+    public void updateSpawnAchievements(boolean allowUnlock)
     {
         int spawnStreak = scathaPro.secondaryStatsManager.perLobbyStats.getScathaSpawnStreak();
 
         int scathaStreak = Math.max(0, spawnStreak);
-        Achievement.scatha_streak_1.setProgress(scathaStreak);
-        Achievement.scatha_streak_2.setProgress(scathaStreak);
-        Achievement.scatha_streak_3.setProgress(scathaStreak);
-        Achievement.scatha_streak_4.setProgress(scathaStreak);
+        Achievement.scatha_streak_1.setProgress(scathaStreak, allowUnlock);
+        Achievement.scatha_streak_2.setProgress(scathaStreak, allowUnlock);
+        Achievement.scatha_streak_3.setProgress(scathaStreak, allowUnlock);
+        Achievement.scatha_streak_4.setProgress(scathaStreak, allowUnlock);
 
         int regularWormStreak = Math.max(0, -spawnStreak);
-        Achievement.regular_worm_streak_1.setProgress(regularWormStreak);
-        Achievement.regular_worm_streak_2.setProgress(regularWormStreak);
-        Achievement.regular_worm_streak_3.setProgress(regularWormStreak);
+        Achievement.regular_worm_streak_1.setProgress(regularWormStreak, allowUnlock);
+        Achievement.regular_worm_streak_2.setProgress(regularWormStreak, allowUnlock);
+        Achievement.regular_worm_streak_3.setProgress(regularWormStreak, allowUnlock);
 
-        handleTunnelVisionRecoverAchievement();
+        handleTunnelVisionRecoverAchievement(allowUnlock);
     }
 
-    public void handleTunnelVisionRecoverAchievement()
+    public void handleTunnelVisionRecoverAchievement(boolean allowUnlock)
     {
-        if (!scathaPro.coreManager.tunnelVisionWastedForRecovery) return;
+        if (!allowUnlock || !scathaPro.coreManager.tunnelVisionWastedForRecovery) return;
         scathaPro.coreManager.tunnelVisionWastedForRecovery = false;
 
         if (scathaPro.coreManager.tunnelVisionStartTime < 0L) return;
@@ -228,36 +228,37 @@ public class AchievementLogicManager
         }
     }
 
-    public void updatePetDropAmountAchievements()
+    public void updatePetDropAmountAchievements(boolean allowUnlock)
     {
         int rarePetDrops = scathaPro.getProfileData().rarePetDrops.get();
         int epicPetDrops = scathaPro.getProfileData().epicPetDrops.get();
         int legendaryPetDrops = scathaPro.getProfileData().legendaryPetDrops.get();
 
-        Achievement.scatha_pet_drop_1_rare.setProgress(rarePetDrops);
-        Achievement.scatha_pet_drop_2_rare.setProgress(rarePetDrops);
-        Achievement.scatha_pet_drop_3_rare.setProgress(rarePetDrops);
+        Achievement.scatha_pet_drop_1_rare.setProgress(rarePetDrops, allowUnlock);
+        Achievement.scatha_pet_drop_2_rare.setProgress(rarePetDrops, allowUnlock);
+        Achievement.scatha_pet_drop_3_rare.setProgress(rarePetDrops, allowUnlock);
 
-        Achievement.scatha_pet_drop_1_epic.setProgress(epicPetDrops);
-        Achievement.scatha_pet_drop_2_epic.setProgress(epicPetDrops);
-        Achievement.scatha_pet_drop_3_epic.setProgress(epicPetDrops);
+        Achievement.scatha_pet_drop_1_epic.setProgress(epicPetDrops, allowUnlock);
+        Achievement.scatha_pet_drop_2_epic.setProgress(epicPetDrops, allowUnlock);
+        Achievement.scatha_pet_drop_3_epic.setProgress(epicPetDrops, allowUnlock);
 
-        Achievement.scatha_pet_drop_1_legendary.setProgress(legendaryPetDrops);
-        Achievement.scatha_pet_drop_2_legendary.setProgress(legendaryPetDrops);
-        Achievement.scatha_pet_drop_3_legendary.setProgress(legendaryPetDrops);
+        Achievement.scatha_pet_drop_1_legendary.setProgress(legendaryPetDrops, allowUnlock);
+        Achievement.scatha_pet_drop_2_legendary.setProgress(legendaryPetDrops, allowUnlock);
+        Achievement.scatha_pet_drop_3_legendary.setProgress(legendaryPetDrops, allowUnlock);
 
         Achievement.scatha_pet_drop_each.setProgress(
             (rarePetDrops > 0 ? 1 : 0)
             + (epicPetDrops > 0 ? 1 : 0)
-            + (legendaryPetDrops > 0 ? 1 : 0)
+            + (legendaryPetDrops > 0 ? 1 : 0),
+            allowUnlock
         );
 
         int totalPetDrops = rarePetDrops + epicPetDrops + legendaryPetDrops;
-        Achievement.scatha_pet_drop_any_1.setProgress(totalPetDrops);
-        Achievement.scatha_pet_drop_any_2.setProgress(totalPetDrops);
-        Achievement.scatha_pet_drop_any_3.setProgress(totalPetDrops);
-        Achievement.scatha_pet_drop_any_4.setProgress(totalPetDrops);
-        Achievement.scatha_pet_drop_any_repeatable.setRepeatingProgress(Achievement.scatha_pet_drop_any_4.goal, totalPetDrops, true);
+        Achievement.scatha_pet_drop_any_1.setProgress(totalPetDrops, allowUnlock);
+        Achievement.scatha_pet_drop_any_2.setProgress(totalPetDrops, allowUnlock);
+        Achievement.scatha_pet_drop_any_3.setProgress(totalPetDrops, allowUnlock);
+        Achievement.scatha_pet_drop_any_4.setProgress(totalPetDrops, allowUnlock);
+        Achievement.scatha_pet_drop_any_repeatable.setRepeatingProgress(Achievement.scatha_pet_drop_any_4.goal, totalPetDrops, allowUnlock);
 
         updateAlphaPetDropsAchievement();
     }
@@ -294,7 +295,7 @@ public class AchievementLogicManager
         scathaPro.persistentData.save();
     }
 
-    public void updateProgressAchievements()
+    public void updateProgressAchievements(boolean allowUnlock)
     {
         int achievementsCount = 0;
         int unlockedAchievementsCount = 0;
@@ -311,18 +312,18 @@ public class AchievementLogicManager
         }
 
         float unlockedAchievementsPercentage = (float) unlockedAchievementsCount / achievementsCount;
-        if (unlockedAchievementsPercentage >= 1f) Achievement.achievements_unlocked_all.setProgress(Achievement.achievements_unlocked_all.goal);
-        else if (unlockedAchievementsPercentage >= 0.5f) Achievement.achievements_unlocked_half.setProgress(Achievement.achievements_unlocked_half.goal);
+        if (unlockedAchievementsPercentage >= 1f) Achievement.achievements_unlocked_all.setProgress(Achievement.achievements_unlocked_all.goal, allowUnlock);
+        else if (unlockedAchievementsPercentage >= 0.5f) Achievement.achievements_unlocked_half.setProgress(Achievement.achievements_unlocked_half.goal, allowUnlock);
     }
 
-    public void updateDailyScathaStreakAchievements()
+    public void updateDailyScathaStreakAchievements(boolean allowUnlock)
     {
         int scathaFarmingStreak = scathaPro.getProfileData().scathaFarmingStreak.get();
-        Achievement.scatha_farming_streak_1.setProgress(scathaFarmingStreak);
-        Achievement.scatha_farming_streak_2.setProgress(scathaFarmingStreak);
-        Achievement.scatha_farming_streak_3.setProgress(scathaFarmingStreak);
-        Achievement.scatha_farming_streak_4.setProgress(scathaFarmingStreak);
-        Achievement.scatha_farming_streak_5.setProgress(scathaFarmingStreak);
+        Achievement.scatha_farming_streak_1.setProgress(scathaFarmingStreak, allowUnlock);
+        Achievement.scatha_farming_streak_2.setProgress(scathaFarmingStreak, allowUnlock);
+        Achievement.scatha_farming_streak_3.setProgress(scathaFarmingStreak, allowUnlock);
+        Achievement.scatha_farming_streak_4.setProgress(scathaFarmingStreak, allowUnlock);
+        Achievement.scatha_farming_streak_5.setProgress(scathaFarmingStreak, allowUnlock);
 
         LocalDate lastScathaFarmedDate = scathaPro.getProfileData().lastScathaFarmedDate.get();
         if (lastScathaFarmedDate != null)
@@ -337,7 +338,7 @@ public class AchievementLogicManager
             {
                 businessDaysFarmingProgress = lastFarmedDayOfWeek;
             }
-            Achievement.scatha_farming_streak_business_days.setProgress(businessDaysFarmingProgress);
+            Achievement.scatha_farming_streak_business_days.setProgress(businessDaysFarmingProgress, allowUnlock);
 
             int lastFarmedDayOfWeekend = lastFarmedDayOfWeek - 5; // 1, 2 = Sat, Sun
             int weekendFarmingProgress = 0;
@@ -345,12 +346,12 @@ public class AchievementLogicManager
             {
                 weekendFarmingProgress = lastFarmedDayOfWeekend;
             }
-            Achievement.scatha_farming_streak_weekend.setProgress(weekendFarmingProgress);
+            Achievement.scatha_farming_streak_weekend.setProgress(weekendFarmingProgress, allowUnlock);
         }
         else
         {
-            Achievement.scatha_farming_streak_business_days.setProgress(0);
-            Achievement.scatha_farming_streak_weekend.setProgress(0);
+            Achievement.scatha_farming_streak_business_days.setProgress(0, allowUnlock);
+            Achievement.scatha_farming_streak_weekend.setProgress(0, allowUnlock);
         }
     }
 }

@@ -38,8 +38,8 @@ public final class MinecraftLogicListeners
 
         // Update achievements
 
-        scathaPro.achievementLogicManager.updateKillsAchievements();
-        scathaPro.achievementLogicManager.updateSpawnAchievements();
+        scathaPro.achievementLogicManager.updateKillsAchievements(false);
+        scathaPro.achievementLogicManager.updateSpawnAchievements(false);
 
         Achievement.crystal_hollows_time_1.setProgress(0);
         Achievement.crystal_hollows_time_2.setProgress(0);

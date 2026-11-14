@@ -26,16 +26,18 @@ public class AchievementManager
     public AchievementManager(ScathaPro scathaPro)
     {
         this.scathaPro = scathaPro;
+
+        scathaPro.persistentDataProfileManager.onProfileChanged(_ -> delayedAchievementUnlocks.clear());
     }
 
     public void tick()
     {
         if (canUnlockAchievement())
         {
-            while (!delayedAchievementUnlocks.isEmpty())
+            DelayedAchievementUnlock unlock;
+            while ((unlock = delayedAchievementUnlocks.poll()) != null)
             {
-                DelayedAchievementUnlock delayedAchievementUnlock = delayedAchievementUnlocks.poll();
-                unlockAchievement(delayedAchievementUnlock.achievement, delayedAchievementUnlock.goalReachedCount);
+                unlockAchievement(unlock.achievement, unlock.goalReachedCount);
             }
         }
     }

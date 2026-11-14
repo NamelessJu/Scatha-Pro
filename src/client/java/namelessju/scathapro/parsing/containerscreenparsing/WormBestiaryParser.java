@@ -131,7 +131,7 @@ public class WormBestiaryParser extends ContainerScreenParser
                     scathaPro.persistentData.save();
                     scathaPro.mainOverlay.updateScathaKills();
 
-                    scathaPro.achievementLogicManager.updateDryStreakAchievements();
+                    scathaPro.achievementLogicManager.updateDryStreakAchievements(true);
 
                     scathaPro.chatManager.sendValueUpdatedMessage(
                         "saved Scatha kills from bestiary", currentScathaKills, kills

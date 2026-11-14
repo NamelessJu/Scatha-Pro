@@ -31,9 +31,9 @@ public final class ScathaProTickListeners
             UpdateChecker.checkForUpdate(scathaPro, false);
         }
 
-        scathaPro.achievementLogicManager.updatePetDropAmountAchievements();
-        scathaPro.achievementLogicManager.updateProgressAchievements();
-        scathaPro.achievementLogicManager.updateDailyScathaStreakAchievements();
+        scathaPro.achievementLogicManager.updatePetDropAmountAchievements(false);
+        scathaPro.achievementLogicManager.updateProgressAchievements(false);
+        scathaPro.achievementLogicManager.updateDailyScathaStreakAchievements(false);
     }
 
     private static void onCrystalHollowsTick(ScathaProEvents.CrystalHollowsTickEventData data)

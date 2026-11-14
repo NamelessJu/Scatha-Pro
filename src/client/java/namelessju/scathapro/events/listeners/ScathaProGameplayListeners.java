@@ -52,7 +52,7 @@ public final class ScathaProGameplayListeners
         scathaPro.coreManager.startWormSpawnCooldown(true);
         scathaPro.alertManager.wormPreSpawnAlert.play(scathaPro);
         scathaPro.mainOverlay.setShown(true);
-        scathaPro.achievementLogicManager.handleTunnelVisionRecoverAchievement();
+        scathaPro.achievementLogicManager.handleTunnelVisionRecoverAchievement(true);
     }
 
     private static void onWormSpawn(ScathaProEvents.WormEventData data)
@@ -170,7 +170,7 @@ public final class ScathaProGameplayListeners
         scathaPro.coreManager.startWormSpawnCooldown(false); // in case pre-spawn doesn't trigger when master volume is 0
         scathaPro.mainOverlay.updateWormStreak();
 
-        scathaPro.achievementLogicManager.updateSpawnAchievements();
+        scathaPro.achievementLogicManager.updateSpawnAchievements(true);
     }
 
     private static void onWormHit(ScathaProEvents.WormHitEventData data)
@@ -341,7 +341,7 @@ public final class ScathaProGameplayListeners
 
         scathaPro.persistentData.save();
 
-        scathaPro.achievementLogicManager.updateKillsAchievements();
+        scathaPro.achievementLogicManager.updateKillsAchievements(true);
         if (data.worm().getCurrentLifetime() <= 1000) Achievement.worm_kill_time_1.unlock();
         else if (data.worm().getCurrentLifetime() >= Constants.wormLifetime - 5000) Achievement.worm_kill_time_2.unlock();
     }
@@ -373,7 +373,7 @@ public final class ScathaProGameplayListeners
                 break;
         }
 
-        scathaPro.achievementLogicManager.updatePetDropAmountAchievements();
+        scathaPro.achievementLogicManager.updatePetDropAmountAchievements(true);
 
         switch (scathaPro.config.alerts.mode.get().id)
         {
@@ -406,7 +406,7 @@ public final class ScathaProGameplayListeners
             profileData.scathaKillsAtLastDrop.set(profileData.scathaKills.get());
             scathaPro.mainOverlay.updateScathaKillsSinceLastDrop();
 
-            scathaPro.achievementLogicManager.updateDryStreakAchievements();
+            scathaPro.achievementLogicManager.updateDryStreakAchievements(true);
         }
 
         profileData.isPetDropDryStreakInvalidated.set(false);

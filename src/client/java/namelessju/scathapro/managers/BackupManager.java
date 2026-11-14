@@ -34,6 +34,7 @@ public class BackupManager
     {
         this.scathaPro = scathaPro;
         backupDirectory = scathaPro.getConfigDirectoryPath().resolve(ScathaPro.MOD_ID + "_backups").toFile();
+        backupDirectory.mkdirs();
     }
 
     public void backup()

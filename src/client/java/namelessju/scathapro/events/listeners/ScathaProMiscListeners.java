@@ -39,7 +39,7 @@ public final class ScathaProMiscListeners
 
     private static void onAchievementUnlocked(ScathaProEvents.AchievementUnlockedEventData data)
     {
-        data.scathaPro().achievementLogicManager.updateProgressAchievements();
+        data.scathaPro().achievementLogicManager.updateProgressAchievements(true);
     }
 
     private static void onCrystalHollowsDayStarted(ScathaProEvents.CrystalHollowsDayStartedEventData data)
@@ -84,11 +84,11 @@ public final class ScathaProMiscListeners
         scathaPro.mainOverlay.updateScathaKills();
         scathaPro.mainOverlay.updateWormStreak();
 
-        scathaPro.achievementLogicManager.updateKillsTodayAchievements();
+        scathaPro.achievementLogicManager.updateKillsTodayAchievements(false);
     }
 
     private static void onScathaFarmingStreakChanged(ScathaProEvents.ScathaFarmingStreakChangedEventData data)
     {
-        data.scathaPro().achievementLogicManager.updateDailyScathaStreakAchievements();
+        data.scathaPro().achievementLogicManager.updateDailyScathaStreakAchievements(true);
     }
 }
